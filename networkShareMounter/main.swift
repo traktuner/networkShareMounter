@@ -3,7 +3,8 @@
 //  networkShareMounter
 //
 //  Created by Kett, Oliver on 20.03.17.
-//  Copyright © 2017 Kett, Oliver. All rights reserved.
+//  bugfixing by FAUmac Team
+//  Copyright © 2017 RRZE. All rights reserved.
 //
 
 import Foundation
@@ -13,7 +14,8 @@ import OpenDirectory
 
 // create subfolder in home to mount shares in
 let localizedFolder = config.translation[Locale.current.languageCode!] ?? config.translation["en"]!
-let mountpath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+let mountpath = NSString(string: "~/TestDir").expandingTildeInPath
+//let mountpath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
 do {
     let fm = FileManager.default
     if !fm.fileExists(atPath: mountpath) {
@@ -25,6 +27,55 @@ do {
     NSLog(error.localizedDescription)
     exit(2)
 }
+
+// extend String to create a valid path from a bunch of strings
+extension String {
+    func appendingPathComponent(_ string: String) -> String {
+        return URL(fileURLWithPath: self).appendingPathComponent(string).path
+    }
+}
+
+// function to delete obstructing files in mountDir Subdirectories
+func deleteUnneededFiles(path: String, filename: String) {
+    let fileManager = FileManager.default
+    do {
+        let filePaths = try fileManager.contentsOfDirectory(atPath: path)
+        for filePath in filePaths {
+            let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(filename)
+            if fileManager.fileExists(atPath: deleteFile) {
+                NSLog("Deleting obstructing file: \(deleteFile)")
+                try fileManager.removeItem(atPath: deleteFile)
+            }
+        }
+    } catch let error as NSError {
+        print("Could not list directory at \(path): \(error.debugDescription)")
+    }
+}
+
+// iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
+for toDelete in config.filesToDelete {
+    deleteUnneededFiles(path: mountpath, filename: toDelete)
+}
+
+// The directory with the mounts for the network-shares should be empty. All
+// former directories not deleted by the mounter should be nuked to avoid
+// creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
+let fileManager = FileManager.default
+do {
+    let dirPaths = try fileManager.contentsOfDirectory(atPath: mountpath)
+    for dirPath in dirPaths {
+        let deleteDir = mountpath.appendingPathComponent(dirPath)
+        NSLog("Deleting obstructing directory: \(deleteDir)")
+        do {
+            try fileManager.removeItem(atPath: deleteDir)
+        } catch let error as NSError {
+            print("Could not delete directory: \(deleteDir) \(error.debugDescription)")
+        }
+    }
+} catch let error as NSError {
+    print("Could not list directory at \(mountpath): \(error.debugDescription)")
+}
+
 
 var shares: [String] = UserDefaults(suiteName: config.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
 // every user may add its personal shares in the customNetworkShares array ...
