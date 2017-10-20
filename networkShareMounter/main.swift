@@ -14,8 +14,7 @@ import OpenDirectory
 
 // create subfolder in home to mount shares in
 let localizedFolder = config.translation[Locale.current.languageCode!] ?? config.translation["en"]!
-let mountpath = NSString(string: "~/TestDir").expandingTildeInPath
-//let mountpath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+let mountpath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
 do {
     let fm = FileManager.default
     if !fm.fileExists(atPath: mountpath) {
@@ -36,15 +35,31 @@ extension String {
 }
 
 // function to delete obstructing files in mountDir Subdirectories
-func deleteUnneededFiles(path: String, filename: String) {
+func deleteUnneededFiles(path: String, filename: String?) {
     let fileManager = FileManager.default
     do {
         let filePaths = try fileManager.contentsOfDirectory(atPath: path)
         for filePath in filePaths {
-            let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(filename)
-            if fileManager.fileExists(atPath: deleteFile) {
-                NSLog("Deleting obstructing file: \(deleteFile)")
-                try fileManager.removeItem(atPath: deleteFile)
+            if let unwrappedFilename = filename {
+                let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
+                if fileManager.fileExists(atPath: deleteFile) {
+                    NSLog("Deleting obstructing file \(deleteFile)")
+                    try fileManager.removeItem(atPath: deleteFile)
+                }
+            } else {
+                // we have a directory to remove
+                let deleteFile = path.appendingPathComponent(filePath)
+                let task = Process()
+                task.launchPath = "/bin/rmdir"
+                task.arguments = ["\(deleteFile)"]
+                let pipe = Pipe()
+                task.standardOutput = pipe
+                // Launch the task
+                task.launch()
+                // Get the data
+                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+                NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
             }
         }
     } catch let error as NSError {
@@ -60,22 +75,8 @@ for toDelete in config.filesToDelete {
 // The directory with the mounts for the network-shares should be empty. All
 // former directories not deleted by the mounter should be nuked to avoid
 // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
-let fileManager = FileManager.default
-do {
-    let dirPaths = try fileManager.contentsOfDirectory(atPath: mountpath)
-    for dirPath in dirPaths {
-        let deleteDir = mountpath.appendingPathComponent(dirPath)
-        NSLog("Deleting obstructing directory: \(deleteDir)")
-        do {
-            try fileManager.removeItem(atPath: deleteDir)
-        } catch let error as NSError {
-            print("Could not delete directory: \(deleteDir) \(error.debugDescription)")
-        }
-    }
-} catch let error as NSError {
-    print("Could not list directory at \(mountpath): \(error.debugDescription)")
-}
 
+deleteUnneededFiles(path: mountpath, filename: nil)
 
 var shares: [String] = UserDefaults(suiteName: config.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
 // every user may add its personal shares in the customNetworkShares array ...
