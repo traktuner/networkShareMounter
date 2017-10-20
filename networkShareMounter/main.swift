@@ -3,7 +3,7 @@
 //  networkShareMounter
 //
 //  Created by Kett, Oliver on 20.03.17.
-//  bugfixing by FAUmac Team
+//  bugfixing and enhancements by FAUmac Team
 //  Copyright © 2017 RRZE. All rights reserved.
 //
 
