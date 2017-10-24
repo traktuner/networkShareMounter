@@ -34,38 +34,63 @@ extension String {
     }
 }
 
+// check if a given directory is a mount point for a (remote) file system
+func isDirectoryFilesystemMount(atPath: String) -> Bool {
+    do {
+        let systemAttributes = try FileManager.default.attributesOfItem(atPath: atPath)
+        if let fileSystemFileNumber = systemAttributes[.systemFileNumber] as? NSNumber {
+            // if fileSystemFileNumber is 2 -> filesystem mount
+            if fileSystemFileNumber == 2 {
+                return true
+            }
+        }
+    } catch let error as NSError {
+        NSLog("Could not check directory at \(atPath): \(error.debugDescription)")
+        return false
+    }
+    return false
+}
+
 // function to delete obstructing files in mountDir Subdirectories
 func deleteUnneededFiles(path: String, filename: String?) {
     let fileManager = FileManager.default
     do {
         let filePaths = try fileManager.contentsOfDirectory(atPath: path)
         for filePath in filePaths {
-            if let unwrappedFilename = filename {
-                let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
-                if fileManager.fileExists(atPath: deleteFile) {
-                    NSLog("Deleting obstructing file \(deleteFile)")
-                    try fileManager.removeItem(atPath: deleteFile)
+            // check if directory is a (remote) filesystem mount
+            // if directory is a regular directory go on
+            if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
+                // if the function has a parameter we want ot hanlde files
+                if let unwrappedFilename = filename {
+                    if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
+                        let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
+                        if fileManager.fileExists(atPath: deleteFile) {
+                            NSLog("Deleting obstructing file \(deleteFile)")
+                            try fileManager.removeItem(atPath: deleteFile)
+                        }
+                    }
+                } else {
+                    // else we have a directory to remove
+                    let deleteFile = path.appendingPathComponent(filePath)
+                    let task = Process()
+                    task.launchPath = "/bin/rmdir"
+                    task.arguments = ["\(deleteFile)"]
+                    let pipe = Pipe()
+                    task.standardOutput = pipe
+                    // Launch the task
+                    task.launch()
+                    // Get the data
+                    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                    let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+                    NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
                 }
-            } else {
-                // we have a directory to remove
-                let deleteFile = path.appendingPathComponent(filePath)
-                let task = Process()
-                task.launchPath = "/bin/rmdir"
-                task.arguments = ["\(deleteFile)"]
-                let pipe = Pipe()
-                task.standardOutput = pipe
-                // Launch the task
-                task.launch()
-                // Get the data
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
-                NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
             }
         }
     } catch let error as NSError {
         print("Could not list directory at \(path): \(error.debugDescription)")
     }
 }
+
 
 // iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
 for toDelete in config.filesToDelete {
