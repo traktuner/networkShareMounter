@@ -19,7 +19,6 @@ struct config {
         kNAUIOptionKey: kNAUIOptionNoUI
         ] as! CFMutableDictionary
     static let mount_options = [
-        kNetFSMountFlagsKey: MNT_DONTBROWSE,
         kNetFSAllowSubMountsKey: true,
         kNetFSSoftMountKey: true
         ] as! CFMutableDictionary
