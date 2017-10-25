@@ -137,9 +137,9 @@ if shares.count == 0 {
         // of NSURL does not return a valid hostname.
         // So to workaround this magic, you need to make your CharacterSet a pure Swift object.
         // To do so, create a copy so that the evil magic is gone.
-        // normally the following should work:
         // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
         //
+        // normally the following should work:
         // guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) else { continue }
         let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
         guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: csCopy) else { continue }
