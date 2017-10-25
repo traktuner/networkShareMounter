@@ -131,7 +131,18 @@ if shares.count == 0 {
     NSLog("no shares configured!")
 } else {
     for share in shares {
-        guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) else { continue }
+        // oddly there is some undocumented magic done by addingPercentEncoding when the CharacterSet
+        // used as reference is an underlying NSCharacterSet class. It appears, it encodes even the ":"
+        // at the very beginning of the URL ( smb:// vs. smb0X0P+0// ). As a result, the host() function
+        // of NSURL does not return a valid hostname.
+        // So to workaround this magic, you need to make your CharacterSet a pure Swift object.
+        // To do so, create a copy so that the evil magic is gone.
+        // normally the following should work:
+        // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
+        //
+        // guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) else { continue }
+        let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
+        guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: csCopy) else { continue }
         guard let url = NSURL(string: encodedShare) else { continue }
         guard let host = url.host else { continue }
         
