@@ -31,8 +31,8 @@ If you want to distribute the plist with a configuration profile you have to do 
 
 ### Hints
 
-- There is a customNetworkShares array in the same defaults domain, that can be used to add additional shares by the user. 
-- If you want to change the installation directory, go to Build Settings > Deployment > Installation Directory. But keep in mind that you also have to change the path of the LaunchAgent. 
+- There is a `customNetworkShares` array in the same defaults domain, that can be used to add additional shares by the user. 
+- If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent. 
 - If you don't want to use a configuration profile to distribute the array of shares, this command could be interesting for: 
 
 ```sh
