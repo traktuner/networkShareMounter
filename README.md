@@ -15,18 +15,18 @@ If the current user has the attribute `SMBHome`, the user home will also be moun
 If you want to distribute the plist with a configuration profile you have to do it with a payload `com.apple.ManagedClient.preferences` like this:
 
 ```xml
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-    	<key>networkShares</key>
-    	<array>
-            <string>smb://home.your.domain/%USERNAME%</string>
-    		<string>smb://filer1.your.domain/share</string>
-    		<string>smb://filer2.your.domain/another share/foobar</string>
-    	</array>
-    </dict>
-    </plist>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>networkShares</key>
+	<array>
+        <string>smb://home.your.domain/%USERNAME%</string>
+		<string>smb://filer1.your.domain/share</string>
+		<string>smb://filer2.your.domain/another share/foobar</string>
+	</array>
+</dict>
+</plist>
 ```
 
 ### Hints
