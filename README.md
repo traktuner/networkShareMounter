@@ -21,7 +21,7 @@ If you want to distribute the plist with a configuration profile you have to do 
 <dict>
 	<key>networkShares</key>
 	<array>
-        <string>smb://home.your.domain/%USERNAME%</string>
+		<string>smb://home.your.domain/%USERNAME%</string>
 		<string>smb://filer1.your.domain/share</string>
 		<string>smb://filer2.your.domain/another share/foobar</string>
 	</array>
