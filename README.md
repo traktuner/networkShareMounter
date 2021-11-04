@@ -40,4 +40,4 @@ defaults write <your defaultsdomain> networkShares -array "smb://filer.your.doma
 ```
 
 ## Optional Paramater
-As a request there is an optional parameter `--openMountDir` which opens a new finder window with the directory and the mounted shares
+There is an optional parameter `--openMountDir` which opens a new finder window with the directory and the mounted shares
