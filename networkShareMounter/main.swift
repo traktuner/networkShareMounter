@@ -11,6 +11,7 @@ import Foundation
 import NetFS
 import SystemConfiguration
 import OpenDirectory
+import AppKit
 
 // create subfolder in home to mount shares in
 let localizedFolder = config.translation[Locale.current.languageCode!] ?? config.translation["en"]!
@@ -171,3 +172,9 @@ if shares.count == 0 {
     }
 }
 
+if CommandLine.arguments.contains("-openMountDir") {
+    if let mountDirectory =  URL(string: mountpath) {
+        NSLog("Trying to open \(mountDirectory) in Finder...")
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
+    }
+}
