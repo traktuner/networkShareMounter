@@ -38,3 +38,6 @@ If you want to distribute the plist with a configuration profile you have to do 
 ```sh
 defaults write <your defaultsdomain> networkShares -array "smb://filer.your.domain/share" "smb://filer2.your.domain/home/Another Share/foobar" "smb://home.your.domain/%USERNAME%"
 ```
+
+## Optional Paramater
+As a request there is an optional parameter `--openMountDir` which opens a new finder window with the directory and the mounted shares
