@@ -9,19 +9,21 @@
 
 import NetFS
 
-struct config {
+struct Settings {
     static let defaultsDomain = "de.uni-erlangen.rrze.networkShareMounter"
     static let translation = [
         "en": "Networkshares",
         "de": "Netzlaufwerke"
         ]
-    static let open_options = [
+    // swiftlint:disable force_cast
+    static let openOptions = [
         kNAUIOptionKey: kNAUIOptionNoUI
         ] as! CFMutableDictionary
-    static let mount_options = [
+    static let mountOptions = [
         kNetFSAllowSubMountsKey: true,
         kNetFSSoftMountKey: true
         ] as! CFMutableDictionary
+    // swiftlint:enable force_cast
     static let filesToDelete = [
         ".DS_Store",
         ".autodiskmounted"

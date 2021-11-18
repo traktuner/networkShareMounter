@@ -14,12 +14,12 @@ import OpenDirectory
 import AppKit
 
 // create subfolder in home to mount shares in
-let localizedFolder = config.translation[Locale.current.languageCode!] ?? config.translation["en"]!
+let localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
 let mountpath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
 do {
-    let fm = FileManager.default
-    if !fm.fileExists(atPath: mountpath) {
-        try fm.createDirectory(atPath: mountpath, withIntermediateDirectories: false, attributes: nil)
+    let fileManager = FileManager.default
+    if !fileManager.fileExists(atPath: mountpath) {
+        try fileManager.createDirectory(atPath: mountpath, withIntermediateDirectories: false, attributes: nil)
         NSLog("\(mountpath): created")
     }
 } catch {
@@ -92,8 +92,8 @@ func deleteUnneededFiles(path: String, filename: String?) {
     }
 }
 
-// iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
-for toDelete in config.filesToDelete {
+// iterate through all files defined in settings file (e.g. .autodiskmounted, .DS_Store)
+for toDelete in Settings.filesToDelete {
     deleteUnneededFiles(path: mountpath, filename: toDelete)
 }
 
@@ -103,9 +103,9 @@ for toDelete in config.filesToDelete {
 
 deleteUnneededFiles(path: mountpath, filename: nil)
 
-var shares: [String] = UserDefaults(suiteName: config.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
+var shares: [String] = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
 // every user may add its personal shares in the customNetworkShares array ...
-let customshares = UserDefaults(suiteName: config.defaultsDomain)?.array(forKey: "customNetworkShares") as? [String] ?? []
+let customshares = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "customNetworkShares") as? [String] ?? []
 for share in customshares {
     shares.append(share)
 }
@@ -113,10 +113,16 @@ for share in customshares {
 shares = shares.map {
     $0.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
 }
+// swiftlint:disable force_cast
 // append SMBHomeDirectory attribute to list of shares to mount
 do {
     let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-    let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName, matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome, maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+    let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers,
+                            attribute: kODAttributeTypeRecordName,
+                            matchType: ODMatchType(kODMatchEqualTo),
+                            queryValues: NSUserName(),
+                            returnAttributes: kODAttributeTypeSMBHome,
+                            maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
     if let result = query[0].value(forKey: kODAttributeTypeSMBHome) as? [String] {
         var homeDirectory = result[0]
         homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
@@ -126,8 +132,9 @@ do {
 }
 // eliminate duplicates
 shares = NSOrderedSet(array: shares).array as! [String]
+// swiftlint:enable force_cast
 
-if shares.count == 0 {
+if shares.isEmpty {
     NSLog("no shares configured!")
 } else {
     for share in shares {
@@ -152,9 +159,9 @@ if shares.count == 0 {
         guard SCNetworkReachabilityGetFlags(hostReachability!, &flags) == true else { NSLog("could not determine reachability for host \(host)"); continue }
         guard flags.contains(.reachable) == true else { NSLog("\(host): target not reachable"); continue }
 
-        let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, config.open_options, config.mount_options, nil)
+        let returnCode = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, Settings.openOptions, Settings.mountOptions, nil)
 
-        switch rc {
+        switch returnCode {
         case 0:
             NSLog("\(url): successfully mounted")
         case 2:
@@ -166,7 +173,7 @@ if shares.count == 0 {
         case -6003:
             NSLog("\(url): share does not exist")
         default:
-            NSLog("\(url) unknown return code: \(rc)")
+            NSLog("\(url) unknown return code: \(returnCode)")
         }
     }
 }
