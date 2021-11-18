@@ -92,7 +92,6 @@ func deleteUnneededFiles(path: String, filename: String?) {
     }
 }
 
-
 // iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
 for toDelete in config.filesToDelete {
     deleteUnneededFiles(path: mountpath, filename: toDelete)
@@ -146,15 +145,15 @@ if shares.count == 0 {
         guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: csCopy) else { continue }
         guard let url = NSURL(string: encodedShare) else { continue }
         guard let host = url.host else { continue }
-        
+
         // check if we have network connectivity
         var flags = SCNetworkReachabilityFlags(rawValue: 0)
         let hostReachability = SCNetworkReachabilityCreateWithName(nil, (host as NSString).utf8String!)
         guard SCNetworkReachabilityGetFlags(hostReachability!, &flags) == true else { NSLog("could not determine reachability for host \(host)"); continue }
         guard flags.contains(.reachable) == true else { NSLog("\(host): target not reachable"); continue }
-        
+
         let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, config.open_options, config.mount_options, nil)
-        
+
         switch rc {
         case 0:
             NSLog("\(url): successfully mounted")

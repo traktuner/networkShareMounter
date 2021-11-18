@@ -13,7 +13,7 @@ struct config {
     static let defaultsDomain = "de.uni-erlangen.rrze.networkShareMounter"
     static let translation = [
         "en": "Networkshares",
-        "de": "Netzlaufwerke",
+        "de": "Netzlaufwerke"
         ]
     static let open_options = [
         kNAUIOptionKey: kNAUIOptionNoUI
