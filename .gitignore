@@ -12,6 +12,8 @@
 # scan temporary files
 **/fastlane/test_output
 
+**/swiftlint.result.json
+
 ## Build generated
 build/
 DerivedData/
