@@ -12,21 +12,94 @@
 
 # Uncomment the line if you want fastlane to automatically update itself
 # update_fastlane
+skip_docs
+
+# git url of match
+@match_git_url = ENV["MATCH_GIT_URL"]
+
 
 default_platform(:mac)
 
 platform :mac do
   desc "Description of what the lane does"
   lane :custom_lane do
-    notarize(
-        package: app_path, # Path to package to notarize, e.g. .app bundle or disk image
-        bundle_id: bundle_id # Not required for .app bundles, bundle identifier to uniquely identify the package.
-    )
     # add actions here: https://docs.fastlane.tools/actions
   end
 end
 
-lane :test do
+lane :getbundleid do
+  desc "gets bundleid from the xcode project files"
+  get_product_bundle_id(project_filepath: 'networkShareMounter.xcodeproj', scheme: 'networkShareMounter')
+end
+
+lane :getlatestag do
+  desc "gets the latest git tag. This tag is used to set the version number of the package"
+  tags = git_tags(limit: 1)
+  tags.join()
+end
+
+lane :beta do
+  increment_build_number(
+    xcodeproj: "networkShareMounter.xcodeproj"
+  )
+  increment_version_number(
+    bump_type: "patch",
+    #version_number: "1.0.5",      # specify specific version number (optional, omitting it increments patch version number)
+    xcodeproj: "networkShareMounter.xcodeproj"  # (optional, you must specify the path to your main Xcode project if it is not in the project root directory)
+  )
+  build_mac_app(scheme: "networkShareMounter",
+            #workspace: "Example.xcworkspace",
+            include_bitcode: false)
+end
+
+lane :release do
+  id = getbundleid
+  tag = getlatestag
+  signing_id = ENV["SIGNING_ID"]
+  # testet auf die Verfügbarkeit einer Xcode Version (in dem Fall nur auf major release)
+  #xcversion(version: "~> 12")
+  # dasselbe wie oben, nur strikter
+  ensure_xcode_version(
+      version: "13",
+      strict: false)
+  #ensure_git_status_clean
+  swiftlint(
+    mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
+    output_file: "swiftlint.result.json", # The path of the output file (optional)
+    config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
+    files: [                                # List of files to process (optional)
+        "networkShareMounter/main.swift",
+        "networkShareMounter/config.swift"
+    ],
+    raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
+    ignore_exit_status: true    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
+  )
+  get_certificates
+  #get_provisioning_profile
+  #build_mac_app(
+  gym(
+    clean: true,
+    silent: false,
+    #output_directory: "build/",
+    export_method: "mac-application",
+    #skip_codesigning: true,
+    #skip_archive: true
+  )
+  #gitlab_release()
+  # notarize(
+  #       package: app_path, # Path to package to notarize, e.g. .app bundle or disk image
+  #       bundle_id: bundle_id # Not required for .app bundles, bundle identifier to uniquely identify the package.
+  # )
+end
+
+lane :runbuild do
+  id = getbundleid
+  tag = getlatestag
+  signing_id = ENV["SIGNING_ID"]
+  output = sh("../build.sh", "#{id}", "#{tag}", "#{signing_id}")
+end
+
+lane :teamstest do
   teams_bot(
     teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/6c157802c97c49d183cc9e01702025ff/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
     title: 'Welcome from Fastlane',

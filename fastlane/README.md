@@ -15,9 +15,24 @@ Install _fastlane_ using
 or alternatively using `brew install fastlane`
 
 # Available Actions
+### macrelease
+```
+fastlane macrelease
+```
+
+### debug
+```
+fastlane debug
+```
+
 ### test
 ```
 fastlane test
+```
+
+### teamstest
+```
+fastlane teamstest
 ```
 
 
