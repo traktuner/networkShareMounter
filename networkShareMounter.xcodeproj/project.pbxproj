@@ -10,7 +10,33 @@
 		D60FA5201E7FBE1400D9B5A5 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60FA51F1E7FBE1400D9B5A5 /* main.swift */; };
 		D60FA5271E7FBE2200D9B5A5 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60FA5261E7FBE2200D9B5A5 /* config.swift */; };
 		D6BA832B1E962458003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = D6BA832A1E94F289003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist */; };
+		F77107B7274EC51600556B20 /* Monitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B6274EC51600556B20 /* Monitor.swift */; };
+		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
+		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
+		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
+		F79B159A274E722000C322A8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1599274E722000C322A8 /* ViewController.swift */; };
+		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
+		F79B159F274E722100C322A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F79B159D274E722100C322A8 /* Main.storyboard */; };
+		F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */; };
+		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F79B15A6274E722100C322A8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D60FA5141E7FBE1300D9B5A5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F79B1594274E722000C322A8;
+			remoteInfo = "Network Share Mounter";
+		};
+		F79B15B0274E722100C322A8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D60FA5141E7FBE1300D9B5A5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F79B1594274E722000C322A8;
+			remoteInfo = "Network Share Mounter";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		D60FA51A1E7FBE1300D9B5A5 /* CopyFiles */ = {
@@ -30,10 +56,45 @@
 		D60FA51F1E7FBE1400D9B5A5 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		D60FA5261E7FBE2200D9B5A5 /* config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		D6BA832A1E94F289003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "de.uni-erlangen.rrze.networkShareMounter.plist"; sourceTree = "<group>"; };
+		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
+		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
+		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
+		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F79B1599274E722000C322A8 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		F79B159B274E722100C322A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F79B159E274E722100C322A8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Network_Share_Mounter.entitlements; sourceTree = "<group>"; };
+		F79B15A5274E722100C322A8 /* Network Share MounterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Network Share MounterTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Network Share MounterUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Network-Share-Mounter-Info.plist"; sourceTree = SOURCE_ROOT; };
+		F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMounterViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D60FA5191E7FBE1300D9B5A5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F79B1592274E722000C322A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F79B15A2274E722100C322A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F79B15AC274E722100C322A8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -47,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				D60FA51E1E7FBE1400D9B5A5 /* networkShareMounter */,
+				F79B1596274E722000C322A8 /* Network Share Mounter */,
 				D60FA51D1E7FBE1400D9B5A5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -55,6 +117,9 @@
 			isa = PBXGroup;
 			children = (
 				D60FA51C1E7FBE1400D9B5A5 /* networkShareMounter */,
+				F79B1595274E722000C322A8 /* Network Share Mounter.app */,
+				F79B15A5274E722100C322A8 /* Network Share MounterTests.xctest */,
+				F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,6 +132,23 @@
 				D60FA5261E7FBE2200D9B5A5 /* config.swift */,
 			);
 			path = networkShareMounter;
+			sourceTree = "<group>";
+		};
+		F79B1596274E722000C322A8 /* Network Share Mounter */ = {
+			isa = PBXGroup;
+			children = (
+				F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */,
+				F77107B8274EC76200556B20 /* Mounter.swift */,
+				F77107BA274EC7D200556B20 /* config.swift */,
+				F79B1597274E722000C322A8 /* AppDelegate.swift */,
+				F77107B6274EC51600556B20 /* Monitor.swift */,
+				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
+				F79B1599274E722000C322A8 /* ViewController.swift */,
+				F79B159B274E722100C322A8 /* Assets.xcassets */,
+				F79B159D274E722100C322A8 /* Main.storyboard */,
+				F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */,
+			);
+			path = "Network Share Mounter";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -89,21 +171,87 @@
 			productReference = D60FA51C1E7FBE1400D9B5A5 /* networkShareMounter */;
 			productType = "com.apple.product-type.tool";
 		};
+		F79B1594274E722000C322A8 /* Network Share Mounter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F79B15BD274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share Mounter" */;
+			buildPhases = (
+				F79B1591274E722000C322A8 /* Sources */,
+				F79B1592274E722000C322A8 /* Frameworks */,
+				F79B1593274E722000C322A8 /* Resources */,
+				F7BAC10E274FBCB000B5BFF4 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Network Share Mounter";
+			packageProductDependencies = (
+				F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */,
+			);
+			productName = "Network Share Mounter";
+			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F79B15A4274E722100C322A8 /* Network Share MounterTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F79B15BE274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share MounterTests" */;
+			buildPhases = (
+				F79B15A1274E722100C322A8 /* Sources */,
+				F79B15A2274E722100C322A8 /* Frameworks */,
+				F79B15A3274E722100C322A8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F79B15A7274E722100C322A8 /* PBXTargetDependency */,
+			);
+			name = "Network Share MounterTests";
+			productName = "Network Share MounterTests";
+			productReference = F79B15A5274E722100C322A8 /* Network Share MounterTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F79B15AE274E722100C322A8 /* Network Share MounterUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F79B15BF274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share MounterUITests" */;
+			buildPhases = (
+				F79B15AB274E722100C322A8 /* Sources */,
+				F79B15AC274E722100C322A8 /* Frameworks */,
+				F79B15AD274E722100C322A8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F79B15B1274E722100C322A8 /* PBXTargetDependency */,
+			);
+			name = "Network Share MounterUITests";
+			productName = "Network Share MounterUITests";
+			productReference = F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		D60FA5141E7FBE1300D9B5A5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0800;
+				LastSwiftUpdateCheck = 1320;
 				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Regionales Rechenzentrum Erlangen";
 				TargetAttributes = {
 					D60FA51B1E7FBE1300D9B5A5 = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = C8F68RFW4L;
 						LastSwiftMigration = 1030;
-						ProvisioningStyle = Automatic;
+					};
+					F79B1594274E722000C322A8 = {
+						CreatedOnToolsVersion = 13.2;
+					};
+					F79B15A4274E722100C322A8 = {
+						CreatedOnToolsVersion = 13.2;
+						TestTargetID = F79B1594274E722000C322A8;
+					};
+					F79B15AE274E722100C322A8 = {
+						CreatedOnToolsVersion = 13.2;
+						TestTargetID = F79B1594274E722000C322A8;
 					};
 				};
 			};
@@ -117,14 +265,66 @@
 				Base,
 			);
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
+			packageReferences = (
+				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
+			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				D60FA51B1E7FBE1300D9B5A5 /* networkShareMounter */,
+				F79B1594274E722000C322A8 /* Network Share Mounter */,
+				F79B15A4274E722100C322A8 /* Network Share MounterTests */,
+				F79B15AE274E722100C322A8 /* Network Share MounterUITests */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F79B1593274E722000C322A8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F79B159C274E722100C322A8 /* Assets.xcassets in Resources */,
+				F79B159F274E722100C322A8 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F79B15A3274E722100C322A8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F79B15AD274E722100C322A8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F7BAC10E274FBCB000B5BFF4 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\"${BUILT_PRODUCTS_DIR}/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/copy-helper-swiftpm.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D60FA5181E7FBE1300D9B5A5 /* Sources */ = {
@@ -136,7 +336,58 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F79B1591274E722000C322A8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
+				F79B159A274E722000C322A8 /* ViewController.swift in Sources */,
+				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
+				F77107BB274EC7D200556B20 /* config.swift in Sources */,
+				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
+				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F79B15A1274E722100C322A8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F79B15AB274E722100C322A8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F79B15A7274E722100C322A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F79B1594274E722000C322A8 /* Network Share Mounter */;
+			targetProxy = F79B15A6274E722100C322A8 /* PBXContainerItemProxy */;
+		};
+		F79B15B1274E722100C322A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F79B1594274E722000C322A8 /* Network Share Mounter */;
+			targetProxy = F79B15B0274E722100C322A8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		F79B159D274E722100C322A8 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F79B159E274E722100C322A8 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		D60FA5211E7FBE1400D9B5A5 /* Debug */ = {
@@ -256,7 +507,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				INFOPLIST_FILE = "$(SRCROOT)/networkShareMounter/de.uni-erlangen.rrze.networkShareMounter.plist";
@@ -271,7 +522,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				INFOPLIST_FILE = "$(SRCROOT)/networkShareMounter/de.uni-erlangen.rrze.networkShareMounter.plist";
@@ -279,6 +530,205 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F79B15B7274E722100C322A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "Network Share Mounter/Network_Share_Mounter.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Network-Share-Mounter-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2021 Regionales Rechenzentrum Erlangen. All rights reserved.";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-Mounter";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F79B15B8274E722100C322A8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "Network Share Mounter/Network_Share_Mounter.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Network-Share-Mounter-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2021 Regionales Rechenzentrum Erlangen. All rights reserved.";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-Mounter";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F79B15B9274E722100C322A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C8F68RFW4L;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Network Share Mounter.app/Contents/MacOS/Network Share Mounter";
+			};
+			name = Debug;
+		};
+		F79B15BA274E722100C322A8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C8F68RFW4L;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Network Share Mounter.app/Contents/MacOS/Network Share Mounter";
+			};
+			name = Release;
+		};
+		F79B15BB274E722100C322A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C8F68RFW4L;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Network Share Mounter";
+			};
+			name = Debug;
+		};
+		F79B15BC274E722100C322A8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C8F68RFW4L;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Network Share Mounter";
 			};
 			name = Release;
 		};
@@ -303,7 +753,53 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		F79B15BD274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share Mounter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F79B15B7274E722100C322A8 /* Debug */,
+				F79B15B8274E722100C322A8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F79B15BE274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share MounterTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F79B15B9274E722100C322A8 /* Debug */,
+				F79B15BA274E722100C322A8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F79B15BF274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share MounterUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F79B15BB274E722100C322A8 /* Debug */,
+				F79B15BC274E722100C322A8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */;
+			productName = LaunchAtLogin;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D60FA5141E7FBE1300D9B5A5 /* Project object */;
 }
