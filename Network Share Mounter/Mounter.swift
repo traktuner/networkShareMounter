@@ -153,52 +153,54 @@ extension Mounter {
             NSLog("no shares configured!")
         } else {
             for share in shares {
-                // oddly there is some undocumented magic done by addingPercentEncoding when the CharacterSet
-                // used as reference is an underlying NSCharacterSet class. It appears, it encodes even the ":"
-                // at the very beginning of the URL ( smb:// vs. smb0X0P+0// ). As a result, the host() function
-                // of NSURL does not return a valid hostname.
-                // So to workaround this magic, you need to make your CharacterSet a pure Swift object.
-                // To do so, create a copy so that the evil magic is gone.
-                // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
-                //
-                // normally the following should work:
-                // guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) else { continue }
-                let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
-                guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: csCopy) else { continue }
-                guard let url = NSURL(string: encodedShare) else { continue }
-                guard let host = url.host else { continue }
-                
-                // check if we have network connectivity
-                var flags = SCNetworkReachabilityFlags(rawValue: 0)
-                let hostReachability = SCNetworkReachabilityCreateWithName(nil, (host as NSString).utf8String!)
-                guard SCNetworkReachabilityGetFlags(hostReachability!, &flags) == true else { NSLog("could not determine reachability for host \(host)"); continue }
-                guard flags.contains(.reachable) == true else { NSLog("\(host): target not reachable"); continue }
-                
-                let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, config.open_options, config.mount_options, nil)
-                
-                switch rc {
-                case 0:
-                    NSLog("\(url): successfully mounted")
-                case 2:
-                    NSLog("\(url): does not exist")
-                case 17:
-                    NSLog("\(url): already mounted")
-                case 65:
-                    NSLog("\(url): no route to host")
-                case -6003:
-                    NSLog("\(url): share does not exist")
-                default:
-                    NSLog("\(url) unknown return code: \(rc)")
-                }
+                _ = doTheMount(forShare: share)
             }
         }
+    }
+}
 
-//        if CommandLine.arguments.contains("-openMountDir") {
-//            if let mountDirectory =  URL(string: mountpath) {
-//                NSLog("Trying to open \(mountDirectory) in Finder...")
-//                    NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
-//            }
-//        }
+extension Mounter {
+    func doTheMount(forShare share: String) -> Bool {
+        // oddly there is some undocumented magic done by addingPercentEncoding when the CharacterSet
+        // used as reference is an underlying NSCharacterSet class. It appears, it encodes even the ":"
+        // at the very beginning of the URL ( smb:// vs. smb0X0P+0// ). As a result, the host() function
+        // of NSURL does not return a valid hostname.
+        // So to workaround this magic, you need to make your CharacterSet a pure Swift object.
+        // To do so, create a copy so that the evil magic is gone.
+        // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
+        //
+        // normally the following should work:
+        // guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) else { continue }
+        let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
+        guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: csCopy) else { return(false) }
+        guard let url = NSURL(string: encodedShare) else { return(false) }
+        guard let host = url.host else { return(false) }
+
+        // check if we have network connectivity
+        var flags = SCNetworkReachabilityFlags(rawValue: 0)
+        let hostReachability = SCNetworkReachabilityCreateWithName(nil, (host as NSString).utf8String!)
+        guard SCNetworkReachabilityGetFlags(hostReachability!, &flags) == true else { NSLog("could not determine reachability for host \(host)"); return(false) }
+        guard flags.contains(.reachable) == true else { NSLog("\(host): target not reachable"); return(false) }
+
+        let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, config.open_options, config.mount_options, nil)
+
+        switch rc {
+        case 0:
+            NSLog("\(url): successfully mounted")
+            return(true)
+        case 2:
+            NSLog("\(url): does not exist")
+        case 17:
+            NSLog("\(url): already mounted")
+            return(true)
+        case 65:
+            NSLog("\(url): no route to host")
+        case -6003:
+            NSLog("\(url): share does not exist")
+        default:
+            NSLog("\(url) unknown return code: \(rc)")
+        }
+        return(false)
     }
 }
 

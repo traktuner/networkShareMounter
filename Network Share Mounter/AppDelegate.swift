@@ -15,8 +15,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     
     let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-    let popover = NSPopover()
+    var window = NSWindow()
     let userDefaults = UserDefaults.standard
+
     
     // An observer that you use to monitor and react to network changes
     let monitor = NWPathMonitor()
@@ -24,6 +25,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var timer = Timer()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        //print(Array(UserDefaults.standard.dictionaryRepresentation()))
+        //dump(Array(UserDefaults.standard.dictionaryRepresentation().keys))
+//        UserDefaults.standard.removeObject(forKey: "autostart")
+//        UserDefaults.standard.removeObject(forKey: "customNetworkShares")
+//        UserDefaults.standard.removeObject(forKey: "networkShares")
+//        UserDefaults.standard.synchronize()
         
         //
         // using "register" instead of "get" will set the values according to the plist read
@@ -49,8 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             //button.action = #selector(togglePopover(_:))
             //button.action = #selector(AppDelegate.togglePopover(_:))
         }
-        //popover.contentViewController = NetworkShareMounterViewController.newInsatnce()
-        //self.popover.animates = false
+        window.contentViewController = NetworkShareMounterViewController.newInsatnce()
         constructMenu()
         
         // Do any additional setup after loading the view.
@@ -67,7 +74,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        // write changed values back to userDefaults
+        if userDefaults.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
+            userDefaults.set(true, forKey: "autostart")
+        }
     }
     
     
@@ -91,33 +101,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
 
         menu.addItem(NSMenuItem(title: "Network Share Mounter", action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
+        menu.addItem(NSMenuItem(title: "Einstellungen ...", action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
         //menu.addItem(NSMenuItem.separator())
         if userDefaults.bool(forKey: "canQuit") == true {
             menu.addItem(NSMenuItem(title: "Network Share Mounter Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         }
         statusItem.menu = menu
     }
-    
-    @objc func togglePopover(_ sender: Any?) {
-      if popover.isShown {
-        closePopover(sender: sender)
-      } else {
-        showPopover(sender: sender)
-      }
-    }
 
-    func showPopover(sender: Any?) {
-      if let button = statusItem.button {
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
-      }
-    }
-
-    func closePopover(sender: Any?) {
-      popover.performClose(sender)
+    @objc func showWindow(_ sender: Any?) {
+        //
+        // folgender Code zeigt ein neues Fenster an - ohne eigenen WindowController. Es tut was es soll, funktkioniert und ich denke, da
+        // werde/würde ich nicht lang rum machen.
+        // Geschlossen wird es mit dem roten button links oben, nachdem das andere Apps auch so machen ¯\_(ツ)_/¯ 
+        //
+        // without titlebar and title-text
+        window.titlebarAppearsTransparent = true
+        //
+        // somehow we close the window
+        window.styleMask.insert([.closable])
+        //
+        // show the window at the center of the current display
+        window.center()
+        //
+        // bring the app itself to front
+        NSApp.activate(ignoringOtherApps: true)
+        //
+        // bringt the window to front
+        window.orderFrontRegardless()
+        //
+        // make this window the key window receibing keyboard and other non-touch related events
+        window.makeKey()
     }
 
     //
-    // method to read a file with a bunch of defaults instead of setting it in the source code
+    // method to read a file with a bunch of defaults instead of setting them in the source code
     private func readPropertyList() -> [String: Any]? {
         guard let plistPath = Bundle.main.path(forResource: "DefaultValues", ofType: "plist"),
                     let plistData = FileManager.default.contents(atPath: plistPath) else {

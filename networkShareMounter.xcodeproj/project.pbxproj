@@ -15,7 +15,6 @@
 		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
-		F79B159A274E722000C322A8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1599274E722000C322A8 /* ViewController.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F79B159F274E722100C322A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F79B159D274E722100C322A8 /* Main.storyboard */; };
 		F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */; };
@@ -57,13 +56,13 @@
 		D60FA51F1E7FBE1400D9B5A5 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		D60FA5261E7FBE2200D9B5A5 /* config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		D6BA832A1E94F289003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "de.uni-erlangen.rrze.networkShareMounter.plist"; sourceTree = "<group>"; };
+		F7291FEC275FD17C000A147E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		F79B1599274E722000C322A8 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		F79B159B274E722100C322A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F79B159E274E722100C322A8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Network_Share_Mounter.entitlements; sourceTree = "<group>"; };
@@ -146,7 +145,6 @@
 				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
 				F77107B6274EC51600556B20 /* Monitor.swift */,
 				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
-				F79B1599274E722000C322A8 /* ViewController.swift */,
 				F79B159B274E722100C322A8 /* Assets.xcassets */,
 				F79B159D274E722100C322A8 /* Main.storyboard */,
 				F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */,
@@ -263,9 +261,9 @@
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 				Base,
+				de,
 			);
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
@@ -345,7 +343,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
-				F79B159A274E722000C322A8 /* ViewController.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
@@ -387,6 +384,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				F79B159E274E722100C322A8 /* Base */,
+				F7291FEC275FD17C000A147E /* de */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";

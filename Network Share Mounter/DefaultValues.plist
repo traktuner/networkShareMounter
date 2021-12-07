@@ -6,5 +6,7 @@
 	<false/>
 	<key>canQuit</key>
 	<true/>
+	<key>customNetworkShares</key>
+	<array/>
 </dict>
 </plist>
