@@ -689,18 +689,16 @@
                         <rect key="frame" x="0.0" y="0.0" width="512" height="352"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
-                                <rect key="frame" x="20" y="311" width="382" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
+                                <rect key="frame" x="20" y="312" width="382" height="20"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="1KD-eI-R1J">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ip-Eo-ik3">
+                            <scrollView autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ip-Eo-ik3">
                                 <rect key="frame" x="20" y="205" width="472" height="98"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <clipView key="contentView" drawsBackground="NO" id="PiI-xC-UC9">
                                     <rect key="frame" x="1" y="1" width="470" height="96"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -728,9 +726,8 @@
                                                             <rect key="frame" x="8" y="0.0" width="453" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
-                                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
+                                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
                                                                     <rect key="frame" x="0.0" y="4" width="453" height="16"/>
-                                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="cMp-HE-rms">
                                                                         <font key="font" usesAppearanceFont="YES"/>
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -746,6 +743,11 @@
                                                                     </connections>
                                                                 </textField>
                                                             </subviews>
+                                                            <constraints>
+                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="leading" secondItem="yc9-SB-hYJ" secondAttribute="leading" constant="2" id="ZmS-VN-ibu"/>
+                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="centerX" secondItem="yc9-SB-hYJ" secondAttribute="centerX" id="iye-xg-YOS"/>
+                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="centerY" secondItem="yc9-SB-hYJ" secondAttribute="centerY" id="ofb-aK-uTh"/>
+                                                            </constraints>
                                                             <connections>
                                                                 <outlet property="textField" destination="ci4-hV-QOK" id="nV2-Hz-cLo"/>
                                                             </connections>
@@ -769,9 +771,8 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wTV-XD-Goa">
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="wTV-XD-Goa">
                                 <rect key="frame" x="18" y="19" width="474" height="18"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="check" title="Launch Network Share Mounter at login" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="LYP-vw-Zhf">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -784,9 +785,11 @@
                                     </binding>
                                 </connections>
                             </button>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
                                 <rect key="frame" x="45" y="70" width="449" height="100"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="100" id="q0T-sL-59e"/>
+                                </constraints>
                                 <textFieldCell key="cell" selectable="YES" enabled="NO" id="c4d-tI-W6k">
                                     <font key="font" metaFont="system"/>
                                     <string key="title">You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. 
@@ -796,9 +799,8 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uzk-qz-SRD">
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="uzk-qz-SRD">
                                 <rect key="frame" x="403" y="305" width="96" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Add share" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="mZ5-S4-8d0">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -807,9 +809,12 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="addShare:" target="XfG-lQ-9wD" id="br7-yn-kdS"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="d26-jj-wHS">
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d26-jj-wHS">
                                 <rect key="frame" x="20" y="186" width="23" height="20"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="ATP-5x-xLG"/>
+                                    <constraint firstAttribute="width" constant="23" id="aio-8m-w1c"/>
+                                </constraints>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSRemoveTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="NgK-8t-CVO">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -818,11 +823,34 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
                                 </connections>
                             </button>
-                            <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
+                            <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
                                 <rect key="frame" x="20" y="53" width="472" height="5"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </box>
                         </subviews>
+                        <constraints>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="47" id="3qk-QW-nEs"/>
+                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="d26-jj-wHS" secondAttribute="leading" id="6nQ-35-l8j"/>
+                            <constraint firstItem="uWO-es-rt8" firstAttribute="top" secondItem="J0j-se-pTf" secondAttribute="bottom" constant="14" id="AeC-88-aM8"/>
+                            <constraint firstItem="d26-jj-wHS" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="146" id="EeN-3m-G9D"/>
+                            <constraint firstAttribute="bottom" secondItem="J0j-se-pTf" secondAttribute="bottom" constant="70" id="Gfd-f6-If2"/>
+                            <constraint firstItem="8ip-Eo-ik3" firstAttribute="top" secondItem="uzk-qz-SRD" secondAttribute="bottom" constant="9" id="HD9-wU-PUq"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="wTV-XD-Goa" secondAttribute="trailing" id="LzA-p5-bA7"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="35" id="M59-br-muF"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="top" secondItem="AgX-Bj-3ll" secondAttribute="top" id="NWv-v9-Dky"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="trailing" secondItem="uWO-es-rt8" secondAttribute="trailing" id="Q4k-Uf-1Sd"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="uWO-es-rt8" secondAttribute="trailing" id="Qfj-sa-W42"/>
+                            <constraint firstAttribute="trailing" secondItem="J0j-se-pTf" secondAttribute="trailing" constant="20" symbolic="YES" id="TLT-CZ-ueD"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="trailing" constant="8" symbolic="YES" id="Ua3-kX-iLc"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="8ip-Eo-ik3" secondAttribute="trailing" id="Umb-Lb-00a"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="trailing" constant="8" symbolic="YES" id="ab8-xe-eub"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="uzk-qz-SRD" secondAttribute="trailing" id="fIV-FL-5Lv"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="20" symbolic="YES" id="fxK-Uv-oe3"/>
+                            <constraint firstAttribute="bottom" secondItem="wTV-XD-Goa" secondAttribute="bottom" constant="20" symbolic="YES" id="npu-Ui-9nV"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="centerY" secondItem="AgX-Bj-3ll" secondAttribute="centerY" id="sjG-LH-Blk"/>
+                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="leading" id="u2y-n8-cRv"/>
+                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="uWO-es-rt8" secondAttribute="leading" id="wXX-OO-5h4"/>
+                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="8ip-Eo-ik3" secondAttribute="leading" id="zWJ-fu-0e0"/>
+                        </constraints>
                     </view>
                     <connections>
                         <outlet property="addShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
