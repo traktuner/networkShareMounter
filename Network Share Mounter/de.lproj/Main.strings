@@ -267,7 +267,7 @@
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\n\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Netzwerklaufwerke verbinden. \nVerwende hierzu die Form    smb://server.name/pfad/\n\nDie Erreichbarkeit wird sofort getestet und wenn Server und Freigabepfad verfügbar sind, wird die Freigabe hinzugefügt.";
+"c4d-tI-W6k.title" = "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Netzwerklaufwerke verbinden. \nVerwende hierzu die Form    smb://server.name/pfad/\nDie Erreichbarkeit wird sofort getestet und wenn Server und Freigabepfad verfügbar sind, wird die Freigabe hinzugefügt.";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
@@ -412,6 +412,3 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "zzZ-zK-IIc"; */
 "zzZ-zK-IIc.title" = "Text Cell";
-
-/* Class = "NSTextField"; title = "Remove selected share"; ObjectID = "NCe-SP-1FU"; */
-"NCe-SP-1FU.title" = "Ausgewählte Freigabe entfernen";

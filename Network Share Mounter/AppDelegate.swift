@@ -52,10 +52,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
         
         if let button = statusItem.button {
-            button.image = NSImage(named:NSImage.Name("server-file-swk"))
-            //button.action = #selector(printQuote(_:))
-            //button.action = #selector(togglePopover(_:))
-            //button.action = #selector(AppDelegate.togglePopover(_:))
+            button.image = NSImage(named:NSImage.Name("networkShareMounter"))
         }
         window.contentViewController = NetworkShareMounterViewController.newInsatnce()
         constructMenu()

@@ -758,6 +758,7 @@
                                             </connections>
                                         </tableView>
                                     </subviews>
+                                    <nil key="backgroundColor"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="fNF-bT-aGQ">
                                     <rect key="frame" x="1" y="81" width="470" height="16"/>
@@ -817,15 +818,6 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
                                 </connections>
                             </button>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NCe-SP-1FU">
-                                <rect key="frame" x="45" y="186" width="449" height="16"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Remove selected share" id="mO4-EL-Xe3">
-                                    <font key="font" metaFont="smallSystem"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
                                 <rect key="frame" x="20" y="53" width="472" height="5"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
