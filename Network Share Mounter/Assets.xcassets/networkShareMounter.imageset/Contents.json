@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "networkShareMounter@1x.png",
+      "filename" : "menubaricon16.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "networkShareMounter@2x.png",
+      "filename" : "menubaricon32-1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "networkShareMounter@3x.png",
+      "filename" : "Menubaricon64.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
