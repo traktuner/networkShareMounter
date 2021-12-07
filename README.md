@@ -36,7 +36,7 @@ If you want to distribute the plist with a configuration profile you have to do 
 ### Optional Paramater
 There is an optional parameter `--openMountDir` which opens a new finder window with the directory and the mounted shares
 
-## Network Share Mounter (the app bunlde)
+## Network Share Mounter (the app bundle)
 
 The *Network Share Mounter* app is based on the code of the command-line version. It lives in the user's menu bar and is more visible and manageable for the user, as he has the possibility to add some (additional personal) shares to be mounted and decide if the app will be started on login.   
 Most of the settings mentioned for the command line app version are valid for the app bunlde.
