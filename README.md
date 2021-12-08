@@ -41,7 +41,7 @@ There is an optional parameter `--openMountDir` which opens a new finder window 
 The *Network Share Mounter* app is based on the code of the command-line version. It lives in the user's menu bar and is more visible and manageable for the user, as he has the possibility to add some (additional personal) shares to be mounted and decide if the app will be started on login.   
 Most of the settings mentioned for the command line app version are valid for the app bunlde.
 
-### Hints
+## Configuration
 
 - There is a `customNetworkShares` (both versions) array in the same defaults domain, that can be used to add additional shares by the user. 
 - If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent (command line version). 
