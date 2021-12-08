@@ -1,6 +1,10 @@
-# <img src="networkShareMounter.png" alt="drawing" width="80px"/> networkShareMounter
+# <img src="networkShareMounter.png" alt="drawing" width="90px"/> networkShareMounter
 
-The networkShareMounter mounts network shares using a predefined plist. The easiest way to distribute them is to use configuration profiles with an MDM.
+The networkShareMounter mounts network shares using a predefined plist. The easiest way to distribute them is to use configuration profiles with an MDM. The idea behind this app was to create a method for a workgroup, a department, a project-group etc. to mount a predefined bunch of (smb) network shares. Via MDM the list can be distributed to the specific group of Macs (or users). 
+
+Starting with december 2021 there are two "versions" of the app, one background LaunchAgent comamnd line application and a menu based app bundle
+
+## networkShareMounter (the command line app)
 
 The networkShareMounter is started by a LaunchAgent at every network change (for automatic remounting) and when a user logs in. This is done in the background, without any user interaction.
 
@@ -29,15 +33,24 @@ If you want to distribute the plist with a configuration profile you have to do 
 </plist>
 ```
 
-### Hints
+### Optional Paramater
+There is an optional parameter `--openMountDir` which opens a new finder window with the directory and the mounted shares
 
-- There is a `customNetworkShares` array in the same defaults domain, that can be used to add additional shares by the user. 
-- If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent. 
-- If you don't want to use a configuration profile to distribute the array of shares, this command could be interesting for: 
+## Network Share Mounter (the app bundle)
+
+The *Network Share Mounter* app is based on the code of the command-line version. It lives in the user's menu bar and is more visible and manageable for the user, as he has the possibility to add some (additional personal) shares to be mounted and decide if the app will be started on login.   
+Most of the settings mentioned for the command line app version are valid for the app bunlde.
+
+## Configuration
+
+- There is a `customNetworkShares` (both versions) array in the same defaults domain, that can be used to add additional shares by the user. 
+- If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent (command line version). 
+- The full App version (*Network Share Mounter*) has a few additional attributes:
+   - `autostart`(default: `false`): if set, the app will be launched on user-login
+   - `canQuit`(default: `true`): if set, the user can quit the app
+- If you don't want to use a configuration profile to distribute the array of shares, this command could be used to configure the app for "personal" use: 
 
 ```sh
 defaults write <your defaultsdomain> networkShares -array "smb://filer.your.domain/share" "smb://filer2.your.domain/home/Another Share/foobar" "smb://home.your.domain/%USERNAME%"
 ```
 
-## Optional Paramater
-There is an optional parameter `--openMountDir` which opens a new finder window with the directory and the mounted shares
