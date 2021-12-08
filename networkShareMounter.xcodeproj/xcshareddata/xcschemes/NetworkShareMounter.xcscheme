@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D60FA51B1E7FBE1300D9B5A5"
-               BuildableName = "networkShareMounter"
-               BlueprintName = "networkShareMounter"
+               BlueprintIdentifier = "F79B1594274E722000C322A8"
+               BuildableName = "Network Share Mounter.app"
+               BlueprintName = "Network Share Mounter"
                ReferencedContainer = "container:networkShareMounter.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -44,9 +44,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D60FA51B1E7FBE1300D9B5A5"
-            BuildableName = "networkShareMounter"
-            BlueprintName = "networkShareMounter"
+            BlueprintIdentifier = "F79B1594274E722000C322A8"
+            BuildableName = "Network Share Mounter.app"
+            BlueprintName = "Network Share Mounter"
             ReferencedContainer = "container:networkShareMounter.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -61,9 +61,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D60FA51B1E7FBE1300D9B5A5"
-            BuildableName = "networkShareMounter"
-            BlueprintName = "networkShareMounter"
+            BlueprintIdentifier = "F79B1594274E722000C322A8"
+            BuildableName = "Network Share Mounter.app"
+            BlueprintName = "Network Share Mounter"
             ReferencedContainer = "container:networkShareMounter.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

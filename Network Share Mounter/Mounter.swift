@@ -13,15 +13,15 @@ import OpenDirectory
 import AppKit
 
 class Mounter {
-    
+
     var localizedFolder: String
     var mountpath: String
 
     init() {
         // create subfolder in home to mount shares in
-        self.localizedFolder = config.translation[Locale.current.languageCode!] ?? config.translation["en"]!
+        self.localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
         self.mountpath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
-        
+
         do {
             let fm = FileManager.default
             if !fm.fileExists(atPath: mountpath) {
@@ -35,7 +35,6 @@ class Mounter {
         }
     }
 }
-
 
 // extend String to create a valid path from a bunch of strings
 extension String {
@@ -105,11 +104,10 @@ extension Mounter {
     }
 }
 
-
 extension Mounter {
     func mountShares() {
         // iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
-        for toDelete in config.filesToDelete {
+        for toDelete in Settings.filesToDelete {
             deleteUnneededFiles(path: self.mountpath, filename: toDelete)
         }
 
@@ -119,10 +117,10 @@ extension Mounter {
 
         deleteUnneededFiles(path: mountpath, filename: nil)
 
-        var shares: [String] = UserDefaults(suiteName: config.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
-        //shares.append("smb://home.rrze.uni-erlangen.de/%USERNAME%")
+        var shares: [String] = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
+        // shares.append("smb://home.rrze.uni-erlangen.de/%USERNAME%")
         // every user may add its personal shares in the customNetworkShares array ...
-        let customshares = UserDefaults(suiteName: config.defaultsDomain)?.array(forKey: "customNetworkShares") as? [String] ?? []
+        let customshares = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "customNetworkShares") as? [String] ?? []
         for share in customshares {
             shares.append(share)
         }
@@ -132,24 +130,29 @@ extension Mounter {
         }
         // append SMBHomeDirectory attribute to list of shares to mount
         do {
+            // swiftlint:disable force_cast
             let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-            let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName, matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome, maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+            let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
+                                    matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
+                                    maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
             if let result = query[0].value(forKey: kODAttributeTypeSMBHome) as? [String] {
                 var homeDirectory = result[0]
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
                 shares.append(homeDirectory)
             }
-        }
-        catch {
+            // swiftlint:enable force_cast
+        } catch {
             // Couldn't perform mount operation
             NSLog("Couldn't mount shares")
         }
-        
-        // eliminate duplicates
-        shares = NSOrderedSet(array: shares).array as! [String]
 
-        if shares.count == 0 {
+        // eliminate duplicates
+        // swiftlint:disable force_cast
+        shares = NSOrderedSet(array: shares).array as! [String]
+        // swiftlint:enable force_cast
+
+        if shares.isEmpty {
             NSLog("no shares configured!")
         } else {
             for share in shares {
@@ -182,7 +185,7 @@ extension Mounter {
         guard SCNetworkReachabilityGetFlags(hostReachability!, &flags) == true else { NSLog("could not determine reachability for host \(host)"); return(false) }
         guard flags.contains(.reachable) == true else { NSLog("\(host): target not reachable"); return(false) }
 
-        let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, config.open_options, config.mount_options, nil)
+        let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, Settings.openOptions, Settings.mountOptions, nil)
 
         switch rc {
         case 0:
@@ -203,4 +206,3 @@ extension Mounter {
         return(false)
     }
 }
-
