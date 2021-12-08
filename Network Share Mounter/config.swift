@@ -10,7 +10,7 @@
 import NetFS
 
 struct config {
-    static let defaultsDomain = "de.uni-erlangen.rrze.networkShareMounter"
+    static let defaultsDomain = "de.fau.rrze.NetworkShareMounter"
     static let translation = [
         "en": "Networkshares",
         "de": "Netzlaufwerke",
