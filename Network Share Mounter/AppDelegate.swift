@@ -42,7 +42,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // register App according to userDefaults as "start at login"
         //LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
-        LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
+        //LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
+        if UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") != false || UserDefaults.standard.bool(forKey: "autostart") != false {
+            LaunchAtLogin.isEnabled = true
+        } else {
+            LaunchAtLogin.isEnabled = false
+        }
         
         if let button = statusItem.button {
             button.image = NSImage(named:NSImage.Name("networkShareMounter"))
