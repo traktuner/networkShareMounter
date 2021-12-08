@@ -17,6 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     var window = NSWindow()
     let userDefaults = UserDefaults.standard
+    var mountpath = ""
 
     
     // An observer that you use to monitor and react to network changes
@@ -25,14 +26,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var timer = Timer()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
-        //print(Array(UserDefaults.standard.dictionaryRepresentation()))
-        //dump(Array(UserDefaults.standard.dictionaryRepresentation().keys))
-//        UserDefaults.standard.removeObject(forKey: "autostart")
-//        UserDefaults.standard.removeObject(forKey: "customNetworkShares")
-//        UserDefaults.standard.removeObject(forKey: "networkShares")
-//        UserDefaults.standard.synchronize()
-        
         //
         // using "register" instead of "get" will set the values according to the plist read
         // by "readPropertyList" if, and only if the respective  values are nil. Those values
@@ -46,6 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // initalize class which will perform all the automounter tasks
         let mounter = Mounter.init()
+        self.mountpath = mounter.mountpath
         
         //
         // register App according to userDefaults as "start at login"
@@ -93,15 +87,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func showInfo(_ sender: Any?) {
       print("Show some day some useful information about Network Share Mounter")
     }
+    
+    @objc func openMountDir(_ sender: Any?) {
+        if let mountDirectory =  URL(string: self.mountpath) {
+            NSLog("Trying to open \(mountDirectory) in Finder...")
+                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
+        }
+    }
 
     func constructMenu() {
         let menu = NSMenu()
 
-        menu.addItem(NSMenuItem(title: "Network Share Mounter", action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
-        menu.addItem(NSMenuItem(title: "Einstellungen ...", action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Network Share Mounter", comment: "Info"), action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"), action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"), action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
         //menu.addItem(NSMenuItem.separator())
         if userDefaults.bool(forKey: "canQuit") == true {
-            menu.addItem(NSMenuItem(title: "Network Share Mounter Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+            menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         }
         statusItem.menu = menu
     }
@@ -113,7 +115,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Geschlossen wird es mit dem roten button links oben, nachdem das andere Apps auch so machen ¯\_(ツ)_/¯ 
         //
         // without titlebar and title-text
-        window.titlebarAppearsTransparent = true
+        //window.titlebarAppearsTransparent = true
+        window.title = NSLocalizedString("Preferences", comment: "Preferences")
         //
         // somehow we close the window
         window.styleMask.insert([.closable])
@@ -140,6 +143,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         return try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
     }
-
 }
 

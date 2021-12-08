@@ -744,9 +744,9 @@
                                                                 </textField>
                                                             </subviews>
                                                             <constraints>
-                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="leading" secondItem="yc9-SB-hYJ" secondAttribute="leading" constant="2" id="ZmS-VN-ibu"/>
-                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="centerX" secondItem="yc9-SB-hYJ" secondAttribute="centerX" id="iye-xg-YOS"/>
-                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="centerY" secondItem="yc9-SB-hYJ" secondAttribute="centerY" id="ofb-aK-uTh"/>
+                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="leading" secondItem="yc9-SB-hYJ" secondAttribute="leading" constant="2" id="2N7-V5-f4n"/>
+                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="centerY" secondItem="yc9-SB-hYJ" secondAttribute="centerY" id="4TI-Sl-Jyq"/>
+                                                                <constraint firstItem="ci4-hV-QOK" firstAttribute="centerX" secondItem="yc9-SB-hYJ" secondAttribute="centerX" id="8yL-eL-pVV"/>
                                                             </constraints>
                                                             <connections>
                                                                 <outlet property="textField" destination="ci4-hV-QOK" id="nV2-Hz-cLo"/>
@@ -763,7 +763,7 @@
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="fNF-bT-aGQ">
-                                    <rect key="frame" x="1" y="81" width="470" height="16"/>
+                                    <rect key="frame" x="1" y="81" width="465" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="Vuh-QE-2gk">
@@ -788,7 +788,7 @@
                             <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
                                 <rect key="frame" x="45" y="70" width="449" height="100"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="100" id="q0T-sL-59e"/>
+                                    <constraint firstAttribute="height" constant="100" id="H8P-wA-viA"/>
                                 </constraints>
                                 <textFieldCell key="cell" selectable="YES" enabled="NO" id="c4d-tI-W6k">
                                     <font key="font" metaFont="system"/>
@@ -812,8 +812,8 @@ The connection will be testet immediately and will be added only if the server i
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d26-jj-wHS">
                                 <rect key="frame" x="20" y="186" width="23" height="20"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="ATP-5x-xLG"/>
-                                    <constraint firstAttribute="width" constant="23" id="aio-8m-w1c"/>
+                                    <constraint firstAttribute="height" constant="20" id="e4R-Q4-fyL"/>
+                                    <constraint firstAttribute="width" constant="23" id="tNc-pm-9PH"/>
                                 </constraints>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSRemoveTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="NgK-8t-CVO">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -828,28 +828,27 @@ The connection will be testet immediately and will be added only if the server i
                             </box>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="47" id="3qk-QW-nEs"/>
-                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="d26-jj-wHS" secondAttribute="leading" id="6nQ-35-l8j"/>
-                            <constraint firstItem="uWO-es-rt8" firstAttribute="top" secondItem="J0j-se-pTf" secondAttribute="bottom" constant="14" id="AeC-88-aM8"/>
-                            <constraint firstItem="d26-jj-wHS" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="146" id="EeN-3m-G9D"/>
-                            <constraint firstAttribute="bottom" secondItem="J0j-se-pTf" secondAttribute="bottom" constant="70" id="Gfd-f6-If2"/>
-                            <constraint firstItem="8ip-Eo-ik3" firstAttribute="top" secondItem="uzk-qz-SRD" secondAttribute="bottom" constant="9" id="HD9-wU-PUq"/>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="wTV-XD-Goa" secondAttribute="trailing" id="LzA-p5-bA7"/>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="35" id="M59-br-muF"/>
-                            <constraint firstItem="uzk-qz-SRD" firstAttribute="top" secondItem="AgX-Bj-3ll" secondAttribute="top" id="NWv-v9-Dky"/>
-                            <constraint firstItem="uzk-qz-SRD" firstAttribute="trailing" secondItem="uWO-es-rt8" secondAttribute="trailing" id="Q4k-Uf-1Sd"/>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="uWO-es-rt8" secondAttribute="trailing" id="Qfj-sa-W42"/>
-                            <constraint firstAttribute="trailing" secondItem="J0j-se-pTf" secondAttribute="trailing" constant="20" symbolic="YES" id="TLT-CZ-ueD"/>
-                            <constraint firstItem="uzk-qz-SRD" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="trailing" constant="8" symbolic="YES" id="Ua3-kX-iLc"/>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="8ip-Eo-ik3" secondAttribute="trailing" id="Umb-Lb-00a"/>
-                            <constraint firstItem="uzk-qz-SRD" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="trailing" constant="8" symbolic="YES" id="ab8-xe-eub"/>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="uzk-qz-SRD" secondAttribute="trailing" id="fIV-FL-5Lv"/>
-                            <constraint firstItem="uzk-qz-SRD" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="20" symbolic="YES" id="fxK-Uv-oe3"/>
-                            <constraint firstAttribute="bottom" secondItem="wTV-XD-Goa" secondAttribute="bottom" constant="20" symbolic="YES" id="npu-Ui-9nV"/>
-                            <constraint firstItem="uzk-qz-SRD" firstAttribute="centerY" secondItem="AgX-Bj-3ll" secondAttribute="centerY" id="sjG-LH-Blk"/>
-                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="leading" id="u2y-n8-cRv"/>
-                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="uWO-es-rt8" secondAttribute="leading" id="wXX-OO-5h4"/>
-                            <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="8ip-Eo-ik3" secondAttribute="leading" id="zWJ-fu-0e0"/>
+                            <constraint firstItem="AgX-Bj-3ll" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="0VR-h4-N5u"/>
+                            <constraint firstItem="uWO-es-rt8" firstAttribute="leading" secondItem="wTV-XD-Goa" secondAttribute="leading" id="0cM-NF-3Ej"/>
+                            <constraint firstItem="8ip-Eo-ik3" firstAttribute="trailing" secondItem="J0j-se-pTf" secondAttribute="trailing" id="2Pi-8X-RIG"/>
+                            <constraint firstItem="8ip-Eo-ik3" firstAttribute="leading" secondItem="d26-jj-wHS" secondAttribute="leading" id="4GJ-gc-Irs"/>
+                            <constraint firstItem="AgX-Bj-3ll" firstAttribute="top" secondItem="uzk-qz-SRD" secondAttribute="top" id="5gr-VS-ovw"/>
+                            <constraint firstAttribute="bottom" secondItem="wTV-XD-Goa" secondAttribute="bottom" constant="20" symbolic="YES" id="7zg-gy-NZ5"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="trailing" secondItem="8ip-Eo-ik3" secondAttribute="trailing" id="A0F-7V-Im1"/>
+                            <constraint firstItem="AgX-Bj-3ll" firstAttribute="leading" secondItem="8ip-Eo-ik3" secondAttribute="leading" id="Cp9-sJ-wRh"/>
+                            <constraint firstItem="AgX-Bj-3ll" firstAttribute="baseline" secondItem="uzk-qz-SRD" secondAttribute="firstBaseline" id="QGp-4M-VlT"/>
+                            <constraint firstItem="wTV-XD-Goa" firstAttribute="top" secondItem="uWO-es-rt8" secondAttribute="bottom" constant="19" id="Qgb-df-gaa"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="35" id="QjO-ok-f8C"/>
+                            <constraint firstAttribute="trailing" secondItem="uzk-qz-SRD" secondAttribute="trailing" constant="20" symbolic="YES" id="VTc-aJ-dZY"/>
+                            <constraint firstItem="uzk-qz-SRD" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="trailing" constant="8" symbolic="YES" id="bAm-X8-dmg"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="trailing" secondItem="uWO-es-rt8" secondAttribute="trailing" id="cFq-Re-Fox"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="47" id="hOk-4P-ha6"/>
+                            <constraint firstItem="uWO-es-rt8" firstAttribute="top" secondItem="J0j-se-pTf" secondAttribute="bottom" constant="14" id="lh3-Ua-eUB"/>
+                            <constraint firstItem="uWO-es-rt8" firstAttribute="trailing" secondItem="wTV-XD-Goa" secondAttribute="trailing" id="rtg-66-TBv"/>
+                            <constraint firstItem="AgX-Bj-3ll" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="20" symbolic="YES" id="tPH-fa-DK9"/>
+                            <constraint firstItem="d26-jj-wHS" firstAttribute="leading" secondItem="uWO-es-rt8" secondAttribute="leading" id="ucH-zv-LOA"/>
+                            <constraint firstItem="d26-jj-wHS" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="146" id="ucO-Mt-s1R"/>
+                            <constraint firstItem="8ip-Eo-ik3" firstAttribute="top" secondItem="AgX-Bj-3ll" secondAttribute="bottom" constant="9" id="zx3-jq-T4S"/>
                         </constraints>
                     </view>
                     <connections>
