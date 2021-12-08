@@ -143,9 +143,9 @@
 			isa = PBXGroup;
 			children = (
 				F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */,
-				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F72985C62760EF3800FCF8C9 /* Localizable.strings */,
 				F77107BA274EC7D200556B20 /* config.swift */,
+				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F79B1597274E722000C322A8 /* AppDelegate.swift */,
 				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
 				F77107B6274EC51600556B20 /* Monitor.swift */,
