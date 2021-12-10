@@ -28,12 +28,12 @@ class Monitor {
 }
 
 extension Monitor {
-    func startMonitoring( callBack: @escaping (_ connection: Connection, _ rechable: Reachable) -> Void ) -> Void {
+    func startMonitoring( callBack: @escaping (_ connection: Connection, _ rechable: Reachable) -> Void ) {
         monitor.pathUpdateHandler = { path in
 
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.no  : Reachable.yes
 
-            if path.availableInterfaces.count == 0 {
+            if path.availableInterfaces.isEmpty {
                 return callBack(.other, .no)
             } else if path.usesInterfaceType(.wifi) {
                 return callBack(.wifi, reachable)

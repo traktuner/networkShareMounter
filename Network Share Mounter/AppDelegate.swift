@@ -13,14 +13,13 @@ import LaunchAtLogin
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    
-    let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
+    let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     var window = NSWindow()
     var mountpath = ""
-    
+
     // An observer that you use to monitor and react to network changes
     let monitor = NWPathMonitor()
-    
+
     var timer = Timer()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -31,37 +30,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // So if there are any values set by the user or MDM, those values will be used. If
         // not, the values in the plist are used.
         if let defaultValues = readPropertyList() {
-            UserDefaults(suiteName: config.defaultsDomain)?.register(defaults: defaultValues)
+            UserDefaults(suiteName: Settings.defaultsDomain)?.register(defaults: defaultValues)
         }
 
         //
         // initalize class which will perform all the automounter tasks
         let mounter = Mounter.init()
         self.mountpath = mounter.mountpath
-        
+
         //
         // register App according to userDefaults as "start at login"
-        //LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
-        //LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
-        if UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") != false || UserDefaults.standard.bool(forKey: "autostart") != false {
+        // LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
+        // LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
+        if UserDefaults(suiteName: Settings.defaultsDomain)?.bool(forKey: "autostart") != false || UserDefaults.standard.bool(forKey: "autostart") != false {
             LaunchAtLogin.isEnabled = true
         } else {
             LaunchAtLogin.isEnabled = false
         }
-        
+
         if let button = statusItem.button {
-            button.image = NSImage(named:NSImage.Name("networkShareMounter"))
+            button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
         window.contentViewController = NetworkShareMounterViewController.newInsatnce()
         constructMenu()
-        
+
         // Do any additional setup after loading the view.
         Monitor().startMonitoring { [weak self] connection, reachable in
                     guard let strongSelf = self else { return }
             strongSelf.performMount(connection, reachable: reachable, mounter: mounter)
-            
+
         }
-        
+
         // start a timer to perform a mount every 5 minutes
         self.timer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true, block: { _ in
             mounter.mountShares()
@@ -70,12 +69,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // write changed values back to userDefaults
-        if UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
-            UserDefaults(suiteName: config.defaultsDomain)?.set(true, forKey: "autostart")
+        if UserDefaults(suiteName: Settings.defaultsDomain)?.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
+            UserDefaults(suiteName: Settings.defaultsDomain)?.set(true, forKey: "autostart")
         }
     }
-    
-    
+
     private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
         NSLog("Current Connection : \(connection) Is reachable: \(reachable)")
         if reachable == Reachable.yes {
@@ -83,15 +81,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
-    
+
     @objc func showInfo(_ sender: Any?) {
       print("Show some day some useful information about Network Share Mounter")
     }
-    
+
     @objc func openMountDir(_ sender: Any?) {
         if let mountDirectory =  URL(string: self.mountpath) {
             NSLog("Trying to open \(mountDirectory) in Finder...")
@@ -102,12 +99,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func constructMenu() {
         let menu = NSMenu()
 
-        //menu.addItem(NSMenuItem(title: NSLocalizedString("Network Share Mounter", comment: "Info"), action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"), action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"), action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
-        //menu.addItem(NSMenuItem.separator())
-        if UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "canQuit") != false {
-            menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        // menu.addItem(NSMenuItem(title: NSLocalizedString("Network Share Mounter", comment: "Info"), action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
+                                action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"),
+                                action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
+        // menu.addItem(NSMenuItem.separator())
+        if UserDefaults(suiteName: Settings.defaultsDomain)?.bool(forKey: "canQuit") != false {
+            menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
+                                    action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         }
         statusItem.menu = menu
     }
@@ -119,7 +119,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Geschlossen wird es mit dem roten button links oben, nachdem das andere Apps auch so machen ¯\_(ツ)_/¯ 
         //
         // without titlebar and title-text
-        //window.titlebarAppearsTransparent = true
+        // window.titlebarAppearsTransparent = true
         window.title = NSLocalizedString("Preferences", comment: "Preferences")
         //
         // somehow we close the window
@@ -148,4 +148,3 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
     }
 }
-
