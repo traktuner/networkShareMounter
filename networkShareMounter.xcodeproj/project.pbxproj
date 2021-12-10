@@ -246,17 +246,23 @@
 				TargetAttributes = {
 					D60FA51B1E7FBE1300D9B5A5 = {
 						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = C8F68RFW4L;
 						LastSwiftMigration = 1030;
+						ProvisioningStyle = Manual;
 					};
 					F79B1594274E722000C322A8 = {
 						CreatedOnToolsVersion = 13.2;
 					};
 					F79B15A4274E722100C322A8 = {
 						CreatedOnToolsVersion = 13.2;
+						DevelopmentTeam = C8F68RFW4L;
+						ProvisioningStyle = Manual;
 						TestTargetID = F79B1594274E722000C322A8;
 					};
 					F79B15AE274E722100C322A8 = {
 						CreatedOnToolsVersion = 13.2;
+						DevelopmentTeam = C8F68RFW4L;
+						ProvisioningStyle = Manual;
 						TestTargetID = F79B1594274E722000C322A8;
 					};
 				};
@@ -527,7 +533,7 @@
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
 				CODE_SIGN_ENTITLEMENTS = networkShareMounter/networkShareMounter.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				INFOPLIST_FILE = "$(SRCROOT)/networkShareMounter/de.uni-erlangen.rrze.networkShareMounter.plist";
 				INSTALL_PATH = "/Library/Application Support/FAUmac/bin";
@@ -543,7 +549,7 @@
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
 				CODE_SIGN_ENTITLEMENTS = networkShareMounter/networkShareMounter.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				INFOPLIST_FILE = "$(SRCROOT)/networkShareMounter/de.uni-erlangen.rrze.networkShareMounter.plist";
 				INSTALL_PATH = "/Library/Application Support/FAUmac/bin";
@@ -650,7 +656,7 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -681,7 +687,7 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -708,7 +714,7 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -738,7 +744,7 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

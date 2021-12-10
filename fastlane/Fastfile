@@ -38,23 +38,17 @@ lane :getlatestag do
   tags.join()
 end
 
-lane :beta do
+lane :commonTasks do
+  desc "perform some commont build tasks"
   id = getbundleid
   tag = getlatestag
   signing_id = ENV["SIGNING_ID"]
-  #app_store_connect_api_key()
   app_store_connect_api_key(
       is_key_content_base64: true
   )
-  #match()
-  # testet auf die Verfügbarkeit einer Xcode Version (in dem Fall nur auf major release)
-  #xcversion(version: "~> 12")
-  # dasselbe wie oben, nur strikter
-  ensure_xcode_version(
-      version: "13",
-      strict: false
-  )
-  #ensure_git_status_clean
+  desc "test for proper Xcode version"
+  xcversion(version: "~> 13")
+  desc "lint those drity lines of code"
   swiftlint(
     mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
     output_file: "swiftlint.result.json", # The path of the output file (optional)
@@ -70,99 +64,53 @@ lane :beta do
     ignore_exit_status: false    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
   )
   get_certificates
-
+  sync_code_signing
   gym(
-    clean: true,
-    silent: false,
     output_directory: "build/",
-    export_method: "development",
-  )
-  #build_mac_app(
-  #  output_directory: "build/",
-  #  scheme: "NetworkShareMounter",
-  #  export_method: "development"
-  #)
-  #dmg(
-  #  path: "build/Network Share Mounter.app",
-  #  output_path: "build/Network Share Mounter.dmg",
-  #  volume_name: "NetworkShareMounter"
-  #)
-  notarize(
-    use_notarytool: false,
-    package: "build/Network Share Mounter.app", 
-    bundle_id: "de.fau.rrze.NetworkShareMounter", 
-    username: "rrze-apple-entwickler@fau.de"
+    export_options: "./ExportOptions.plist"
   )
 end
 
-lane :notar do
-  team_id("C8F68RFW4L")
-  debug
-  notarize(
-    package: "build/Network Share Mounter.app", 
-    bundle_id: "de.fau.rrze.NetworkShareMounter", 
-    username: "rrze-apple-entwickler@fau.de"
-  )  
-end
-
-lane :release do
-  id = getbundleid
-  tag = getlatestag
-  signing_id = ENV["SIGNING_ID"]
-  # testet auf die Verfügbarkeit einer Xcode Version (in dem Fall nur auf major release)
-  #xcversion(version: "~> 12")
-  # dasselbe wie oben, nur strikter
-  ensure_xcode_version(
-      version: "13",
-      strict: false
-  )
-  ensure_git_status_clean
-  swiftlint(
-    mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
-    output_file: "swiftlint.result.json", # The path of the output file (optional)
-    config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
-    files: [                                # List of files to process (optional)
-        "Network Share Mounter/AppDelegate.swift",
-        "Network Share Mounter/Monitor.swift",
-        "Network Share Mounter/Mounter.swift",
-        "Network Share Mounter/NetworkShareMounterViewController.swift",
-        "Network Share Mounter/config.swift"
-    ],
-    raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
-    ignore_exit_status: false    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
-  )
-  get_certificates
-
+lane :beta do
+  desc "incerement Xcodes build number"
   increment_build_number(
     xcodeproj: "networkShareMounter.xcodeproj"
   )
-  gym(
-    clean: true,
-    silent: false,
-    output_directory: "build/",
-    export_method: "mac-application",
-    #skip_codesigning: true,
-    #skip_archive: true
-  )
-  #increment_version_number(
-  #  bump_type: "patch",
-  #  #version_number: "1.0.5",      # specify specific version number (optional, omitting it increments patch version number)
-  #  xcodeproj: "networkShareMounter.xcodeproj"  # (optional, you must specify the path to your main Xcode project if it is not in the project root directory)
-  #)
-  build_mac_app(
-    scheme: "NetworkShareMounter",
-    export_method: "development"
-  )
+  commonTasks
+  desc "Create DMG image"
   dmg(
-    path: "Network Share Mounter.app",
-    output_path: "Network Share Mounter.dmg",
+    path: "build/Network Share Mounter.app",
+    output_path: "build/NetworkShareMounterBeta.dmg",
+    volume_name: "NetworkShareMounter-Beta"
+  )
+  desc "Notarize App"
+  notarize(
+     package: "build/NetworkShareMounterBeta.dmg", 
+     bundle_id: "de.fau.rrze.NetworkShareMounter", 
+     username: "rrze-apple-entwickler@fau.de"
+  )
+end
+
+lane :release do
+  desc "Ensure git has a clean status"
+  ensure_git_status_clean
+  desc "incerement Xcodes build number"
+  increment_build_number(
+    xcodeproj: "networkShareMounter.xcodeproj"
+  )
+  commonTasks
+  desc "Create DMG image"
+  dmg(
+    path: "build/Network Share Mounter.app",
+    output_path: "build/NetworkShareMounter.dmg",
     volume_name: "NetworkShareMounter"
   )
-  #gitlab_release()
-  # notarize(
-  #       package: app_path, # Path to package to notarize, e.g. .app bundle or disk image
-  #       bundle_id: bundle_id # Not required for .app bundles, bundle identifier to uniquely identify the package.
-  # )
+  desc "Notarize App"
+  notarize(
+     package: "build/NetworkShareMounter.dmg", 
+     bundle_id: "de.fau.rrze.NetworkShareMounter", 
+     username: "rrze-apple-entwickler@fau.de"
+  )
 end
 
 # generates the command-line networkShareMounter app

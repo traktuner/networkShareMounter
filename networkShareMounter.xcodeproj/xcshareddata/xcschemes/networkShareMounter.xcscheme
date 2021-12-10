@@ -28,6 +28,26 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F79B15A4274E722100C322A8"
+               BuildableName = "Network Share MounterTests.xctest"
+               BlueprintName = "Network Share MounterTests"
+               ReferencedContainer = "container:networkShareMounter.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F79B15AE274E722100C322A8"
+               BuildableName = "Network Share MounterUITests.xctest"
+               BlueprintName = "Network Share MounterUITests"
+               ReferencedContainer = "container:networkShareMounter.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
