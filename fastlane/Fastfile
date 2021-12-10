@@ -11,7 +11,7 @@
 #
 
 # Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
+update_fastlane
 skip_docs
 
 # git url of match
@@ -29,7 +29,7 @@ end
 
 lane :getbundleid do
   desc "gets bundleid from the xcode project files"
-  get_product_bundle_id(project_filepath: 'networkShareMounter.xcodeproj', scheme: 'networkShareMounter')
+  get_product_bundle_id(project_filepath: 'networkShareMounter.xcodeproj', scheme: 'NetworkShareMounter')
 end
 
 lane :getlatestag do
@@ -39,17 +39,70 @@ lane :getlatestag do
 end
 
 lane :beta do
-  increment_build_number(
-    xcodeproj: "networkShareMounter.xcodeproj"
+  id = getbundleid
+  tag = getlatestag
+  signing_id = ENV["SIGNING_ID"]
+  #app_store_connect_api_key()
+  app_store_connect_api_key(
+      is_key_content_base64: true
   )
-  increment_version_number(
-    bump_type: "patch",
-    #version_number: "1.0.5",      # specify specific version number (optional, omitting it increments patch version number)
-    xcodeproj: "networkShareMounter.xcodeproj"  # (optional, you must specify the path to your main Xcode project if it is not in the project root directory)
+  #match()
+  # testet auf die Verfügbarkeit einer Xcode Version (in dem Fall nur auf major release)
+  #xcversion(version: "~> 12")
+  # dasselbe wie oben, nur strikter
+  ensure_xcode_version(
+      version: "13",
+      strict: false
   )
-  build_mac_app(scheme: "networkShareMounter",
-            #workspace: "Example.xcworkspace",
-            include_bitcode: false)
+  #ensure_git_status_clean
+  swiftlint(
+    mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
+    output_file: "swiftlint.result.json", # The path of the output file (optional)
+    config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
+    files: [                                # List of files to process (optional)
+        "Network Share Mounter/AppDelegate.swift",
+        "Network Share Mounter/Monitor.swift",
+        "Network Share Mounter/Mounter.swift",
+        "Network Share Mounter/NetworkShareMounterViewController.swift",
+        "Network Share Mounter/config.swift"
+    ],
+    raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
+    ignore_exit_status: false    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
+  )
+  get_certificates
+
+  gym(
+    clean: true,
+    silent: false,
+    output_directory: "build/",
+    export_method: "development",
+  )
+  #build_mac_app(
+  #  output_directory: "build/",
+  #  scheme: "NetworkShareMounter",
+  #  export_method: "development"
+  #)
+  #dmg(
+  #  path: "build/Network Share Mounter.app",
+  #  output_path: "build/Network Share Mounter.dmg",
+  #  volume_name: "NetworkShareMounter"
+  #)
+  notarize(
+    use_notarytool: false,
+    package: "build/Network Share Mounter.app", 
+    bundle_id: "de.fau.rrze.NetworkShareMounter", 
+    username: "rrze-apple-entwickler@fau.de"
+  )
+end
+
+lane :notar do
+  team_id("C8F68RFW4L")
+  debug
+  notarize(
+    package: "build/Network Share Mounter.app", 
+    bundle_id: "de.fau.rrze.NetworkShareMounter", 
+    username: "rrze-apple-entwickler@fau.de"
+  )  
 end
 
 lane :release do
@@ -61,29 +114,49 @@ lane :release do
   # dasselbe wie oben, nur strikter
   ensure_xcode_version(
       version: "13",
-      strict: false)
-  #ensure_git_status_clean
+      strict: false
+  )
+  ensure_git_status_clean
   swiftlint(
     mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
     output_file: "swiftlint.result.json", # The path of the output file (optional)
     config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
     files: [                                # List of files to process (optional)
-        "networkShareMounter/main.swift",
-        "networkShareMounter/config.swift"
+        "Network Share Mounter/AppDelegate.swift",
+        "Network Share Mounter/Monitor.swift",
+        "Network Share Mounter/Mounter.swift",
+        "Network Share Mounter/NetworkShareMounterViewController.swift",
+        "Network Share Mounter/config.swift"
     ],
     raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
-    ignore_exit_status: true    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
+    ignore_exit_status: false    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
   )
   get_certificates
-  #get_provisioning_profile
-  #build_mac_app(
+
+  increment_build_number(
+    xcodeproj: "networkShareMounter.xcodeproj"
+  )
   gym(
     clean: true,
     silent: false,
-    #output_directory: "build/",
+    output_directory: "build/",
     export_method: "mac-application",
     #skip_codesigning: true,
     #skip_archive: true
+  )
+  #increment_version_number(
+  #  bump_type: "patch",
+  #  #version_number: "1.0.5",      # specify specific version number (optional, omitting it increments patch version number)
+  #  xcodeproj: "networkShareMounter.xcodeproj"  # (optional, you must specify the path to your main Xcode project if it is not in the project root directory)
+  #)
+  build_mac_app(
+    scheme: "NetworkShareMounter",
+    export_method: "development"
+  )
+  dmg(
+    path: "Network Share Mounter.app",
+    output_path: "Network Share Mounter.dmg",
+    volume_name: "NetworkShareMounter"
   )
   #gitlab_release()
   # notarize(
@@ -92,6 +165,7 @@ lane :release do
   # )
 end
 
+# generates the command-line networkShareMounter app
 lane :runbuild do
   id = getbundleid
   tag = getlatestag
@@ -99,6 +173,7 @@ lane :runbuild do
   output = sh("../build.sh", "#{id}", "#{tag}", "#{signing_id}")
 end
 
+# test Microsoft Teams - if it works, we will use it in the future
 lane :teamstest do
   teams_bot(
     teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/6c157802c97c49d183cc9e01702025ff/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',

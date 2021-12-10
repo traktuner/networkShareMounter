@@ -101,6 +101,7 @@ GEM
       xcodeproj (>= 1.13.0, < 2.0.0)
       xcpretty (~> 0.3.0)
       xcpretty-travis-formatter (>= 0.0.3)
+    fastlane-plugin-dmg (0.1.1)
     fastlane-plugin-get_product_bundle_id (0.1.4)
       xcodeproj
     fastlane-plugin-git_tags (0.1.1)
@@ -224,13 +225,15 @@ GEM
 
 PLATFORMS
   arm64-darwin-20
+  arm64-darwin-21
 
 DEPENDENCIES
   fastlane
+  fastlane-plugin-dmg
   fastlane-plugin-get_product_bundle_id
   fastlane-plugin-git_tags
   fastlane-plugin-gitlab_release
   fastlane-plugin-teams_bot
 
 BUNDLED WITH
-   2.2.22
+   2.2.32

@@ -1,8 +1,8 @@
 git_url("https://gitlab.rrze.fau.de/faumac/fastlanecerts.git")
 
 storage_mode("git")
-app_identifier("de.uni-erlangen.rrze.networkShareMounter")
-type("development") # The default type, can be: appstore, adhoc, enterprise or development
+app_identifier("de.fau.rrze.NetworkShareMounter")
+type("adhoc") # The default type, can be: appstore, adhoc, enterprise or development
 #additional_cert_types("mac_installer_distribution")
 
 # app_identifier(["tools.fastlane.app", "tools.fastlane.app2"])
