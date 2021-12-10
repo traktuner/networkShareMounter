@@ -117,10 +117,12 @@ extension Mounter {
 
         deleteUnneededFiles(path: mountpath, filename: nil)
 
-        var shares: [String] = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
+        //var shares: [String] = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "networkShares") as? [String] ?? []
+        var shares: [String] = UserDefaults.standard.array(forKey: "networkShares") as? [String] ?? []
         // shares.append("smb://home.rrze.uni-erlangen.de/%USERNAME%")
         // every user may add its personal shares in the customNetworkShares array ...
-        let customshares = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "customNetworkShares") as? [String] ?? []
+        //let customshares = UserDefaults(suiteName: Settings.defaultsDomain)?.array(forKey: "customNetworkShares") as? [String] ?? []
+        let customshares = UserDefaults.standard.array(forKey: "customNetworkShares") as? [String] ?? []
         for share in customshares {
             shares.append(share)
         }

@@ -24,7 +24,7 @@ class NetworkShareMounterViewController: NSViewController {
         addShareButton.isEnabled = true
         removeShareButton.isEnabled = false
 
-        if UserDefaults(suiteName: Settings.defaultsDomain)?.bool(forKey: "canChangeAutostart") == false {
+        if userDefaults.bool(forKey: "canChangeAutostart") == false {
             launchAtLoginRadioButton.isHidden = true
         }
 
@@ -74,7 +74,8 @@ class NetworkShareMounterViewController: NSViewController {
         if row >= 0 {
             var shareArray = userDefaults.object(forKey: "customNetworkShares") as? [String] ?? [String]()
             shareArray.remove(at: row)
-            UserDefaults.standard.set(shareArray, forKey: "customNetworkShares")
+            userDefaults.set(shareArray, forKey: "customNetworkShares")
+            //UserDefaults.standard.set(shareArray, forKey: "customNetworkShares")
             // tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
         }
     }

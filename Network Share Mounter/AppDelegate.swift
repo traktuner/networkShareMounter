@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     var window = NSWindow()
+    let userDefaults = UserDefaults.standard
     var mountpath = ""
 
     // An observer that you use to monitor and react to network changes
@@ -30,8 +31,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // So if there are any values set by the user or MDM, those values will be used. If
         // not, the values in the plist are used.
         if let defaultValues = readPropertyList() {
-            UserDefaults(suiteName: Settings.defaultsDomain)?.register(defaults: defaultValues)
+            userDefaults.register(defaults: defaultValues)
         }
+
 
         //
         // initalize class which will perform all the automounter tasks
@@ -42,7 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // register App according to userDefaults as "start at login"
         // LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
         // LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
-        if UserDefaults(suiteName: Settings.defaultsDomain)?.bool(forKey: "autostart") != false || UserDefaults.standard.bool(forKey: "autostart") != false {
+        if userDefaults.bool(forKey: "autostart") != false {
             LaunchAtLogin.isEnabled = true
         } else {
             LaunchAtLogin.isEnabled = false
@@ -69,8 +71,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // write changed values back to userDefaults
-        if UserDefaults(suiteName: Settings.defaultsDomain)?.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
-            UserDefaults(suiteName: Settings.defaultsDomain)?.set(true, forKey: "autostart")
+        if userDefaults.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
+            userDefaults.set(true, forKey: "autostart")
         }
     }
 
@@ -105,7 +107,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"),
                                 action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
         // menu.addItem(NSMenuItem.separator())
-        if UserDefaults(suiteName: Settings.defaultsDomain)?.bool(forKey: "canQuit") != false {
+        if userDefaults.bool(forKey: "canQuit") != false {
             menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
                                     action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         }
