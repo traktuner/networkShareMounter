@@ -24,6 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var timer = Timer()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        window.isReleasedWhenClosed = false
         //
         // using "register" instead of "get" will set the values according to the plist read
         // by "readPropertyList" if, and only if the respective  values are nil. Those values
