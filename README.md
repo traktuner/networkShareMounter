@@ -48,6 +48,7 @@ Most of the settings mentioned for the command line app version are valid for th
 - The full App version (*Network Share Mounter*) has a few additional attributes:
    - `autostart`(default: `false`): if set, the app will be launched on user-login
    - `canQuit`(default: `true`): if set, the user can quit the app
+   - `canChangeAutostart`: if set to false, the user can not change the Autostart option
 - If you don't want to use a configuration profile to distribute the array of shares, this command could be used to configure the app for "personal" use: 
 
 ```sh
