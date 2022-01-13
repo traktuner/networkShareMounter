@@ -14,16 +14,20 @@ enum Reachable {
 }
 
 enum Connection {
-    case cellular, loopback, wifi, wiredEthernet, other
+    case cellular, loopback, wifi, wiredEthernet, other, unknown
 }
 
 class Monitor {
-
-    private let monitor: NWPathMonitor =  NWPathMonitor()
+    static public let shared = Monitor()
+    private let monitor: NWPathMonitor
+    private var queue = DispatchQueue.global()
+    var netOn: Bool = true
+    var connType: Connection = .wifi
 
     init() {
-        let queue = DispatchQueue.global(qos: .background)
-        monitor.start(queue: queue)
+        self.monitor = NWPathMonitor()
+        self.queue = DispatchQueue.global(qos: .background)
+        self.monitor.start(queue: queue)
     }
 }
 
@@ -32,6 +36,8 @@ extension Monitor {
         monitor.pathUpdateHandler = { path in
 
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.no  : Reachable.yes
+            self.netOn = path.status == .satisfied
+            self.connType = self.checkConnectionTypeForPath(path)
 
             if path.availableInterfaces.isEmpty {
                 return callBack(.other, .no)
@@ -47,6 +53,21 @@ extension Monitor {
                 return callBack(.other, reachable)
             }
         }
+    }
+}
+
+extension Monitor {
+    func checkConnectionTypeForPath(_ path: NWPath) -> Connection {
+        if path.usesInterfaceType(.wifi) {
+            return .wifi
+        } else if path.usesInterfaceType(.wiredEthernet) {
+            return .wiredEthernet
+        } else if path.usesInterfaceType(.cellular) {
+            return .cellular
+        } else if path.usesInterfaceType(.loopback) {
+            return .loopback
+        } 
+        return .unknown
     }
 }
 

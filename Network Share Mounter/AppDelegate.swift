@@ -22,6 +22,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let monitor = NWPathMonitor()
 
     var timer = Timer()
+    
+    //
+    // initalize class which will perform all the automounter tasks
+    let mounter = Mounter.init()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         window.isReleasedWhenClosed = false
@@ -38,7 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         //
         // initalize class which will perform all the automounter tasks
-        let mounter = Mounter.init()
+        let mounter = self.mounter
         self.mountpath = mounter.mountpath
 
         //
@@ -55,17 +59,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
         window.contentViewController = NetworkShareMounterViewController.newInsatnce()
-        constructMenu()
 
         // Do any additional setup after loading the view.
-        Monitor().startMonitoring { [weak self] connection, reachable in
-                    guard let strongSelf = self else { return }
-            strongSelf.performMount(connection, reachable: reachable, mounter: mounter)
-
-        }
-
+//        Monitor().startMonitoring { [weak self] connection, reachable in
+//                    guard let strongSelf = self else { return }
+//            strongSelf.performMount(connection, reachable: reachable, mounter: mounter)
+//
+//        }
+        constructMenu(withMounter: mounter)
+        
         // start a timer to perform a mount every 5 minutes
-        self.timer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true, block: { _ in
+        let timerInterval: Double = 300
+        self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
+            NSLog("Passed \(timerInterval) seconds, performing mount operartions.")
+            let netConnection = Monitor.shared
+            let status = netConnection.netOn
+            NSLog("Current Network Path is \(status)")
             mounter.mountShares()
         })
     }
@@ -98,17 +107,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
         }
     }
+    
+    @objc func mountManually(_ sender: Any?) {
+        NSLog("Should mount shares")
+    }
+    
+    @objc func unmountShares(_ sender: Any?) {
+        NSLog("Should unmount all shares")
+        mounter.unmountAllShares()
+    }
 
-    func constructMenu() {
+    func constructMenu(withMounter mounter: Mounter) {
         let menu = NSMenu()
 
         // menu.addItem(NSMenuItem(title: NSLocalizedString("Network Share Mounter", comment: "Info"), action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
-                                action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Mount shares", comment: "Mount shares"),
+                                action: #selector(AppDelegate.mountManually(_:)), keyEquivalent: "m"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Unmount shares", comment: "Unmount shares"),
+                                action: #selector(AppDelegate.unmountShares(_:)), keyEquivalent: "u"))
         menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"),
                                 action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
         // menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
+                                action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
         if userDefaults.bool(forKey: "canQuit") != false {
+            menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
                                     action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         }
