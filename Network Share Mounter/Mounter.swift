@@ -316,25 +316,25 @@ extension Mounter {
         
         
 
-        let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, Settings.openOptions, Settings.mountOptions, nil)
-
-        switch rc {
-        case 0:
-            NSLog("\(url): successfully mounted")
-            return(true)
-        case 2:
-            NSLog("\(url): does not exist")
-        case 17:
-            NSLog("\(url): already mounted")
-            return(true)
-        case 65:
-            NSLog("\(url): no route to host")
-        case -6003:
-            NSLog("\(url): share does not exist")
-        default:
-            NSLog("\(url) unknown return code: \(rc)")
-        }
-        return(false)
+//        let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, Settings.openOptions, Settings.mountOptions, nil)
+//
+//        switch rc {
+//        case 0:
+//            NSLog("\(url): successfully mounted")
+//            return(true)
+//        case 2:
+//            NSLog("\(url): does not exist")
+//        case 17:
+//            NSLog("\(url): already mounted")
+//            return(true)
+//        case 65:
+//            NSLog("\(url): no route to host")
+//        case -6003:
+//            NSLog("\(url): share does not exist")
+//        default:
+//            NSLog("\(url) unknown return code: \(rc)")
+//        }
+//        return(false)
         return(true)
     }
 }

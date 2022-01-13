@@ -61,11 +61,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentViewController = NetworkShareMounterViewController.newInsatnce()
 
         // Do any additional setup after loading the view.
-//        Monitor().startMonitoring { [weak self] connection, reachable in
-//                    guard let strongSelf = self else { return }
-//            strongSelf.performMount(connection, reachable: reachable, mounter: mounter)
-//
-//        }
         constructMenu(withMounter: mounter)
         
         // start a timer to perform a mount every 5 minutes
@@ -80,6 +75,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
+        //
+        // unmount all shares befor leaving
+        mounter.unmountAllShares()
+        //
+        // end network monitoring
+        monitor.cancel()
+        //
         // write changed values back to userDefaults
         if userDefaults.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
             userDefaults.set(true, forKey: "autostart")
