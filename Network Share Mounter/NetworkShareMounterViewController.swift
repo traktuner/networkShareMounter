@@ -53,12 +53,15 @@ class NetworkShareMounterViewController: NSViewController {
                     NSLog("\(shareString) is already in list of user's customNetworkShares")
                 } else {
                     let mounter = Mounter.init()
-                    if mounter.doTheMount(forShare: usersNewShare.stringValue) {
+                    do {
+                        try mounter.doTheMount(forShare: usersNewShare.stringValue)
                         shareArray.append(usersNewShare.stringValue)
                         userDefaults.set(shareArray, forKey: "customNetworkShares")
                         usersNewShare.stringValue=""
+                    } catch let error as NSError {
+                        NSLog("Mounting of new share \(usersNewShare.stringValue) failed: \(error)")
                     }
-                }
+                }                
             }
         }
     }

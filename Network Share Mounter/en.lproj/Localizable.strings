@@ -10,5 +10,11 @@
 /* Show mounted shares */
 "Show mounted shares" = "Show mounted shares";
 
+/* Mount shares */
+"Mount shares" = "Mount shares";
+
+/* Unmount shares */
+"Unmount shares" = "Unmount shares";
+
 /* Preferences */
 "Preferences" = "Preferences";

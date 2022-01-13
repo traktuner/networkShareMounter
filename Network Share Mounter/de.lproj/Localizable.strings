@@ -10,5 +10,11 @@
 /* Show mounted shares */
 "Show mounted shares" = "Zeige eingebundene Freigaben";
 
+/* Mount shares */
+"Mount shares" = "Verbinde Freigaben";
+
+/* Unmount shares */
+"Unmount shares" = "Trenne Freigaben";
+
 /* Preferences */
 "Preferences" = "Einstellungen";
