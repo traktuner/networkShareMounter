@@ -111,11 +111,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func mountManually(_ sender: Any?) {
-        NSLog("Should mount shares")
+        NSLog("User triggered mount all shares")
+        mounter.mountShares()
     }
     
     @objc func unmountShares(_ sender: Any?) {
-        NSLog("Should unmount all shares")
+        NSLog("User triggered unmount all shares")
         mounter.unmountAllShares()
     }
 

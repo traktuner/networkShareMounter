@@ -129,9 +129,8 @@ extension Mounter {
     //
     // function to delete obstructing files in mountDir Subdirectories
     func deleteUnneededFiles(path: String, filename: String?) {
-        let fileManager = FileManager.default
         do {
-            let filePaths = try fileManager.contentsOfDirectory(atPath: path)
+            let filePaths = try fm.contentsOfDirectory(atPath: path)
             for filePath in filePaths {
                 // check if directory is a (remote) filesystem mount
                 // if directory is a regular directory go on
@@ -140,9 +139,9 @@ extension Mounter {
                     if let unwrappedFilename = filename {
                         if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                             let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
-                            if fileManager.fileExists(atPath: deleteFile) {
+                            if fm.fileExists(atPath: deleteFile) {
                                 NSLog("Deleting obstructing file \(deleteFile)")
-                                try fileManager.removeItem(atPath: deleteFile)
+                                try fm.removeItem(atPath: deleteFile)
                             }
                         }
                     } else {
@@ -159,6 +158,33 @@ extension Mounter {
                         let data = pipe.fileHandleForReading.readDataToEndOfFile()
                         let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
                         NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
+                    }
+                } else {
+                    //
+                    // directory is file-system mount.
+                    // Now let's check if there is some SHARE-1, SHARE-2, ... mount and unmount it
+                    //
+                    // at first, let's get a list of all shares to match on
+                    let shares = createShareArray()
+                    //
+                    // compare list of shares with mount
+                    for share in shares {
+                        let shareDirName = URL(fileURLWithPath: share)
+                        //
+                        // get the last component of the share, since this is the name of the mount-directory
+                        if let shareMountDir = shareDirName.pathComponents.last {
+                            //
+                            // ignore if the mount is correct (both shareDir and mountedDir have the same name)
+                            if filePath != shareMountDir {
+                                //
+                                // rudimentary check for XXX-1, XXX-2, ... mountdirs
+                                // sure, this could be done better (e.g. regex mathcing), but I don't think it's worth thinking about
+                                if shareMountDir.contains(filePath + "-1") || shareMountDir.contains(filePath + "-2") || shareMountDir.contains(filePath + "-3") {
+                                    NSLog("It seems share \(share) is already mounted as \(path.appendingPathComponent(filePath)). Trying to unmount...")
+                                    unmountShare(atPath: path.appendingPathComponent(filePath))
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -236,10 +262,10 @@ extension Mounter {
             } else {
                 for share in shares {
                     do {
-                        try _ = doTheMount(forShare: share)
-                        NSLog("Share \(share) mounted scsessfully")
+                        try doTheMount(forShare: share)
+                        NSLog("Mounting of \(share) initiated")
                     } catch {
-                        NSLog("Error in mounting share \(share)")
+                        NSLog("Mounting of share \(share) failed.")
                     }
                 }
             }
@@ -249,7 +275,7 @@ extension Mounter {
         }
     }
 
-    func doTheMount(forShare share: String) throws -> Bool {
+    func doTheMount(forShare share: String) throws {
         // oddly there is some undocumented magic done by addingPercentEncoding when the CharacterSet
         // used as reference is an underlying NSCharacterSet class. It appears, it encodes even the ":"
         // at the very beginning of the URL ( smb:// vs. smb0X0P+0// ). As a result, the host() function
@@ -296,46 +322,25 @@ extension Mounter {
             let mountedDirectories = mountedDirs as! [String]? ?? nil
                     
             if (status != 0) {
+                NSLog("Mounting share for \(url) failed.")
                 self.delegate?.shareMountingDidFail(for: url as URL, withError: status)
             } else {
+                NSLog("\(url) successfully mounted.")
                 self.delegate?.shareDidMount(url: url as URL, at: mountedDirectories)
             }
         }
         
-//        NetFSMountURLAsync(url,
-//                           NSURL(string: self.mountpath),
-//                           nil,
-//                           nil,
-//                           Settings.openOptions,
-//                           Settings.mountOptions,
-//                           &self.asyncRequestId,
-//                           operationQueue.underlyingQueue,
-//                           mountReportBlock)
-//        self.delegate?.shareWillMount(url: url as URL)
-        //let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, Settings.openOptions, Settings.mountOptions, nil)
-        
-        
-
-//        let rc = NetFSMountURLSync(url, NSURL(string: mountpath), nil, nil, Settings.openOptions, Settings.mountOptions, nil)
-//
-//        switch rc {
-//        case 0:
-//            NSLog("\(url): successfully mounted")
-//            return(true)
-//        case 2:
-//            NSLog("\(url): does not exist")
-//        case 17:
-//            NSLog("\(url): already mounted")
-//            return(true)
-//        case 65:
-//            NSLog("\(url): no route to host")
-//        case -6003:
-//            NSLog("\(url): share does not exist")
-//        default:
-//            NSLog("\(url) unknown return code: \(rc)")
-//        }
-//        return(false)
-        return(true)
+        NetFSMountURLAsync(url,
+                           NSURL(string: self.mountpath),
+                           nil,
+                           nil,
+                           Settings.openOptions,
+                           Settings.mountOptions,
+                           &self.asyncRequestId,
+                           operationQueue.underlyingQueue,
+                           mountReportBlock)
+        self.delegate?.shareWillMount(url: url as URL)
+        //return(true)
     }
 }
 

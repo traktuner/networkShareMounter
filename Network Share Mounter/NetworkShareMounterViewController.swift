@@ -54,11 +54,10 @@ class NetworkShareMounterViewController: NSViewController {
                 } else {
                     let mounter = Mounter.init()
                     do {
-                        if try mounter.doTheMount(forShare: usersNewShare.stringValue) {
-                            shareArray.append(usersNewShare.stringValue)
-                            userDefaults.set(shareArray, forKey: "customNetworkShares")
-                            usersNewShare.stringValue=""
-                        }
+                        try mounter.doTheMount(forShare: usersNewShare.stringValue)
+                        shareArray.append(usersNewShare.stringValue)
+                        userDefaults.set(shareArray, forKey: "customNetworkShares")
+                        usersNewShare.stringValue=""
                     } catch let error as NSError {
                         NSLog("Mounting of new share \(usersNewShare.stringValue) failed: \(error)")
                     }
