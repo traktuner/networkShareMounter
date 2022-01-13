@@ -10,7 +10,7 @@ import Foundation
 import Network
 
 enum Reachable {
-    case yes, no
+    case yes, nope
 }
 
 enum Connection {
@@ -35,12 +35,12 @@ extension Monitor {
     func startMonitoring( callBack: @escaping (_ connection: Connection, _ rechable: Reachable) -> Void ) {
         monitor.pathUpdateHandler = { path in
 
-            let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.no  : Reachable.yes
+            let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
             self.netOn = path.status == .satisfied
             self.connType = self.checkConnectionTypeForPath(path)
 
             if path.availableInterfaces.isEmpty {
-                return callBack(.other, .no)
+                return callBack(.other, .nope)
             } else if path.usesInterfaceType(.wifi) {
                 return callBack(.wifi, reachable)
             } else if path.usesInterfaceType(.cellular) {

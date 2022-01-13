@@ -13,35 +13,35 @@ import OpenDirectory
 import AppKit
 
 enum MounterError: Error {
-    case ErrorCreatingMountFolder
-    case ErrorCheckingMountDir
-    case ErrorOnEncodingShareURL
-    case InvalidMountURL
-    case InvalidHost
-    case MountpointInaccessible
-    case CouldNotTestConnectivity
-    case InvalidMountOptions
-    case AlreadyMounted
-    case TargetNotReachable
-    case NoRouteToHost
-    case DoesNotExist
-    case ShareDoesNotExist
-    case UnknownReturnCode
+    case errorCreatingMountFolder
+    case errorCheckingMountDir
+    case errorOnEncodingShareURL
+    case invalidMountURL
+    case invalidHost
+    case mountpointInaccessible
+    case couldNotTestConnectivity
+    case invalidMountOptions
+    case alreadyMounted
+    case targetNotReachable
+    case noRouteToHost
+    case doesNotExist
+    case shareDoesNotExist
+    case unknownReturnCode
 }
 
-enum MountOption {
-    case NoBrowse
-    case ReadOnly
-    case AllowSubMounts
-    case SoftMount
-    case MountAtMountDirectory
-    
-    case Guest
-    case AllowLoopback
-    case NoAuthDialog
-    case AllowAuthDialog
-    case ForceAuthDialog
-}
+//enum MountOption {
+//    case NoBrowse
+//    case ReadOnly
+//    case AllowSubMounts
+//    case SoftMount
+//    case MountAtMountDirectory
+//
+//    case Guest
+//    case AllowLoopback
+//    case NoAuthDialog
+//    case AllowAuthDialog
+//    case ForceAuthDialog
+//}
 
 protocol ShareDelegate {
     func shareWillMount(url: URL) -> Void
@@ -288,15 +288,15 @@ extension Mounter {
         // guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) else { continue }
         let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
         guard let encodedShare = share.addingPercentEncoding(withAllowedCharacters: csCopy) else {
-            throw MounterError.ErrorOnEncodingShareURL
+            throw MounterError.errorOnEncodingShareURL
             //return(false)
         }
         guard let url = NSURL(string: encodedShare) else {
-            throw MounterError.InvalidMountURL
+            throw MounterError.invalidMountURL
             //return(false)
         }
         guard let host = url.host else {
-            throw MounterError.InvalidHost
+            throw MounterError.invalidHost
             //return(false)
         }
 
@@ -305,12 +305,12 @@ extension Mounter {
         let hostReachability = SCNetworkReachabilityCreateWithName(nil, (host as NSString).utf8String!)
         guard SCNetworkReachabilityGetFlags(hostReachability!, &flags) == true else {
             NSLog("could not determine reachability for host \(host)")
-            throw MounterError.CouldNotTestConnectivity
+            throw MounterError.couldNotTestConnectivity
             //return(false)
         }
         guard flags.contains(.reachable) == true else {
             NSLog("\(host): target not reachable")
-            throw MounterError.TargetNotReachable
+            throw MounterError.targetNotReachable
             //return(false)
         }
         
@@ -318,8 +318,10 @@ extension Mounter {
         
         let mountReportBlock: NetFSMountCallback = {
             status, asyncRequestId, mountedDirs in
-                
+            
+            // swiftlint:disable force_cast
             let mountedDirectories = mountedDirs as! [String]? ?? nil
+            // swiftlint:enable force_cast
                     
             if (status != 0) {
                 NSLog("Mounting share for \(url) failed.")
