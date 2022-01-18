@@ -12,6 +12,7 @@ stages:
   - beta
 #  - build
   - upload
+  - beta_release
   - release
 
 
@@ -72,14 +73,42 @@ beta_build:
 #      - /^release-.*$/
 #      - master
 
-upload:
+upload beta:
   stage: upload
 #  rules:
 #  - if: $CI_COMMIT_TAG
   script:
     - echo ${PACKAGE_REGISTRY_URL}
-    - |
-      /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE_BETA} ${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE_BETA} ${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}'
+  dependencies:
+    - beta_build
+  tags:
+    - fastlane
+    - xcode
+
+upload release:
+  stage: upload
+  rules:
+  - if: $CI_COMMIT_TAG
+  script:
+    - echo ${PACKAGE_REGISTRY_URL}
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE_BETA} ${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}'
+  dependencies:
+    - beta_build
+  tags:
+    - fastlane
+    - xcode
+
+beta_release:
+  stage: beta_release
+#  rules:
+#    - if: $CI_COMMIT_TAG
+  script:
+    - echo $CI_COMMIT_TAG
+    - '/usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+      --assets-link "{\"name\":\"${PACKAGE_BETA}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}\"}"'
+  dependencies:
+    - upload beta
   tags:
     - fastlane
     - xcode
@@ -91,8 +120,10 @@ release:
   script:
     - echo $CI_COMMIT_TAG
     - |
-      /usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+      /usr/local/bin/release-cli create --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
       --assets-link "{\"name\":\"${PACKAGE_BETA}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}\"}"
+  dependencies:
+    - upload release
   tags:
     - fastlane
     - xcode
