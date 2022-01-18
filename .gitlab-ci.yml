@@ -11,7 +11,7 @@ stages:
 #  - test
   - beta
 #  - build
-#  - upload
+  - upload
 #  - release
 
 
@@ -69,13 +69,13 @@ beta_build:
 #      - /^release-.*$/
 #      - master
 
-#upload:
-#  stage: upload
+upload:
+  stage: upload
 #  rules:
 #  - if: $CI_COMMIT_TAG
-#  script:
-#    - |
-#      /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounteBeta.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg
+  script:
+    - |
+      /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounteBeta.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg
 
 #release:
 #  stage: release
