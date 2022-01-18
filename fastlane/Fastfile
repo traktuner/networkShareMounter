@@ -27,6 +27,11 @@ platform :mac do
   end
 end
 
+lane :setupCI do
+  desc "Setup the keychain and match to work with CI"
+  setup_ci
+end
+
 lane :getbundleid do
   desc "gets bundleid from the xcode project files"
   get_product_bundle_id(project_filepath: 'networkShareMounter.xcodeproj', scheme: 'NetworkShareMounter')
@@ -48,6 +53,7 @@ lane :commonTasks do
   )
   desc "test for proper Xcode version"
   xcversion(version: "~> 13")
+  setupCI
   desc "lint those drity lines of code"
   swiftlint(
     mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
