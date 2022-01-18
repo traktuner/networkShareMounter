@@ -41,8 +41,6 @@ beta build:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
     - fastlane beta
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   artifacts:
     paths:
       - swiftlint.result.json
@@ -58,8 +56,6 @@ release build:
   - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
     - fastlane release
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   artifacts:
     paths:
      - swiftlint.result.json
