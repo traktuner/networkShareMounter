@@ -8,14 +8,12 @@
 #- template: Security/Secret-Detection.gitlab-ci.yml
 
 stages:
-  - test
+#  - test
   - beta
   - build
   - upload
   - release
-#  - test
-#  - archive
-#  - deploy
+
 
 variables:
   LC_ALL: "en_US.UTF-8"
@@ -39,8 +37,8 @@ test_build:
 beta_build:
   dependencies: []
   stage: beta
-  rules:
-    - if: $CI_COMMIT_TAG
+  #rules:
+  #  - if: $CI_COMMIT_TAG
   script:
     - fastlane beta
   artifacts:
@@ -55,8 +53,8 @@ beta_build:
 deploy_build:
   dependencies: []
   stage: build
-  #rules:
-  #- if: $CI_COMMIT_TAG
+  rules:
+  - if: $CI_COMMIT_TAG
   script:
     - fastlane releae
   artifacts:
