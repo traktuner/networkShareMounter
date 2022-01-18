@@ -26,15 +26,13 @@ before_script:
 
 beta_build:
   dependencies: []
-  stage: beta
-  script: 
+  script:
     - fastlane beta
   artifacts:
     paths:
       - swiftlint.result.json
-      - build/
-      expire_in: 1 hour
-      
+      - build/NetworkShareMounterBeta.dmg
+    expire_in: 1 hour
   tags:
     - fastlane
     - xcode
@@ -48,11 +46,12 @@ deploy_build:
   artifacts:
     paths:
       - swiftlint.result.json
-      expire_in: 1 day
+      - build/NetworkShareMounterBeta.dmg
+    expire_in: 1 day
   tags:
     - fastlane
     - xcode
-    only:
+  only:
       - /^release-.*$/
       - master
 
