@@ -76,6 +76,9 @@ upload:
   script:
     - |
       /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounteBeta.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg
+  tags:
+    - fastlane
+    - xcode
 
 #release:
 #  stage: release
