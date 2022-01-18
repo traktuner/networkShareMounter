@@ -8,12 +8,10 @@
 #- template: Security/Secret-Detection.gitlab-ci.yml
 
 stages:
-#  - test
-  - beta
+  # - test
+  - build
+  - upload
   - release
-  # - upload
-  # - beta_release
-  # - release
 
 
 variables:
@@ -36,7 +34,7 @@ before_script:
 #    - xcode
 
 beta build:
-  stage: beta
+  stage: build
   variables:
     PACKAGE: "NetworkShareMounterBeta.dmg"
   rules:
@@ -44,7 +42,7 @@ beta build:
   script:
     - fastlane beta
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
-    - '/usr/local/bin/release-cli create --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
+    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   artifacts:
     paths:
       - swiftlint.result.json
@@ -54,14 +52,14 @@ beta build:
     - fastlane
     - xcode
 
-deploy build:
-  stage: release
+release build:
+  stage: build
   rules:
   - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
     - fastlane release
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
-    - '/usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
+    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   artifacts:
     paths:
      - swiftlint.result.json
@@ -71,32 +69,58 @@ deploy build:
     - fastlane
     - xcode
 
-# beta release:
-#   variables:
-#     PACKAGE: "NetworkShareMounterBeta.dmg"
-#   stage: release
-#   rules:
-#     - if: '$CI_COMMIT_TAG =~ /^beta-/'
-#   script:
-#     - '/usr/local/bin/release-cli create --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
-#   dependencies:
-#     - beta build
-#     - upload
-#   tags:
-#     - fastlane
-#     - xcode
+beta upload:
+  stage: upload
+  variables:
+    PACKAGE: "NetworkShareMounterBeta.dmg"
+  rules:
+  - if: '$CI_COMMIT_TAG =~ /^beta-/'
+  script:
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
+  dependencies:
+    - beta build
+  tags:
+    - fastlane
+    - xcode
 
-# release:
-#   stage: release
-#   rules:
-#     - if: '$CI_COMMIT_TAG =~ /^release-/'
-#   script:
-#     - '/usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
-#   dependencies:
-#     - deploy build
-#     - upload
-#   tags:
-#     - fastlane
-#     - xcode
+release upload:
+  stage: upload
+  rules:
+  - if: '$CI_COMMIT_TAG =~ /^release-/'
+  script:
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
+  dependencies:
+    - release build
+  tags:
+    - fastlane
+    - xcode
+
+beta release:
+  variables:
+    PACKAGE: "NetworkShareMounterBeta.dmg"
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^beta-/'
+  script:
+    - '/usr/local/bin/release-cli create --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
+  dependencies:
+    - beta build
+    - beta upload
+  tags:
+    - fastlane
+    - xcode
+
+release:
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^release-/'
+  script:
+    - '/usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
+  dependencies:
+    - release build
+    - release upload
+  tags:
+    - fastlane
+    - xcode
 
   
