@@ -10,7 +10,7 @@
 stages:
 #  - test
   - beta
-#  - build
+  - build
   - upload
   - beta_release
   - release
@@ -38,92 +38,85 @@ before_script:
 #    - fastlane
 #    - xcode
 
-beta_build:
+beta build:
   dependencies: []
   stage: beta
   #rules:
   #  - if: $CI_COMMIT_TAG
   script:
     - fastlane beta
+    - echo "DMGFILE=NetworkShareMounterBeta.dmg" >> build.env
   artifacts:
     paths:
       - swiftlint.result.json
       - build/NetworkShareMounterBeta.dmg
     expire_in: 1 hour
+    reports:
+      dotenv: build.env
   tags:
     - fastlane
     - xcode
 
-#deploy_build:
-#  dependencies: []
-#  stage: build
-#  #rules:
-#  #- if: $CI_COMMIT_TAG
-#  script:
-#    - fastlane releae
-#  artifacts:
-#    paths:
-#     - swiftlint.result.json
-#      - build/NetworkShareMounter.dmg
-#    expire_in: 1 hour
-#  tags:
-#    - fastlane
-#    - xcode
-#  only:
-#      - /^release-.*$/
-#      - master
-
-upload beta:
-  stage: upload
-#  rules:
-#  - if: $CI_COMMIT_TAG
+deploy build:
+  dependencies: []
+  stage: build
+  #rules:
+  #- if: $CI_COMMIT_TAG
   script:
-    - echo ${PACKAGE_REGISTRY_URL}
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE_BETA} ${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}'
-  dependencies:
-    - beta_build
+    - fastlane release
+    - echo "DMGFILE=NetworkShareMounter.dmg" >> build.env
+  artifacts:
+    paths:
+     - swiftlint.result.json
+      - build/NetworkShareMounter.dmg
+    expire_in: 1 hour
+    reports:
+      dotenv: build.env
   tags:
     - fastlane
     - xcode
+  only:
+      - /^release-.*$/
+      - master
 
-upload release:
+upload:
   stage: upload
   rules:
   - if: $CI_COMMIT_TAG
   script:
     - echo ${PACKAGE_REGISTRY_URL}
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE_BETA} ${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMGFILE} ${PACKAGE_REGISTRY_URL}/${DMGFILE}'
   dependencies:
-    - beta_build
+    - beta build
+    - deploy build
   tags:
     - fastlane
     - xcode
 
-beta_release:
-  stage: beta_release
+beta release:
+  stage: release
 #  rules:
 #    - if: $CI_COMMIT_TAG
   script:
     - echo $CI_COMMIT_TAG
     - '/usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-      --assets-link "{\"name\":\"${PACKAGE_BETA}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}\"}"'
+      --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"'
   dependencies:
-    - upload beta
+    - upload
   tags:
     - fastlane
     - xcode
 
 release:
   stage: release
-#  rules:
-#    - if: $CI_COMMIT_TAG
+  rules:
+    - if: $CI_COMMIT_TAG
   script:
     - echo $CI_COMMIT_TAG
-    - |
-      /usr/local/bin/release-cli create --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-      --assets-link "{\"name\":\"${PACKAGE_BETA}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}\"}"
+    - '/usr/local/bin/release-cli create --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+      --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"'
   dependencies:
-    - upload release
+    - upload
   tags:
     - fastlane
     - xcode
