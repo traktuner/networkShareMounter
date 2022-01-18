@@ -44,7 +44,7 @@ beta build:
   #  - if: $CI_COMMIT_TAG
   script:
     - fastlane beta
-    - echo "DMGFILE=NetworkShareMounterBeta.dmg" >> build.env
+    - echo "DMGFILE=NetworkShareMounterBeta.dmg" > build.env
   artifacts:
     paths:
       - swiftlint.result.json
@@ -63,7 +63,7 @@ deploy build:
   #- if: $CI_COMMIT_TAG
   script:
     - fastlane release
-    - echo "DMGFILE=NetworkShareMounter.dmg" >> build.env
+    - echo "DMGFILE=NetworkShareMounter.dmg" > build.env
   artifacts:
     paths:
      - swiftlint.result.json
@@ -83,7 +83,7 @@ upload:
   rules:
   - if: $CI_COMMIT_TAG
   script:
-    - echo ${PACKAGE_REGISTRY_URL}
+    - echo build/${DMGFILE} ${PACKAGE_REGISTRY_URL}/${DMGFILE}
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMGFILE} ${PACKAGE_REGISTRY_URL}/${DMGFILE}'
   dependencies:
     - beta build
@@ -98,7 +98,7 @@ beta release:
 #    - if: $CI_COMMIT_TAG
   script:
     - echo /usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"
-    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"'
+    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg\"}"'
   dependencies:
     - upload
   tags:
@@ -111,7 +111,7 @@ release:
     - if: $CI_DEPLOY_FREEZE == null
   script:
     - echo /usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"
-    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"'
+    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounter.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounter.dmg"}"'
   dependencies:
     - upload
   tags:
