@@ -18,7 +18,7 @@ variables:
   LANG: "en_US.UTF-8"
 
 before_script:
-  - echo "Hello World"
+  - cp /Users/autopkg/dev/networkShareMounter/.env.default .
 
 build_project:
   stage: build
