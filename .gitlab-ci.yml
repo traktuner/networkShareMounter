@@ -21,8 +21,7 @@ variables:
   LANG: "en_US.UTF-8"
   CI_COMMIT_TAG: "2.0.0.b8"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/networksharemounter/${CI_COMMIT_TAG}"
-  PACKAGE_BETA: "NetworkShareMounterBeta.dmg"
-  PACKAGE_RELEASE: "NetworkShareMounter.dmg"
+  PACKAGE: "NetworkShareMounter.dmg"
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
@@ -40,18 +39,15 @@ before_script:
 beta build:
   dependencies: []
   stage: beta
-  #rules:
-  #  - if: $CI_COMMIT_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
     - fastlane beta
-    - echo "DMGFILE=NetworkShareMounterBeta.dmg" > build.env
   artifacts:
     paths:
       - swiftlint.result.json
       - build/NetworkShareMounterBeta.dmg
     expire_in: 1 hour
-    reports:
-      dotenv: build.env
   tags:
     - fastlane
     - xcode
@@ -59,11 +55,10 @@ beta build:
 deploy build:
   dependencies: []
   stage: build
-  #rules:
-  #- if: $CI_COMMIT_TAG
+  rules:
+  - if: $CI_COMMIT_TAG
   script:
     - fastlane release
-    - echo "DMGFILE=NetworkShareMounter.dmg" > build.env
   artifacts:
     paths:
      - swiftlint.result.json
@@ -74,17 +69,16 @@ deploy build:
   tags:
     - fastlane
     - xcode
-  only:
-      - /^release-.*$/
-      - master
+  #only:
+  #    - /^release-.*$/
+  #    - master
 
 upload:
   stage: upload
   rules:
   - if: $CI_COMMIT_TAG
   script:
-    - echo build/${DMGFILE} ${PACKAGE_REGISTRY_URL}/${DMGFILE}
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMGFILE} ${PACKAGE_REGISTRY_URL}/${DMGFILE}'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMGFILE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
   dependencies:
     - beta build
     - deploy build
@@ -93,12 +87,13 @@ upload:
     - xcode
 
 beta release:
+  variables:
+    PACKAGE: "NetworkShareMounterBeta.dmg"
   stage: release
-#  rules:
-#    - if: $CI_COMMIT_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - echo /usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"
-    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg\"}"'
+    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   dependencies:
     - upload
   tags:
@@ -110,8 +105,7 @@ release:
   rules:
     - if: $CI_DEPLOY_FREEZE == null
   script:
-    - echo /usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${DMGFILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMGFILE}\"}"
-    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounter.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounter.dmg"}"'
+    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounter.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   dependencies:
     - upload
   tags:
