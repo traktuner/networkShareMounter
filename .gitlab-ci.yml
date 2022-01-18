@@ -10,9 +10,9 @@
 stages:
 #  - test
   - beta
-  - build
-  - upload
-  - release
+#  - build
+#  - upload
+#  - release
 
 
 variables:
@@ -50,43 +50,43 @@ beta_build:
     - fastlane
     - xcode
 
-deploy_build:
-  dependencies: []
-  stage: build
-  #rules:
-  #- if: $CI_COMMIT_TAG
-  script:
-    - fastlane releae
-  artifacts:
-    paths:
-      - swiftlint.result.json
-      - build/NetworkShareMounter.dmg
-    expire_in: 1 hour
-  tags:
-    - fastlane
-    - xcode
-  only:
-      - /^release-.*$/
-      - master
+#deploy_build:
+#  dependencies: []
+#  stage: build
+#  #rules:
+#  #- if: $CI_COMMIT_TAG
+#  script:
+#    - fastlane releae
+#  artifacts:
+#    paths:
+#     - swiftlint.result.json
+#      - build/NetworkShareMounter.dmg
+#    expire_in: 1 hour
+#  tags:
+#    - fastlane
+#    - xcode
+#  only:
+#      - /^release-.*$/
+#      - master
 
-upload:
-  stage: upload
-  rules:
-  - if: $CI_COMMIT_TAG
-  script:
-    - |
-      /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounteBeta.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg
+#upload:
+#  stage: upload
+#  rules:
+#  - if: $CI_COMMIT_TAG
+#  script:
+#    - |
+#      /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounteBeta.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg
 
-release:
-  stage: release
-  rules:
-    - if: $CI_COMMIT_TAG
-  script:
-    - |
-      /usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-      --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg\"}"
-  tags:
-    - fastlane
-    - xcode
+#release:
+#  stage: release
+#  rules:
+#    - if: $CI_COMMIT_TAG
+#  script:
+#    - |
+#      /usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+#      --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg\"}"
+#  tags:
+#    - fastlane
+#    - xcode
 
   
