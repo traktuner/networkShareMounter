@@ -10,7 +10,7 @@
 stages:
 #  - test
   - beta
-  - build
+  - release
   # - upload
   # - beta_release
   # - release
@@ -40,8 +40,8 @@ beta build:
   stage: beta
   variables:
     PACKAGE: "NetworkShareMounterBeta.dmg"
-  rules:
-    - if: '$CI_COMMIT_TAG =~ /^beta-/'
+  #rules:
+  #  - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
     - fastlane beta
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
@@ -56,7 +56,7 @@ beta build:
     - xcode
 
 deploy build:
-  stage: build
+  stage: release
   rules:
   - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
