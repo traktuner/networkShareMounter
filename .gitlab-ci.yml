@@ -10,6 +10,8 @@
 stages:
   - test
   - beta
+  - build
+  - upload
   - release
 #  - test
 #  - archive
@@ -18,6 +20,8 @@ stages:
 variables:
   LC_ALL: "en_US.UTF-8"
   LANG: "en_US.UTF-8"
+  PACKAGE_VERSION: "2.0.0"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/networksharemounter/${PACKAGE_VERSION}"
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
@@ -26,6 +30,8 @@ before_script:
 
 beta_build:
   dependencies: []
+  rules:
+    - if: $CI_COMMIT_TAG
   script:
     - fastlane beta
   artifacts:
@@ -39,19 +45,26 @@ beta_build:
 
 deploy_build:
   dependencies: []
-  stage: release
+  stage: build
+  rules:
+  - if: $CI_COMMIT_TAG
   script:
-    - echo "running fastlane"
     - fastlane releae
   artifacts:
     paths:
       - swiftlint.result.json
-      - build/NetworkShareMounterBeta.dmg
-    expire_in: 1 day
+      - build/NetworkShareMounter.dmg
+    expire_in: 1 hour
   tags:
     - fastlane
     - xcode
   only:
       - /^release-.*$/
       - master
+
+upload:
+  stage: upload
+  - if: $CI_COMMIT_TAG
+  script:
+    - curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounter.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounter.dmg
 
