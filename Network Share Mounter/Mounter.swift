@@ -255,7 +255,7 @@ extension Mounter {
             if shares.isEmpty {
                 NSLog("no shares configured!")
             } else {
-                let shareMounterQueue = DispatchQueue(label: "ShareMounter Queue", attributes: .concurrent)
+                let shareMounterQueue = DispatchQueue(label: "ShareMounter Queue", qos: .background, attributes: .concurrent)
                 
                 for share in shares {
                     //
