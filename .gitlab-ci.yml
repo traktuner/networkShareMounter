@@ -20,6 +20,8 @@ variables:
   LANG: "en_US.UTF-8"
   PACKAGE_VERSION: "2.0.0"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/networksharemounter/${PACKAGE_VERSION}"
+  PACKAGE_BETA: "NetworkShareMounterBeta.dmg"
+  PACKAGE_RELEASE: "NetworkShareMounter.dmg"
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
@@ -76,7 +78,7 @@ upload:
   script:
     - echo ${PACKAGE_REGISTRY_URL}
     - |
-      /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounteBeta.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg
+      /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE_BETA} ${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}
   tags:
     - fastlane
     - xcode
@@ -89,7 +91,7 @@ release:
     - echo $CI_COMMIT_TAG
     - |
       /usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-      --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg\"}"
+      --assets-link "{\"name\":\"${PACKAGE_BETA}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_BETA}\"}"
   tags:
     - fastlane
     - xcode
