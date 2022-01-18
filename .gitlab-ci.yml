@@ -24,14 +24,6 @@ before_script:
 #  - gem install bundler
 #  - pod install
 
-test:
-  stage: test
-  script:
-      - echo "Test have to e tested to test something someday"
-  tags:
-    - fastlane
-    - xcode
-
 beta_build:
   dependencies: []
   stage: beta
@@ -39,10 +31,10 @@ beta_build:
     - fastlane beta
   artifacts:
     paths:
-      - build/NetworkShareMounterBeta.dmg
       - swiftlint.result.json
+      - build/
       expire_in: 1 hour
-
+      
   tags:
     - fastlane
     - xcode
@@ -55,7 +47,7 @@ deploy_build:
     - fastlane releae
   artifacts:
     paths:
-      #- swiftlint.result.json
+      - swiftlint.result.json
       expire_in: 1 day
   tags:
     - fastlane
