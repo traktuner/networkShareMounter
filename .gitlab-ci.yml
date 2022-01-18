@@ -12,7 +12,7 @@ stages:
   - beta
 #  - build
   - upload
-#  - release
+  - release
 
 
 variables:
@@ -74,22 +74,24 @@ upload:
 #  rules:
 #  - if: $CI_COMMIT_TAG
   script:
+    - echo ${PACKAGE_REGISTRY_URL}
     - |
       /usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/NetworkShareMounteBeta.dmg ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg
   tags:
     - fastlane
     - xcode
 
-#release:
-#  stage: release
+release:
+  stage: release
 #  rules:
 #    - if: $CI_COMMIT_TAG
-#  script:
-#    - |
-#      /usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-#      --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg\"}"
-#  tags:
-#    - fastlane
-#    - xcode
+  script:
+    - echo $CI_COMMIT_TAG
+    - |
+      /usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+      --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta.dmg\"}"
+  tags:
+    - fastlane
+    - xcode
 
   
