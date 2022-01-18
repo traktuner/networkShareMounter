@@ -56,7 +56,7 @@ deploy build:
   dependencies: []
   stage: build
   rules:
-  - if: $CI_COMMIT_TAG
+  - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
     - fastlane release
   artifacts:
@@ -64,19 +64,14 @@ deploy build:
      - swiftlint.result.json
       - build/NetworkShareMounter.dmg
     expire_in: 1 hour
-    reports:
-      dotenv: build.env
   tags:
     - fastlane
     - xcode
-  #only:
-  #    - /^release-.*$/
-  #    - master
 
 upload:
   stage: upload
   rules:
-  - if: $CI_COMMIT_TAG
+  - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
   dependencies:
@@ -93,8 +88,9 @@ beta release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounterBeta.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
+    - '/usr/local/bin/release-cli create --name "Beta $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   dependencies:
+    - beta build
     - upload
   tags:
     - fastlane
@@ -103,10 +99,11 @@ beta release:
 release:
   stage: release
   rules:
-    - if: $CI_DEPLOY_FREEZE == null
+    - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - '/usr/local/bin/release-cli create --milestone "networkShareMounter App" --released-at "2022-01-20T00:00:00Z" --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"NetworkShareMounter.dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
+    - '/usr/local/bin/release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}"'
   dependencies:
+    - deploy build
     - upload
   tags:
     - fastlane
