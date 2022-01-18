@@ -8,7 +8,9 @@
 #- template: Security/Secret-Detection.gitlab-ci.yml
 
 stages:
-  - build
+  - test
+  - beta
+  - release
 #  - test
 #  - archive
 #  - deploy
@@ -19,12 +21,36 @@ variables:
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
+#  - gem install bundler
+#  - pod install
 
-build_project:
-  stage: build
+beta_build:
+  dependencies: []
+  stage: beta
   script:
     - fastlane beta
+  artifacts:
+     paths:
+       - swiftlint.result.json
+       - build/
+      expire_in: 1 hour
   tags:
     - fastlane
     - xcode
+
+  deploy_build:
+    dependencies: []
+  stage: release
+  script:
+    - fastlane releae
+  artifacts:
+     paths:
+       - swiftlint.result.json
+      expire_in: 1 day
+  tags:
+    - fastlane
+    - xcode
+    only:
+     - /^release-.*$/
+     - master
 
