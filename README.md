@@ -1,21 +1,20 @@
 # <img src="networkShareMounter.png" alt="drawing" width="90px"/> networkShareMounter
 
-The networkShareMounter mounts network shares using a predefined plist. The easiest way to distribute them is to use configuration profiles with an MDM. The idea behind this app is to create a method to mount a bunch of predefined (SMB) network shares for a workgroup, department, project-group etc. For example, the configuration can be distributed to a specific group of Macs (or users) via an MDM.
+In a university, there is a requirement that departments have specific SMB shares on their own network that users should mount. In the same way, in a company - depending on the department or location - there could also be different shares that are to be used. The idea behind the networkShareMounter is that there is a single application that takes care of mounting a list of network shares in an enterprise or university environment. Such a list of shares will be ideally distributed as configuration profiles with an MDM based on workgroups, departments, project-groups etc.
 
-The shares are mounted in the background without any user interaction. Even if the mount fails (e.g. if the Mac is another location without connection to the configured servers), no GUI will be displayed and your users are not distracted. 
-Because of this we recommend the use of Kerberos tickets or mount the shares once manually to store the password in the users macOS keychain. So please note, no notification will be displayed if the credantials are invalid or not available!  
+Based on the network accessibility, the shares are mounted in the background without any user interaction. Even if a mount fails (e.g. if the share is unreachable), no GUI will be displayed. A Kerberos environment is therefore recommended so that no authentication is required for a mount. Alternatively, the user credentials can also be stored in the user's keychain by manually mounting a share once. So please note that no notification will be displayed if the credantials are invalid or unavailable!  
 
 **Configuration**  
-Network shares are fetched from a configurable NSUserDefaults domain - the easiest way to do this is to use an MDM to distribute a configuration profile (what we recommend) or execute a script. Here you may use `%USERNAME%`which will be replaced with the username of the current user. See [configuration preferences](#configuration-preferences) in v2 for all available values. 
+Network shares are stored in a NSUserdefaults domain among other configurable aspects of the app. The easiest way to do this is to create a configuration profile and distribute is via MDM. Alternatively, the configuration can also be done manually via the command line. As a tip: to avoid creating a profile for every user, use %USERNAME% which will be replaced with the login name of the current user. See [configuration preferences](#configuration-preferences) in v2 for all available values. 
 
 **SMBHome**  
-If the current user has the attribute `SMBHome`, the user home will also be mounted. This is usually the case when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. You can also set it for the local user if you want: `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`
+If the current user has the attribute `SMBHome` defined via LDAP or Active Directory, the user home will also be mounted automatically. This is usually the case when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. You can also set it for a local user if you want: `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`.
 
 **v2 and Legacy?**  
-Since December 2021 there are two different versions of the app: The [background LaunchAgent comamnd line application](#networksharemounter-legacy-the-command-line-app) which is legacy and a [menu bar based app](#network-share-mounter-v2) with more configuration options for end users. 
+Staring with December 2021 there are two different versions of the app: The [background LaunchAgent comamnd line application](#networksharemounter-legacy-the-command-line-app) legacy app (not under active development anymore) and a [menu bar based app](#network-share-mounter-v2) with more configuration options and features for end users. 
 
 ## Network Share Mounter (v2)
-The *Network Share Mounter* app is based on the code of the command line version. It lives in the user's menu bar and is more visible and manageable for the user, as he has the possibility to add some (additional personal) shares to be mounted and decide if the app will be started on login. 
+The *Network Share Mounter* app is loosely based on the code of the command line version. It lives in the user's menu bar and is more visible and manageable for the user, as it has the possibility to add some (additional personal) shares to be mounted or the user can decide if the app will be automatically started on login. 
 
 ### Configuration preferences
 To help administrator to configure the Network Share Mounter we provied a Jamf Custom Schema for configuration profiles. The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. All avaible values: 
