@@ -17,8 +17,6 @@ Since December 2021 there are two different versions of the app: The [background
 ## Network Share Mounter (v2)
 The *Network Share Mounter* app is based on the code of the command line version. It lives in the user's menu bar and is more visible and manageable for the user, as he has the possibility to add some (additional personal) shares to be mounted and decide if the app will be started on login. 
 
-<img src="networkShareMounterv2Screenshot.png" />  
-
 ### Configuration preferences
 To help administrator to configure the Network Share Mounter we provied a Jamf Custom Schema for configuration profiles. The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. All avaible values: 
 
@@ -32,6 +30,10 @@ To help administrator to configure the Network Share Mounter we provied a Jamf C
 | `unmountOnExit` | Boolean | if set to false the shares will be mounted after quitting the app | true | v2 | optional ||
 | `helpURL` | String | configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
 
+## Screenshot
+Screenshots of our Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit options. On the right the configuration window with the custom network share list: 
+<img src="networkShareMounterv2Screenshot.png" />  
+---- 
 
 ## networkShareMounter Legacy (the command line app)
 
@@ -39,7 +41,7 @@ The legacy networkShareMounter is started by a [LaunchAgent](https://gitlab.rrze
 
 ### How to configure the command line app
 
-The defaults domain for your [pre-built package](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/releases) is `de.uni-erlangen.rrze.networkShareMounter`. If you want to distribute the plist with a configuration profile you have to do it with the payload `com.apple.ManagedClient.preferences` like this:
+The defaults domain for our [pre-built package](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/releases) is `de.uni-erlangen.rrze.networkShareMounter`. If you want to distribute the plist with a configuration profile you have to do it with the payload `com.apple.ManagedClient.preferences` like this:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
