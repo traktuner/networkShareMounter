@@ -78,45 +78,57 @@ lane :commonTasks do
 end
 
 lane :beta do
-  desc "incerement Xcodes build number"
-  increment_build_number(
-    xcodeproj: "networkShareMounter.xcodeproj"
-  )
-  commonTasks
-  desc "Create DMG image"
-  dmg(
-    path: "build/Network Share Mounter.app",
-    output_path: "build/NetworkShareMounterBeta.dmg",
-    volume_name: "NetworkShareMounter-Beta"
-  )
-  desc "Notarize App"
-  notarize(
-     package: "build/NetworkShareMounterBeta.dmg", 
-     bundle_id: "de.fau.rrze.NetworkShareMounter", 
-     username: "rrze-apple-entwickler@fau.de"
-  )
+  begin
+    desc "incerement Xcodes build number"
+    increment_build_number(
+      xcodeproj: "networkShareMounter.xcodeproj"
+    )
+    commonTasks
+    desc "Create DMG image"
+    dmg(
+      path: "build/Network Share Mounter.app",
+      output_path: "build/NetworkShareMounterBeta.dmg",
+      volume_name: "NetworkShareMounter-Beta"
+    )
+    desc "Notarize App"
+    notarize(
+      package: "build/NetworkShareMounterBeta.dmg", 
+      bundle_id: "de.fau.rrze.NetworkShareMounter", 
+      username: "rrze-apple-entwickler@fau.de"
+    )
+    desc "Sending message to Teams bot"
+    teams_message
+  rescue => exception
+    on_error(exception)
+  end
 end
 
 lane :release do
-  desc "Ensure git has a clean status"
-  ensure_git_status_clean
-  desc "incerement Xcodes build number"
-  increment_build_number(
-    xcodeproj: "networkShareMounter.xcodeproj"
-  )
-  commonTasks
-  desc "Create DMG image"
-  dmg(
-    path: "build/Network Share Mounter.app",
-    output_path: "build/NetworkShareMounter.dmg",
-    volume_name: "NetworkShareMounter"
-  )
-  desc "Notarize App"
-  notarize(
-     package: "build/NetworkShareMounter.dmg", 
-     bundle_id: "de.fau.rrze.NetworkShareMounter", 
-     username: "rrze-apple-entwickler@fau.de"
-  )
+  begin
+    desc "Ensure git has a clean status"
+    ensure_git_status_clean
+    desc "incerement Xcodes build number"
+    increment_build_number(
+      xcodeproj: "networkShareMounter.xcodeproj"
+    )
+    commonTasks
+    desc "Create DMG image"
+    dmg(
+      path: "build/Network Share Mounter.app",
+      output_path: "build/NetworkShareMounter.dmg",
+      volume_name: "NetworkShareMounter"
+    )
+    desc "Notarize App"
+    notarize(
+       package: "build/NetworkShareMounter.dmg", 
+       bundle_id: "de.fau.rrze.NetworkShareMounter", 
+       username: "rrze-apple-entwickler@fau.de"
+    )
+    desc "Sending message to Teams bot"
+    teams_message
+  rescue => exception
+    on_error(exception)
+  end
 end
 
 # generates the command-line networkShareMounter app
@@ -127,27 +139,69 @@ lane :runbuild do
   output = sh("../build.sh", "#{id}", "#{tag}", "#{signing_id}")
 end
 
-# test Microsoft Teams - if it works, we will use it in the future
-lane :teamstest do
+def on_error(exception)
+  last_git_tag = last_git_tag
   teams_bot(
     teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/6c157802c97c49d183cc9e01702025ff/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
-    title: 'Welcome from Fastlane',
-    summary: 'Integration is a success',
-    text: 'Hi there !! I am [Teams Bot](https://github.com/huextrat/fastlane-plugin-teams_bot). I can send messages on Microsoft Teams very easily from Fastlane.',
-    activity_title: 'Hey',
-    activity_subtitle: 'Working on Fastlane',
+    title: 'Build of Network Share Mounter failed',
+    activity_title: "Network Share Mounter",
+    text: 'Build [pipeline](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/pipelines) of [Network Share Mounter](https://gitlab.rrze.fau.de/faumac/networkShareMounter) failed',
     activity_image: 'https://seeklogo.com/images/F/fastlane-logo-6CA0B0B428-seeklogo.com.png',
     facts: [
       {
-        'name' => 'Environment',
-        'value' => 'Staging'
+        'name' => "Error message",
+        'value' => "#{exception}"
+      },
+      {
+        'name' => 'Build number',
+        'value' => ENV["BUILD_NUMBER"]
       },
       {
         'name' => 'Branch',
-        'value' => 'Develop'
+        'value' => :git_branch
+      },
+      {
+        'name' => 'Latest git tag',
+        'value' => :last_git_tag
+      },
+      {
+        'name' => 'last commmit',
+        'value' => :last_git_commit_message
       }
     ],
-    theme_color: '321244',
+    theme_color: '441212',
     use_markdown: true
+  )
+end
+
+# test Microsoft Teams - if it works, we will use it in the future
+lane :teams_message do
+  teams_bot(
+    teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/6c157802c97c49d183cc9e01702025ff/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
+    title: 'Build of Network Share Mounter succeeded.',
+    summary: 'Integration is a success',
+    text: 'Build [pipeline](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/pipelines) of [Network Share Mounter](https://gitlab.rrze.fau.de/faumac/networkShareMounter) succeeded',
+    activity_title: "Network Share Mounter",
+    activity_image: 'https://seeklogo.com/images/F/fastlane-logo-6CA0B0B428-seeklogo.com.png',
+    facts: [
+      {
+        'name' => 'Build number',
+        'value' => ENV["BUILD_NUMBER"]
+      },
+      {
+        'name' => 'Branch',
+        'value' => :git_branch
+      },
+      {
+        'name' => 'Latest git tag',
+        'value' => :last_git_tag
+      },
+      {
+        'name' => 'last commmit',
+        'value' => :last_git_commit_message
+      }
+    ],
+    use_markdown: true,
+    theme_color: '123d44'
   )
 end
