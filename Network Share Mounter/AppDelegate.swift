@@ -77,7 +77,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ aNotification: Notification) {
         //
         // unmount all shares befor leaving
-        mounter.unmountAllShares()
+        if userDefaults.bool(forKey: "unmountOnExit") == true {
+            mounter.unmountAllShares()
+        }
         //
         // end network monitoring
         monitor.cancel()
@@ -119,10 +121,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSLog("User triggered unmount all shares")
         mounter.unmountAllShares()
     }
+    
+    @objc func openHelpURL(_ sender: Any?) {
+        guard let url = userDefaults.string(forKey: "helpURL"), let openURL = URL(string: url) else {
+            return
+        }
+        NSWorkspace.shared.open(openURL)
+    }
 
     func constructMenu(withMounter mounter: Mounter) {
         let menu = NSMenu()
-
+        
+        if userDefaults.string(forKey: "helpURL")!.description.isValidURL {
+            menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),
+                                    action: #selector(AppDelegate.openHelpURL(_:)), keyEquivalent: ""))
+        }
         // menu.addItem(NSMenuItem(title: NSLocalizedString("Network Share Mounter", comment: "Info"), action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
         menu.addItem(NSMenuItem(title: NSLocalizedString("Mount shares", comment: "Mount shares"),
                                 action: #selector(AppDelegate.mountManually(_:)), keyEquivalent: "m"))
