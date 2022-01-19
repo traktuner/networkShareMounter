@@ -6,6 +6,10 @@
 	<false/>
 	<key>canQuit</key>
 	<true/>
+	<key>unmountOnExit</key>
+	<true/>
+	<key>helpURL</key>
+	<string></string>
 	<key>customNetworkShares</key>
 	<array/>
 </dict>
