@@ -30,10 +30,11 @@ To help administrator to configure the Network Share Mounter we provied a Jamf C
 | `unmountOnExit` | Boolean | if set to false the shares will be mounted after quitting the app | true | v2 | optional ||
 | `helpURL` | String | configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
 
-## Screenshot
-Screenshots of our Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit options. On the right the configuration window with the custom network share list: 
+### Screenshots
+Screenshots of our Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit options. On the right the configuration window with the custom network share list:
+
 <img src="networkShareMounterv2Screenshot.png" />  
----- 
+----  
 
 ## networkShareMounter Legacy (the command line app)
 
