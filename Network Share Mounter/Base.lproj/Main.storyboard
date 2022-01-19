@@ -686,21 +686,21 @@
             <objects>
                 <viewController title="NetworkShareMounterViewController" storyboardIdentifier="NetworkShareMounterViewController" id="XfG-lQ-9wD" customClass="NetworkShareMounterViewController" customModule="Network_Share_Mounter" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" misplaced="YES" id="m2S-Jp-Qdl">
-                        <rect key="frame" x="0.0" y="0.0" width="472" height="352"/>
+                        <rect key="frame" x="0.0" y="0.0" width="472" height="372"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
-                                <rect key="frame" x="20" y="312" width="362" height="20"/>
+                            <textField verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
+                                <rect key="frame" x="20" y="332" width="342" height="20"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="1KD-eI-R1J">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <scrollView autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ip-Eo-ik3">
-                                <rect key="frame" x="20" y="205" width="452" height="98"/>
+                            <scrollView misplaced="YES" autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ip-Eo-ik3">
+                                <rect key="frame" x="20" y="226" width="432" height="98"/>
                                 <clipView key="contentView" drawsBackground="NO" id="PiI-xC-UC9">
-                                    <rect key="frame" x="1" y="1" width="450" height="96"/>
+                                    <rect key="frame" x="1" y="1" width="430" height="96"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" viewBased="YES" id="s3k-Dc-wH1">
@@ -763,7 +763,7 @@
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="fNF-bT-aGQ">
-                                    <rect key="frame" x="1" y="81" width="450" height="16"/>
+                                    <rect key="frame" x="1" y="81" width="430" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="Vuh-QE-2gk">
@@ -771,8 +771,8 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="wTV-XD-Goa">
-                                <rect key="frame" x="18" y="19" width="434" height="18"/>
+                            <button verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wTV-XD-Goa">
+                                <rect key="frame" x="18" y="36" width="394" height="18"/>
                                 <buttonCell key="cell" type="check" title="Launch Network Share Mounter at login" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="LYP-vw-Zhf">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -785,7 +785,7 @@
                                     </binding>
                                 </connections>
                             </button>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
                                 <rect key="frame" x="45" y="70" width="409" height="100"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="100" id="H8P-wA-viA"/>
@@ -799,8 +799,8 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="uzk-qz-SRD">
-                                <rect key="frame" x="363" y="305" width="96" height="32"/>
+                            <button verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uzk-qz-SRD">
+                                <rect key="frame" x="363" y="325" width="96" height="32"/>
                                 <buttonCell key="cell" type="push" title="Add share" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="mZ5-S4-8d0">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -823,9 +823,18 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
                                 </connections>
                             </button>
-                            <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
-                                <rect key="frame" x="20" y="53" width="432" height="5"/>
+                            <box verticalHuggingPriority="750" misplaced="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
+                                <rect key="frame" x="20" y="59" width="432" height="5"/>
                             </box>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="U1x-R4-MXP">
+                                <rect key="frame" x="229" y="15" width="225" height="14"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Developed with ❤️ by your FAUmac Team" id="Gh3-O0-3mY">
+                                    <font key="font" metaFont="smallSystem"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="AgX-Bj-3ll" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="0VR-h4-N5u"/>
@@ -862,7 +871,7 @@ The connection will be testet immediately and will be added only if the server i
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="1RO-SO-9Fv"/>
             </objects>
-            <point key="canvasLocation" x="91" y="258"/>
+            <point key="canvasLocation" x="91" y="268"/>
         </scene>
     </scenes>
     <resources>
