@@ -140,9 +140,11 @@ lane :runbuild do
 end
 
 def on_error(exception)
-  last_git_tag = last_git_tag
+  git_branch = git_branch()
+  last_git_tag = last_git_tag()
+  build_number = get_build_number()
   teams_bot(
-    teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/6c157802c97c49d183cc9e01702025ff/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
+    teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/73de07b3e83e4e6988b37597b4092be9/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
     title: 'Build of Network Share Mounter failed',
     activity_title: "Network Share Mounter",
     text: 'Build [pipeline](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/pipelines) of [Network Share Mounter](https://gitlab.rrze.fau.de/faumac/networkShareMounter) failed',
@@ -150,24 +152,20 @@ def on_error(exception)
     facts: [
       {
         'name' => "Error message",
-        'value' => "#{exception}"
+        'value' => "#{exception}",
       },
       {
         'name' => 'Build number',
-        'value' => ENV["BUILD_NUMBER"]
+        'value' => build_number,
       },
       {
         'name' => 'Branch',
-        'value' => :git_branch
+        'value' => git_branch,
       },
       {
         'name' => 'Latest git tag',
-        'value' => :last_git_tag
+        'value' => last_git_tag,
       },
-      {
-        'name' => 'last commmit',
-        'value' => :last_git_commit_message
-      }
     ],
     theme_color: '441212',
     use_markdown: true
@@ -176,8 +174,11 @@ end
 
 # test Microsoft Teams - if it works, we will use it in the future
 lane :teams_message do
+  git_branch = git_branch()
+  last_git_tag = last_git_tag()
+  build_number = get_build_number()
   teams_bot(
-    teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/6c157802c97c49d183cc9e01702025ff/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
+    teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/73de07b3e83e4e6988b37597b4092be9/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
     title: 'Build of Network Share Mounter succeeded.',
     summary: 'Integration is a success',
     text: 'Build [pipeline](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/pipelines) of [Network Share Mounter](https://gitlab.rrze.fau.de/faumac/networkShareMounter) succeeded',
@@ -186,22 +187,51 @@ lane :teams_message do
     facts: [
       {
         'name' => 'Build number',
-        'value' => ENV["BUILD_NUMBER"]
+        'value' => build_number,
       },
       {
         'name' => 'Branch',
-        'value' => :git_branch
+        'value' => git_branch,
       },
       {
         'name' => 'Latest git tag',
-        'value' => :last_git_tag
+        'value' => last_git_tag,
       },
-      {
-        'name' => 'last commmit',
-        'value' => :last_git_commit_message
-      }
     ],
     use_markdown: true,
     theme_color: '123d44'
+  )
+end
+
+# test Microsoft Teams - if it works, we will use it in the future
+lane :teams_test do
+  desc "Testing Teams"
+  git_branch = git_branch()
+  last_git_tag = last_git_tag()
+  build_number = get_build_number()
+  teams_bot(
+    teams_url: 'https://msfau.webhook.office.com/webhookb2/c4d73242-1890-4708-a7e9-98cf6e590eb9@b2efcef3-8496-40b8-9de8-f135982f3461/IncomingWebhook/73de07b3e83e4e6988b37597b4092be9/b6ea7d2d-0dbc-4cdf-b543-9af44c258ea7',
+    title: 'TEST',
+    summary: 'Integration is a success',
+    text: 'Test for Teams bot in fastlane',
+    activity_title: "Teams Test Roborobo Bot",
+    activity_subtitle: Time.now.strftime("%d.%m.%Y %H:%M"),
+    activity_image: 'https://seeklogo.com/images/F/fastlane-logo-6CA0B0B428-seeklogo.com.png',
+    facts: [
+      {
+        'name' => 'Build number',
+        'value' => build_number,
+      },
+      {
+        'name' => 'Branch',
+        'value' => git_branch,
+      },
+      {
+        'name' => 'Latest git tag',
+        'value' => last_git_tag,
+      },
+    ],
+    use_markdown: true,
+    theme_color: '441212'
   )
 end
