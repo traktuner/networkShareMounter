@@ -17,7 +17,8 @@ Since December 2021 there are two different versions of the app: The [background
 ## Network Share Mounter (v2)
 The *Network Share Mounter* app is based on the code of the command line version. It lives in the user's menu bar and is more visible and manageable for the user, as he has the possibility to add some (additional personal) shares to be mounted and decide if the app will be started on login. 
 
-<img src="networkShareMounterv2Screenshot.png" /> 
+<img src="networkShareMounterv2Screenshot.png" />  
+
 ### Configuration preferences
 To help administartor to configure the Network Share Mounter we provied a Jamf Custom Schema for configuration profiles. Description of all avaible values: 
 
