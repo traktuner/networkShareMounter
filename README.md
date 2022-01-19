@@ -3,10 +3,10 @@
 The networkShareMounter mounts network shares using a predefined plist. The easiest way to distribute them is to use configuration profiles with an MDM. The idea behind this app is to create a method to mount a bunch of predefined (SMB) network shares for a workgroup, department, project-group etc. For example, the configuration can be distributed to a specific group of Macs (or users) via an MDM.
 
 The shares are mounted in the background without any user interaction. Even if the mount fails (e.g. if the Mac is another location without connection to the configured servers), no GUI will be displayed and your users are not distracted. 
-Because of this we recommend the use of Kerberos tickets or mount the shares once manually to store the password in the users macOS keychain. So please note, no notification will be displayed if the credantials are wrong or not avaible!  
+Because of this we recommend the use of Kerberos tickets or mount the shares once manually to store the password in the users macOS keychain. So please note, no notification will be displayed if the credantials are invalid or not available!  
 
 **Configuration**  
-Network shares are fetched from a configurable NSUserDefaults domain - the easiest way to do this is to use an MDM to distribute a configuration profile (what we recommend) or execute a script. Here you may use `%USERNAME%`which will be replaced with the username of the current user. See [configuration preferences](#configuration-preferences) in v2 for all avaible values. 
+Network shares are fetched from a configurable NSUserDefaults domain - the easiest way to do this is to use an MDM to distribute a configuration profile (what we recommend) or execute a script. Here you may use `%USERNAME%`which will be replaced with the username of the current user. See [configuration preferences](#configuration-preferences) in v2 for all available values. 
 
 **SMBHome**  
 If the current user has the attribute `SMBHome`, the user home will also be mounted. This is usually the case when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. You can also set it for the local user if you want: `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`
@@ -20,7 +20,7 @@ The *Network Share Mounter* app is based on the code of the command line version
 <img src="networkShareMounterv2Screenshot.png" />  
 
 ### Configuration preferences
-To help administartor to configure the Network Share Mounter we provied a Jamf Custom Schema for configuration profiles. Description of all avaible values: 
+To help administrator to configure the Network Share Mounter we provied a Jamf Custom Schema for configuration profiles. The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. All avaible values: 
 
 | Key                 | Type  | Description            | Default Value | Aviable in version | Required? | Example |
 | :------------------ | :---- | :---------------------|:-------------------------------------- | --------------------------------- | ------- | ---- |
@@ -30,7 +30,8 @@ To help administartor to configure the Network Share Mounter we provied a Jamf C
 | `canQuit` | Boolean | if set, the user can quit the app | true | v2 | optional ||
 | `canChangeAutostart` | Boolean | if set to false, the user can not change the Autostart option | true | v2 | optional ||
 | `unmountOnExit` | Boolean | if set to false the shares will be mounted after quitting the app | true | v2 | optional ||
-| `helpURL` | String | configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
+| `helpURL` | String | configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
+
 
 ## networkShareMounter Legacy (the command line app)
 
