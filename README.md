@@ -33,6 +33,7 @@ To help administrator to configure the Network Share Mounter we provied a Jamf C
 Screenshots of our Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit options. On the right the configuration window with the custom network share list:
 
 <img src="networkShareMounterv2Screenshot.png" />  
+
 ----  
 
 ## networkShareMounter Legacy (the command line app)
