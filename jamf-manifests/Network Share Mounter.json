@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
+  "description": "Jamf Manifest for Network Share Mounter v2",
+  "__version": "1.0",
+  "__feedback": "rrze-mac@fau.de",
+  "type": "object",
+  "options": {
+    "remove_empty_properties": true
+  },
+  "properties": {
+    "networkShares": {
+        "title": "Network shares",
+        "description": "Add shares to mount (example: smb://filer.your.domain/share)",
+        "type": "array",
+        "items": {
+            "type": "string",
+            "title": "Share"
+        }
+    },
+    "autostart": {
+          "title": "Enable autostart",
+          "description": "If set to true, the app will be launched on user-login",
+          "type": "boolean",
+          "default": "false"
+    },
+    "canQuit": {
+          "title": "Show Exit",
+          "description": "Show exit button in the menu bar",
+          "type": "boolean",
+          "default": "true"
+    },
+    "canChangeAutostart": {
+          "title": "Allow autostart changes",
+          "description": "Allow users to change the autostart settings",
+          "type": "boolean",
+          "default": "true"
+    },
+    "unmountOnExit": {
+          "title": "Unmount shares on exit",
+          "description": "Unmount shares if the app get closed",
+          "type": "boolean",
+          "default": "true"
+    },
+    "helpURL": {
+          "title": "Help URL",
+          "description": "Configure a help URL to help users interact with the application",
+          "type": "string",
+          "default": ""
+    }
+  }
+}
