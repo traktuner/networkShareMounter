@@ -78,3 +78,10 @@ defaults write de.uni-erlangen.rrze.networkShareMounter customNetworkShares -arr
 * With the optional array  `customNetworkShares`  users can add own network shares to the configuration. See manually confiugration above for detauls.
 * There is an optional parameter `--openMountDir` which opens a new finder window of the networkShareMounter mount directory. (e.g. "\~/Network shares" or "\~/Netzlaufwerke")
 * If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent (command line version). 
+
+## Contact
+Feel free to contact us for ideas, enhancements or bug reports at [rrze-mac@fau.de](rrze-mac@fau.de).
+
+
+`Provided with ❤️ by your FAUmac team`
+
