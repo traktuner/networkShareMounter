@@ -53,7 +53,7 @@ lane :commonTasks do
   )
   desc "test for proper Xcode version"
   xcversion(version: "~> 13")
-  setupCI
+  #setupCI
   desc "lint those drity lines of code"
   swiftlint(
     mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
