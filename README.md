@@ -17,7 +17,9 @@ Staring with December 2021 there are two different versions of the app: The [bac
 The *Network Share Mounter* app is loosely based on the code of the command line version. It lives in the user's menu bar and is more visible and manageable for the user, as it has the possibility to add some (additional personal) shares to be mounted or the user can decide if the app will be automatically started on login. 
 
 ### Configuration preferences
-To help administrator to configure the Network Share Mounter we provied a Jamf Custom Schema for configuration profiles. The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. All avaible values: 
+For an easier configuration of all the preference keys without creating or modifying a custom Configuration Profile in XML format we provieded a JSON Manifest Schema for Jamf Pro. [Download the manifest file](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/Network%20Share%20Mounter.json). 
+
+ The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. List with all available values: 
 
 | Key                 | Type  | Description            | Default Value | Aviable in version | Required? | Example |
 | :------------------ | :---- | :---------------------|:-------------------------------------- | --------------------------------- | ------- | ---- |
@@ -59,7 +61,7 @@ The defaults domain for our [pre-built package](https://gitlab.rrze.fau.de/fauma
 </plist>
 ```
 
-Download an example configuration profile here: <example_link_here> 
+[Download example Configuration Profile](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/networkShareMounter%20Legacy.mobileconfig).
 
 If you want to configure shares manuelly, you can use this command:
 
