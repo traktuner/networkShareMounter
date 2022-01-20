@@ -13,7 +13,6 @@
 # Uncomment the line if you want fastlane to automatically update itself
 update_fastlane
 skip_docs
-#setup_ci
 
 # git url of match
 @match_git_url = ENV["MATCH_GIT_URL"]
@@ -30,7 +29,7 @@ end
 
 lane :setupCI do
   desc "Setup the keychain and match to work with CI"
-  setup_ci
+  #setup_ci
 end
 
 lane :getbundleid do
