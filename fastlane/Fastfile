@@ -106,8 +106,6 @@ end
 
 lane :release do
   begin
-    desc "Ensure git has a clean status"
-    ensure_git_status_clean
     desc "incerement Xcodes build number"
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
@@ -121,9 +119,9 @@ lane :release do
     )
     desc "Notarize App"
     notarize(
-       package: "build/NetworkShareMounter.dmg", 
-       bundle_id: "de.fau.rrze.NetworkShareMounter", 
-       username: "rrze-apple-entwickler@fau.de"
+      package: "build/NetworkShareMounter.dmg", 
+      bundle_id: "de.fau.rrze.NetworkShareMounter", 
+      username: "rrze-apple-entwickler@fau.de"
     )
     desc "Sending message to Teams bot"
     teams_message
