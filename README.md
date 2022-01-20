@@ -83,5 +83,5 @@ defaults write de.uni-erlangen.rrze.networkShareMounter customNetworkShares -arr
 Feel free to contact us for ideas, enhancements or bug reports at [rrze-mac@fau.de](rrze-mac@fau.de).
 
 
-`Provided with ❤️ by your FAUmac team`
+`Developed with ❤️ by your FAUmac team`
 
