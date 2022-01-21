@@ -51,8 +51,8 @@ lane :commonTasks do
   app_store_connect_api_key(
       is_key_content_base64: true
   )
-  desc "test for proper Xcode version"
-  xcversion(version: "~> 13")
+  #desc "test for proper Xcode version"
+  #xcversion(version: "~> 13")
   #setupCI
   desc "lint those drity lines of code"
   swiftlint(
@@ -72,6 +72,7 @@ lane :commonTasks do
   get_certificates
   sync_code_signing
   gym(
+    scheme: "networkShareMounter",
     output_directory: "build/",
     export_options: "./ExportOptions.plist"
   )
@@ -90,9 +91,18 @@ lane :beta do
       output_path: "build/NetworkShareMounterBeta.dmg",
       volume_name: "NetworkShareMounter-Beta"
     )
-    desc "Notarize App"
+    desc "creating .pkg file"
+    signing_id = ENV["SIGNING_ID"]
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterBeta.pkg")
+    desc "Notarize dmg"
     notarize(
       package: "build/NetworkShareMounterBeta.dmg", 
+      bundle_id: "de.fau.rrze.NetworkShareMounter", 
+      username: "rrze-apple-entwickler@fau.de"
+    )
+    desc "Notarize pkg"
+    notarize(
+      package: "build/NetworkShareMounterBeta.pkg", 
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
@@ -116,9 +126,18 @@ lane :release do
       output_path: "build/NetworkShareMounter.dmg",
       volume_name: "NetworkShareMounter"
     )
-    desc "Notarize App"
+    desc "creating .pkg file"
+    signing_id = ENV["SIGNING_ID"]
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounter.pkg")
+    desc "Notarize dmg"
     notarize(
       package: "build/NetworkShareMounter.dmg", 
+      bundle_id: "de.fau.rrze.NetworkShareMounter", 
+      username: "rrze-apple-entwickler@fau.de"
+    )
+    desc "Notarize pkg"
+    notarize(
+      package: "build/NetworkShareMounter.pkg", 
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
