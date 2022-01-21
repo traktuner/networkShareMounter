@@ -72,6 +72,10 @@
 		F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Network Share MounterUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Network-Share-Mounter-Info.plist"; sourceTree = SOURCE_ROOT; };
 		F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMounterViewController.swift; sourceTree = "<group>"; };
+		F7EAB854279AF36400EED76B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
+		F7EAB855279AF36400EED76B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7EAB856279AFEDF00EED76B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
+		F7EAB857279AFEDF00EED76B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -273,6 +277,8 @@
 				en,
 				Base,
 				de,
+				it,
+				es,
 			);
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
@@ -395,6 +401,8 @@
 			children = (
 				F72985C52760EF3800FCF8C9 /* en */,
 				F72985C72760EF3B00FCF8C9 /* de */,
+				F7EAB855279AF36400EED76B /* it */,
+				F7EAB857279AFEDF00EED76B /* es */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -405,6 +413,8 @@
 				F79B159E274E722100C322A8 /* Base */,
 				F7291FEC275FD17C000A147E /* de */,
 				F72985C12760EE3F00FCF8C9 /* en */,
+				F7EAB854279AF36400EED76B /* it */,
+				F7EAB856279AFEDF00EED76B /* es */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
