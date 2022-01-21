@@ -36,7 +36,7 @@
 "4J7-dP-txa.title" = "Enter Full Screen";
 
 /* Class = "NSMenuItem"; title = "Quit Network Share Mounter"; ObjectID = "4sb-4s-VLi"; */
-"4sb-4s-VLi.title" = "Quit Network Share Mounter";
+"4sb-4s-VLi.title" = "Esci Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Edit"; ObjectID = "5QF-Oa-p0T"; */
 "5QF-Oa-p0T.title" = "Edit";
@@ -45,7 +45,7 @@
 "5Vv-lz-BsD.title" = "Copy Style";
 
 /* Class = "NSMenuItem"; title = "About Network Share Mounter"; ObjectID = "5kV-Vb-QxS"; */
-"5kV-Vb-QxS.title" = "About Network Share Mounter";
+"5kV-Vb-QxS.title" = "Informazioni su Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Redo"; ObjectID = "6dh-zS-Vam"; */
 "6dh-zS-Vam.title" = "Redo";
@@ -66,7 +66,7 @@
 "AYu-sK-qS6.title" = "Main Menu";
 
 /* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
-"BOF-NM-1cW.title" = "Preferences…";
+"BOF-NM-1cW.title" = "Preferenze…";
 
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "BgM-ve-c93"; */
 "BgM-ve-c93.title" = "\tLeft to Right";
@@ -84,7 +84,7 @@
 "F2S-fz-NVQ.title" = "Help";
 
 /* Class = "NSMenuItem"; title = "Network Share Mounter Help"; ObjectID = "FKE-Sm-Kum"; */
-"FKE-Sm-Kum.title" = "Network Share Mounter Help";
+"FKE-Sm-Kum.title" = "Aiuto Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Text"; ObjectID = "Fal-I4-PZk"; */
 "Fal-I4-PZk.title" = "Text";
@@ -147,7 +147,7 @@
 "LVM-kO-fVI.title" = "Paste Ruler";
 
 /* Class = "NSButtonCell"; title = "Launch Network Share Mounter at login"; ObjectID = "LYP-vw-Zhf"; */
-"LYP-vw-Zhf.title" = "Launch Network Share Mounter at login";
+"LYP-vw-Zhf.title" = "Apri Network Share Mounter al login";
 
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "Lbh-J2-qVU"; */
 "Lbh-J2-qVU.title" = "\tLeft to Right";
@@ -267,7 +267,7 @@
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available.";
+"c4d-tI-W6k.title" = "Puoi connettere condivisioni Windows se hai l'indirizzo del server e il nome della condivisione. Imposta la condivisione nel formato    smb://server.name/export/path\nLa condivisione verrà testata e connessa se il server è disponibile e il nome della condivisione corretta.";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
@@ -330,7 +330,7 @@
 "mK6-2p-4JG.title" = "Check Grammar With Spelling";
 
 /* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
-"mZ5-S4-8d0.title" = "Add share";
+"mZ5-S4-8d0.title" = "Aggiungi condivisione";
 
 /* Class = "NSMenuItem"; title = "Ligatures"; ObjectID = "o6e-r0-MWq"; */
 "o6e-r0-MWq.title" = "Ligatures";
