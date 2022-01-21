@@ -80,7 +80,8 @@ defaults write de.uni-erlangen.rrze.networkShareMounter customNetworkShares -arr
 * If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent (command line version). 
 
 ## Contact
-Feel free to contact us for ideas, enhancements or bug reports at [rrze-mac@fau.de](rrze-mac@fau.de).
+Feel free to contact us for ideas, enhancements or bug reports at the [service desk address](mailto:rrze-gitlab+faumac-networksharemounter-506-issue-@fau.de).    
+For general questions you can write directly to the team at [rrze-mac@fau.de](mailto:rrze-mac@fau.de).
 
 
 `Developed with ❤️ by your FAUmac team`
