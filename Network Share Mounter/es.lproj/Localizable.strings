@@ -2,22 +2,22 @@
 "Network Share Mounter" = "Network Share Mounter";
 
 /* Preferences */
-"Preferences ..." = "Preferences ...";
+"Preferences ..." = "Preferencias ...";
 
 /* Quit Network Share Mounter */
-"Quit Network Share Mounter" = "Quit Network Share Mounter";
+"Quit Network Share Mounter" = "Terminar Network Share Mounter";
 
 /* Show mounted shares */
-"Show mounted shares" = "Show mounted shares";
+"Show mounted shares" = "Mostrar fracciones installadas";
 
 /* Mount shares */
-"Mount shares" = "Mount shares";
+"Mount shares" = "Instalar fracciones";
 
 /* Unmount shares */
-"Unmount shares" = "Unmount shares";
+"Unmount shares" = "Desinstalar fracciones";
 
 /* Preferences */
-"Preferences" = "Preferences";
+"Preferences" = "Configuraciones";
 
 /* About Network Share Mounter */
-"About Network Share Mounter" = "About Network Share Mounter";
+"About Network Share Mounter" = "Sobre Network Share Mounter";
