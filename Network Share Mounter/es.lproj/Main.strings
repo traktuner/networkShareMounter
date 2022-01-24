@@ -36,16 +36,16 @@
 "4J7-dP-txa.title" = "Enter Full Screen";
 
 /* Class = "NSMenuItem"; title = "Quit Network Share Mounter"; ObjectID = "4sb-4s-VLi"; */
-"4sb-4s-VLi.title" = "Quit Network Share Mounter";
+"4sb-4s-VLi.title" = "Terminar Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Edit"; ObjectID = "5QF-Oa-p0T"; */
-"5QF-Oa-p0T.title" = "Edit";
+"5QF-Oa-p0T.title" = "„Editar";
 
 /* Class = "NSMenuItem"; title = "Copy Style"; ObjectID = "5Vv-lz-BsD"; */
 "5Vv-lz-BsD.title" = "Copy Style";
 
 /* Class = "NSMenuItem"; title = "About Network Share Mounter"; ObjectID = "5kV-Vb-QxS"; */
-"5kV-Vb-QxS.title" = "About Network Share Mounter";
+"5kV-Vb-QxS.title" = "Sobre Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Redo"; ObjectID = "6dh-zS-Vam"; */
 "6dh-zS-Vam.title" = "Redo";
@@ -57,7 +57,7 @@
 "8mr-sm-Yjd.title" = "Writing Direction";
 
 /* Class = "NSMenuItem"; title = "Substitutions"; ObjectID = "9ic-FL-obx"; */
-"9ic-FL-obx.title" = "Substitutions";
+"9ic-FL-obx.title" = "„Sustitucioneshelp";
 
 /* Class = "NSMenuItem"; title = "Smart Copy/Paste"; ObjectID = "9yt-4B-nSM"; */
 "9yt-4B-nSM.title" = "Smart Copy/Paste";
@@ -66,7 +66,7 @@
 "AYu-sK-qS6.title" = "Main Menu";
 
 /* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
-"BOF-NM-1cW.title" = "Preferences…";
+"BOF-NM-1cW.title" = "„Configuraciones…";
 
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "BgM-ve-c93"; */
 "BgM-ve-c93.title" = "\tLeft to Right";
@@ -81,10 +81,10 @@
 "Dv1-io-Yv7.title" = "Spelling and Grammar";
 
 /* Class = "NSMenu"; title = "Help"; ObjectID = "F2S-fz-NVQ"; */
-"F2S-fz-NVQ.title" = "Help";
+"F2S-fz-NVQ.title" = "Ayudar";
 
 /* Class = "NSMenuItem"; title = "Network Share Mounter Help"; ObjectID = "FKE-Sm-Kum"; */
-"FKE-Sm-Kum.title" = "Network Share Mounter Help";
+"FKE-Sm-Kum.title" = "Ayuda de Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Text"; ObjectID = "Fal-I4-PZk"; */
 "Fal-I4-PZk.title" = "Text";
@@ -147,7 +147,7 @@
 "LVM-kO-fVI.title" = "Paste Ruler";
 
 /* Class = "NSButtonCell"; title = "Launch Network Share Mounter at login"; ObjectID = "LYP-vw-Zhf"; */
-"LYP-vw-Zhf.title" = "Launch Network Share Mounter at login";
+"LYP-vw-Zhf.title" = "Enciende Network Share Mounter cuando se conecta";
 
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "Lbh-J2-qVU"; */
 "Lbh-J2-qVU.title" = "\tLeft to Right";
@@ -168,7 +168,7 @@
 "OaQ-X3-Vso.title" = "Baseline";
 
 /* Class = "NSMenuItem"; title = "Hide Network Share Mounter"; ObjectID = "Olw-nP-bQN"; */
-"Olw-nP-bQN.title" = "Hide Network Share Mounter";
+"Olw-nP-bQN.title" = "Ocultar Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Find Previous"; ObjectID = "OwM-mh-QMV"; */
 "OwM-mh-QMV.title" = "Find Previous";
@@ -267,7 +267,7 @@
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available.";
+"c4d-tI-W6k.title" = "Si conoce el nombre y el camino de liberación puede conectarse a la unidad de red. \nUtiliza la forma    smb://server.name/path/\nDie Conectividad se convalide inmediatamente y si el servidor y el camino de liberación estén disponibles, se agrega la liberación.";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
@@ -330,7 +330,7 @@
 "mK6-2p-4JG.title" = "Check Grammar With Spelling";
 
 /* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
-"mZ5-S4-8d0.title" = "Add share";
+"mZ5-S4-8d0.title" = "Agrega la liberación";
 
 /* Class = "NSMenuItem"; title = "Ligatures"; ObjectID = "o6e-r0-MWq"; */
 "o6e-r0-MWq.title" = "Ligatures";
@@ -396,7 +396,7 @@
 "wb2-vD-lq4.title" = "Align Right";
 
 /* Class = "NSMenuItem"; title = "Help"; ObjectID = "wpr-3q-Mcd"; */
-"wpr-3q-Mcd.title" = "Help";
+"wpr-3q-Mcd.title" = "„Ayuda";
 
 /* Class = "NSMenuItem"; title = "Copy"; ObjectID = "x3v-GG-iWU"; */
 "x3v-GG-iWU.title" = "Copy";
