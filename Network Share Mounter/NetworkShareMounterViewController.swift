@@ -29,6 +29,12 @@ class NetworkShareMounterViewController: NSViewController {
         }
 
         tableView.action = #selector(handleClickColumn)
+    
+        //
+        // get build and version number of the app
+        let applicationVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"]!
+        let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
+        appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
     }
 
     @objc func handleClickColumn() {
@@ -39,6 +45,8 @@ class NetworkShareMounterViewController: NSViewController {
         }
     }
 
+    @IBOutlet weak var appVersion: NSTextField!
+    
     @IBOutlet weak var usersNewShare: NSTextField!
 
     @IBOutlet weak var addShareButton: NSButton!
