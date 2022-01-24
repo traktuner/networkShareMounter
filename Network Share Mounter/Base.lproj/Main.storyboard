@@ -785,8 +785,8 @@
                                     </binding>
                                 </connections>
                             </button>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
-                                <rect key="frame" x="45" y="70" width="409" height="100"/>
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
+                                <rect key="frame" x="45" y="70" width="369" height="100"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="100" id="H8P-wA-viA"/>
                                 </constraints>
@@ -835,6 +835,15 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <textField identifier="appVersion" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
+                                <rect key="frame" x="18" y="15" width="207" height="14"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="appVersion" id="GYJ-8b-PG2">
+                                    <font key="font" metaFont="smallSystem"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="AgX-Bj-3ll" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="0VR-h4-N5u"/>
@@ -862,6 +871,7 @@ The connection will be testet immediately and will be added only if the server i
                     </view>
                     <connections>
                         <outlet property="addShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
+                        <outlet property="appVersion" destination="GYJ-8b-PG2" id="64i-KJ-MXy"/>
                         <outlet property="launchAtLoginRadioButton" destination="wTV-XD-Goa" id="CB2-bP-YlP"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
                         <outlet property="tableView" destination="s3k-Dc-wH1" id="tOr-hm-vxp"/>
