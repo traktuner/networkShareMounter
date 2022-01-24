@@ -78,13 +78,19 @@ lane :commonTasks do
   )
 end
 
+lane :build do
+  begin
+    commonTasks
+  end
+end
+
 lane :beta do
   begin
     desc "incerement Xcodes build number"
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
-    commonTasks
+    build
     desc "Create DMG image"
     dmg(
       path: "build/Network Share Mounter.app",
@@ -119,7 +125,7 @@ lane :release do
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
-    commonTasks
+    build
     desc "Create DMG image"
     dmg(
       path: "build/Network Share Mounter.app",
