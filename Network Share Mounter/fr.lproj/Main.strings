@@ -1,4 +1,30 @@
 
+/* Class = "NSButtonCell"; title = "Launch Network Share Mounter at login"; ObjectID = "LYP-vw-Zhf"; */
+"LYP-vw-Zhf.title" = "Lancer Network Share Mounter à la connexion";
+
+/* Class = "NSMenuItem"; title = "Quit Network Share Mounter"; ObjectID = "4sb-4s-VLi"; */
+"4sb-4s-VLi.title" = "Quitter Network Share Mounter";
+
+/* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
+"BOF-NM-1cW.title" = "Préférences…";
+
+/* Class = "NSMenuItem"; title = "Hide Network Share Mounter"; ObjectID = "Olw-nP-bQN"; */
+"Olw-nP-bQN.title" = "Cacher Network Share Mounter";
+
+/* Class = "NSMenuItem"; title = "About Network Share Mounter"; ObjectID = "5kV-Vb-QxS"; */
+"5kV-Vb-QxS.title" = "À propos de Network Share Mounter";
+
+/* Class = "NSMenuItem"; title = "Network Share Mounter Help"; ObjectID = "FKE-Sm-Kum"; */
+"FKE-Sm-Kum.title" = "Centre d'aide de Network Share Mounter";
+
+/* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
+"mZ5-S4-8d0.title" = "Ajouter un partage";
+
+/* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
+"c4d-tI-W6k.title" = "Vous pouvez monter n’importe quel type de partage réseau Windows (smb/cifs) à partir du moment où vous connaissez le nom du serveur et le chemin de partage. \nSaisissez le partage ainsi    smb://server.name/export/path\nLa connexion sera testée immédiatement et sera seulement ajoutée si le serveur est joignable et la partage disponible.";
+
+/* ================================================================================ */
+
 /* Class = "NSMenuItem"; title = "Customize Toolbar…"; ObjectID = "1UK-8n-QPP"; */
 "1UK-8n-QPP.title" = "Customize Toolbar…";
 
@@ -35,17 +61,11 @@
 /* Class = "NSMenuItem"; title = "Enter Full Screen"; ObjectID = "4J7-dP-txa"; */
 "4J7-dP-txa.title" = "Enter Full Screen";
 
-/* Class = "NSMenuItem"; title = "Quit Network Share Mounter"; ObjectID = "4sb-4s-VLi"; */
-"4sb-4s-VLi.title" = "Quit Network Share Mounter";
-
 /* Class = "NSMenuItem"; title = "Edit"; ObjectID = "5QF-Oa-p0T"; */
 "5QF-Oa-p0T.title" = "Edit";
 
 /* Class = "NSMenuItem"; title = "Copy Style"; ObjectID = "5Vv-lz-BsD"; */
 "5Vv-lz-BsD.title" = "Copy Style";
-
-/* Class = "NSMenuItem"; title = "About Network Share Mounter"; ObjectID = "5kV-Vb-QxS"; */
-"5kV-Vb-QxS.title" = "About Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Redo"; ObjectID = "6dh-zS-Vam"; */
 "6dh-zS-Vam.title" = "Redo";
@@ -65,9 +85,6 @@
 /* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
 "AYu-sK-qS6.title" = "Main Menu";
 
-/* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
-"BOF-NM-1cW.title" = "Preferences…";
-
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "BgM-ve-c93"; */
 "BgM-ve-c93.title" = "\tLeft to Right";
 
@@ -82,9 +99,6 @@
 
 /* Class = "NSMenu"; title = "Help"; ObjectID = "F2S-fz-NVQ"; */
 "F2S-fz-NVQ.title" = "Help";
-
-/* Class = "NSMenuItem"; title = "Network Share Mounter Help"; ObjectID = "FKE-Sm-Kum"; */
-"FKE-Sm-Kum.title" = "Network Share Mounter Help";
 
 /* Class = "NSMenuItem"; title = "Text"; ObjectID = "Fal-I4-PZk"; */
 "Fal-I4-PZk.title" = "Text";
@@ -146,9 +160,6 @@
 /* Class = "NSMenuItem"; title = "Paste Ruler"; ObjectID = "LVM-kO-fVI"; */
 "LVM-kO-fVI.title" = "Paste Ruler";
 
-/* Class = "NSButtonCell"; title = "Launch Network Share Mounter at login"; ObjectID = "LYP-vw-Zhf"; */
-"LYP-vw-Zhf.title" = "Launch Network Share Mounter at login";
-
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "Lbh-J2-qVU"; */
 "Lbh-J2-qVU.title" = "\tLeft to Right";
 
@@ -166,9 +177,6 @@
 
 /* Class = "NSMenuItem"; title = "Baseline"; ObjectID = "OaQ-X3-Vso"; */
 "OaQ-X3-Vso.title" = "Baseline";
-
-/* Class = "NSMenuItem"; title = "Hide Network Share Mounter"; ObjectID = "Olw-nP-bQN"; */
-"Olw-nP-bQN.title" = "Hide Network Share Mounter";
 
 /* Class = "NSMenuItem"; title = "Find Previous"; ObjectID = "OwM-mh-QMV"; */
 "OwM-mh-QMV.title" = "Find Previous";
@@ -266,9 +274,6 @@
 /* Class = "NSMenuItem"; title = "Use Selection for Find"; ObjectID = "buJ-ug-pKt"; */
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
-/* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available.";
-
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
 
@@ -328,9 +333,6 @@
 
 /* Class = "NSMenuItem"; title = "Check Grammar With Spelling"; ObjectID = "mK6-2p-4JG"; */
 "mK6-2p-4JG.title" = "Check Grammar With Spelling";
-
-/* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
-"mZ5-S4-8d0.title" = "Add share";
 
 /* Class = "NSMenuItem"; title = "Ligatures"; ObjectID = "o6e-r0-MWq"; */
 "o6e-r0-MWq.title" = "Ligatures";
