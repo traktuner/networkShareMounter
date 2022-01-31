@@ -154,6 +154,7 @@ lane :release do
       xcodeproj: "networkShareMounter.xcodeproj"
     )
     build
+    appversion = getappversion
     desc "Create DMG image"
     dmg(
       path: "build/Network Share Mounter.app",
