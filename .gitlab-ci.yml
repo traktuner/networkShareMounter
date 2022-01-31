@@ -40,8 +40,8 @@ test_build:
     - 'echo Variable APP_VERSION is: "$APP_VERSION"'
     - 'echo Variable DMG is: "$DMG"'
     - 'echo Variable DMG is: ${PKG}'
-    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMG} ${PACKAGE_REGISTRY_URL}/${DMG}'
-    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PKG} ${PACKAGE_REGISTRY_URL}/"$PKG"'
+    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMG} ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta-"$APP_VERSION".dmg'
+    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PKG} ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta-${APP_VERSION}.pkg'
   artifacts:
     paths:
       - swiftlint.result.json
