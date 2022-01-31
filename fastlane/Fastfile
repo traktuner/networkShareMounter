@@ -157,21 +157,21 @@ lane :release do
     desc "Create DMG image"
     dmg(
       path: "build/Network Share Mounter.app",
-      output_path: "build/NetworkShareMounter.dmg",
+      output_path: "build/NetworkShareMounter-#{appversion}.dmg",
       volume_name: "NetworkShareMounter"
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounter.pkg")
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounter-#{appversion}.pkg")
     desc "Notarize dmg"
     notarize(
-      package: "build/NetworkShareMounter.dmg", 
+      package: "build/NetworkShareMounter-#{appversion}.dmg", 
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
     desc "Notarize pkg"
     notarize(
-      package: "build/NetworkShareMounter.pkg", 
+      package: "build/NetworkShareMounter-#{appversion}.pkg", 
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
