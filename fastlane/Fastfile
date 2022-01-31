@@ -89,6 +89,28 @@ lane :build do
   end
 end
 
+lane :test do
+  begin
+    desc "incerement Xcodes build number"
+    increment_build_number(
+      xcodeproj: "networkShareMounter.xcodeproj"
+    )
+    build
+    appversion = getappversion
+    desc "Create DMG image"
+    dmg(
+      path: "build/Network Share Mounter.app",
+      output_path: "build/NetworkShareMounterTest-#{appversion}.dmg",
+      volume_name: "NetworkShareMounter-Test"
+    )
+    desc "creating .pkg file"
+    signing_id = ENV["SIGNING_ID"]
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterTest-#{appversion}.pkg")
+  rescue => exception
+    on_error(exception)
+  end
+end
+
 lane :beta do
   begin
     desc "incerement Xcodes build number"
