@@ -8,7 +8,7 @@
 #- template: Security/Secret-Detection.gitlab-ci.yml
 
 stages:
-  # - test
+  - test
   - build
   - upload
   - release
@@ -18,27 +18,36 @@ variables:
   LC_ALL: "en_US.UTF-8"
   LANG: "en_US.UTF-8"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/networksharemounter/${CI_COMMIT_TAG}"
-  DMG: "NetworkShareMounter.dmg"
-  PACKAGE: "NetworkShareMounter.pkg"
+  FILE: "NetworkShareMounter"
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
-#  - gem install bundler
-#  - pod install
+  - export APP_VERSION=`echo "$CI_COMMIT_TAG" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'`
 
-#test_build:
-#  stage: test
-#  script:
-#    - echo "One day some tests will be done and there will be light"
-#  tags:
-#    - fastlane
-#    - xcode
+test_build:
+  stage: test
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^test-/'
+  script:
+    - fastlane test
+    - 'echo will do beta upload dmg:  --upload-file build/${FILE}Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg'
+    - 'echo will do beta upload pkg:  --upload-file build/${FILE}Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-${APP_VERSION}.pkg'
+    - 'echo will do release upload dmg: --upload-file build/${FILE}-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg'
+    - 'echo will do release uplaod pkg: --upload-file build/${FILE}-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg'
+    - 'echo will do beta create: create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg\"}"'
+    - 'echo will do release create:  create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
+  artifacts:
+    paths:
+      - swiftlint.result.json
+      - build/*dmg
+      - build/*pkg
+    expire_in: 1 hour
+  tags:
+    - fastlane
+    - xcode
 
 beta build:
   stage: build
-  variables:
-    DMG: "NetworkShareMounterBeta.dmg"
-    PACKAGE: "NetworkShareMounterBeta.pkg"
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
@@ -46,8 +55,8 @@ beta build:
   artifacts:
     paths:
       - swiftlint.result.json
-      - build/NetworkShareMounterBeta.dmg
-      - build/NetworkShareMounterBeta.pkg
+      - build/*dmg
+      - build/*pkg
     expire_in: 1 hour
   tags:
     - fastlane
@@ -62,8 +71,8 @@ release build:
   artifacts:
     paths:
       - swiftlint.result.json
-      - build/NetworkShareMounter.dmg
-      - build/NetworkShareMounter.pkg
+      - build/*dmg
+      - build/*pkg
     expire_in: 1 hour
   tags:
     - fastlane
@@ -71,14 +80,11 @@ release build:
 
 beta upload:
   stage: upload
-  variables:
-    DMG: "NetworkShareMounterBeta.dmg"
-    PACKAGE: "NetworkShareMounterBeta.pkg"
   rules:
   - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMG} ${PACKAGE_REGISTRY_URL}/${DMG}'
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".pkg'
   dependencies:
     - beta build
   tags:
@@ -90,8 +96,8 @@ release upload:
   rules:
   - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMG} ${PACKAGE_REGISTRY_URL}/${DMG}'
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PACKAGE} ${PACKAGE_REGISTRY_URL}/${PACKAGE}'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg'
   dependencies:
     - release build
   tags:
@@ -100,13 +106,11 @@ release upload:
 
 beta release:
   variables:
-    DMG: "NetworkShareMounterBeta.dmg"
-    PACKAGE: "NetworkShareMounterBeta.pkg"
   stage: release
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}" --assets-link "{\"name\":\"${DMG}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMG}\"}"'
+    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg\"}"'
   dependencies:
     - beta build
     - beta upload
@@ -119,7 +123,7 @@ release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${PACKAGE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE}\"}" --assets-link "{\"name\":\"${DMG}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${DMG}\"}"'
+    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
   dependencies:
     - release build
     - release upload

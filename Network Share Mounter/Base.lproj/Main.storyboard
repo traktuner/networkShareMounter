@@ -702,11 +702,11 @@
                             </textField>
                             <scrollView autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ip-Eo-ik3">
                                 <rect key="frame" x="20" y="223" width="487" height="122"/>
-                                <clipView key="contentView" drawsBackground="NO" id="PiI-xC-UC9">
+                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="PiI-xC-UC9">
                                     <rect key="frame" x="1" y="1" width="485" height="120"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" viewBased="YES" id="s3k-Dc-wH1">
+                                        <tableView verticalHuggingPriority="750" ambiguous="YES" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" viewBased="YES" id="s3k-Dc-wH1">
                                             <rect key="frame" x="0.0" y="0.0" width="485" height="120"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <size key="intercellSpacing" width="17" height="0.0"/>
@@ -770,8 +770,8 @@
                                     <constraint firstAttribute="height" constant="122" id="ZwS-D2-O7I"/>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="487" id="wI1-aP-cGs"/>
                                 </constraints>
-                                <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="YES" id="fNF-bT-aGQ">
-                                    <rect key="frame" x="1" y="105" width="468" height="16"/>
+                                <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="fNF-bT-aGQ">
+                                    <rect key="frame" x="1" y="105" width="485" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="Vuh-QE-2gk">
@@ -794,9 +794,9 @@
                                 </connections>
                             </button>
                             <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
-                                <rect key="frame" x="46" y="91" width="463" height="112"/>
+                                <rect key="frame" x="46" y="91" width="463" height="107"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="112" id="PxI-GN-qLt"/>
+                                    <constraint firstAttribute="height" constant="107" id="PxI-GN-qLt"/>
                                     <constraint firstAttribute="width" constant="459" id="W8E-JJ-BK8"/>
                                 </constraints>
                                 <textFieldCell key="cell" selectable="YES" enabled="NO" id="c4d-tI-W6k">
@@ -818,20 +818,6 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="addShare:" target="XfG-lQ-9wD" id="br7-yn-kdS"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d26-jj-wHS">
-                                <rect key="frame" x="20" y="183" width="20" height="20"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="NTK-dX-86W"/>
-                                    <constraint firstAttribute="width" constant="20" id="tEB-cF-Nfs"/>
-                                </constraints>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSRemoveTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="NgK-8t-CVO">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
-                                </connections>
-                            </button>
                             <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
                                 <rect key="frame" x="20" y="78" width="487" height="5"/>
                             </box>
@@ -851,16 +837,32 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d26-jj-wHS">
+                                <rect key="frame" x="20" y="203" width="20" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="glg-Ra-Kiy"/>
+                                    <constraint firstAttribute="width" constant="20" id="m7g-JT-5EH"/>
+                                </constraints>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSRemoveTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="NgK-8t-CVO">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="20" id="2a8-24-auM"/>
+                            <constraint firstItem="d26-jj-wHS" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="20M-mN-TB3"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="25" id="2a8-24-auM"/>
                             <constraint firstAttribute="trailing" secondItem="8ip-Eo-ik3" secondAttribute="trailing" constant="20" symbolic="YES" id="2oM-ja-I59"/>
                             <constraint firstItem="5Up-Id-ZGf" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="4Nm-MR-Rtw"/>
                             <constraint firstItem="U1x-R4-MXP" firstAttribute="top" secondItem="wTV-XD-Goa" secondAttribute="bottom" constant="22" id="D7o-fz-CcZ"/>
                             <constraint firstAttribute="bottom" secondItem="5Up-Id-ZGf" secondAttribute="bottom" constant="20" symbolic="YES" id="EWG-UA-yUr"/>
                             <constraint firstItem="AgX-Bj-3ll" firstAttribute="leading" secondItem="8ip-Eo-ik3" secondAttribute="leading" id="F6m-aX-Irq"/>
-                            <constraint firstItem="d26-jj-wHS" firstAttribute="leading" secondItem="8ip-Eo-ik3" secondAttribute="leading" id="GZp-w0-94B"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="48" id="JyP-e1-R2W"/>
                             <constraint firstItem="uzk-qz-SRD" firstAttribute="top" secondItem="AgX-Bj-3ll" secondAttribute="top" id="KRh-dB-lNw"/>
+                            <constraint firstItem="d26-jj-wHS" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" id="LLl-xa-2H1"/>
                             <constraint firstItem="uzk-qz-SRD" firstAttribute="firstBaseline" secondItem="AgX-Bj-3ll" secondAttribute="baseline" id="UaY-7y-d7H"/>
                             <constraint firstItem="uzk-qz-SRD" firstAttribute="leading" secondItem="AgX-Bj-3ll" secondAttribute="trailing" constant="8" symbolic="YES" id="VYy-Sr-WZN"/>
                             <constraint firstAttribute="trailing" secondItem="J0j-se-pTf" secondAttribute="trailing" constant="20" symbolic="YES" id="Y4M-HC-ng0"/>
@@ -868,7 +870,6 @@ The connection will be testet immediately and will be added only if the server i
                             <constraint firstItem="uWO-es-rt8" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="e6k-NN-2lb"/>
                             <constraint firstItem="uzk-qz-SRD" firstAttribute="trailing" secondItem="8ip-Eo-ik3" secondAttribute="trailing" id="eEm-iY-yQJ"/>
                             <constraint firstItem="8ip-Eo-ik3" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="fEl-sS-hk5"/>
-                            <constraint firstItem="d26-jj-wHS" firstAttribute="top" secondItem="J0j-se-pTf" secondAttribute="top" id="hdq-e5-fyk"/>
                             <constraint firstAttribute="trailing" secondItem="uWO-es-rt8" secondAttribute="trailing" constant="20" symbolic="YES" id="i3y-yI-EVc"/>
                             <constraint firstItem="8ip-Eo-ik3" firstAttribute="top" secondItem="AgX-Bj-3ll" secondAttribute="bottom" constant="7" id="inx-dd-OjW"/>
                             <constraint firstAttribute="bottom" secondItem="U1x-R4-MXP" secondAttribute="bottom" constant="20" symbolic="YES" id="lVH-5q-GRO"/>
@@ -876,10 +877,8 @@ The connection will be testet immediately and will be added only if the server i
                             <constraint firstItem="wTV-XD-Goa" firstAttribute="top" secondItem="uWO-es-rt8" secondAttribute="bottom" constant="8" symbolic="YES" id="oJu-B6-F8l"/>
                             <constraint firstItem="wTV-XD-Goa" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="oXb-Mk-xCx"/>
                             <constraint firstItem="U1x-R4-MXP" firstAttribute="top" secondItem="wTV-XD-Goa" secondAttribute="bottom" constant="22" id="tiQ-4d-p7U"/>
-                            <constraint firstAttribute="trailing" secondItem="J0j-se-pTf" secondAttribute="trailing" constant="20" symbolic="YES" id="uPf-sv-cJ6"/>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="leading" secondItem="d26-jj-wHS" secondAttribute="trailing" constant="8" symbolic="YES" id="udm-t8-HX9"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="J0j-se-pTf" secondAttribute="trailing" constant="20" symbolic="YES" id="uPf-sv-cJ6"/>
                             <constraint firstAttribute="trailing" secondItem="U1x-R4-MXP" secondAttribute="trailing" constant="20" symbolic="YES" id="vvp-ut-k1F"/>
-                            <constraint firstItem="d26-jj-wHS" firstAttribute="leading" secondItem="uWO-es-rt8" secondAttribute="leading" id="xfH-yI-6sG"/>
                         </constraints>
                     </view>
                     <connections>
