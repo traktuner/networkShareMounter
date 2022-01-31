@@ -37,6 +37,11 @@ lane :getbundleid do
   get_product_bundle_id(project_filepath: 'networkShareMounter.xcodeproj', scheme: 'NetworkShareMounter')
 end
 
+lane :getappversion do
+  desc "gets the version of the app. It first looks in the plist and then for '$(MARKETING_VERSION)'"
+  get_version_number(xcodeproj: "networkShareMounter.xcodeproj",target: "Network Share Mounter")  
+end
+
 lane :getlatestag do
   desc "gets the latest git tag. This tag is used to set the version number of the package"
   tags = git_tags(limit: 1)
@@ -91,24 +96,25 @@ lane :beta do
       xcodeproj: "networkShareMounter.xcodeproj"
     )
     build
+    appversion = getappversion
     desc "Create DMG image"
     dmg(
       path: "build/Network Share Mounter.app",
-      output_path: "build/NetworkShareMounterBeta.dmg",
+      output_path: "build/NetworkShareMounterBeta-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Beta"
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterBeta.pkg")
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterBeta-#{appversion}.pkg")
     desc "Notarize dmg"
     notarize(
-      package: "build/NetworkShareMounterBeta.dmg", 
+      package: "build/NetworkShareMounterBeta-#{appversion}.dmg", 
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
     desc "Notarize pkg"
     notarize(
-      package: "build/NetworkShareMounterBeta.pkg", 
+      package: "build/NetworkShareMounterBeta-#{appversion}.pkg", 
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
