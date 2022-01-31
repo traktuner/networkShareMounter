@@ -18,8 +18,7 @@ variables:
   LC_ALL: "en_US.UTF-8"
   LANG: "en_US.UTF-8"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/networksharemounter/${CI_COMMIT_TAG}"
-  DMG: "NetworkShareMounter.dmg"
-  PACKAGE: "NetworkShareMounter.pkg"
+  FILE: "NetworkShareMounter"
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
@@ -30,18 +29,13 @@ before_script:
 test_build:
   stage: test
   variables:
-    DMG: 'NetworkShareMounterBeta-"$APP_VERSION".dmg'
-    PACKAGE: "NetworkShareMounterBeta-${APP_VERSION}.pkg"
+    FILE: "NetworkShareMounterBeta"
   rules:
     - if: '$CI_COMMIT_TAG =~ /^test-/'
   script:
     #- fastlane test
-    - 'echo Variable APP_VERSION is: ${APP_VERSION}'
-    - 'echo Variable APP_VERSION is: "$APP_VERSION"'
-    - 'echo Variable DMG is: "$DMG"'
-    - 'echo Variable DMG is: ${PKG}'
-    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMG} ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta-"$APP_VERSION".dmg'
-    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PKG} ${PACKAGE_REGISTRY_URL}/NetworkShareMounterBeta-${APP_VERSION}.pkg'
+    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMG} ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg'
+    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PKG} ${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.pkg'
   artifacts:
     paths:
       - swiftlint.result.json
