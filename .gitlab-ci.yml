@@ -30,14 +30,16 @@ before_script:
 test_build:
   stage: test
   variables:
-    DMG: "NetworkShareMounterBeta-${APP_VERSION}.dmg"
+    DMG: "NetworkShareMounterBeta-"${APP_VERSION}".dmg"
     PACKAGE: "NetworkShareMounterBeta-${APP_VERSION}.pkg"
   rules:
     - if: '$CI_COMMIT_TAG =~ /^test-/'
   script:
-    - fastlane beta
+    - fastlane test
+    - 'echo Variable APP_VERSION is: ${APP_VERSION}'
+    - 'echo Variable APP_VERSION is: "$APP_VERSION"'
     - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${DMG} ${PACKAGE_REGISTRY_URL}/${DMG}'
-    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PKG} ${PACKAGE_REGISTRY_URL}/${PKG}'
+    - 'echo will do: "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${PKG} ${PACKAGE_REGISTRY_URL}/"$PKG"'
   artifacts:
     paths:
       - swiftlint.result.json
