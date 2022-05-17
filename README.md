@@ -63,7 +63,7 @@ The defaults domain for our [pre-built package](https://gitlab.rrze.fau.de/fauma
 
 [Download example Configuration Profile](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/networkShareMounter%20Legacy.mobileconfig).
 
-If you want to configure shares manuelly, you can use this command:
+If you want to configure shares manually, you can use this command:
 
 ```bash
 defaults write de.uni-erlangen.rrze.networkShareMounter networkShares -array "smb://filer.your.domain/share" "smb://filer2.your.domain/home/Another Share/foobar" "smb://home.your.domain/%USERNAME%"
