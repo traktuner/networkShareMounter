@@ -51,10 +51,10 @@ class Mounter {
 
     init() {
         // create subfolder in home to mount shares in
-        if userDefaults.string(forKey: "location")!.isEmpty {
-            self.mountpath = NSString(string: "~/\(self.localizedFolder)").expandingTildeInPath
-        } else {
+        if let userDefaultsLocation = userDefaults.string(forKey: "location") {
             self.mountpath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+        } else {
+            self.mountpath = NSString(string: "~/\(self.localizedFolder)").expandingTildeInPath
         }
 
         do {
@@ -133,7 +133,7 @@ extension Mounter {
                 if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                     //
                     // Clean up directories only if defined in userdefaults
-                    if userDefaults.bool(forKey: "cleanupLocationDirectory") != false {
+                    if userDefaults.bool(forKey: "cleanupLocationDirectory") == true {
                         //
                         // if the function has a parameter we want ot handle files
                         if let unwrappedFilename = filename {
