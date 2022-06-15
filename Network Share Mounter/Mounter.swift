@@ -40,9 +40,10 @@ typealias MountCallbackHandler = (Int32, URL?, [String]?) -> Void;
 
 class Mounter {
 
-    var localizedFolder: String
+    var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
     var mountpath: String
     let fm = FileManager.default
+    let userDefaults = UserDefaults.standard
     
     //let url: URL
     fileprivate var asyncRequestId: AsyncRequestID?
@@ -50,10 +51,15 @@ class Mounter {
 
     init() {
         // create subfolder in home to mount shares in
-        self.localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
-        self.mountpath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+        if let userDefaultsLocation = userDefaults.string(forKey: "location") {
+            self.mountpath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+        } else {
+            self.mountpath = NSString(string: "~/\(self.localizedFolder)").expandingTildeInPath
+        }
 
         do {
+            //
+            // try to create (if not exists) the directory where the network shares will be mounted
             if !fm.fileExists(atPath: mountpath) {
                 try fm.createDirectory(atPath: mountpath, withIntermediateDirectories: false, attributes: nil)
                 NSLog("\(mountpath): created")
@@ -126,32 +132,37 @@ extension Mounter {
                 // if directory is a regular directory go on
                 if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                     //
-                    // if the function has a parameter we want ot hanlde files
-                    if let unwrappedFilename = filename {
-                        if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
-                            let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
-                            if fm.fileExists(atPath: deleteFile) {
-                                NSLog("Deleting obstructing file \(deleteFile)")
-                                try fm.removeItem(atPath: deleteFile)
+                    // Clean up directories only if defined in userdefaults
+                    if userDefaults.bool(forKey: "cleanupLocationDirectory") == true {
+                        //
+                        // if the function has a parameter we want ot handle files
+                        if let unwrappedFilename = filename {
+                            if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
+                                let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
+                                if fm.fileExists(atPath: deleteFile) {
+                                    NSLog("Deleting obstructing file \(deleteFile)")
+                                    try fm.removeItem(atPath: deleteFile)
+                                }
                             }
+                        } else {
+                            //
+                            // else we have a directory to remove
+                            // delete directories only if the direcotry/location of the mountpoints
+                            let deleteFile = path.appendingPathComponent(filePath)
+                            let task = Process()
+                            task.launchPath = "/bin/rmdir"
+                            task.arguments = ["\(deleteFile)"]
+                            let pipe = Pipe()
+                            task.standardOutput = pipe
+                            //
+                            // Launch the task
+                            task.launch()
+                            //
+                            // Get the data
+                            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                            let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+                            NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
                         }
-                    } else {
-                        //
-                        // else we have a directory to remove
-                        let deleteFile = path.appendingPathComponent(filePath)
-                        let task = Process()
-                        task.launchPath = "/bin/rmdir"
-                        task.arguments = ["\(deleteFile)"]
-                        let pipe = Pipe()
-                        task.standardOutput = pipe
-                        //
-                        // Launch the task
-                        task.launch()
-                        //
-                        // Get the data
-                        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                        let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
-                        NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
                     }
                 } else {
                     //
@@ -173,7 +184,7 @@ extension Mounter {
                                 //
                                 // rudimentary check for XXX-1, XXX-2, ... mountdirs
                                 // sure, this could be done better (e.g. regex mathcing), but I don't think it's worth thinking about
-                                for count in 1...10 {
+                                for count in 1...20 {
                                     if filePath.contains(shareMountDir + "-\(count)") {
                                         NSLog("Duplicatre mount of \(share): it is already mounted as \(path.appendingPathComponent(filePath)). Trying to unmount...")
                                         unmountShare(atPath: path.appendingPathComponent(filePath))

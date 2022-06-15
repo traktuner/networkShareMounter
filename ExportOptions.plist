@@ -11,7 +11,7 @@
 		<key>de.fau.rrze.NetworkShareMounter</key>
 		<string>Network Share Mounter</string>
 		<key>de.fau.rrze.NetworkShareMounter-LaunchAtLoginHelper</key>
-		<string>de.fau.rrze.NetworkShareMounter-LaunchAtLoginHelpe</string>
+		<string>de.fau.rrze.NetworkShareMounter-LaunchAtLoginHelper</string>
 	</dict>
 	<key>signingCertificate</key>
 	<string>Developer ID Application</string>

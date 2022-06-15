@@ -29,7 +29,12 @@ For an easier configuration of all the preference keys without creating or modif
 | `canQuit` | Boolean | if set, the user can quit the app | true | v2 | optional ||
 | `canChangeAutostart` | Boolean | if set to false, the user can not change the Autostart option | true | v2 | optional ||
 | `unmountOnExit` | Boolean | if set to false the shares will be mounted after quitting the app | true | v2 | optional ||
+| `location` | String | This is the path under which the shares will be mounte  | - | v2 | optional | `/Volumes` |
+| `cleanupLocationDirectory` | Boolean | if set to true the mount location will be cleaned up from obstructing files and directories. Use with caution! | false | v2 | - | `false` |
 | `helpURL` | String | configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
+
+If `location` is left empty (or is not defined), a directory is created in a subdirectory of the user's home where the network drives will be mounted. Since this directory always contains only mounted network shares, there is a routine that cleans up this directory and deletes unnecessary files and directories.    
+If another directory is used to mount the network drives (like `location` set to, for example, `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false`.
 
 ### Screenshots
 Screenshots of our Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit options. On the right the configuration window with the custom network share list:
