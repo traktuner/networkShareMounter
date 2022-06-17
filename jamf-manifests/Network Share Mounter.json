@@ -1,50 +1,79 @@
 {
   "$schema": "http://json-schema.org/schema#",
   "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
-  "description": "Jamf Manifest for Network Share Mounter v2",
-  "__version": "1.0",
+  "description": "Jamf Manifest for Network Share Mounter v2.",
+  "__version": "1.1",
   "__feedback": "rrze-mac@fau.de",
   "type": "object",
   "options": {
     "remove_empty_properties": true
   },
+  "links": [{
+    "rel": "More information",
+    "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
+    }
+  ],
   "properties": {
     "networkShares": {
         "title": "Network shares",
-        "description": "Add shares to mount (example: smb://filer.your.domain/share)",
+        "description": "Array with all network shares. Example: smb://filer.your.domain/share. Note: %USERNAME% will be replaced with the current user's login name.",
         "type": "array",
         "items": {
             "type": "string",
+            "pattern": "^smb:\\/\\/\\S*$",
             "title": "Share"
         }
+    },
+    "location": {
+          "title": "Mount path",
+          "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended)",
+          "links": [{
+              "rel": "More information",
+              "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#configuration-preferences"
+              }
+            ],
+          "type": "string",
+          "default": ""
+    },
+    "cleanupLocationDirectory": {
+          "title": "Clean up obstructing files and directories",
+          "links": [{
+              "rel": "More information",
+              "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#configuration-preferences"
+              }
+            ],
+          "description": "if set to true, the mount location will be cleaned up from obstructing files and directories. Use with caution!",
+          "type": "boolean",
+          "default": false
     },
     "autostart": {
           "title": "Enable autostart",
           "description": "If set to true, the app will be launched on user-login",
           "type": "boolean",
-          "default": "false"
+          "default": false
     },
     "canQuit": {
           "title": "Show Exit",
           "description": "Show exit button in the menu bar",
           "type": "boolean",
-          "default": "true"
+          "default": true
     },
     "canChangeAutostart": {
           "title": "Allow autostart changes",
           "description": "Allow users to change the autostart settings",
           "type": "boolean",
-          "default": "true"
+          "default": true
     },
     "unmountOnExit": {
           "title": "Unmount shares on exit",
           "description": "Unmount shares if the app get closed",
           "type": "boolean",
-          "default": "true"
+          "default": true
     },
     "helpURL": {
           "title": "Help URL",
           "description": "Configure a help URL to help users interact with the application",
+          "pattern": "^http[s]?:\\/\\/\\S*$",
           "type": "string",
           "default": ""
     }
