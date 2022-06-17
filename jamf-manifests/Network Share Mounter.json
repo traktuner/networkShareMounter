@@ -29,7 +29,7 @@
           "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended)",
           "links": [{
               "rel": "More information",
-              "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#configuration-preferences"
+              "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-location-and-cleanuplocationdirectory-values"
               }
             ],
           "type": "string",
@@ -39,7 +39,7 @@
           "title": "Clean up obstructing files and directories",
           "links": [{
               "rel": "More information",
-              "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#configuration-preferences"
+              "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-location-and-cleanuplocationdirectory-values"
               }
             ],
           "description": "if set to true, the mount location will be cleaned up from obstructing files and directories. Use with caution!",
