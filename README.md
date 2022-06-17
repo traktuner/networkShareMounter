@@ -23,16 +23,17 @@ For an easier configuration of all the preference keys without creating or modif
 
 | Key                 | Type  | Description            | Default Value | Aviable in version | Required? | Example |
 | :------------------ | :---- | :---------------------|:-------------------------------------- | --------------------------------- | ------- | ---- |
-| `networkShares`     | Array | array with all network shares. For example configured through a MDM | - | all | - |`smb://filer.your.domain/share`<br />`smb://homefiler.your.domain/%USERNAME%`|
-| `customNetworkShares` | Array | array with all user configured network shares                | - | all | optional |`smb://myhomefiler.my.domain/share`|
-| `autostart` | Boolean | if set, the app will be launched on user-login | false | v2 | optional ||
-| `canQuit` | Boolean | if set, the user can quit the app | true | v2 | optional ||
-| `canChangeAutostart` | Boolean | if set to false, the user can not change the Autostart option | true | v2 | optional ||
-| `unmountOnExit` | Boolean | if set to false the shares will be mounted after quitting the app | true | v2 | optional ||
-| `location` | String | This is the path under which the shares will be mounte  | - | v2 | optional | `/Volumes` |
-| `cleanupLocationDirectory` | Boolean | if set to true the mount location will be cleaned up from obstructing files and directories. Use with caution! | false | v2 | - | `false` |
-| `helpURL` | String | configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
+| `networkShares`     | Array | Array with all (SMB) network shares. For example configured through a MDM. Note: %USERNAME% will be replaced with the current user's login name.| - | all | - |`smb://filer.your.domain/share`<br />`smb://homefiler.your.domain/%USERNAME%`|
+| `customNetworkShares` | Array | Array with all user configured (SMB) network shares. It's not recommend to set this array via MDM | - | all | optional |`smb://myhomefiler.my.domain/share`|
+| `autostart` | Boolean | If set, the app will be launched on user-login | false | v2 | optional ||
+| `canQuit` | Boolean | If set, the user can quit the app | true | v2 | optional ||
+| `canChangeAutostart` | Boolean | If set to false, the user can not change the Autostart option | true | v2 | optional ||
+| `unmountOnExit` | Boolean | If set to false the shares will be mounted after quitting the app | true | v2 | optional ||
+| `location` | String | Path where network shares will be mounted. Leave blank for the default value (highly recommended) | - | v2 | optional | `/Volumes` |
+| `cleanupLocationDirectory` | Boolean | If set to true, the mount location will be cleaned up from obstructing files and directories. Use with caution if the location directory is not the default!| false | v2 | - | `false` |
+| `helpURL` | String | Configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
 
+#### Important note for `location` and `cleanupLocationDirectory` values
 If `location` is left empty (or is not defined), a directory is created in a subdirectory of the user's home where the network drives will be mounted. Since this directory always contains only mounted network shares, there is a routine that cleans up this directory and deletes unnecessary files and directories.    
 If another directory is used to mount the network drives (like `location` set to, for example, `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false`.
 
