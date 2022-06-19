@@ -1,6 +1,7 @@
 # app_identifier("[[APP_IDENTIFIER]]") # The bundle identifier of your app
 apple_id("rrze-apple-entwickler@fau.de") # Your Apple email address
 team_id("C8F68RFW4L")
+app_identifier("de.fau.rrze.NetworkShareMounter")
 
 
 
