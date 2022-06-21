@@ -52,6 +52,7 @@ lane :commonTasks do
   desc "perform some commont build tasks"
   id = getbundleid
   tag = getlatestag
+  default_platform(:mac)
   signing_id = ENV["SIGNING_ID"]
   app_store_connect_api_key(
       is_key_content_base64: true
@@ -76,9 +77,12 @@ lane :commonTasks do
   )
   get_certificates
   sync_code_signing
+  cert
+  sigh(force: true)
   gym(
     scheme: "networkShareMounter",
     output_directory: "build/",
+    export_method: "developer-id",
     export_options: "./ExportOptions.plist"
   )
 end
@@ -107,7 +111,7 @@ lane :test do
     signing_id = ENV["SIGNING_ID"]
     output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterTest-#{appversion}.pkg")
   rescue => exception
-    on_error(exception)
+    #on_error(exception)
   end
 end
 
