@@ -28,4 +28,5 @@ struct Settings {
         ".DS_Store",
         ".autodiskmounted"
     ]
+    static let statisticsReportURL = "https://faumac.rrze.fau.de/apps"
 }
