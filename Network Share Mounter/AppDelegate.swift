@@ -72,7 +72,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
             NSLog("Passed \(timerInterval) seconds, performing mount operartions.")
-            stats.reportAppInstallation()
             let netConnection = Monitor.shared
             let status = netConnection.netOn
             NSLog("Current Network Path is \(status)")
