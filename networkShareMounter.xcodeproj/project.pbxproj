@@ -11,6 +11,7 @@
 		D60FA5271E7FBE2200D9B5A5 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60FA5261E7FBE2200D9B5A5 /* config.swift */; };
 		F72985C42760EF3800FCF8C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F72985C62760EF3800FCF8C9 /* Localizable.strings */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
+		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
 		F77107B7274EC51600556B20 /* Monitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B6274EC51600556B20 /* Monitor.swift */; };
 		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
@@ -60,6 +61,7 @@
 		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F72985C72760EF3B00FCF8C9 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
+		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 				F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */,
 				F72985C62760EF3800FCF8C9 /* Localizable.strings */,
 				F77107BA274EC7D200556B20 /* config.swift */,
+				F742ACF52861CB62009864DF /* AppStatistics.swift */,
 				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F79B1597274E722000C322A8 /* AppDelegate.swift */,
 				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
@@ -361,6 +364,7 @@
 			files = (
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
+				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
 				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,

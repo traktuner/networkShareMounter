@@ -44,6 +44,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // initalize class which will perform all the automounter tasks
         let mounter = self.mounter
         self.mountpath = mounter.mountpath
+        
+        //
+        // initialize statistics reporting struct
+        let stats = AppStatistics.init()
+        stats.reportAppInstallation()
 
         //
         // register App according to userDefaults as "start at login"
