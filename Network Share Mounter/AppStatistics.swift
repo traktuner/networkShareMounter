@@ -70,8 +70,7 @@ struct AppStatistics {
                 semaphore.signal()
             }
         }.resume()
-        _ = semaphore.wait(wallTimeout: .distantFuture)
-        // remove possible \n at the end of the string
+        //_ = semaphore.wait(wallTimeout: .distantFuture)
         return()
     }
     
