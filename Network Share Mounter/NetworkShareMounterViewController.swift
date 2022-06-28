@@ -15,7 +15,9 @@ class NetworkShareMounterViewController: NSViewController {
 
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     
+    // swiftlint:disable force_cast
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    // swiftlint:enable force_cast
 
     override func viewDidLoad() {
         super.viewDidLoad()
