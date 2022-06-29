@@ -42,8 +42,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         //
         // initalize class which will perform all the automounter tasks
-        let mounter = self.mounter
         self.mountpath = mounter.mountpath
+        
+        //
+        // initialize statistics reporting struct
+        let stats = AppStatistics.init()
+        stats.reportAppInstallation()
 
         //
         // register App according to userDefaults as "start at login"
@@ -70,7 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let netConnection = Monitor.shared
             let status = netConnection.netOn
             NSLog("Current Network Path is \(status)")
-            mounter.mountShares()
+            self.mounter.mountShares()
         })
     }
 
@@ -78,7 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // unmount all shares befor leaving
         if userDefaults.bool(forKey: "unmountOnExit") == true {
-            mounter.unmountAllShares()
+            self.mounter.unmountAllShares()
         }
         //
         // end network monitoring
@@ -136,7 +140,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),
                                     action: #selector(AppDelegate.openHelpURL(_:)), keyEquivalent: ""))
         }
-        // menu.addItem(NSMenuItem(title: NSLocalizedString("Network Share Mounter", comment: "Info"), action: #selector(AppDelegate.showInfo(_:)), keyEquivalent: "P"))
         menu.addItem(NSMenuItem(title: NSLocalizedString("Mount shares", comment: "Mount shares"),
                                 action: #selector(AppDelegate.mountManually(_:)), keyEquivalent: "m"))
         menu.addItem(NSMenuItem(title: NSLocalizedString("Unmount shares", comment: "Unmount shares"),

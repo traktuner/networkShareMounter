@@ -14,8 +14,10 @@ class NetworkShareMounterViewController: NSViewController {
     let userDefaults = UserDefaults.standard
 
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
-
-    // let customshares = UserDefaults(suiteName: config.defaultsDomain)?.array(forKey: "customNetworkShares") as? [String] ?? []
+    
+    // swiftlint:disable force_cast
+    let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    // swiftlint:enable force_cast
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -60,9 +62,8 @@ class NetworkShareMounterViewController: NSViewController {
                 if shareArray.contains(shareString) {
                     NSLog("\(shareString) is already in list of user's customNetworkShares")
                 } else {
-                    let mounter = Mounter.init()
                     do {
-                        try mounter.doTheMount(forShare: usersNewShare.stringValue)
+                        try appDelegate.mounter.doTheMount(forShare: usersNewShare.stringValue)
                         shareArray.append(usersNewShare.stringValue)
                         userDefaults.set(shareArray, forKey: "customNetworkShares")
                         usersNewShare.stringValue=""

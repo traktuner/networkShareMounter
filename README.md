@@ -23,13 +23,19 @@ For an easier configuration of all the preference keys without creating or modif
 
 | Key                 | Type  | Description            | Default Value | Aviable in version | Required? | Example |
 | :------------------ | :---- | :---------------------|:-------------------------------------- | --------------------------------- | ------- | ---- |
-| `networkShares`     | Array | array with all network shares. For example configured through a MDM | - | all | - |`smb://filer.your.domain/share`<br />`smb://homefiler.your.domain/%USERNAME%`|
-| `customNetworkShares` | Array | array with all user configured network shares                | - | all | optional |`smb://myhomefiler.my.domain/share`|
-| `autostart` | Boolean | if set, the app will be launched on user-login | false | v2 | optional ||
-| `canQuit` | Boolean | if set, the user can quit the app | true | v2 | optional ||
-| `canChangeAutostart` | Boolean | if set to false, the user can not change the Autostart option | true | v2 | optional ||
-| `unmountOnExit` | Boolean | if set to false the shares will be mounted after quitting the app | true | v2 | optional ||
-| `helpURL` | String | configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
+| `networkShares`     | Array | Array with all (SMB) network shares. For example configured through a MDM. Note: %USERNAME% will be replaced with the current user's login name.| - | all | - |`smb://filer.your.domain/share`<br />`smb://homefiler.your.domain/%USERNAME%`|
+| `customNetworkShares` | Array | Array with all user configured (SMB) network shares. It's not recommend to set this array via MDM | - | all | optional |`smb://myhomefiler.my.domain/share`|
+| `autostart` | Boolean | If set, the app will be launched on user-login | false | v2 | optional ||
+| `canQuit` | Boolean | If set, the user can quit the app | true | v2 | optional ||
+| `canChangeAutostart` | Boolean | If set to false, the user can not change the Autostart option | true | v2 | optional ||
+| `unmountOnExit` | Boolean | If set to false the shares will be mounted after quitting the app | true | v2 | optional ||
+| `location` | String | Path where network shares will be mounted. Leave blank for the default value (highly recommended) | - | v2 | optional | `/Volumes` |
+| `cleanupLocationDirectory` | Boolean | If set to true, the mount location will be cleaned up from obstructing files and directories. Use with caution if the location directory is not the default!| false | v2 | - | `false` |
+| `helpURL` | String | Configure a help URL to help users interact with the application | - | v2 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|  
+
+#### Important note for `location` and `cleanupLocationDirectory` values
+If `location` is left empty (or is not defined), a directory is created in a subdirectory of the user's home where the network drives will be mounted. Since this directory always contains only mounted network shares, there is a routine that cleans up this directory and deletes unnecessary files and directories.    
+If another directory is used to mount the network drives (like `location` set to, for example, `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false`.
 
 ### Screenshots
 Screenshots of our Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit options. On the right the configuration window with the custom network share list:
@@ -63,7 +69,7 @@ The defaults domain for our [pre-built package](https://gitlab.rrze.fau.de/fauma
 
 [Download example Configuration Profile](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/networkShareMounter%20Legacy.mobileconfig).
 
-If you want to configure shares manuelly, you can use this command:
+If you want to configure shares manually, you can use this command:
 
 ```bash
 defaults write de.uni-erlangen.rrze.networkShareMounter networkShares -array "smb://filer.your.domain/share" "smb://filer2.your.domain/home/Another Share/foobar" "smb://home.your.domain/%USERNAME%"
@@ -78,6 +84,12 @@ defaults write de.uni-erlangen.rrze.networkShareMounter customNetworkShares -arr
 * With the optional array  `customNetworkShares`  users can add own network shares to the configuration. See manually confiugration above for detauls.
 * There is an optional parameter `--openMountDir` which opens a new finder window of the networkShareMounter mount directory. (e.g. "\~/Network shares" or "\~/Netzlaufwerke")
 * If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent (command line version). 
+
+## FAQ
+### 1) Jamf recon stuck with configured Network Share Mounter app
+This is probably due the innventory collection configuration "Include home directory sizes" in Jamf (Pro). Both Network Share Mounter versions, v2 and legacy, mounting the shares in the users home (~/Network Shares). If the option is now enabled, Jamf will also try to collect the size of the network share mounter mounts and the process get stuck.
+
+To resolve this behaviour, go to **Settings > Computer Management - Management Framework > Inventory Collection** and disable the option **Include home directory sizes**.
 
 ## Contact
 Feel free to contact us for ideas, enhancements or bug reports at the [service desk address](mailto:rrze-gitlab+faumac-networksharemounter-506-issue-@fau.de).    
