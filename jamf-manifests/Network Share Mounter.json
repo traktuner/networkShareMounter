@@ -20,7 +20,7 @@
         "type": "array",
         "items": {
             "type": "string",
-            "pattern": "^smb:\\/\\/\\S*$",
+            "pattern": "^smb:\/\/\S*\/.+$",
             "title": "Share"
         }
     },
