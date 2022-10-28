@@ -30,7 +30,7 @@ For an easier configuration of all the preference keys without creating or modif
 | `canChangeAutostart` | Boolean | If set to false, the user can not change the Autostart option | true | >=2.0.0 | optional ||
 | `unmountOnExit` | Boolean | If set to false the shares will be mounted after quitting the app | true | >=2.0.0 | optional ||
 | `location` | String | Path where network shares will be mounted. Leave blank for the default value (highly recommended) | - | >=2.1.0 | optional | `/Volumes` |
-| `cleanupLocationDirectory` | Boolean | If set to true, the mount location will be cleaned up from obstructing files and directories. Use with caution if the location directory is not the default!| false | >=2.1.0 | - | `false` |
+| `cleanupLocationDirectory` | Boolean | * Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag. * Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag. * If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array. (The previous settings where too dangerous 😉)| false | >=2.1.0 | - | `false` |
 | `helpURL` | String | Configure a help URL to help users interact with the application | - | >=2.0.0 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
 
 #### Important note for `location` and `cleanupLocationDirectory` values
