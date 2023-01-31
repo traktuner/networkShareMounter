@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // write changed values back to userDefaults
         if userDefaults.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
-            userDefaults.set(true, forKey: "autostart")
+            userDefaults.set(LaunchAtLogin.isEnabled, forKey: "autostart")
         }
     }
 
