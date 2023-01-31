@@ -87,11 +87,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // end network monitoring
         monitor.cancel()
-        //
-        // write changed values back to userDefaults
-        if userDefaults.bool(forKey: "autostart") != LaunchAtLogin.isEnabled {
-            userDefaults.set(LaunchAtLogin.isEnabled, forKey: "autostart")
-        }
     }
 
     private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
