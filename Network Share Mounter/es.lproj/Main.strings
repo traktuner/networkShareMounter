@@ -267,7 +267,7 @@
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "Si conoce el nombre y el camino de liberación puede conectarse a la unidad de red. \nUtiliza la forma    smb://server.name/path/\nDie Conectividad se convalide inmediatamente y si el servidor y el camino de liberación estén disponibles, se agrega la liberación.";
+"c4d-tI-W6k.title" = "Puede agregar y montar cualquier recurso share de red de Windows (smb/cifs) siempre que conozca el nombre del servidor y la ruta de exportación. \n La conexión se probará inmediatamente y el recurso compartido se conectará si el servidor resp. share es accesible. \n\n Ingrese el recurso compartido como: smb://server.name/export/path";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";

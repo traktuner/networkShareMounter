@@ -95,7 +95,7 @@
 "Bw7-FT-i3A.title" = "Save As…";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available.";
+"c4d-tI-W6k.title" = "You can add and mount any Windows (smb/cifs) network share as long as you know the server name and export path. \nThe connection will be tested immediately and the share will be connected if the server resp. share is reachable. \n\nEnter the share as: smb://server.name/export/path";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
