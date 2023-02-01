@@ -8,6 +8,8 @@
 	<true/>
 	<key>unmountOnExit</key>
 	<true/>
+	<key>canChangeAutostart</key>
+	<true/>
 	<key>helpURL</key>
 	<string></string>
 	<key>location</key>
