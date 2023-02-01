@@ -125,7 +125,8 @@ extension Mounter {
     // function to delete obstructing files in mountDir Subdirectories
     func deleteUnneededFiles(path: String, filename: String?) {
         do {
-            let filePaths = try fm.contentsOfDirectory(atPath: path)
+            var filePaths = try fm.contentsOfDirectory(atPath: path)
+            filePaths.append("/")
             for filePath in filePaths {
                 //
                 // check if directory is a (remote) filesystem mount
@@ -135,7 +136,7 @@ extension Mounter {
                     // Clean up the directory containing the mounts only if defined in userdefaults
                     if userDefaults.bool(forKey: "cleanupLocationDirectory") == true {
                         //
-                        // if the function has a parameter we want to handle files
+                        // if the function has a parameter we want to handle files, not directories
                         if let unwrappedFilename = filename {
                             if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                                 let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
@@ -143,25 +144,29 @@ extension Mounter {
                                     NSLog("Deleting obstructing file \(deleteFile)")
                                     try fm.removeItem(atPath: deleteFile)
                                 }
+                            } else {
+                                NSLog("Found file system mount at \(path.appendingPathComponent(filePath)). Not deleting it")
                             }
                         } else {
                             //
                             // else we have a directory to remove
-                            // delete directories only if the direcotry/location of the mountpoints
-                            let deleteFile = path.appendingPathComponent(filePath)
-                            let task = Process()
-                            task.launchPath = "/bin/rmdir"
-                            task.arguments = ["\(deleteFile)"]
-                            let pipe = Pipe()
-                            task.standardOutput = pipe
-                            //
-                            // Launch the task
-                            task.launch()
-                            //
-                            // Get the data
-                            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                            let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
-                            NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
+                            // do not remove the top level directory containing the mountpoints
+                            if filePath != "/" {
+                                let deleteFile = path.appendingPathComponent(filePath)
+                                let task = Process()
+                                task.launchPath = "/bin/rmdir"
+                                task.arguments = ["\(deleteFile)"]
+                                let pipe = Pipe()
+                                task.standardOutput = pipe
+                                //
+                                // Launch the task
+                                task.launch()
+                                //
+                                // Get the data
+                                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                                let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+                                NSLog("Deleting obstructing directory \(deleteFile): \(output ?? "done")")
+                            }
                         }
                     }
                 } else {

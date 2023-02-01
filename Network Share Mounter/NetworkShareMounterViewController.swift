@@ -55,8 +55,15 @@ class NetworkShareMounterViewController: NSViewController {
 
     @IBAction func addShare(_ sender: NSButton) {
         let shareString = usersNewShare.stringValue
-
-        if shareString.isValidURL {
+        // if the share URL string contains a space, the URL vill not
+        // validate as valid. Therefore we replace the " " with a "_"
+        // and test thos string.
+        // Of course this is a hack and not the best way to solve the
+        // problem. But hey, every saturday I code, I am obbligated
+        // to cheat. ¯\_(ツ)_/¯ 
+        let shareURL = shareString.replacingOccurrences(of: " ",
+                                                       with: "_")
+        if shareURL.isValidURL {
             if shareString.hasPrefix("smb://") || shareString.hasPrefix("cifs://") {
                 var shareArray = userDefaults.object(forKey: "customNetworkShares") as? [String] ?? [String]()
                 if shareArray.contains(shareString) {
