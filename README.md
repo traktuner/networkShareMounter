@@ -1,100 +1,77 @@
-# <img src="networkShareMounter.png" alt="drawing" width="90px"/> networkShareMounter
+# <img src="networkShareMounter.png" alt="drawing" width="90px"/> Network Share Mounter 
 
-In a university, there is a requirement that departments have specific SMB shares on their own network that users should mount. In the same way, in a company - depending on the department or location - there could also be different shares that are to be used. The idea behind the networkShareMounter is that there is a single application that takes care of mounting a list of network shares in an enterprise or university environment. Such a list of shares will be ideally distributed as configuration profiles with an MDM based on workgroups, departments, project-groups etc.
+In a university or company envirement there is usually the requirement to mount specific SMB shares depending on departments or locations - usually even several shares depending on the current location. The macOS in-build way to mount shares isn't very userfriendly or a good solutions for enterprise envirements. Therefore solutions using scripts or other tools are often static and inflexible for users. In order to create a prefect solution for administrators _and_ end users, we developed the Network Share Mounter.
 
-Based on the network accessibility, the shares are mounted in the background without any user interaction. Even if a mount fails (e.g. if the share is unreachable), no GUI will be displayed. A Kerberos environment is therefore recommended so that no authentication is required for a mount. Alternatively, the user credentials can also be stored in the user's keychain by manually mounting a share once. So please note that no notification will be displayed if the credantials are invalid or unavailable!  
+The idea behind Network Share Mounter is that a single application takes care of mounting a list of network shares. The share list is ideally distributed as a configuration profile with an MDM solution based on workgroups, departments, project groups, etc. If a user needs additional shares, besides the managed ones, a user can add shares by himself in the menu bar.   
+Based on the network accessibility, shares are mounted in the background without any user interaction. Even if a mount fails (e.g. if the share is unreachable), no GUI will be displayed. A Kerberos environment is therefore recommended so that no authentication is required for a mount. Alternatively, the user credentials can also be stored in the user's keychain by manually mounting a share once. So please note, that no notification will be displayed if the credantials are invalid or unavailable!  
 
 **Configuration**  
-Network shares are stored in a NSUserdefaults domain among other configurable aspects of the app. The easiest way to do this is to create a configuration profile and distribute is via MDM. Alternatively, the configuration can also be done manually via the command line. As a tip: to avoid creating a profile for every user, use %USERNAME% which will be replaced with the login name of the current user. See [configuration preferences](#configuration-preferences) in v2 for all available values. 
+Network shares are stored in a NSUserdefaults domain among other configurable aspects of the app. The easiest way to configure the app is to create a configuration profile and distribute the profile via MDM. Alternatively, the configuration can also be done manually via the command line (i.g. defaults).   
+As a tip: to avoid creating a profile for every user, use `%USERNAME%` which will be replaced with the login name of the current user. See [configuration preferences](#configuration-preferences) for all available values. 
 
 **SMBHome**  
-If the current user has the attribute `SMBHome` defined via LDAP or Active Directory, the user home will also be mounted automatically. This is usually the case when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. You can also set it for a local user if you want: `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`.
+If the current user has the attribute `SMBHome` defined via LDAP or Active Directory, the user home will be mounted automatically. This is usually the case when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. If necessery, you can set the attribute for a local user manuelly:  
+ `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`.
 
-**v2 and Legacy?**  
-Staring with December 2021 there are two different versions of the app: The [background LaunchAgent comamnd line application](#networksharemounter-legacy-the-command-line-app) legacy app (not under active development anymore) and a [menu bar based app](#network-share-mounter-v2) with more configuration options and features for end users. 
+### ⚙️ Configuration preferences
+For an easier configuration of all the preference keys without creating or modifying a custom Configuration Profile in XML format we provieded a JSON Manifest Schema for Jamf Pro. [Download the manifest file](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/Network%20Share%20Mounter.json). We also added a manifest to the [iMazing Profile Edior](https://imazing.com/profile-editor). 
 
-## Network Share Mounter (v2)
-The *Network Share Mounter* app is loosely based on the code of the command line version. It lives in the user's menu bar and is more visible and manageable for the user, as it has the possibility to add some (additional personal) shares to be mounted or the user can decide if the app will be automatically started on login. 
+ The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. Available payload values: 
 
-### Configuration preferences
-For an easier configuration of all the preference keys without creating or modifying a custom Configuration Profile in XML format we provieded a JSON Manifest Schema for Jamf Pro. [Download the manifest file](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/Network%20Share%20Mounter.json). 
-
- The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. List with all available values: 
-
-| Key                 | Type  | Description            | Default Value | Aviable in version | Required? | Example |
+| Key                 | Type  | Description            | Default value | Aviable with version | Required? | Example |
 | :------------------ | :---- | :---------------------|:-------------------------------------- | --------------------------------- | ------- | ---- |
-| `networkShares`     | Array | Array with all (SMB) network shares. For example configured through a MDM. Note: %USERNAME% will be replaced with the current user's login name.| - | all | - |`smb://filer.your.domain/share`<br />`smb://homefiler.your.domain/%USERNAME%`|
-| `customNetworkShares` | Array | Array with all user configured (SMB) network shares. It's not recommend to set this array via MDM | - | all | optional |`smb://myhomefiler.my.domain/share`|
-| `autostart` | Boolean | If set, the app will be launched on user-login | false | >=2.0.0 | optional ||
-| `canQuit` | Boolean | If set, the user can quit the app | true | >=2.0.0 | optional ||
-| `canChangeAutostart` | Boolean | If set to false, the user can not change the Autostart option | true | >=2.0.0 | optional ||
-| `unmountOnExit` | Boolean | If set to false the shares will be mounted after quitting the app | true | >=2.0.0 | optional ||
-| `location` | String | Path where network shares will be mounted. Leave blank for the default value (highly recommended) | - | >=2.1.0 | optional | `/Volumes` |
-| `cleanupLocationDirectory` | Boolean | * Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag. * Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag. * If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array. (The previous settings where too dangerous 😉)| false | >=2.1.0 | - | `false` |
-| `helpURL` | String | Configure a help URL to help users interact with the application | - | >=2.0.0 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
+| `networkShares`     | Array | Array with all (SMB) network shares.    <br />Note: `%USERNAME%` will be replaced with the login name of the current user. | - | all | - |`smb://filer.your.domain/share`<br />`smb://homefiler.your.domain/%USERNAME%`|
+| `customNetworkShares` | Array | Array with all user configured (SMB) network shares. <br />It's not recommend to configure this array via MDM. | - | all | optional |`smb://myhomefiler.my.domain/share`|
+| `autostart` | Boolean | If true, the app will be launched upon user login. | false | >=2.0.0 | optional ||
+| `canQuit` | Boolean | If true, the user can exit the app in the menu bar. | true | >=2.0.0 | optional ||
+| `canChangeAutostart` | Boolean | If set to false, the user can not change the autostart option. | true | >=2.0.0 | optional ||
+| `unmountOnExit` | Boolean | If set to false, the shares will be mounted after quitting the app. | true | >=2.0.0 | optional ||
+| `location` | String | Path where network shares will be mounted. <br />Leave blank for the default value *(highly recommended)* | - | >=2.1.0 | optional | `/Volumes` |
+| `cleanupLocationDirectory` | Boolean | 1) Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag.    <br /><br />2) Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag.    <br /><br />3) If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array.   <br />*(The previous setting where too dangerous)* | false | >=2.1.0 | - | `false` |
+| `helpURL` | String | Configure a website link to help users interact with the application. | - | >=2.0.0 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
 
-#### Important note for `location` and `cleanupLocationDirectory` values
-If `location` is left empty (or is not defined), a directory is created in a subdirectory of the user's home where the network drives will be mounted. Since this directory always contains only mounted network shares, there is a routine that cleans up this directory and deletes unnecessary files and directories.    
-If another directory is used to mount the network drives (like `location` set to, for example, `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false`.
+#### ⚠️ Important note for `location` and `cleanupLocationDirectory` values
+If the value `location` left empty (or undefined), the directory (`~/Netzlaufwerk`) will be created as a subdirectory of the user's home where the network shares will be mounted. Since this directory always contains only mounted network shares, there is a routine to clean up this directory and deletes unnecessary files and directories.    
+If another directory is used to mount the network drives (like `location` = `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false` !
 
 ### Screenshots
-Screenshots of our Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit options. On the right the configuration window with the custom network share list:
+Screenshots of the Network Share Mounter app. On the left the menu bar icon with the mount, unmount and quit option. On the right the configuration window with the custom network share list.
 
 <img src="networkShareMounterv2Screenshot.png" />  
 
-----  
-
-## networkShareMounter Legacy (the command line app)
-
-The legacy networkShareMounter is started by a [LaunchAgent](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/networkShareMounter/de.uni-erlangen.rrze.networkShareMounter.plist) at every network change (for automatic remounting) and when a user logs in. This process is done in the background, without any user interaction. 
-
-### How to configure the command line app
-
-The defaults domain for our [pre-built package](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/releases) is `de.uni-erlangen.rrze.networkShareMounter`. If you want to distribute the plist with a configuration profile you have to do it with the payload `com.apple.ManagedClient.preferences` like this:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>networkShares</key>
-	<array>
-		<string>smb://home.your.domain/%USERNAME%</string>
-		<string>smb://filer1.your.domain/share</string>
-		<string>smb://filer2.your.domain/another share/foobar</string>
-	</array>
-</dict>
-</plist>
-```
-
-[Download example Configuration Profile](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/networkShareMounter%20Legacy.mobileconfig).
-
-If you want to configure shares manually, you can use this command:
-
-```bash
-defaults write de.uni-erlangen.rrze.networkShareMounter networkShares -array "smb://filer.your.domain/share" "smb://filer2.your.domain/home/Another Share/foobar" "smb://home.your.domain/%USERNAME%"
-```
-
-```bash
-defaults write de.uni-erlangen.rrze.networkShareMounter customNetworkShares -array "smb://private.filer.home/share"
-```
-
-### Optional paramater and options
-
-* With the optional array  `customNetworkShares`  users can add own network shares to the configuration. See manually confiugration above for detauls.
-* There is an optional parameter `--openMountDir` which opens a new finder window of the networkShareMounter mount directory. (e.g. "\~/Network shares" or "\~/Netzlaufwerke")
-* If you want to change the installation directory, go to **Build Settings** > **Deployment** > **Installation Directory**. But keep in mind that you also have to change the path of the LaunchAgent (command line version). 
-
 ## FAQ
-### 1) Jamf recon stuck with configured Network Share Mounter app
+##### **1) What are the difference between the v2 and legacy app?**  
+
+Staring with December 2021 there are two different versions of the app: the legacy background LaunchAgent comamnd line application (not under active development anymore) and the menu bar based app (v2) with more configuration options and features for end users. Since 2023 the documation for the legacy app has been removed.
+
+##### **2) Jamf recon stuck with configured Network Share Mounter app**  
 This is probably due the innventory collection configuration "Include home directory sizes" in Jamf (Pro). Both Network Share Mounter versions, v2 and legacy, mounting the shares in the users home (~/Network Shares). If the option is now enabled, Jamf will also try to collect the size of the network share mounter mounts and the process get stuck.
 
 To resolve this behaviour, go to **Settings > Computer Management - Management Framework > Inventory Collection** and disable the option **Include home directory sizes**.
 
+##### 3) Autostart 
+
+There are several possibilities to accomplish the autostart at login. For example the Apple way,as it is also defined in the Apple App Store Guidline. **But the app *has* to be started at least one time**.  
+If you're using a MDM solution like *Jamf Pro* you can create a policy to start the Network Share Mounter _once per user and computer_. If done, your MDM trigger the first run. After that, the app will open on every log-in. Example: 
+
+- Policy: `Autostart Network Share Mounter`
+  - Trigger: `Login`
+- - Frequency: `Once per user per computer`
+  - Scope: `Network Share Mounter installed`
+  - Policy content:
+  - - Run Unix command: `sudo -u $(/usr/bin/stat -f%Su /dev/console) open -a /Applications/Network\ Share\ Mounter.app`
+
+##### **4) Managed Login Itmes with macOS Ventura**
+
+With macOS Ventura, Apple has added a feature to show apps which are starting and working in the background. Users also have the posibillity to enable or disable these specific apps. To prevent disabling the Network share Mounter autostart you can add a [managed login item](https://support.apple.com/guide/deployment/managed-login-items-payload-settings-dep07b92494/web)" payload to the Network Share Mounter configuration profile or create a seperate profile containing the necessery values. Example:
+
+* Rule Type: `Bundle Identifier`
+* Rule Value: `de.fau.rrze.NetworkShareMounter`
+* Rule Comment: `Prevent disabling the Network Share Mounter autostart`
+
 ## Contact
+
 Feel free to contact us for ideas, enhancements or bug reports at the [service desk address](mailto:rrze-gitlab+faumac-networksharemounter-506-issue-@fau.de).    
 For general questions you can write directly to the team at [rrze-mac@fau.de](mailto:rrze-mac@fau.de).
 
-
 `Developed with ❤️ by your FAUmac team`
-
