@@ -69,6 +69,12 @@ With macOS Ventura, Apple has added a feature to show apps which are starting an
 * Rule Value: `de.fau.rrze.NetworkShareMounter`
 * Rule Comment: `Prevent disabling the Network Share Mounter autostart`
 
+##### **5) What about AFP or maybe NFS?**
+Currently the Network Share Mounter **only can handle SMB mounts**. Since Apple has discontinued AFP a long time ago, we are not likely to implement a AFP mount process by ourself. But feel free to create a merge request for AFP or NFS. 
+_Hint: the Network Share Mounter uses the macOS integrated smb mount call. There is no integrated SMB library._
+
+
+
 ## Contact
 
 Feel free to contact us for ideas, enhancements or bug reports at the [service desk address](mailto:rrze-gitlab+faumac-networksharemounter-506-issue-@fau.de).    
