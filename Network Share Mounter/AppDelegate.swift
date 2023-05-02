@@ -142,9 +142,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"),
                                 action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
         // menu.addItem(NSMenuItem.separator())
-        if userDefaults.bool(forKey: "canChangeAutostart") != false {
-            menu.addItem(NSMenuItem.separator())
-        }
+        menu.addItem(NSMenuItem.separator())
+        
         menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
                                 action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
         if userDefaults.bool(forKey: "canQuit") != false {

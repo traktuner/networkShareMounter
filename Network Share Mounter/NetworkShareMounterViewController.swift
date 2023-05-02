@@ -26,8 +26,9 @@ class NetworkShareMounterViewController: NSViewController {
         addShareButton.isEnabled = true
         removeShareButton.isEnabled = false
 
-        if userDefaults.bool(forKey: "canChangeAutostart") == false {
+        if userDefaults.bool(forKey: "canChangeAutostart") != false {
             launchAtLoginRadioButton.isHidden = true
+            horizontalLine.isHidden = true
         }
 
         tableView.action = #selector(handleClickColumn)
@@ -82,6 +83,8 @@ class NetworkShareMounterViewController: NSViewController {
         }
     }
 
+    @IBOutlet weak var horizontalLine: NSBox!
+    
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
 
     @IBOutlet weak var tableView: NSTableView!
