@@ -78,7 +78,7 @@ lane :commonTasks do
   get_certificates
   sync_code_signing
   cert
-  sigh(force: true)
+  # sigh(force: true)
   gym(
     scheme: "networkShareMounter",
     output_directory: "build/",
