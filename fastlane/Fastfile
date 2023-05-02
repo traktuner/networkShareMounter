@@ -144,11 +144,11 @@ lane :beta do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
-    desc "Sending message to Teams bot"
-    teams_message
-  rescue => exception
-    on_error(exception)
-  end
+    # desc "Sending message to Teams bot"
+    # teams_message
+  # rescue => exception
+  #   on_error(exception)
+  # end
 end
 
 lane :release do
@@ -180,11 +180,11 @@ lane :release do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
-    desc "Sending message to Teams bot"
-    teams_message
-  rescue => exception
-    on_error(exception)
-  end
+    # desc "Sending message to Teams bot"
+    # teams_message
+  # rescue => exception
+  #   on_error(exception)
+  # end
 end
 
 # generates the command-line networkShareMounter app
