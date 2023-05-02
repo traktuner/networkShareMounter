@@ -26,7 +26,7 @@ class NetworkShareMounterViewController: NSViewController {
         addShareButton.isEnabled = true
         removeShareButton.isEnabled = false
 
-        if userDefaults.bool(forKey: "canChangeAutostart") != false {
+        if userDefaults.bool(forKey: "canChangeAutostart") == false {
             launchAtLoginRadioButton.isHidden = true
             horizontalLine.isHidden = true
         }
