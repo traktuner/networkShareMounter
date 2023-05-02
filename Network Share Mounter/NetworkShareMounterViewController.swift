@@ -15,6 +15,8 @@ class NetworkShareMounterViewController: NSViewController {
 
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     
+    @IBOutlet weak var horizontalLine: NSBox!
+    
     // swiftlint:disable force_cast
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     // swiftlint:enable force_cast
@@ -28,6 +30,8 @@ class NetworkShareMounterViewController: NSViewController {
 
         if userDefaults.bool(forKey: "canChangeAutostart") == false {
             launchAtLoginRadioButton.isHidden = true
+            horizontalLine.isHidden = true
+            
         }
 
         tableView.action = #selector(handleClickColumn)

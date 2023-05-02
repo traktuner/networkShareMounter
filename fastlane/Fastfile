@@ -109,7 +109,7 @@ lane :test do
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterTest-#{appversion}.pkg")
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterTest-#{appversion}.pkg")
   rescue => exception
     #on_error(exception)
   end
@@ -131,7 +131,7 @@ lane :beta do
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterBeta-#{appversion}.pkg")
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterBeta-#{appversion}.pkg")
     desc "Notarize dmg"
     notarize(
       package: "build/NetworkShareMounterBeta-#{appversion}.dmg", 
@@ -167,7 +167,7 @@ lane :release do
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounter-#{appversion}.pkg")
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounter-#{appversion}.pkg")
     desc "Notarize dmg"
     notarize(
       package: "build/NetworkShareMounter-#{appversion}.dmg", 

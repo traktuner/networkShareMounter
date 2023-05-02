@@ -20,7 +20,7 @@
         "type": "array",
         "items": {
             "type": "string",
-            "pattern": "^smb:\/\/\S*\/.+$",
+            "pattern": "^smb:\/\/\\S*.+$",
             "title": "Share"
         }
     },
@@ -42,7 +42,7 @@
               "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-location-and-cleanuplocationdirectory-values"
               }
             ],
-          "description": "if set to true, the mount location will be cleaned up from obstructing files and directories. Use with caution!",
+          "description": "If set to true, the mount location will be cleaned up from obstructing files and directories. Please read the wiki before enabling this option and use it with caution!",
           "type": "boolean",
           "default": false
     },
@@ -72,7 +72,7 @@
     },
     "helpURL": {
           "title": "Help URL",
-          "description": "Configure a help URL to help users interact with the application",
+          "description": "Configure a website link to help users interact with the application.",
           "pattern": "^http[s]?:\\/\\/\\S*$",
           "type": "string",
           "default": ""
