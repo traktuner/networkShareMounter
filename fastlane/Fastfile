@@ -111,7 +111,7 @@ lane :test do
     signing_id = ENV["SIGNING_ID"]
     output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterTest-#{appversion}.pkg")
   rescue => exception
-    #on_error(exception)
+    on_error(exception)
   end
 end
 
@@ -125,7 +125,7 @@ lane :beta do
     appversion = getappversion
     desc "Create DMG image"
     dmg(
-      path: "build/Network Share Mounter.app",
+      path: "build/Network\ Share\ Mounter.app",
       output_path: "build/NetworkShareMounterBeta-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Beta"
     )
@@ -144,11 +144,9 @@ lane :beta do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
-    # desc "Sending message to Teams bot"
-    # teams_message
-  # rescue => exception
-  #   on_error(exception)
-  # end
+  rescue => exception
+    on_error(exception)
+  end
 end
 
 lane :release do
@@ -180,11 +178,9 @@ lane :release do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
-    # desc "Sending message to Teams bot"
-    # teams_message
-  # rescue => exception
-  #   on_error(exception)
-  # end
+  rescue => exception
+    on_error(exception)
+  end
 end
 
 # generates the command-line networkShareMounter app
@@ -196,101 +192,7 @@ lane :runbuild do
 end
 
 def on_error(exception)
-  git_branch = git_branch()
-  last_git_tag = last_git_tag()
-  build_number = get_build_number()
-  teams_url = ENV["TEAMS_URL"]
-  teams_bot(
-    teams_url: teams_url,
-    title: 'Build of Network Share Mounter failed',
-    activity_title: "Network Share Mounter",
-    text: 'Build [pipeline](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/pipelines) of [Network Share Mounter](https://gitlab.rrze.fau.de/faumac/networkShareMounter) failed',
-    activity_image: 'https://seeklogo.com/images/F/fastlane-logo-6CA0B0B428-seeklogo.com.png',
-    facts: [
-      {
-        'name' => "Error message",
-        'value' => "#{exception}",
-      },
-      {
-        'name' => 'Build number',
-        'value' => build_number,
-      },
-      {
-        'name' => 'Branch',
-        'value' => git_branch,
-      },
-      {
-        'name' => 'Latest git tag',
-        'value' => last_git_tag,
-      },
-    ],
-    theme_color: '441212',
-    use_markdown: true
-  )
-end
-
-# test Microsoft Teams - if it works, we will use it in the future
-lane :teams_message do
-  git_branch = git_branch()
-  last_git_tag = last_git_tag()
-  build_number = get_build_number()
-  teams_url = ENV["TEAMS_URL"]
-  teams_bot(
-    teams_url: teams_url,
-    title: 'Build of Network Share Mounter succeeded.',
-    summary: 'Integration is a success',
-    text: 'Build [pipeline](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/pipelines) of [Network Share Mounter](https://gitlab.rrze.fau.de/faumac/networkShareMounter) succeeded',
-    activity_title: "Network Share Mounter",
-    activity_image: 'https://seeklogo.com/images/F/fastlane-logo-6CA0B0B428-seeklogo.com.png',
-    facts: [
-      {
-        'name' => 'Build number',
-        'value' => build_number,
-      },
-      {
-        'name' => 'Branch',
-        'value' => git_branch,
-      },
-      {
-        'name' => 'Latest git tag',
-        'value' => last_git_tag,
-      },
-    ],
-    use_markdown: true,
-    theme_color: '123d44'
-  )
-end
-
-# test Microsoft Teams - if it works, we will use it in the future
-lane :teams_test do
-  desc "Testing Teams"
-  git_branch = git_branch()
-  last_git_tag = last_git_tag()
-  build_number = get_build_number()
-  teams_url = ENV["TEAMS_URL"]
-  teams_bot(
-    teams_url: teams_url,
-    title: 'TEST',
-    summary: 'Integration is a success',
-    text: 'Test for Teams bot in fastlane',
-    activity_title: "Teams Test Roborobo Bot",
-    activity_subtitle: Time.now.strftime("%d.%m.%Y %H:%M"),
-    activity_image: 'https://seeklogo.com/images/F/fastlane-logo-6CA0B0B428-seeklogo.com.png',
-    facts: [
-      {
-        'name' => 'Build number',
-        'value' => build_number,
-      },
-      {
-        'name' => 'Branch',
-        'value' => git_branch,
-      },
-      {
-        'name' => 'Latest git tag',
-        'value' => last_git_tag,
-      },
-    ],
-    use_markdown: true,
-    theme_color: '441212'
-  )
+  # git_branch = git_branch()
+  # last_git_tag = last_git_tag()
+  # build_number = get_build_number()
 end
