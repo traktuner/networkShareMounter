@@ -21,3 +21,9 @@
 
 /* About Network Share Mounter */
 "About Network Share Mounter" = "Über Network Share Mounter";
+
+"Your system administrator has configured the following shares:" = "Folgende Freigaben hat dein Systemadministrator konfiguriert:";
+
+"Additional network drives may be configured" = "Möglicherweise sind weitere Netzlaufwerke konfiguriert";
+
+"Show" = "Zeige";

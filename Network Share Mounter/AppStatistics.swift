@@ -9,6 +9,13 @@
 import Foundation
 import Cocoa
 
+
+/// A simple data protection compliant and data-saving way to collect statistics on the usage of the app.
+/// In fact there are three data sets that are transferred:
+/// - **instanceUUID** a one-time per installation generated UUID to keep individual installations apart
+/// - **appVersion** the installed version of network share mounter
+/// - **bundleID** network share mounter's bundle id to be able to make a distinction between our different apps
+///
 struct AppStatistics {
     var instanceUUID = "UNKNOWN"
     var appVersion = "UNKNOWN"
@@ -22,6 +29,8 @@ struct AppStatistics {
         self.bundleID = getBundleID()
     }
     
+    /// Generate or read a UUID unique for the installation
+    /// - Returns: a string containig installation's UUID
     private func getInstanceUUID() -> String {
         if let uuid = userDefaults.string(forKey: "UUID") {
             return(uuid)
@@ -32,6 +41,8 @@ struct AppStatistics {
         }
     }
     
+    /// read and return the bundle ID of the app
+    /// - Returns: a string containing the bundle id of the app
     private func getBundleID() -> String {
         if let bundleID = Bundle.main.bundleIdentifier  {
             return(bundleID)
@@ -40,6 +51,8 @@ struct AppStatistics {
         }
     }
     
+    /// read and return the version of the app
+    /// - Returns: a string conatinig the version of the app
     private func getAppVersion() -> String {
         if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
             return(appVersion)
@@ -48,6 +61,10 @@ struct AppStatistics {
         }
     }
     
+    /// Performs a simple `http get` operation on a defined remote server providing three variables:
+    /// - **instanceUUID**
+    /// - **appVersion**
+    /// - **bundleID**
     func reportAppInstallation() -> Void {
         let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
         guard let reportURL = URL(string: Settings.statisticsReportURL + reportData) else {

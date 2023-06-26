@@ -9,7 +9,7 @@
 import Cocoa
 import LaunchAtLogin
 
-class NetworkShareMounterViewController: NSViewController {
+class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
     let userDefaults = UserDefaults.standard
 
@@ -58,7 +58,7 @@ class NetworkShareMounterViewController: NSViewController {
         let shareString = usersNewShare.stringValue
         // if the share URL string contains a space, the URL vill not
         // validate as valid. Therefore we replace the " " with a "_"
-        // and test thos string.
+        // and test those string.
         // Of course this is a hack and not the best way to solve the
         // problem. But hey, every saturday I code, I am obbligated
         // to cheat. ¯\_(ツ)_/¯ 
@@ -83,6 +83,8 @@ class NetworkShareMounterViewController: NSViewController {
         }
     }
 
+    @IBOutlet weak var ShowPopover: NSButtonCell!
+
     @IBOutlet weak var horizontalLine: NSBox!
     
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
@@ -102,6 +104,16 @@ class NetworkShareMounterViewController: NSViewController {
         }
     }
 
+    @IBAction func showPopover(_ sender: Any) {
+        let popoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("PopoverViewController")) as? NSViewController
+        let popover = NSPopover()
+        popover.contentViewController = popoverViewController
+        popover.animates = true
+        let button = sender as! NSButton
+        popover.show(relativeTo: button.frame, of: self.view, preferredEdge: NSRectEdge.minY)
+        popover.behavior = NSPopover.Behavior.transient
+    }
+    
     // MARK: Storyboard instantiation
     static func newInsatnce() -> NetworkShareMounterViewController {
         let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
@@ -120,6 +132,8 @@ extension NetworkShareMounterViewController: NSTableViewDelegate {
 }
 
 extension String {
+    /// Extension for ``String`` to check if the string itself is a valid URL
+    /// - Returns: true if the string is a valid URL
     var isValidURL: Bool {
         // swiftlint:disable force_try
         let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)

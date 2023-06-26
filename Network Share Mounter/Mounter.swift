@@ -87,17 +87,22 @@ class Mounter {
     }
 }
 
-//
-// extend String to create a valid path from a bunch of strings
+/// Extension for ``String`` to create a valid path from a bunch of strings
 extension String {
+    /// Returns a URL by appending the specified path component to self
+    /// - Parameter _: A string containing the part of the path to be appended
+    /// - Returns: A string containing a path URL
     func appendingPathComponent(_ string: String) -> String {
         return URL(fileURLWithPath: self).appendingPathComponent(string).path
     }
 }
 
+
+/// Extension for ``Mounter`` to check if a given file system path is a mountpoint of a remote filesystem
 extension Mounter {
-    //
-    // check if a given directory is a mount point for a (remote) file system
+    /// Check if a given directory is a mount point for a (remote) file system
+    /// - Parameter atPath: A string containig the path to check
+    /// - Returns: A boolean set to true if the given directory path is a mountpoint
     func isDirectoryFilesystemMount(atPath: String) -> Bool {
         do {
             let systemAttributes = try FileManager.default.attributesOfItem(atPath: atPath)
@@ -116,13 +121,13 @@ extension Mounter {
     }
 }
 
-//
-// extension with a bunch of funtcions handling all the stuff around mounting shares
-// such as creating a list of shares to be mounted, cleaning up mountdirectory,
-// checking connectivity and so on
+/// Extension for ``Mounter`` with a bunch of funtcions handling all the stuff around mounting shares
+/// such as creating a list of shares to be mounted, cleaning up mountdirectory,
+/// checking connectivity and so on
 extension Mounter {
-    //
-    // function to delete obstructing files in mountDir Subdirectories
+    /// function to delete obstructing files in mountDir Subdirectories
+    /// - Parameter path: A string containing the path of the directory containing the mountpoints (`mountpath`)
+    /// - Parameter filename: A string containing the name of an obstructing file which should be deleted if it is found
     func deleteUnneededFiles(path: String, filename: String?) {
         do {
             var filePaths = try fm.contentsOfDirectory(atPath: path)

@@ -21,3 +21,9 @@
 
 /* About Network Share Mounter */
 "About Network Share Mounter" = "Sobre Network Share Mounter";
+
+"Your system administrator has configured the following shares:" = "El administrador del sistema ha configurado los siguientes recursos compartidos:";
+
+"Additional network drives may be configured" = "Es posible que se hayan configurado otras unidades de red";
+
+"Show" = "Mostrar";
