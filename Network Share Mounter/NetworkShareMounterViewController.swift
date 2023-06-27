@@ -92,7 +92,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         }
     }
 
-    @IBOutlet weak var ShowPopover: NSButtonCell!
+    @IBOutlet weak var showPopover: NSButtonCell!
 
     @IBOutlet weak var horizontalLine: NSBox!
     
@@ -122,7 +122,9 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         let popover = NSPopover()
         popover.contentViewController = popoverViewController
         popover.animates = true
+        // swiftlint:disable force_cast
         let button = sender as! NSButton
+        // swiftlint:enable force_cast
         popover.show(relativeTo: button.frame, of: self.view, preferredEdge: NSRectEdge.minY)
         popover.behavior = NSPopover.Behavior.transient
     }
