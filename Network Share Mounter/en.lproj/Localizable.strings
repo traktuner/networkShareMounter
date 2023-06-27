@@ -22,8 +22,9 @@
 /* About Network Share Mounter */
 "About Network Share Mounter" = "About Network Share Mounter";
 
+/* Your system administrator has configured the following shares: */
 "Your system administrator has configured the following shares:" = "Your system administrator has configured the following shares:";
 
-"Additional network drives may be configured" = "Additional network drives may be configured";
+/* sCe-DQ-9D5 */
+"sCe-DQ-9D5.text" = "Additional configured network drives";
 
-"Show" = "Show";

@@ -59,8 +59,8 @@
 		D6BA832A1E94F289003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "de.uni-erlangen.rrze.networkShareMounter.plist"; sourceTree = "<group>"; };
 		F7291FEC275FD17C000A147E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C12760EE3F00FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
-		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		F72985C72760EF3B00FCF8C9 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F72985C72760EF3B00FCF8C9 /* de */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
 		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
@@ -77,11 +77,11 @@
 		F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMounterViewController.swift; sourceTree = "<group>"; };
 		F7BA06342A49B51C00DE982F /* PopoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverViewController.swift; sourceTree = "<group>"; };
 		F7C992A1279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
-		F7C992A2279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7C992A2279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F7EAB854279AF36400EED76B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
-		F7EAB855279AF36400EED76B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7EAB855279AF36400EED76B /* it */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F7EAB856279AFEDF00EED76B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
-		F7EAB857279AFEDF00EED76B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7EAB857279AFEDF00EED76B /* es */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

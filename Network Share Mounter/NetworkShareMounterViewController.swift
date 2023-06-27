@@ -38,6 +38,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         let applicationVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"]!
         let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
         appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
+        showPopoverButton.image = NSImage(named: NSImage.Name("240px-info"))
     }
 
     @objc func handleClickColumn() {
@@ -93,6 +94,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
     @IBOutlet weak var removeShareButton: NSButton!
 
+    @IBOutlet weak var showPopoverButton: NSButton!
+    
     @IBAction func removeShare(_ sender: NSButton) {
         let row = self.tableView.selectedRow
         if row >= 0 {

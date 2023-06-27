@@ -793,8 +793,8 @@
                                     </binding>
                                 </connections>
                             </button>
-                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
-                                <rect key="frame" x="46" y="91" width="463" height="107"/>
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
+                                <rect key="frame" x="46" y="80" width="463" height="114"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="107" id="PxI-GN-qLt"/>
                                     <constraint firstAttribute="width" constant="459" id="W8E-JJ-BK8"/>
@@ -851,19 +851,10 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9YS-uD-v6e">
-                                <rect key="frame" x="68" y="205" width="382" height="16"/>
+                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lNF-6E-Xii">
+                                <rect key="frame" x="487" y="200" width="20" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Additional network drives may be configured" id="crl-tA-1dv">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lNF-6E-Xii">
-                                <rect key="frame" x="446" y="195" width="68" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Show" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bPP-T6-tuo">
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="bPP-T6-tuo">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                     <connections>
@@ -874,6 +865,15 @@ The connection will be testet immediately and will be added only if the server i
                                     <fragment content="Additional network drives may be configured"/>
                                 </attributedString>
                             </button>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
+                                <rect key="frame" x="46" y="202" width="435" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Label" id="2H5-ga-rE8">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="d26-jj-wHS" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="20M-mN-TB3"/>
@@ -911,6 +911,7 @@ The connection will be testet immediately and will be added only if the server i
                         <outlet property="horizontalLine" destination="uWO-es-rt8" id="3JW-XC-Trg"/>
                         <outlet property="launchAtLoginRadioButton" destination="wTV-XD-Goa" id="CB2-bP-YlP"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
+                        <outlet property="showPopoverButton" destination="lNF-6E-Xii" id="tkZ-Zj-utQ"/>
                         <outlet property="tableView" destination="s3k-Dc-wH1" id="tOr-hm-vxp"/>
                         <outlet property="usersNewShare" destination="AgX-Bj-3ll" id="ez4-Jt-o2u"/>
                     </connections>
