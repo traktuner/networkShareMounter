@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="22113.3" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21701"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22113.3"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -689,7 +689,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="527" height="392"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
+                            <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
                                 <rect key="frame" x="20" y="352" width="329" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="329" id="NaM-QM-pJw"/>
@@ -702,11 +702,11 @@
                             </textField>
                             <scrollView autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ip-Eo-ik3">
                                 <rect key="frame" x="20" y="223" width="487" height="122"/>
-                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="PiI-xC-UC9">
+                                <clipView key="contentView" drawsBackground="NO" id="PiI-xC-UC9">
                                     <rect key="frame" x="1" y="1" width="485" height="120"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <tableView verticalHuggingPriority="750" ambiguous="YES" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" viewBased="YES" id="s3k-Dc-wH1">
+                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" viewBased="YES" id="s3k-Dc-wH1">
                                             <rect key="frame" x="0.0" y="0.0" width="485" height="120"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <size key="intercellSpacing" width="17" height="0.0"/>
@@ -729,7 +729,7 @@
                                                             <rect key="frame" x="8" y="0.0" width="468" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
-                                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
+                                                                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
                                                                     <rect key="frame" x="0.0" y="4" width="453" height="16"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="cMp-HE-rms">
                                                                         <font key="font" usesAppearanceFont="YES"/>
@@ -771,7 +771,7 @@
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="487" id="wI1-aP-cGs"/>
                                 </constraints>
                                 <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="fNF-bT-aGQ">
-                                    <rect key="frame" x="1" y="105" width="485" height="16"/>
+                                    <rect key="frame" x="1" y="105" width="465" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="Vuh-QE-2gk">
@@ -793,10 +793,10 @@
                                     </binding>
                                 </connections>
                             </button>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
-                                <rect key="frame" x="46" y="91" width="463" height="107"/>
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
+                                <rect key="frame" x="46" y="80" width="463" height="104"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="107" id="PxI-GN-qLt"/>
+                                    <constraint firstAttribute="height" constant="104" id="PxI-GN-qLt"/>
                                     <constraint firstAttribute="width" constant="459" id="W8E-JJ-BK8"/>
                                 </constraints>
                                 <textFieldCell key="cell" selectable="YES" enabled="NO" id="c4d-tI-W6k">
@@ -821,7 +821,7 @@ The connection will be testet immediately and will be added only if the server i
                             <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
                                 <rect key="frame" x="20" y="78" width="487" height="5"/>
                             </box>
-                            <textField identifier="appVersion" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
+                            <textField identifier="appVersion" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
                                 <rect key="frame" x="18" y="20" width="63" height="14"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="appVersion" id="GYJ-8b-PG2">
                                     <font key="font" metaFont="smallSystem"/>
@@ -831,19 +831,19 @@ The connection will be testet immediately and will be added only if the server i
                             </textField>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d26-jj-wHS">
                                 <rect key="frame" x="20" y="203" width="20" height="20"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="glg-Ra-Kiy"/>
-                                    <constraint firstAttribute="width" constant="20" id="m7g-JT-5EH"/>
-                                </constraints>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSRemoveTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="NgK-8t-CVO">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="glg-Ra-Kiy"/>
+                                    <constraint firstAttribute="width" constant="20" id="m7g-JT-5EH"/>
+                                </constraints>
                                 <connections>
                                     <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
                                 </connections>
                             </button>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="U1x-R4-MXP">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="U1x-R4-MXP">
                                 <rect key="frame" x="273" y="20" width="236" height="14"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Developed with ❤️ by FAUmac Team @ FAU" id="Gh3-O0-3mY">
                                     <font key="font" metaFont="smallSystem"/>
@@ -851,10 +851,33 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lNF-6E-Xii">
+                                <rect key="frame" x="487" y="200" width="20" height="20"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="bPP-T6-tuo">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <connections>
+                                        <action selector="showPopover:" target="XfG-lQ-9wD" id="LeU-gH-lKQ"/>
+                                    </connections>
+                                </buttonCell>
+                                <attributedString key="userComments">
+                                    <fragment content="Additional network drives may be configured"/>
+                                </attributedString>
+                            </button>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
+                                <rect key="frame" x="46" y="202" width="435" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Additional shares" id="2H5-ga-rE8">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="d26-jj-wHS" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="20M-mN-TB3"/>
-                            <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="25" id="2a8-24-auM"/>
+                            <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="39" id="2a8-24-auM"/>
                             <constraint firstAttribute="trailing" secondItem="8ip-Eo-ik3" secondAttribute="trailing" constant="20" symbolic="YES" id="2oM-ja-I59"/>
                             <constraint firstItem="5Up-Id-ZGf" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" symbolic="YES" id="4Nm-MR-Rtw"/>
                             <constraint firstItem="U1x-R4-MXP" firstAttribute="top" secondItem="wTV-XD-Goa" secondAttribute="bottom" constant="22" id="D7o-fz-CcZ"/>
@@ -882,11 +905,14 @@ The connection will be testet immediately and will be added only if the server i
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="ShowPopover" destination="bPP-T6-tuo" id="XRi-Ka-Bl3"/>
                         <outlet property="addShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
+                        <outlet property="additionalSharesText" destination="2H5-ga-rE8" id="bOu-ET-T8G"/>
                         <outlet property="appVersion" destination="GYJ-8b-PG2" id="64i-KJ-MXy"/>
                         <outlet property="horizontalLine" destination="uWO-es-rt8" id="3JW-XC-Trg"/>
                         <outlet property="launchAtLoginRadioButton" destination="wTV-XD-Goa" id="CB2-bP-YlP"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
+                        <outlet property="showPopoverButton" destination="lNF-6E-Xii" id="tkZ-Zj-utQ"/>
                         <outlet property="tableView" destination="s3k-Dc-wH1" id="tOr-hm-vxp"/>
                         <outlet property="usersNewShare" destination="AgX-Bj-3ll" id="ez4-Jt-o2u"/>
                     </connections>
@@ -895,6 +921,42 @@ The connection will be testet immediately and will be added only if the server i
                 <userDefaultsController representsSharedInstance="YES" id="1RO-SO-9Fv"/>
             </objects>
             <point key="canvasLocation" x="118.5" y="277"/>
+        </scene>
+        <!--Popover View Controller-->
+        <scene sceneID="pSL-aV-icg">
+            <objects>
+                <viewController title="PopoverViewController" storyboardIdentifier="PopoverViewController" id="pdo-lZ-KWW" userLabel="Popover View Controller" customClass="PopoverViewController" customModule="Network_Share_Mounter" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="8Pv-wL-Hn1" userLabel="Popover View">
+                        <rect key="frame" x="0.0" y="0.0" width="500" height="209"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Wok-A8-TAw">
+                                <rect key="frame" x="20" y="157" width="462" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" title="Folgende Freigaben hat dein Systemadministrator konfiguriert: ein möglichst" id="iZd-9D-vrE">
+                                    <font key="font" textStyle="headline" name=".SFNS-Bold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="98p-Rf-iVe">
+                                <rect key="frame" x="22" y="20" width="458" height="129"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" alignment="left" title="Multiline Label" drawsBackground="YES" id="GOi-L7-Gni">
+                                    <font key="font" size="12" name="Menlo-Regular"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" red="0.11764705882352941" green="0.11764705882352941" blue="0.11764705882352941" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                    </view>
+                    <connections>
+                        <outlet property="listOfShares" destination="98p-Rf-iVe" id="unc-5U-dwz"/>
+                    </connections>
+                </viewController>
+                <customObject id="Eey-Bx-SMw" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-428" y="185.5"/>
         </scene>
     </scenes>
     <resources>

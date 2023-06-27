@@ -267,7 +267,7 @@
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "Puoi connettere condivisioni Windows se hai l'indirizzo del server e il nome della condivisione. Imposta la condivisione nel formato    smb://server.name/export/path\nLa condivisione verrà testata e connessa se il server è disponibile e il nome della condivisione corretta.";
+"c4d-tI-W6k.title" = "Puoi aggiungere e montare qualsiasi condivisione di rete di Windows (smb/cifs) purché tu conosca il nome del server e il percorso di esportazione.\nLa connessione verrà testata immediatamente e la condivisione verrà collegata se il server rispettivo o la condivisione sono raggiungibili.\n\nInserisci la condivisione come: smb://server.nome/percorso/esportazione";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
@@ -412,3 +412,6 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "zzZ-zK-IIc"; */
 "zzZ-zK-IIc.title" = "Text Cell";
+
+/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "iZd-9D-vrE"; */
+"iZd-9D-vrE.title" = "L'amministratore del sistema ha configurato le seguenti condivisioni di rete:";

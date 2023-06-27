@@ -267,7 +267,7 @@
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "Puede agregar y montar cualquier recurso share de red de Windows (smb/cifs) siempre que conozca el nombre del servidor y la ruta de exportación. \n La conexión se probará inmediatamente y el recurso compartido se conectará si el servidor resp. share es accesible. \n\n Ingrese el recurso compartido como: smb://server.name/export/path";
+"c4d-tI-W6k.title" = "Puede agregar y montar cualquier recurso share de red de Windows (smb/cifs) siempre que conozca el nombre del servidor y la ruta de exportación. \nLa conexión se probará inmediatamente y el recurso compartido se conectará si el servidor resp. share es accesible. \n\nIngrese el recurso compartido como: smb://server.name/export/path";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
@@ -412,3 +412,6 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "zzZ-zK-IIc"; */
 "zzZ-zK-IIc.title" = "Text Cell";
+
+/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "iZd-9D-vrE"; */
+"iZd-9D-vrE.title" = "El administrador del sistema ha configurado los siguientes recursos compartidos de red:";

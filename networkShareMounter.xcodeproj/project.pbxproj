@@ -19,6 +19,7 @@
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F79B159F274E722100C322A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F79B159D274E722100C322A8 /* Main.storyboard */; };
 		F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */; };
+		F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BA06342A49B51C00DE982F /* PopoverViewController.swift */; };
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 /* End PBXBuildFile section */
 
@@ -58,8 +59,8 @@
 		D6BA832A1E94F289003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "de.uni-erlangen.rrze.networkShareMounter.plist"; sourceTree = "<group>"; };
 		F7291FEC275FD17C000A147E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C12760EE3F00FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
-		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		F72985C72760EF3B00FCF8C9 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F72985C72760EF3B00FCF8C9 /* de */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
 		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
@@ -74,12 +75,13 @@
 		F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Network Share MounterUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Network-Share-Mounter-Info.plist"; sourceTree = SOURCE_ROOT; };
 		F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMounterViewController.swift; sourceTree = "<group>"; };
+		F7BA06342A49B51C00DE982F /* PopoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverViewController.swift; sourceTree = "<group>"; };
 		F7C992A1279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
-		F7C992A2279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7C992A2279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F7EAB854279AF36400EED76B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
-		F7EAB855279AF36400EED76B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7EAB855279AF36400EED76B /* it */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F7EAB856279AFEDF00EED76B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
-		F7EAB857279AFEDF00EED76B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7EAB857279AFEDF00EED76B /* es */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +159,7 @@
 				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
 				F77107B6274EC51600556B20 /* Monitor.swift */,
 				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
+				F7BA06342A49B51C00DE982F /* PopoverViewController.swift */,
 				F79B159B274E722100C322A8 /* Assets.xcassets */,
 				F79B159D274E722100C322A8 /* Main.storyboard */,
 				F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */,
@@ -364,6 +367,7 @@
 			files = (
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
+				F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
@@ -596,7 +600,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 57;
+				CURRENT_PROJECT_VERSION = 58;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -611,7 +615,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.1.3;
+				MARKETING_VERSION = 2.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
@@ -640,7 +644,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 57;
+				CURRENT_PROJECT_VERSION = 58;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -655,7 +659,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.1.3;
+				MARKETING_VERSION = 2.2.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
 				PRODUCT_NAME = "$(TARGET_NAME)";

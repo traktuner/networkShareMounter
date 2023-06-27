@@ -21,3 +21,7 @@
 
 /* About Network Share Mounter */
 "About Network Share Mounter" = "About Network Share Mounter";
+
+/* Additional shares */
+"Additional shares" = "Additional configured network drives";
+

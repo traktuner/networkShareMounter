@@ -21,3 +21,6 @@
 
 /* About Network Share Mounter */
 "About Network Share Mounter" = "Informazioni Network Share Mounter";
+
+/* Additional shares */
+"Additional shares" = "Altre unità di rete configurate";
