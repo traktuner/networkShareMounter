@@ -25,6 +25,6 @@
 /* Your system administrator has configured the following shares: */
 "Your system administrator has configured the following shares:" = "Your system administrator has configured the following shares:";
 
-/* sCe-DQ-9D5 */
-"sCe-DQ-9D5.text" = "Additional configured network drives";
+/* Additional shares */
+"Additional shares" = "Additional configured network drives";
 
