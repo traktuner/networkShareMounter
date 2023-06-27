@@ -38,7 +38,15 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         let applicationVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"]!
         let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
         appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
-        showPopoverButton.image = NSImage(named: NSImage.Name("240px-info"))
+        
+        let shares: [String] = UserDefaults.standard.array(forKey: "networkShares") as? [String] ?? []
+        if shares.isEmpty {
+            showPopoverButton.isHidden = true
+            additionalSharesText.title = ""
+        } else {
+            showPopoverButton.image = NSImage(named: NSImage.Name("240px-info"))
+            additionalSharesText.title = NSLocalizedString("Additional shares", comment: "Additional shares")
+        }
     }
 
     @objc func handleClickColumn() {
@@ -95,6 +103,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBOutlet weak var removeShareButton: NSButton!
 
     @IBOutlet weak var showPopoverButton: NSButton!
+    
+    @IBOutlet weak var additionalSharesText: NSTextFieldCell!
     
     @IBAction func removeShare(_ sender: NSButton) {
         let row = self.tableView.selectedRow

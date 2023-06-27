@@ -22,8 +22,5 @@
 /* About Network Share Mounter */
 "About Network Share Mounter" = "Informazioni Network Share Mounter";
 
-/* Your system administrator has configured the following shares */
-"Your system administrator has configured the following shares:" = "L'amministratore del sistema ha configurato le seguenti condivisioni di rete:";
-
 /* Additional shares */
 "Additional shares" = "Altre unità di rete configurate";

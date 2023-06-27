@@ -408,3 +408,6 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "zzZ-zK-IIc"; */
 "zzZ-zK-IIc.title" = "Text Cell";
+
+/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "iZd-9D-vrE"; */
+"iZd-9D-vrE.title" = "Your system administrator has configured the following shares:";
