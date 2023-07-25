@@ -47,7 +47,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // initialize statistics reporting struct
         let stats = AppStatistics.init()
-        stats.reportAppInstallation()
+        Task {
+            await stats.reportAppInstallation()
+        }
 
         //
         // register App according to userDefaults as "start at login"
