@@ -9,6 +9,7 @@
 import Cocoa
 import Network
 import LaunchAtLogin
+import OSLog
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -22,6 +23,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let monitor = NWPathMonitor()
 
     var timer = Timer()
+    
+    let logger = Logger(subsystem: "NetowrkShareMounter", category: "App")
     
     //
     // initalize class which will perform all the automounter tasks
@@ -72,10 +75,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // start a timer to perform a mount every 5 minutes
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-            NSLog("Passed \(timerInterval) seconds, performing mount operartions.")
+            self.logger.info("Passed \(timerInterval) seconds, performing mount operartions.")
             let netConnection = Monitor.shared
             let status = netConnection.netOn
-            NSLog("Current Network Path is \(status)")
+            self.logger.info("Current Network Path is \(status).")
             self.mounter.mountShares()
         })
     }
@@ -92,7 +95,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
-        NSLog("Current Connection : \(connection) Is reachable: \(reachable)")
+        self.logger.info("Current Connection : \(connection) Is reachable: \(reachable)")
         if reachable == Reachable.yes {
             mounter.mountShares()
         }
@@ -103,23 +106,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func showInfo(_ sender: Any?) {
-      print("Show some day some useful information about Network Share Mounter")
+        self.logger.info("Some day maybe show some useful information about Network Share Mounter")
+//        print("Some day maybe show some useful information about Network Share Mounter")
     }
 
     @objc func openMountDir(_ sender: Any?) {
         if let mountDirectory =  URL(string: self.mountpath) {
-            NSLog("Trying to open \(mountDirectory) in Finder...")
+            self.logger.info("Trying to open \(mountDirectory) in Finder...")
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
         }
     }
     
     @objc func mountManually(_ sender: Any?) {
-        NSLog("User triggered mount all shares")
+        self.logger.info("User triggered mount all shares")
         mounter.mountShares()
     }
     
     @objc func unmountShares(_ sender: Any?) {
-        NSLog("User triggered unmount all shares")
+        self.logger.info("User triggered unmount all shares")
         mounter.unmountAllShares()
     }
     

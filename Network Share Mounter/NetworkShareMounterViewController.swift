@@ -8,6 +8,7 @@
 
 import Cocoa
 import LaunchAtLogin
+import OSLog
 
 class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
@@ -18,6 +19,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     // swiftlint:disable force_cast
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     // swiftlint:enable force_cast
+    
+    let logger = Logger(subsystem: "NetowrkShareMounter", category: "NSMViewController")
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -77,7 +80,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             if shareString.hasPrefix("smb://") || shareString.hasPrefix("cifs://") {
                 var shareArray = userDefaults.object(forKey: "customNetworkShares") as? [String] ?? [String]()
                 if shareArray.contains(shareString) {
-                    NSLog("\(shareString) is already in list of user's customNetworkShares")
+                    self.logger.info("\(shareString) is already in list of user's customNetworkShares")
                 } else {
                     do {
                         try appDelegate.mounter.doTheMount(forShare: usersNewShare.stringValue)
@@ -85,7 +88,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                         userDefaults.set(shareArray, forKey: "customNetworkShares")
                         usersNewShare.stringValue=""
                     } catch let error as NSError {
-                        NSLog("Mounting of new share \(usersNewShare.stringValue) failed: \(error)")
+                        self.logger.warning("Mounting of new share \(self.usersNewShare.stringValue) failed: \(error)")
                     }
                 }                
             }
