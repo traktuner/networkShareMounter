@@ -9,6 +9,7 @@
 import Cocoa
 import Network
 import LaunchAtLogin
+import OSLog
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -23,11 +24,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     var timer = Timer()
     
+    let logger = Logger(subsystem: "NetworkShareMounter", category: "App")
+    
     //
     // initalize class which will perform all the automounter tasks
     let mounter = Mounter.init()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        migrateConfig()
         window.isReleasedWhenClosed = false
         //
         // using "register" instead of "get" will set the values according to the plist read
@@ -47,7 +51,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // initialize statistics reporting struct
         let stats = AppStatistics.init()
-        stats.reportAppInstallation()
+        Task {
+            await stats.reportAppInstallation()
+        }
 
         //
         // register App according to userDefaults as "start at login"
@@ -62,7 +68,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
-        window.contentViewController = NetworkShareMounterViewController.newInsatnce()
+        window.contentViewController = NetworkShareMounterViewController.newInstance()
 
         // Do any additional setup after loading the view.
         constructMenu(withMounter: mounter)
@@ -70,10 +76,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // start a timer to perform a mount every 5 minutes
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-            NSLog("Passed \(timerInterval) seconds, performing mount operartions.")
+            self.logger.info("Passed \(timerInterval) seconds, performing mount operartions.")
             let netConnection = Monitor.shared
             let status = netConnection.netOn
-            NSLog("Current Network Path is \(status)")
+            self.logger.info("Current Network Path is \(status).")
             self.mounter.mountShares()
         })
     }
@@ -90,7 +96,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
-        NSLog("Current Connection : \(connection) Is reachable: \(reachable)")
+        self.logger.info("Current Connection: \(connection.rawValue) Is reachable: \(reachable.rawValue)")
         if reachable == Reachable.yes {
             mounter.mountShares()
         }
@@ -101,23 +107,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func showInfo(_ sender: Any?) {
-      print("Show some day some useful information about Network Share Mounter")
+        self.logger.info("Some day maybe show some useful information about Network Share Mounter")
+//        print("Some day maybe show some useful information about Network Share Mounter")
     }
 
     @objc func openMountDir(_ sender: Any?) {
         if let mountDirectory =  URL(string: self.mountpath) {
-            NSLog("Trying to open \(mountDirectory) in Finder...")
+            self.logger.info("Trying to open \(mountDirectory) in Finder...")
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
         }
     }
     
     @objc func mountManually(_ sender: Any?) {
-        NSLog("User triggered mount all shares")
+        self.logger.info("User triggered mount all shares")
         mounter.mountShares()
     }
     
     @objc func unmountShares(_ sender: Any?) {
-        NSLog("User triggered unmount all shares")
+        self.logger.info("User triggered unmount all shares")
         mounter.unmountAllShares()
     }
     

@@ -8,6 +8,7 @@
 
 import Foundation
 import Cocoa
+import OSLog
 
 
 /// A simple data protection compliant and data-saving way to collect statistics on the usage of the app.
@@ -22,6 +23,7 @@ struct AppStatistics {
     var reportURL = Settings.statisticsReportURL
     var bundleID = "UNKNOWN"
     let userDefaults = UserDefaults.standard
+    let logger = Logger(subsystem: "NetworkShareMounter", category: "AppStatistics")
     
     init() {
         self.instanceUUID = getInstanceUUID()
@@ -43,7 +45,7 @@ struct AppStatistics {
     
     /// read and return the bundle ID of the app
     /// - Returns: a string containing the bundle id of the app
-    private func getBundleID() -> String {
+    func getBundleID() -> String {
         if let bundleID = Bundle.main.bundleIdentifier  {
             return(bundleID)
         } else {
@@ -65,7 +67,7 @@ struct AppStatistics {
     /// - **instanceUUID**
     /// - **appVersion**
     /// - **bundleID**
-    func reportAppInstallation() -> Void {
+    func reportAppInstallation() async -> Void {
         let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
         guard let reportURL = URL(string: Settings.statisticsReportURL + reportData) else {
             return()
@@ -74,20 +76,16 @@ struct AppStatistics {
         request.httpMethod = "GET"
         let sessionConfiguration = URLSessionConfiguration.default
         let session = URLSession(configuration: sessionConfiguration)
-        let semaphore = DispatchSemaphore(value: 0)
-        NSLog("Trying to connect to report server")
-        session.dataTask(with: reportURL) { data, response, error in
-            DispatchQueue.main.async {
-                if error != nil || (response as! HTTPURLResponse).statusCode != 200 {
-                    NSLog("Connection to reporting server failed.")
-                } else {
-                    NSLog("Reported app statistics.")
-                }
-                // swiftlint:enable force_cast
-                semaphore.signal()
+
+        do {
+            logger.info("Trying to connect to statistics server ...")
+            let (_, response) = try await session.data(for: request)
+            if (response as! HTTPURLResponse).statusCode == 200 {
+                logger.info("Reported app statistics.")
             }
-        }.resume()
-        //_ = semaphore.wait(wallTimeout: .distantFuture)
+        } catch {
+            logger.notice("Connection to reporting server failed.")
+        }
         return()
     }
     
