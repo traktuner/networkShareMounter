@@ -29,4 +29,8 @@ struct Settings {
         ".autodiskmounted"
     ]
     static let statisticsReportURL = "https://faumac.rrze.fau.de/apps"
+    
+    /// userDefaults dictionary names
+    static let defNetworkSharesKey = "networkShares"
+    static let defCustomSharesKey = "customNetworkShares"
 }

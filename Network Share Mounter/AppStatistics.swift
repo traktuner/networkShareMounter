@@ -23,7 +23,7 @@ struct AppStatistics {
     var reportURL = Settings.statisticsReportURL
     var bundleID = "UNKNOWN"
     let userDefaults = UserDefaults.standard
-    let logger = Logger(subsystem: "NetowrkShareMounter", category: "AppStatistics")
+    let logger = Logger(subsystem: "NetworkShareMounter", category: "AppStatistics")
     
     init() {
         self.instanceUUID = getInstanceUUID()
@@ -45,7 +45,7 @@ struct AppStatistics {
     
     /// read and return the bundle ID of the app
     /// - Returns: a string containing the bundle id of the app
-    private func getBundleID() -> String {
+    func getBundleID() -> String {
         if let bundleID = Bundle.main.bundleIdentifier  {
             return(bundleID)
         } else {

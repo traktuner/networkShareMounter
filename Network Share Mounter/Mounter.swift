@@ -13,6 +13,7 @@ import OpenDirectory
 import AppKit
 import OSLog
 
+/// enum followinf the ``Error`` protocol describing various error results
 enum MounterError: Error {
     case errorCreatingMountFolder
     case errorCheckingMountDir
@@ -30,14 +31,48 @@ enum MounterError: Error {
     case unknownReturnCode
 }
 
-protocol ShareDelegate {
-    func shareWillMount(url: URL) -> Void
-    func shareDidMount(url: URL, at paths: [String]?) -> Void
-    func shareMountingDidFail(for url: URL, withError: Int32) -> Void
+/// describes the different properties and states of a share
+/// - Parameter mountUrl: ``URL`` containing the exporting server and share
+/// - Parameter mountStatus: Optional ``MountStatus`` describing the actual mount status
+/// - Parameter username: optional ``String`` containing the username needed to mount a share
+/// - Parameter password: optional ``String`` containing the password to mount the share. Both username and password are retrieved from user's keychain
+///
+/// *The following variables could be useful in future versions:*
+/// - options: array of parameters for the mount command
+/// - autoMount: for future use, the possibility to not mount shares automatically
+/// - localMountPoint: for future use, define a mount point for the share
+struct Shares {
+    var mountUrl: URL
+    var mountStatus: MountStatus?
+    var username: String?
+    var password: String?
+//    var options: [String]
+//    var autoMount: Bool
+//    var localMountPoint: String?
 }
 
-typealias NetFSMountCallback = (Int32, UnsafeMutableRawPointer?, CFArray?) -> Void
-typealias MountCallbackHandler = (Int32, URL?, [String]?) -> Void;
+/// defines mount states of a share
+/// - Parameter unmounted: share is not mounted
+/// - Parameter mounted: mounted share
+/// - Parameter queued: queued for mounting
+/// - Parameter toBeMounted: share should be mounted
+/// - Parameter errorOnMount: failed to mount a shared
+enum MountStatus {
+    case unmounted,
+         mounted,
+         queued,
+         toBeMounted,
+         errorOnMount
+}
+
+//class MounterNew: ObservableObject {
+//    @Published var shares: Shares
+//    
+//    init() {
+//        let networkShares: [String] = UserDefaults.standard.array(forKey: "networkShares") as? [String] ?? []
+//        let customShares = UserDefaults.standard.array(forKey: "customNetworkShares") as? [String] ?? []
+//    }
+//}
 
 class Mounter {
 
@@ -46,11 +81,10 @@ class Mounter {
     let fm = FileManager.default
     let userDefaults = UserDefaults.standard
     
-    let logger = Logger(subsystem: "NetowrkShareMounter", category: "Mounter")
+    let logger = Logger(subsystem: "NetworkShareMounter", category: "Mounter")
     
     //let url: URL
     fileprivate var asyncRequestId: AsyncRequestID?
-    public var delegate: ShareDelegate?
 
     init() {
         // create subfolder in home to mount shares in
@@ -73,7 +107,7 @@ class Mounter {
             exit(2)
         }
         //
-        //Start monitoring of the network connection
+        //Start monitoring network connection
         Monitor().startMonitoring { [weak self] connection, reachable in
                     guard let strongSelf = self else { return }
             //strongSelf.performMount(connection, reachable: reachable, mounter: mounter)
@@ -299,7 +333,7 @@ extension Mounter {
                 }
             }
         } else {
-            logger.warning("No network connection available, connection type is \(netConnection.connType)")
+            logger.warning("No network connection available, connection type is \(netConnection.connType.rawValue)")
             return
         }
     }

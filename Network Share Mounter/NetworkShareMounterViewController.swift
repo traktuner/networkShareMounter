@@ -20,7 +20,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     // swiftlint:enable force_cast
     
-    let logger = Logger(subsystem: "NetowrkShareMounter", category: "NSMViewController")
+    let logger = Logger(subsystem: "NetworkShareMounter", category: "NSMViewController")
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -133,7 +133,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     }
     
     // MARK: Storyboard instantiation
-    static func newInsatnce() -> NetworkShareMounterViewController {
+    static func newInstance() -> NetworkShareMounterViewController {
         let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
         let identifier = NSStoryboard.SceneIdentifier("NetworkShareMounterViewController")
 

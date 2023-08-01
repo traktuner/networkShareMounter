@@ -9,11 +9,11 @@
 import Foundation
 import Network
 
-enum Reachable {
+enum Reachable: String {
     case yes, nope
 }
 
-enum Connection {
+enum Connection: String {
     case cellular, loopback, wifi, wiredEthernet, other, unknown
 }
 
