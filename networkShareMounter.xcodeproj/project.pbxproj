@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D60FA5201E7FBE1400D9B5A5 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60FA51F1E7FBE1400D9B5A5 /* main.swift */; };
-		D60FA5271E7FBE2200D9B5A5 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60FA5261E7FBE2200D9B5A5 /* config.swift */; };
 		F72985C42760EF3800FCF8C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F72985C62760EF3800FCF8C9 /* Localizable.strings */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
@@ -40,23 +38,7 @@
 		};
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		D60FA51A1E7FBE1300D9B5A5 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /Library/LaunchAgents;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		D60FA51C1E7FBE1400D9B5A5 /* networkShareMounter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = networkShareMounter; sourceTree = BUILT_PRODUCTS_DIR; };
-		D60FA51F1E7FBE1400D9B5A5 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		D60FA5261E7FBE2200D9B5A5 /* config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
-		D6BA832A1E94F289003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "de.uni-erlangen.rrze.networkShareMounter.plist"; sourceTree = "<group>"; };
 		F7291FEC275FD17C000A147E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C12760EE3F00FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -85,13 +67,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D60FA5191E7FBE1300D9B5A5 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		F79B1592274E722000C322A8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -120,7 +95,6 @@
 		D60FA5131E7FBE1300D9B5A5 = {
 			isa = PBXGroup;
 			children = (
-				D60FA51E1E7FBE1400D9B5A5 /* networkShareMounter */,
 				F79B1596274E722000C322A8 /* Network Share Mounter */,
 				D60FA51D1E7FBE1400D9B5A5 /* Products */,
 			);
@@ -129,22 +103,11 @@
 		D60FA51D1E7FBE1400D9B5A5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D60FA51C1E7FBE1400D9B5A5 /* networkShareMounter */,
 				F79B1595274E722000C322A8 /* Network Share Mounter.app */,
 				F79B15A5274E722100C322A8 /* Network Share MounterTests.xctest */,
 				F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		D60FA51E1E7FBE1400D9B5A5 /* networkShareMounter */ = {
-			isa = PBXGroup;
-			children = (
-				D6BA832A1E94F289003D4762 /* de.uni-erlangen.rrze.networkShareMounter.plist */,
-				D60FA51F1E7FBE1400D9B5A5 /* main.swift */,
-				D60FA5261E7FBE2200D9B5A5 /* config.swift */,
-			);
-			path = networkShareMounter;
 			sourceTree = "<group>";
 		};
 		F79B1596274E722000C322A8 /* Network Share Mounter */ = {
@@ -170,23 +133,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D60FA51B1E7FBE1300D9B5A5 /* networkShareMounter */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D60FA5231E7FBE1400D9B5A5 /* Build configuration list for PBXNativeTarget "networkShareMounter" */;
-			buildPhases = (
-				D60FA5181E7FBE1300D9B5A5 /* Sources */,
-				D60FA5191E7FBE1300D9B5A5 /* Frameworks */,
-				D60FA51A1E7FBE1300D9B5A5 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = networkShareMounter;
-			productName = networkShareMounter;
-			productReference = D60FA51C1E7FBE1400D9B5A5 /* networkShareMounter */;
-			productType = "com.apple.product-type.tool";
-		};
 		F79B1594274E722000C322A8 /* Network Share Mounter */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F79B15BD274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share Mounter" */;
@@ -254,12 +200,6 @@
 				LastUpgradeCheck = 1320;
 				ORGANIZATIONNAME = "Regionales Rechenzentrum Erlangen";
 				TargetAttributes = {
-					D60FA51B1E7FBE1300D9B5A5 = {
-						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = C8F68RFW4L;
-						LastSwiftMigration = 1030;
-						ProvisioningStyle = Manual;
-					};
 					F79B1594274E722000C322A8 = {
 						CreatedOnToolsVersion = 13.2;
 					};
@@ -295,7 +235,6 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D60FA51B1E7FBE1300D9B5A5 /* networkShareMounter */,
 				F79B1594274E722000C322A8 /* Network Share Mounter */,
 				F79B15A4274E722100C322A8 /* Network Share MounterTests */,
 				F79B15AE274E722100C322A8 /* Network Share MounterUITests */,
@@ -352,15 +291,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D60FA5181E7FBE1300D9B5A5 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D60FA5201E7FBE1400D9B5A5 /* main.swift in Sources */,
-				D60FA5271E7FBE2200D9B5A5 /* config.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		F79B1591274E722000C322A8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -544,42 +474,6 @@
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		D60FA5241E7FBE1400D9B5A5 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_USE_OPTIMIZATION_PROFILE = YES;
-				CODE_SIGN_ENTITLEMENTS = networkShareMounter/networkShareMounter.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = C8F68RFW4L;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = "networkShareMounter/de.uni-erlangen.rrze.networkShareMounter.plist";
-				INSTALL_PATH = "/Library/Application Support/FAUmac/bin";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		D60FA5251E7FBE1400D9B5A5 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_USE_OPTIMIZATION_PROFILE = YES;
-				CODE_SIGN_ENTITLEMENTS = networkShareMounter/networkShareMounter.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = C8F68RFW4L;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = "networkShareMounter/de.uni-erlangen.rrze.networkShareMounter.plist";
-				INSTALL_PATH = "/Library/Application Support/FAUmac/bin";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -795,15 +689,6 @@
 			buildConfigurations = (
 				D60FA5211E7FBE1400D9B5A5 /* Debug */,
 				D60FA5221E7FBE1400D9B5A5 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D60FA5231E7FBE1400D9B5A5 /* Build configuration list for PBXNativeTarget "networkShareMounter" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D60FA5241E7FBE1400D9B5A5 /* Debug */,
-				D60FA5251E7FBE1400D9B5A5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
