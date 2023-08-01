@@ -32,56 +32,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         migrateConfig()
-//        window.isReleasedWhenClosed = false
-//        //
-//        // using "register" instead of "get" will set the values according to the plist read
-//        // by "readPropertyList" if, and only if the respective  values are nil. Those values
-//        // are not written back to UserDefaults.
-//        // So if there are any values set by the user or MDM, those values will be used. If
-//        // not, the values in the plist are used.
-//        if let defaultValues = readPropertyList() {
-//            userDefaults.register(defaults: defaultValues)
-//        }
-//
-//
-//        //
-//        // initalize class which will perform all the automounter tasks
-//        self.mountpath = mounter.mountpath
-//        
-//        //
-//        // initialize statistics reporting struct
-//        let stats = AppStatistics.init()
-//        Task {
-//            await stats.reportAppInstallation()
-//        }
-//
-//        //
-//        // register App according to userDefaults as "start at login"
-//        // LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
-//        // LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
-//        if userDefaults.bool(forKey: "autostart") != false {
-//            LaunchAtLogin.isEnabled = true
-//        } else {
-//            LaunchAtLogin.isEnabled = false
-//        }
-//
-//        if let button = statusItem.button {
-//            button.image = NSImage(named: NSImage.Name("networkShareMounter"))
-//        }
-//        window.contentViewController = NetworkShareMounterViewController.newInstance()
-//
-//        // Do any additional setup after loading the view.
-//        constructMenu(withMounter: mounter)
-//        
-//        // start a timer to perform a mount every 5 minutes
-//        let timerInterval: Double = 300
-//        self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-//            self.logger.info("Passed \(timerInterval) seconds, performing mount operartions.")
-//            let netConnection = Monitor.shared
-//            let status = netConnection.netOn
-//            self.logger.info("Current Network Path is \(status).")
-//            self.mounter.mountShares()
-//        })
+        window.isReleasedWhenClosed = false
+        //
+        // using "register" instead of "get" will set the values according to the plist read
+        // by "readPropertyList" if, and only if the respective  values are nil. Those values
+        // are not written back to UserDefaults.
+        // So if there are any values set by the user or MDM, those values will be used. If
+        // not, the values in the plist are used.
+        if let defaultValues = readPropertyList() {
+            userDefaults.register(defaults: defaultValues)
+        }
+
+
+        //
+        // initalize class which will perform all the automounter tasks
+        self.mountpath = mounter.mountpath
+        
+        //
+        // initialize statistics reporting struct
+        let stats = AppStatistics.init()
+        Task {
+            await stats.reportAppInstallation()
+        }
+
+        //
+        // register App according to userDefaults as "start at login"
+        // LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
+        // LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
+        if userDefaults.bool(forKey: "autostart") != false {
+            LaunchAtLogin.isEnabled = true
+        } else {
+            LaunchAtLogin.isEnabled = false
+        }
+
+        if let button = statusItem.button {
+            button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+        }
+        window.contentViewController = NetworkShareMounterViewController.newInstance()
+
+        // Do any additional setup after loading the view.
+        constructMenu(withMounter: mounter)
+        
+        // start a timer to perform a mount every 5 minutes
+        let timerInterval: Double = 300
+        self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
+            self.logger.info("Passed \(timerInterval) seconds, performing mount operartions.")
+            let netConnection = Monitor.shared
+            let status = netConnection.netOn
+            self.logger.info("Current Network Path is \(status).")
+            self.mounter.mountShares()
+        })
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
