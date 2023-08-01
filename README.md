@@ -40,9 +40,10 @@ Screenshots of the Network Share Mounter app. On the left the menu bar icon with
 <img src="networkShareMounterv2Screenshot.png" />  
 
 ## FAQ
-##### **1) What are the difference between the v2 and legacy app?**  
+##### **1) What happened to the legacy app?**  
 
-Staring with December 2021 there are two different versions of the app: the legacy background LaunchAgent comamnd line application (not under active development anymore) and the menu bar based app (v2) with more configuration options and features for end users. Since 2023 the documation for the legacy app has been removed.
+As of December 2021, there were two different versions of the app: the old background LaunchAgent app and the menu bar-based app (v2) with more configuration options and features for end users.     
+As of 2023, the documentation for the old app has been removed. In the summer of 2023, the source code for the old app was removed, but remains available via git history. 
 
 ##### **2) Jamf recon stuck with configured Network Share Mounter app**  
 This is probably due the innventory collection configuration "Include home directory sizes" in Jamf (Pro). Both Network Share Mounter versions, v2 and legacy, mounting the shares in the users home (~/Network Shares). If the option is now enabled, Jamf will also try to collect the size of the network share mounter mounts and the process get stuck.
