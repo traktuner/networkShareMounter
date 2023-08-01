@@ -31,7 +31,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let mounter = Mounter.init()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        migrateConfig()
         window.isReleasedWhenClosed = false
         //
         // using "register" instead of "get" will set the values according to the plist read
