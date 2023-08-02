@@ -53,6 +53,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A0A95EB12A7A512C00B3A445 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Main.strings; sourceTree = "<group>"; };
+		A0A95EB22A7A512C00B3A445 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D60FA51C1E7FBE1400D9B5A5 /* networkShareMounter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = networkShareMounter; sourceTree = BUILT_PRODUCTS_DIR; };
 		D60FA51F1E7FBE1400D9B5A5 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		D60FA5261E7FBE2200D9B5A5 /* config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
@@ -286,6 +288,7 @@
 				it,
 				es,
 				fr,
+				nl,
 			);
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
@@ -413,6 +416,7 @@
 				F7EAB855279AF36400EED76B /* it */,
 				F7EAB857279AFEDF00EED76B /* es */,
 				F7C992A2279B1E5000CEB9B2 /* fr */,
+				A0A95EB22A7A512C00B3A445 /* nl */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -426,6 +430,7 @@
 				F7EAB854279AF36400EED76B /* it */,
 				F7EAB856279AFEDF00EED76B /* es */,
 				F7C992A1279B1E5000CEB9B2 /* fr */,
+				A0A95EB12A7A512C00B3A445 /* nl */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
