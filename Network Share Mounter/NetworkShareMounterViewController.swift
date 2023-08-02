@@ -42,7 +42,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
         appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
         
-        let shares: [String] = UserDefaults.standard.array(forKey: "networkShares") as? [String] ?? []
+        let shares: [String] = UserDefaults.standard.array(forKey: Settings.networkSharesKey) as? [String] ?? []
         if shares.isEmpty {
             showPopoverButton.isHidden = true
             additionalSharesText.title = ""
@@ -78,14 +78,14 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                                                        with: "_")
         if shareURL.isValidURL {
             if shareString.hasPrefix("smb://") || shareString.hasPrefix("cifs://") {
-                var shareArray = userDefaults.object(forKey: "customNetworkShares") as? [String] ?? [String]()
+                var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
                 if shareArray.contains(shareString) {
                     self.logger.info("\(shareString) is already in list of user's customNetworkShares")
                 } else {
                     do {
                         try appDelegate.mounter.doTheMount(forShare: usersNewShare.stringValue)
                         shareArray.append(usersNewShare.stringValue)
-                        userDefaults.set(shareArray, forKey: "customNetworkShares")
+                        userDefaults.set(shareArray, forKey: Settings.customSharesKey)
                         usersNewShare.stringValue=""
                     } catch let error as NSError {
                         self.logger.warning("Mounting of new share \(self.usersNewShare.stringValue) failed: \(error)")
@@ -112,9 +112,9 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBAction func removeShare(_ sender: NSButton) {
         let row = self.tableView.selectedRow
         if row >= 0 {
-            var shareArray = userDefaults.object(forKey: "customNetworkShares") as? [String] ?? [String]()
+            var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
             shareArray.remove(at: row)
-            userDefaults.set(shareArray, forKey: "customNetworkShares")
+            userDefaults.set(shareArray, forKey: Settings.customSharesKey)
             //UserDefaults.standard.set(shareArray, forKey: "customNetworkShares")
             // tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
         }

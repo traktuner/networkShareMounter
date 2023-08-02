@@ -31,6 +31,10 @@ struct Settings {
     static let statisticsReportURL = "https://faumac.rrze.fau.de/apps"
     
     /// userDefaults dictionary names
-    static let defNetworkSharesKey = "networkShares"
-    static let defCustomSharesKey = "customNetworkShares"
+    static let networkSharesKey = "networkShares"
+    static let managedNetworkSharesKey = "managedNetworkShares"
+    static let customSharesKey = "customNetworkShares"
+    static let authType = "authType"
+    static let networkShare = "networkShare"
+    static let username = "username"
 }

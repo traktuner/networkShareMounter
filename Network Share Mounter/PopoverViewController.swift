@@ -12,7 +12,7 @@ class PopoverViewController: NSViewController, NSTextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do view setup here.
-        let shares: [String] = UserDefaults.standard.array(forKey: "networkShares") as? [String] ?? []
+        let shares: [String] = UserDefaults.standard.array(forKey: Settings.networkSharesKey) as? [String] ?? []
         var sharesString: String = ""
         shares.forEach {
             sharesString.append($0)

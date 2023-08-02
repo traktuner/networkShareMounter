@@ -45,6 +45,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         //
         // initalize class which will perform all the automounter tasks
+        // TODO: do we need this anymore?
         self.mountpath = mounter.mountpath
         
         //

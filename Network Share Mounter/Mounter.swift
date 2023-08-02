@@ -32,19 +32,21 @@ enum MounterError: Error {
 }
 
 /// describes the different properties and states of a share
-/// - Parameter mountUrl: ``URL`` containing the exporting server and share
-/// - Parameter mountStatus: Optional ``MountStatus`` describing the actual mount status
+/// - Parameter networkShare: ``URL`` containing the exporting server and share
+/// - Parameter authType: ``authTyoe`` defines if the mount uses kerberos or username/password for authentication
 /// - Parameter username: optional ``String`` containing the username needed to mount a share
+/// - Parameter mountStatus: Optional ``MountStatus`` describing the actual mount status
 /// - Parameter password: optional ``String`` containing the password to mount the share. Both username and password are retrieved from user's keychain
 ///
 /// *The following variables could be useful in future versions:*
 /// - options: array of parameters for the mount command
 /// - autoMount: for future use, the possibility to not mount shares automatically
 /// - localMountPoint: for future use, define a mount point for the share
-struct Shares {
-    var mountUrl: URL
-    var mountStatus: MountStatus?
+struct Share {
+    var networkShare: URL
+    var authType: AuthType
     var username: String?
+    var mountStatus: MountStatus?
     var password: String?
 //    var options: [String]
 //    var autoMount: Bool
@@ -57,43 +59,119 @@ struct Shares {
 /// - Parameter queued: queued for mounting
 /// - Parameter toBeMounted: share should be mounted
 /// - Parameter errorOnMount: failed to mount a shared
-enum MountStatus {
-    case unmounted,
-         mounted,
-         queued,
-         toBeMounted,
-         errorOnMount
+enum MountStatus: String {
+    case unmounted = "unmounted"
+    case mounted = "mounted"
+    case queued = "queued"
+    case toBeMounted = "toBeMounted"
+    case errorOnMount = "errorOnMount"
 }
 
-//class MounterNew: ObservableObject {
-//    @Published var shares: Shares
-//    
-//    init() {
-//        let networkShares: [String] = UserDefaults.standard.array(forKey: "networkShares") as? [String] ?? []
-//        let customShares = UserDefaults.standard.array(forKey: "customNetworkShares") as? [String] ?? []
-//    }
-//}
+/// defines authentication type to mount a share
+/// - Parameter krb: kerberos authentication
+/// - Parameter pwd: username/password authentication
+enum AuthType: String {
+    case krb = "krb"
+    case pwd = "pwd"
+}
 
-class Mounter {
-
-    var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
-    var mountpath: String
-    let fm = FileManager.default
-    let userDefaults = UserDefaults.standard
+class Mounter: ObservableObject {
+    @Published var shares = [Share]()
     
+    private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
+    var mountpath: String = ""
+    let userDefaults = UserDefaults.standard
+    private let fm = FileManager.default
     let logger = Logger(subsystem: "NetworkShareMounter", category: "Mounter")
     
-    //let url: URL
-    fileprivate var asyncRequestId: AsyncRequestID?
-
     init() {
-        // create subfolder in home to mount shares in
-        if userDefaults.string(forKey: "location") != nil {
-            self.mountpath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
-        } else {
-            self.mountpath = NSString(string: "~/\(self.localizedFolder)").expandingTildeInPath
+        //
+        /// create an array from values configured in UserDefaults
+        /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
+        /// or `Settings.mdmNetworkSahresKey` und user defined `Settings.customSharesKey`
+        ///
+        /// first look if we have mdm share definitions
+        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
+            for shareElement in sharesDict {
+                guard let shareUrlString = shareElement[Settings.networkShare] else {
+                    continue
+                }
+                //
+                // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
+                let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+                guard let shareURL = URL(string: shareRectified) else {
+                    continue
+                }
+                let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+               
+                var userName: String = ""
+                if let username = shareElement[Settings.username] {
+                    userName = username.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+                }
+                
+                let newShare = Share(networkShare: shareURL, authType: shareAuthType, username: userName, mountStatus: MountStatus.unmounted)
+                shares.append(newShare)
+            }
         }
-
+        /// then look if we have some legacy mdm defined share definitions
+        if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
+            for share in nwShares {
+                guard let shareURL = URL(string: share) else {
+                    continue
+                }
+                let newShare = Share(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
+                shares.append(newShare)
+            }
+        }
+        /// finally get shares defined by the user
+        if let sharesDict = userDefaults.array(forKey: Settings.customSharesKey) as? [[String: String]] {
+            for shareElement in sharesDict {
+                guard let shareUrlString = shareElement[Settings.networkShare] else {
+                    continue
+                }
+                guard let shareURL = URL(string: shareUrlString) else {
+                    continue
+                }
+                let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+                let newShare = Share(networkShare: shareURL, authType: shareAuthType, username: shareElement[Settings.username], mountStatus: MountStatus.unmounted)
+                shares.append(newShare)
+            }
+        }
+        ///
+        /// try to to get SMBHomeDirectory (only possible in AD/Kerberos environments) and
+        /// add the home-share to `shares`
+        do {
+            // swiftlint:disable force_cast
+            let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
+            let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
+                                    matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
+                                    maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+            if let result = query[0].value(forKey: kODAttributeTypeSMBHome) as? [String] {
+                var homeDirectory = result[0]
+                homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
+                homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
+                if let shareURL = URL(string: homeDirectory) {
+                    let newShare = Share(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
+                    shares.append(newShare)
+                }
+            }
+            // swiftlint:enable force_cast
+        } catch {
+            /// Couldn't perform mount operation, but this does not have to be a fault in non-AD/krb5 environments
+            logger.info("Couldn't add user's home directory to the list of shares to mount.")
+        }
+        // now create the directory where the shares will be mounted
+        // check if there is a definition where the shares will be mounted, otherwiese use the default
+        if userDefaults.string(forKey: "location") != nil {
+            mountpath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+        } else {
+            mountpath = NSString(string: "~/\(self.localizedFolder)").expandingTildeInPath
+        }
+        createMountFolder(atPath: mountpath)
+    }
+   
+    /// prepare folder where the shares will be mounted
+    func createMountFolder(atPath mountPath: String) {
         do {
             //
             // try to create (if not exists) the directory where the network shares will be mounted
@@ -106,37 +184,8 @@ class Mounter {
             logger.error("error.localizedDescription")
             exit(2)
         }
-        //
-        //Start monitoring network connection
-        Monitor().startMonitoring { [weak self] connection, reachable in
-                    guard let strongSelf = self else { return }
-            //strongSelf.performMount(connection, reachable: reachable, mounter: mounter)
-            strongSelf.mountShares()
-        }
     }
     
-    public func cancelMounting() {
-        NetFSMountURLCancel(self.asyncRequestId)
-    }
-        
-    static func cancelMounting(id requestId: AsyncRequestID) {
-        NetFSMountURLCancel(requestId)
-    }
-}
-
-/// Extension for ``String`` to create a valid path from a bunch of strings
-extension String {
-    /// Returns a URL by appending the specified path component to self
-    /// - Parameter _: A string containing the part of the path to be appended
-    /// - Returns: A string containing a path URL
-    func appendingPathComponent(_ string: String) -> String {
-        return URL(fileURLWithPath: self).appendingPathComponent(string).path
-    }
-}
-
-
-/// Extension for ``Mounter`` to check if a given file system path is a mountpoint of a remote filesystem
-extension Mounter {
     /// Check if a given directory is a mount point for a (remote) file system
     /// - Parameter atPath: A string containig the path to check
     /// - Returns: A boolean set to true if the given directory path is a mountpoint
@@ -156,12 +205,7 @@ extension Mounter {
         }
         return false
     }
-}
-
-/// Extension for ``Mounter`` with a bunch of funtcions handling all the stuff around mounting shares
-/// such as creating a list of shares to be mounted, cleaning up mountdirectory,
-/// checking connectivity and so on
-extension Mounter {
+    
     /// function to delete obstructing files in mountDir Subdirectories
     /// - Parameter path: A string containing the path of the directory containing the mountpoints (`mountpath`)
     /// - Parameter filename: A string containing the name of an obstructing file which should be deleted if it is found
@@ -246,40 +290,105 @@ extension Mounter {
             logger.error("Could not list directory at \(path): \(error.debugDescription)")
         }
     }
+}
 
+//class Mounter {
+//
+//    var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
+//    var mountpath: String
+//    let fm = FileManager.default
+//    let userDefaults = UserDefaults.standard
+//    
+//    let logger = Logger(subsystem: "NetworkShareMounter", category: "Mounter")
+//    
+//    //let url: URL
+//    fileprivate var asyncRequestId: AsyncRequestID?
+//
+//    init() {
+//        // create subfolder in home to mount shares in
+//        if userDefaults.string(forKey: "location") != nil {
+//            self.mountpath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+//        } else {
+//            self.mountpath = NSString(string: "~/\(self.localizedFolder)").expandingTildeInPath
+//        }
+//
+//        do {
+//            //
+//            // try to create (if not exists) the directory where the network shares will be mounted
+//            if !fm.fileExists(atPath: mountpath) {
+//                try fm.createDirectory(atPath: mountpath, withIntermediateDirectories: false, attributes: nil)
+//                logger.info("Base network mount directory \(self.mountpath): created")
+//            }
+//        } catch {
+//            logger.error("Error creating mount folder: \(self.mountpath):")
+//            logger.error("error.localizedDescription")
+//            exit(2)
+//        }
+//        //
+//        //Start monitoring network connection
+//        Monitor().startMonitoring { [weak self] connection, reachable in
+//                    guard let strongSelf = self else { return }
+//            //strongSelf.performMount(connection, reachable: reachable, mounter: mounter)
+//            strongSelf.mountShares()
+//        }
+//    }
+//    
+//    public func cancelMounting() {
+//        NetFSMountURLCancel(self.asyncRequestId)
+//    }
+//        
+//    static func cancelMounting(id requestId: AsyncRequestID) {
+//        NetFSMountURLCancel(requestId)
+//    }
+//}
+
+/// Extension for ``String`` to create a valid path from a bunch of strings
+extension String {
+    /// Returns a URL by appending the specified path component to self
+    /// - Parameter _: A string containing the part of the path to be appended
+    /// - Returns: A string containing a path URL
+    func appendingPathComponent(_ string: String) -> String {
+        return URL(fileURLWithPath: self).appendingPathComponent(string).path
+    }
+}
+
+/// Extension for ``Mounter`` with a bunch of funtcions handling all the stuff around mounting shares
+/// such as creating a list of shares to be mounted, cleaning up mountdirectory,
+/// checking connectivity and so on
+extension Mounter {
     func createShareArray() -> [String] {
-        //
-        // create array from values configured in UserDefaults
-        var shares: [String] = UserDefaults.standard.array(forKey: "networkShares") as? [String] ?? []
-        let customshares = UserDefaults.standard.array(forKey: "customNetworkShares") as? [String] ?? []
-        for share in customshares {
-            shares.append(share)
-        }
-        //
-        // replace %USERNAME with local username - must be the same as directory service username!
-        shares = shares.map {
-            $0.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-        }
+//        //
+//        // create array from values configured in UserDefaults
+//        var shares: [String] = UserDefaults.standard.array(forKey: Settings.networkSharesKey) as? [String] ?? []
+//        let customshares = UserDefaults.standard.array(forKey: Settings.customSharesKey) as? [String] ?? []
+//        for share in customshares {
+//            shares.append(share)
+//        }
+//        //
+//        // replace %USERNAME with local username - must be the same as directory service username!
+//        shares = shares.map {
+//            $0.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+//        }
         
         //
         // append SMBHomeDirectory attribute to list of shares to mount
-        do {
-            // swiftlint:disable force_cast
-            let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-            let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
-                                    matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
-                                    maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
-            if let result = query[0].value(forKey: kODAttributeTypeSMBHome) as? [String] {
-                var homeDirectory = result[0]
-                homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
-                homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                shares.append(homeDirectory)
-            }
-            // swiftlint:enable force_cast
-        } catch {
-            // Couldn't perform mount operation
-            logger.warning("Couldn't add user's home directory to the list of shares ro mount.")
-        }
+//        do {
+//            // swiftlint:disable force_cast
+//            let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
+//            let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
+//                                    matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
+//                                    maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+//            if let result = query[0].value(forKey: kODAttributeTypeSMBHome) as? [String] {
+//                var homeDirectory = result[0]
+//                homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
+//                homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
+//                shares.append(homeDirectory)
+//            }
+//            // swiftlint:enable force_cast
+//        } catch {
+//            // Couldn't perform mount operation
+//            logger.warning("Couldn't add user's home directory to the list of shares ro mount.")
+//        }
         
         //
         // eliminate duplicates
