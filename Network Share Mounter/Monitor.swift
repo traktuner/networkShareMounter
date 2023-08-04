@@ -8,6 +8,7 @@
 
 import Foundation
 import Network
+import OSLog
 
 enum Reachable: String {
     case yes, nope
@@ -18,26 +19,28 @@ enum Connection: String {
 }
 
 class Monitor {
+    let logger = Logger(subsystem: "NetworkShareMounter", category: "NetworkMonitor")
+    
     static public let shared = Monitor()
-    private let monitor: NWPathMonitor
-    private var queue = DispatchQueue.global()
+    let monitor: NWPathMonitor
+    private let queue = DispatchQueue(label: "Monitor")
     var netOn: Bool = true
     var connType: Connection = .wifi
-
+    
     init() {
         self.monitor = NWPathMonitor()
-        self.queue = DispatchQueue.global(qos: .background)
         self.monitor.start(queue: queue)
     }
 }
 
 extension Monitor {
-    func startMonitoring( callBack: @escaping (_ connection: Connection, _ rechable: Reachable) -> Void ) {
+    func startMonitoring( callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void ) {
         monitor.pathUpdateHandler = { path in
 
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
             self.netOn = path.status == .satisfied
             self.connType = self.checkConnectionTypeForPath(path)
+            self.logger.info("Network connection changed to \(self.connType.rawValue).")
 
             if path.availableInterfaces.isEmpty {
                 return callBack(.other, .nope)
@@ -58,10 +61,10 @@ extension Monitor {
 
 extension Monitor {
     func checkConnectionTypeForPath(_ path: NWPath) -> Connection {
-        if path.usesInterfaceType(.wifi) {
-            return .wifi
-        } else if path.usesInterfaceType(.wiredEthernet) {
+        if path.usesInterfaceType(.wiredEthernet) {
             return .wiredEthernet
+        } else if path.usesInterfaceType(.wifi) {
+            return .wifi
         } else if path.usesInterfaceType(.cellular) {
             return .cellular
         } else if path.usesInterfaceType(.loopback) {

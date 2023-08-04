@@ -70,9 +70,9 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         let shareString = usersNewShare.stringValue
         // if the share URL string contains a space, the URL vill not
         // validate as valid. Therefore we replace the " " with a "_"
-        // and test those string.
+        // and test this string.
         // Of course this is a hack and not the best way to solve the
-        // problem. But hey, every saturday I code, I am obbligated
+        // problem. But hey, every now and then I code, I am obbligated
         // to cheat. ¯\_(ツ)_/¯ 
         let shareURL = shareString.replacingOccurrences(of: " ",
                                                        with: "_")
@@ -82,15 +82,24 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                 if shareArray.contains(shareString) {
                     self.logger.info("\(shareString) is already in list of user's customNetworkShares")
                 } else {
-                    do {
-                        try appDelegate.mounter.doTheMount(forShare: usersNewShare.stringValue)
-                        shareArray.append(usersNewShare.stringValue)
-                        userDefaults.set(shareArray, forKey: Settings.customSharesKey)
-                        usersNewShare.stringValue=""
-                    } catch let error as NSError {
-                        self.logger.warning("Mounting of new share \(self.usersNewShare.stringValue) failed: \(error)")
+                    if let newShareURL = URL(string: shareString) {
+                        let newShare = Share(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted)
+                        Mounter.mounter.addShareIfNotDuplicate(newShare)
+                        Task {
+                            do {
+                                try await Mounter.mounter.mountShare(forShare: newShare, atPath: Mounter.mounter.mountpath)
+                                // add the new share to the app-internal array to display personal shares
+                                shareArray.append(usersNewShare.stringValue)
+                                userDefaults.set(shareArray, forKey: Settings.customSharesKey)
+                                usersNewShare.stringValue=""
+                            } catch {
+                                // share did not mount, remove it from the array of shares
+                                Mounter.mounter.removeShare(for: newShare)
+                                logger.warning("Mounting of new share \(self.usersNewShare.stringValue) failed: \(error)")
+                            }
+                        }
                     }
-                }                
+                }
             }
         }
     }
