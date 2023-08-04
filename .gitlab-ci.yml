@@ -45,6 +45,21 @@ test_build:
   tags:
     - fastlane
     - xcode
+alpha build:
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^alpha-/'
+  script:
+    - fastlane alpha
+  artifacts:
+    paths:
+      - swiftlint.result.json
+      - build/*dmg
+      - build/*pkg
+    expire_in: 1 hour
+  tags:
+    - fastlane
+    - xcode
 
 beta build:
   stage: build
@@ -77,6 +92,18 @@ release build:
   tags:
     - fastlane
     - xcode
+alpha upload:
+  stage: upload
+  rules:
+  - if: '$CI_COMMIT_TAG =~ /^alpha-/'
+  script:
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Alpha-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".dmg'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Alpha-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".pkg'
+  dependencies:
+    - Alpha build
+  tags:
+    - fastlane
+    - xcode
 
 beta upload:
   stage: upload
@@ -100,6 +127,20 @@ release upload:
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg'
   dependencies:
     - release build
+  tags:
+    - fastlane
+    - xcode
+
+alpha release:
+  variables:
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^alpha-/'
+  script:
+    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}Alpha-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}Alpha-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".dmg\"}"'
+  dependencies:
+    - alpha build
+    - alpha upload
   tags:
     - fastlane
     - xcode
