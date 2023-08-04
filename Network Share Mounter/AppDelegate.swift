@@ -20,7 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var mountpath = ""
 
     // An observer that you use to monitor and react to network changes
-    let monitor = NWPathMonitor()
+    let monitor = Monitor.shared
 
     var timer = Timer()
     
@@ -28,10 +28,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     //
     // initalize class which will perform all the automounter tasks
-    let mounter = Mounter.init()
+//    let mounter = Mounter.init()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        migrateConfig()
         window.isReleasedWhenClosed = false
         //
         // using "register" instead of "get" will set the values according to the plist read
@@ -42,11 +41,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let defaultValues = readPropertyList() {
             userDefaults.register(defaults: defaultValues)
         }
-
-
-        //
-        // initalize class which will perform all the automounter tasks
-        self.mountpath = mounter.mountpath
         
         //
         // initialize statistics reporting struct
@@ -71,8 +65,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentViewController = NetworkShareMounterViewController.newInstance()
 
         // Do any additional setup after loading the view.
-        constructMenu(withMounter: mounter)
+        constructMenu(withMounter: Mounter.mounter)
         
+        //
         // start a timer to perform a mount every 5 minutes
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
@@ -80,19 +75,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let netConnection = Monitor.shared
             let status = netConnection.netOn
             self.logger.info("Current Network Path is \(status).")
-            self.mounter.mountShares()
+            Mounter.mounter.mountShares()
         })
+        
+        //
+        // start monitoring network connectivity and perform mount/unmount on network changes
+        monitor.startMonitoring { connection, reachable in
+            if reachable.rawValue == "yes" {
+                Mounter.mounter.mountShares()
+            } else {
+                Task {
+                    await Mounter.mounter.unmountAllShares()
+                }
+            }
+        }
+
+        //
+        // finally mount all defined shares
+        Mounter.mounter.mountShares()
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
         //
-        // unmount all shares befor leaving
+        // unmount all shares before leaving
         if userDefaults.bool(forKey: "unmountOnExit") == true {
-            self.mounter.unmountAllShares()
+            Task {
+                await Mounter.mounter.unmountAllShares()
+            }
         }
         //
         // end network monitoring
-        monitor.cancel()
+        monitor.monitor.cancel()
     }
 
     private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
@@ -112,7 +125,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func openMountDir(_ sender: Any?) {
-        if let mountDirectory =  URL(string: self.mountpath) {
+        if let mountDirectory =  URL(string: Mounter.mounter.mountpath) {
             self.logger.info("Trying to open \(mountDirectory) in Finder...")
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
         }
@@ -120,12 +133,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func mountManually(_ sender: Any?) {
         self.logger.info("User triggered mount all shares")
-        mounter.mountShares()
+        Mounter.mounter.mountShares()
     }
     
     @objc func unmountShares(_ sender: Any?) {
         self.logger.info("User triggered unmount all shares")
-        mounter.unmountAllShares()
+        Task {
+            await Mounter.mounter.unmountAllShares()
+        }
     }
     
     @objc func openHelpURL(_ sender: Any?) {

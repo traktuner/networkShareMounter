@@ -39,6 +39,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A0A95EB12A7A512C00B3A445 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Main.strings; sourceTree = "<group>"; };
+		A0A95EB22A7A512C00B3A445 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F7291FEC275FD17C000A147E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C12760EE3F00FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 				it,
 				es,
 				fr,
+				nl,
 			);
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
@@ -343,6 +346,7 @@
 				F7EAB855279AF36400EED76B /* it */,
 				F7EAB857279AFEDF00EED76B /* es */,
 				F7C992A2279B1E5000CEB9B2 /* fr */,
+				A0A95EB22A7A512C00B3A445 /* nl */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -356,6 +360,7 @@
 				F7EAB854279AF36400EED76B /* it */,
 				F7EAB856279AFEDF00EED76B /* es */,
 				F7C992A1279B1E5000CEB9B2 /* fr */,
+				A0A95EB12A7A512C00B3A445 /* nl */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -508,8 +513,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.2.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 3.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
@@ -552,8 +557,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.2.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 3.0.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
