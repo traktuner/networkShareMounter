@@ -100,7 +100,7 @@ alpha upload:
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Alpha-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".dmg'
     - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Alpha-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".pkg'
   dependencies:
-    - Alpha build
+    - alpha build
   tags:
     - fastlane
     - xcode
