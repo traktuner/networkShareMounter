@@ -535,6 +535,7 @@ class Mounter: ObservableObject {
             // this means, that the mount will be done on the specified mountpath instead
             // of below it
             // (https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.8.sdk/System/Library/Frameworks/NetFS.framework/Versions/A/Headers/NetFS.h
+            // swiftlint:disable force_cast
             if let mountPoint = share.mountPoint {
                     mountpath += "/" + mountPoint
                     mountOptions = [
@@ -543,6 +544,7 @@ class Mounter: ObservableObject {
                         kNetFSMountAtMountDirKey: true
                         ] as! CFMutableDictionary
             }
+            // swiftlint:enable force_cast
             let rc = NetFSMountURLSync(url as CFURL,
                                        NSURL(string: mountpath),
                                        share.username as CFString?,
