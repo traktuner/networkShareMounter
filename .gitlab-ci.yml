@@ -45,6 +45,7 @@ test_build:
   tags:
     - fastlane
     - xcode
+    
 alpha build:
   stage: build
   rules:
