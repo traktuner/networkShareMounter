@@ -55,6 +55,17 @@ struct Share: Identifiable {
     var id = UUID()
 //    var options: [String]
 //    var autoMount: Bool
+    
+    func updated() -> Share {
+        var updatedShare = self
+        return updatedShare
+    }
+    
+    func updated(withStatus status: MountStatus) -> Share {
+        var updatedShare = self
+        updatedShare.mountStatus = status
+        return updatedShare
+    }
 }
 
 /// defines mount states of a share
@@ -80,7 +91,7 @@ enum AuthType: String {
 }
 
 class Mounter: ObservableObject {
-    @Published var shares = [Share]()
+    @Published var _shares = [Share]()
     
     private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
     var mountpath: String = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
@@ -91,6 +102,22 @@ class Mounter: ObservableObject {
     //
     // initalize class which will perform all the automounter tasks
     static let mounter = Mounter.init()
+    
+    /// Locking to protect shares-array from race conditions
+    private let lock = NSLock()
+    
+    var shares: [Share] {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return _shares
+        }
+        set {
+            lock.lock()
+            _shares = newValue
+            lock.unlock()
+        }
+    }
     
     init() {
         //
@@ -197,34 +224,48 @@ class Mounter: ObservableObject {
     /// adds the given share to the array of shares
     /// - Parameter share: share object to check and append to shares array
     func addShareIfNotDuplicate(_ share: Share) {
-        if !shares.contains(where: { $0.networkShare == share.networkShare }) {
-            shares.append(share)
+        lock.lock()
+        defer { lock.unlock() }
+        if !_shares.contains(where: { $0.networkShare == share.networkShare }) {
+            _shares.append(share)
         }
     }
     
     /// deletes a share at the given Index
     /// - Parameter indexSet: array index of the element
     func removeShare(for share: Share) {
-        if let index = shares.firstIndex(where: { $0.id == share.id }) {
+        lock.lock()
+        defer { lock.unlock() }
+        if let index = _shares.firstIndex(where: { $0.id == share.id }) {
             logger.info("Deleting share: \(share.networkShare) at Index \(index)")
-            shares.remove(at: index)
+            _shares.remove(at: index)
         }
     }
     
     /// update a share element to new values.
     func updateShare(for share: Share) {
-        if let index = shares.firstIndex(where: { $0.id == share.id }) {
-            shares[index] = share
+        lock.lock()
+        defer { lock.unlock() }
+        if let index = _shares.firstIndex(where: { $0.id == share.id }) {
+            let updatedShare = share.updated()
+            _shares[index] = updatedShare
         }
-        
     }
     
     /// update mountStatus for a share element
     /// - Parameter mountStatus: new MountStatus
     /// - Parameter for: share to be updated
+//    func updateShare(mountStatus: MountStatus, for share: Share) {
+//        if let index = shares.firstIndex(where: { $0.id == share.id }) {
+//            shares[index].mountStatus = mountStatus
+//        }
+//    }
     func updateShare(mountStatus: MountStatus, for share: Share) {
-        if let index = shares.firstIndex(where: { $0.id == share.id }) {
-            shares[index].mountStatus = mountStatus
+        lock.lock()
+        defer { lock.unlock() }
+        if let index = _shares.firstIndex(where: { $0.id == share.id }) {
+            let updatedShare = share.updated(withStatus: mountStatus) // Oder ein anderer neuer Status
+            _shares[index] = updatedShare
         }
     }
    
