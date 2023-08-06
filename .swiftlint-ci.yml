@@ -30,3 +30,7 @@ cyclomatic_complexity:
     warning: 15
     error: 25
 reporter: "emoji"
+type_name:
+  allowed_symbols: "_"
+identifier_name:
+  allowed_symbols: "_"
