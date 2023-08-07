@@ -24,7 +24,9 @@ enum MounterError: Error {
     case couldNotTestConnectivity
     case invalidMountOptions
     case alreadyMounted
+    case mountIsQueued
     case targetNotReachable
+    case otherError
     case noRouteToHost
     case doesNotExist
     case shareDoesNotExist
@@ -488,15 +490,12 @@ class Mounter: ObservableObject {
                 // perform cleanup routines before mounting
                 prepareMountPrerequisites()
                 for share in shares {
-                    // if mountStatus is not `mounted` and not `queued` (aka currently trying to mount) and not `errorOnMount` -> try the mount
-                    if share.mountStatus != MountStatus.mounted && share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount {
-                        Task {
-                            do {
-                                // TODO: define mountpath (mountdir and under which name)
-                                try await mountShare(forShare: share, atPath: mountpath)
-                            } catch {
-                                logger.info("Mounting of share \(share.networkShare, privacy: .public) not done.")
-                            }
+                    Task {
+                        do {
+                            // TODO: define mountpath (mountdir and under which name)
+                            try await mountShare(forShare: share, atPath: mountpath)
+                        } catch {
+                            logger.info("Mounting of share \(share.networkShare, privacy: .public) not done.")
                         }
                     }
                 }
@@ -563,37 +562,39 @@ class Mounter: ObservableObject {
         //
         // check if there's already a directory named like the share
         if !isDirectoryFilesystemMount(atPath: mountpath.appendingPathComponent(mountDir)) {
-            logger.info("Mount of \(url, privacy: .public) on path \(mountPath, privacy: .public) queued...")
-            self.updateShare(mountStatus: .queued, for: share)
-            var mountOptions = Settings.mountOptions
-//            var mountOptions = [
-//                kNetFSAllowSubMountsKey: true,
-//                kNetFSSoftMountKey: true
-//                ] as! CFMutableDictionary
-            //
-            // check if a specific mountpoint is defined. If yes, the mountpoint will be
-            // added to the mountpath and kNetFSMountAtMountDirKey will be set to true.
-            // this means, that the mount will be done on the specified mountpath instead
-            // of below it
-            // (https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.8.sdk/System/Library/Frameworks/NetFS.framework/Versions/A/Headers/NetFS.h
-            // swiftlint:disable force_cast
-            if let mountPoint = share.mountPoint {
+            // if mountStatus is not `mounted` and not `queued` (aka currently trying to mount) and not `errorOnMount` -> try the mount
+            if share.mountStatus != MountStatus.mounted && share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount {
+                logger.info("Mount of \(url, privacy: .public) on path \(mountPath, privacy: .public) queued...")
+                self.updateShare(mountStatus: .queued, for: share)
+                var mountOptions = Settings.mountOptions
+                //            var mountOptions = [
+                //                kNetFSAllowSubMountsKey: true,
+                //                kNetFSSoftMountKey: true
+                //                ] as! CFMutableDictionary
+                //
+                // check if a specific mountpoint is defined. If yes, the mountpoint will be
+                // added to the mountpath and kNetFSMountAtMountDirKey will be set to true.
+                // this means, that the mount will be done on the specified mountpath instead
+                // of below it
+                // (https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.8.sdk/System/Library/Frameworks/NetFS.framework/Versions/A/Headers/NetFS.h
+                // swiftlint:disable force_cast
+                if let mountPoint = share.mountPoint {
                     mountpath += "/" + mountPoint
                     mountOptions = [
                         kNetFSAllowSubMountsKey: true,
                         kNetFSSoftMountKey: true,
                         kNetFSMountAtMountDirKey: true
-                        ] as! CFMutableDictionary
-            }
-            // swiftlint:enable force_cast
-            let rc = NetFSMountURLSync(url as CFURL,
-                                       NSURL(string: mountpath),
-                                       share.username as CFString?,
-                                       share.password as CFString?,
-                                       Settings.openOptions,
-                                       mountOptions,
-                                       nil)
-            switch rc {
+                    ] as! CFMutableDictionary
+                }
+                // swiftlint:enable force_cast
+                let rc = NetFSMountURLSync(url as CFURL,
+                                           NSURL(string: mountpath),
+                                           share.username as CFString?,
+                                           share.password as CFString?,
+                                           Settings.openOptions,
+                                           mountOptions,
+                                           nil)
+                switch rc {
                 case 0:
                     self.updateShare(mountStatus: .mounted, for: share)
                     logger.info("\(url, privacy: .public): successfully mounted")
@@ -617,8 +618,20 @@ class Mounter: ObservableObject {
                     self.updateShare(mountStatus: .errorOnMount, for: share)
                     logger.warning("\(url, privacy: .public) unknown return code: \(rc)")
                     throw MounterError.unknownReturnCode
+                }
+            } else if share.mountStatus == MountStatus.mounted {
+                logger.info("Share \(url, privacy: .public) not mounted, share is apparently already mounted.")
+                throw MounterError.alreadyMounted
+            } else if share.mountStatus == MountStatus.queued {
+                logger.info("Share \(url, privacy: .public) not mounted as it is already queued for mounting.")
+                throw MounterError.mountIsQueued
+            } else if share.mountStatus == MountStatus.errorOnMount {
+                logger.info("Share \(url, privacy: .public) not mounted, last time I tried I got a mount error.")
+                throw MounterError.otherError
+            } else {
+                logger.info("Share \(url, privacy: .public) not mounted, I do not know why. It just happened.")
+                throw MounterError.otherError
             }
-
         } else {
             self.updateShare(mountStatus: .mounted, for: share)
             logger.info("\(url, privacy: .public): already mounted")
