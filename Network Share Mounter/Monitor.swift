@@ -40,7 +40,7 @@ extension Monitor {
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
             self.netOn = path.status == .satisfied
             self.connType = self.checkConnectionTypeForPath(path)
-            self.logger.info("Network connection changed to \(self.connType.rawValue).")
+            self.logger.info("Network connection changed to \(self.connType.rawValue, privacy: .public).")
 
             if path.availableInterfaces.isEmpty {
                 return callBack(.other, .nope)

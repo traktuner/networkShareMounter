@@ -71,10 +71,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // start a timer to perform a mount every 5 minutes
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-            self.logger.info("Passed \(timerInterval) seconds, performing mount operartions.")
+            self.logger.info("Passed \(timerInterval, privacy: .public) seconds, performing mount operartions.")
             let netConnection = Monitor.shared
             let status = netConnection.netOn
-            self.logger.info("Current Network Path is \(status).")
+            self.logger.info("Current Network Path is \(status, privacy: .public).")
             Mounter.mounter.mountShares()
         })
         
@@ -109,7 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
-        self.logger.info("Current Connection: \(connection.rawValue) Is reachable: \(reachable.rawValue)")
+        self.logger.info("Current Connection: \(connection.rawValue, privacy: .public) Is reachable: \(reachable.rawValue, privacy: .public)")
         if reachable == Reachable.yes {
             mounter.mountShares()
         }
@@ -126,7 +126,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func openMountDir(_ sender: Any?) {
         if let mountDirectory =  URL(string: Mounter.mounter.mountpath) {
-            self.logger.info("Trying to open \(mountDirectory) in Finder...")
+            self.logger.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
         }
     }

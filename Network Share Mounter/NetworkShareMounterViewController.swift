@@ -80,7 +80,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             if shareString.hasPrefix("smb://") || shareString.hasPrefix("cifs://") {
                 var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
                 if shareArray.contains(shareString) {
-                    self.logger.info("\(shareString) is already in list of user's customNetworkShares")
+                    self.logger.info("\(shareString, privacy: .public) is already in list of user's customNetworkShares")
                 } else {
                     if let newShareURL = URL(string: shareString) {
                         let newShare = Share(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted)
@@ -95,7 +95,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                             } catch {
                                 // share did not mount, remove it from the array of shares
                                 Mounter.mounter.removeShare(for: newShare)
-                                logger.warning("Mounting of new share \(self.usersNewShare.stringValue) failed: \(error)")
+                                logger.warning("Mounting of new share \(self.usersNewShare.stringValue, privacy: .public) failed: \(error, privacy: .public)")
                             }
                         }
                     }
