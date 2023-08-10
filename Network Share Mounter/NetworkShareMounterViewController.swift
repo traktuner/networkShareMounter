@@ -83,7 +83,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     self.logger.info("\(shareString, privacy: .public) is already in list of user's customNetworkShares")
                 } else {
                     if let newShareURL = URL(string: shareString) {
-                        let newShare = Share(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted)
+                        let newShare = Share.createShare(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted)
                         Mounter.mounter.addShareIfNotDuplicate(newShare)
                         Task {
                             do {

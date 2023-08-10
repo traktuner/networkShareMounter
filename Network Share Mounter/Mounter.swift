@@ -13,7 +13,7 @@ import OpenDirectory
 import AppKit
 import OSLog
 
-/// enum followinf the ``Error`` protocol describing various error results
+/// enum following the ``Error`` protocol describing various shre mount error results
 enum MounterError: Error {
     case errorCreatingMountFolder
     case errorCheckingMountDir
@@ -35,55 +35,6 @@ enum MounterError: Error {
     case unmountFailed
 }
 
-
-/// describes the different properties and states of a share
-/// - Parameter networkShare: ``URL`` containing the exporting server and share
-/// - Parameter authType: ``authTyoe`` defines if the mount uses kerberos or username/password for authentication
-/// - Parameter username: optional ``String`` containing the username needed to mount a share
-/// - Parameter mountStatus: Optional ``MountStatus`` describing the actual mount status
-/// - Parameter password: optional ``String`` containing the password to mount the share. Both username and password are retrieved from user's keychain
-///
-/// *The following variables could be useful in future versions:*
-/// - options: array of parameters for the mount command
-/// - autoMount: for future use, the possibility to not mount shares automatically
-/// - localMountPoint: for future use, define a mount point for the share
-struct Share: Identifiable {
-    var networkShare: URL
-    var authType: AuthType
-    var username: String?
-    var mountStatus: MountStatus
-    var password: String?
-    var mountPoint: String?
-    var id = UUID()
-//    var options: [String]
-//    var autoMount: Bool
-    
-    func updated() -> Share {
-        var updatedShare = self
-        return updatedShare
-    }
-    
-    func updated(withStatus status: MountStatus) -> Share {
-        var updatedShare = self
-        updatedShare.mountStatus = status
-        return updatedShare
-    }
-}
-
-/// defines mount states of a share
-/// - Parameter unmounted: share is not mounted
-/// - Parameter mounted: mounted share
-/// - Parameter queued: queued for mounting
-/// - Parameter toBeMounted: share should be mounted
-/// - Parameter errorOnMount: failed to mount a shared
-enum MountStatus: String {
-    case unmounted = "unmounted"
-    case mounted = "mounted"
-    case queued = "queued"
-    case toBeMounted = "toBeMounted"
-    case errorOnMount = "errorOnMount"
-}
-
 /// defines authentication type to mount a share
 /// - Parameter krb: kerberos authentication
 /// - Parameter pwd: username/password authentication
@@ -92,8 +43,11 @@ enum AuthType: String {
     case pwd = "pwd"
 }
 
+/// classe tro perform mount/unmount operations for network shares
 class Mounter: ObservableObject {
-    @Published var _shares = [Share]()
+    /// @Published var shares: [Share] allows publishing changes to the shares array
+    @Published var shares = [Share]()
+    private var shareManager = ShareManager()
     
     /// convenience variable for `FileManager.default`
     private let fm = FileManager.default
@@ -113,21 +67,9 @@ class Mounter: ObservableObject {
     var defaultMountPath: String = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
 //    var defaultMountPath = UserDefaults.standard.object(forKey: "location") as? String ?? Settings.defaultMountPath
     
-    var shares: [Share] {
-        get {
-            lock.lock()
-            defer { lock.unlock() }
-            return _shares
-        }
-        set {
-            lock.lock()
-            _shares = newValue
-            lock.unlock()
-        }
-    }
-    
     init() {
-        //
+        /// initialize the class with the array of shares containig the network shares
+        self.shares = shareManager.allShares
         /// create an array from values configured in UserDefaults
         /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
         /// or `Settings.mdmNetworkSahresKey` und user defined `Settings.customSharesKey`.
@@ -158,7 +100,7 @@ class Mounter: ObservableObject {
                 }
                 let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
                
-                let newShare = Share(networkShare: shareURL, authType: shareAuthType, username: userName, mountStatus: MountStatus.unmounted, mountPoint: shareElement[Settings.mountPoint])
+                let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: userName, mountPoint: shareElement[Settings.mountPoint])
                 addShareIfNotDuplicate(newShare)
             }
         } else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
@@ -170,7 +112,7 @@ class Mounter: ObservableObject {
                 guard let shareURL = URL(string: shareRectified) else {
                     continue
                 }
-                let newShare = Share(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
+                let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
                 addShareIfNotDuplicate(newShare)
             }
         }
@@ -184,7 +126,7 @@ class Mounter: ObservableObject {
                     continue
                 }
                 let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-                let newShare = Share(networkShare: shareURL, authType: shareAuthType, username: shareElement[Settings.username], mountStatus: MountStatus.unmounted)
+                let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: shareElement[Settings.username])
                 addShareIfNotDuplicate(newShare)
             }
         }
@@ -194,7 +136,7 @@ class Mounter: ObservableObject {
                 guard let shareURL = URL(string: share) else {
                     continue
                 }
-                let newShare = Share(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
+                let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
                 addShareIfNotDuplicate(newShare)
             }
         }
@@ -212,7 +154,7 @@ class Mounter: ObservableObject {
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
                 if let shareURL = URL(string: homeDirectory) {
-                    let newShare = Share(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
+                    let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
                     addShareIfNotDuplicate(newShare)
                 }
             }
@@ -235,31 +177,27 @@ class Mounter: ObservableObject {
     /// adds the given share to the array of shares
     /// - Parameter share: share object to check and append to shares array
     func addShareIfNotDuplicate(_ share: Share) {
-        lock.lock()
-        defer { lock.unlock() }
-        if !_shares.contains(where: { $0.networkShare == share.networkShare }) {
-            _shares.append(share)
+        if !shareManager.allShares.contains(where: { $0.networkShare == share.networkShare }) {
+            shareManager.addShare(share)
+            shares = shareManager.allShares
         }
     }
     
     /// deletes a share at the given Index
     /// - Parameter indexSet: array index of the element
     func removeShare(for share: Share) {
-        lock.lock()
-        defer { lock.unlock() }
-        if let index = _shares.firstIndex(where: { $0.id == share.id }) {
+        if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             logger.info("Deleting share: \(share.networkShare, privacy: .public) at Index \(index, privacy: .public)")
-            _shares.remove(at: index)
+            shareManager.removeShare(at: index)
+            shares = shareManager.allShares
         }
     }
     
-    /// update a share element to new values.
+    /// Update a share object at a specific index and update the shares array
     func updateShare(for share: Share) {
-        lock.lock()
-        defer { lock.unlock() }
-        if let index = _shares.firstIndex(where: { $0.id == share.id }) {
-            let updatedShare = share.updated()
-            _shares[index] = updatedShare
+        if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
+            shareManager.updateShare(at: index, withUpdatedShare: share)
+            shares = shareManager.allShares
         }
     }
     
@@ -272,11 +210,9 @@ class Mounter: ObservableObject {
 //        }
 //    }
     func updateShare(mountStatus: MountStatus, for share: Share) {
-        lock.lock()
-        defer { lock.unlock() }
-        if let index = _shares.firstIndex(where: { $0.id == share.id }) {
-            let updatedShare = share.updated(withStatus: mountStatus) // Oder ein anderer neuer Status
-            _shares[index] = updatedShare
+        if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
+            shareManager.updateMountStatus(at: index, to: mountStatus)
+            shares = shareManager.allShares
         }
     }
    
