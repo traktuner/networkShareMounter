@@ -95,18 +95,23 @@ enum AuthType: String {
 class Mounter: ObservableObject {
     @Published var _shares = [Share]()
     
-    private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
-    var mountpath: String = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
-    let userDefaults = UserDefaults.standard
+    /// convenience variable for `FileManager.default`
     private let fm = FileManager.default
+    /// convenience variable for `UserDefaults.standard`
+    private let userDefaults = UserDefaults.standard
+    /// logger variable to produce consistent log entries
     let logger = Logger(subsystem: "NetworkShareMounter", category: "Mounter")
-    
-    //
-    // initalize class which will perform all the automounter tasks
+    /// initalize class which will perform all the automounter tasks
     static let mounter = Mounter.init()
-    
-    /// Locking to protect shares-array from race conditions
+    /// define locks to protect `shares`-array from race conditions
     private let lock = NSLock()
+    /// get home direcotry for the user running the app
+    let userHomeDirectory: String = FileManager.default.homeDirectoryForCurrentUser.path
+    
+    // TODO: this code should be cleaned up for new userDefaults values
+    private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
+    var defaultMountPath: String = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
+//    var defaultMountPath = UserDefaults.standard.object(forKey: "location") as? String ?? Settings.defaultMountPath
     
     var shares: [Share] {
         get {
@@ -125,7 +130,11 @@ class Mounter: ObservableObject {
         //
         /// create an array from values configured in UserDefaults
         /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
-        /// or `Settings.mdmNetworkSahresKey` und user defined `Settings.customSharesKey`
+        /// or `Settings.mdmNetworkSahresKey` und user defined `Settings.customSharesKey`.
+        ///
+        /// **Imprtant**:
+        /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, not both arays
+        /// - then read user defined `Settings.customSharesKey`
         ///
         /// first look if we have mdm share definitions
         if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
@@ -138,6 +147,7 @@ class Mounter: ObservableObject {
                 var userName: String = ""
                 if let username = shareElement[Settings.username] {
                     userName = username.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+                    userName = NSString(string: userName).expandingTildeInPath
                 }
                 
                 //
@@ -151,9 +161,8 @@ class Mounter: ObservableObject {
                 let newShare = Share(networkShare: shareURL, authType: shareAuthType, username: userName, mountStatus: MountStatus.unmounted, mountPoint: shareElement[Settings.mountPoint])
                 addShareIfNotDuplicate(newShare)
             }
-        }
-        // then look if we have some legacy mdm defined share definitions
-        if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
+        } else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
+            /// then look if we have some legacy mdm defined share definitions which will be read **only** if there is no `Settings.mdmNetworkSahresKey` defined!
             for share in nwShares {
                 //
                 // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
@@ -215,11 +224,11 @@ class Mounter: ObservableObject {
         // now create the directory where the shares will be mounted
         // check if there is a definition where the shares will be mounted, otherwiese use the default
         if userDefaults.object(forKey: "location") as? String != "" {
-            mountpath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+            defaultMountPath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
         } else {
-            mountpath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
+            defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
         }
-        createMountFolder(atPath: mountpath)
+        createMountFolder(atPath: defaultMountPath)
     }
     
     /// checks if there is already a share with the same network export. If not,
@@ -277,12 +286,12 @@ class Mounter: ObservableObject {
         do {
             //
             // try to create (if not exists) the directory where the network shares will be mounted
-            if !fm.fileExists(atPath: mountpath) {
-                try fm.createDirectory(atPath: mountpath, withIntermediateDirectories: false, attributes: nil)
-                logger.info("Base network mount directory \(self.mountpath, privacy: .public): created")
+            if !fm.fileExists(atPath: defaultMountPath) {
+                try fm.createDirectory(atPath: defaultMountPath, withIntermediateDirectories: false, attributes: nil)
+                logger.info("Base network mount directory \(self.defaultMountPath, privacy: .public): created")
             }
         } catch {
-            logger.error("Error creating mount folder: \(self.mountpath, privacy: .public):")
+            logger.error("Error creating mount folder: \(self.defaultMountPath, privacy: .public):")
             logger.error("error.localizedDescription")
             exit(2)
         }
@@ -307,6 +316,24 @@ class Mounter: ObservableObject {
             return false
         }
         return false
+    }
+    
+    /// function to delete a directory via system shell `rmdir`
+    /// - Paramater atPath: full path of the directory
+    func removeDirectory(atPath: String) {
+        let task = Process()
+        task.launchPath = "/bin/rmdir"
+        task.arguments = ["\(atPath)"]
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        //
+        // Launch the task
+        task.launch()
+        //
+        // Get the data
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+        logger.info("Deleting directory \(atPath, privacy: .public): \(output ?? "done", privacy: .public)")
     }
     
     /// function to delete obstructing files in mountDir Subdirectories
@@ -342,19 +369,7 @@ class Mounter: ObservableObject {
                             // do not remove the top level directory containing the mountpoints
                             if filePath != "/" {
                                 let deleteFile = path.appendingPathComponent(filePath)
-                                let task = Process()
-                                task.launchPath = "/bin/rmdir"
-                                task.arguments = ["\(deleteFile)"]
-                                let pipe = Pipe()
-                                task.standardOutput = pipe
-                                //
-                                // Launch the task
-                                task.launch()
-                                //
-                                // Get the data
-                                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                                let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
-                                logger.info("Deleting obstructing directory \(deleteFile, privacy: .public): \(output ?? "done", privacy: .public)")
+                                removeDirectory(atPath: URL(string: deleteFile)!.relativePath)
                             }
                         }
                     }
@@ -417,11 +432,12 @@ class Mounter: ObservableObject {
             logger.info("Trying to unmount share at path \(path, privacy: .public).")
             
             let url = URL(fileURLWithPath: path)
-            fm.unmountVolume(at: url, options: [.allPartitionsAndEjectDisk, .withoutUI]) { (error) in
+            fm.unmountVolume(at: url, options: [.allPartitionsAndEjectDisk, .withoutUI]) { [self] (error) in
                 if let error = error {
                     completion(.failure(.unmountFailed))
                 } else {
                     completion(.success(()))
+                    removeDirectory(atPath: URL(string: url.absoluteString)!.relativePath)
                 }
             }
         } else {
@@ -432,7 +448,7 @@ class Mounter: ObservableObject {
     ///
     /// get all mounted shares and call `unmountShare`
     func unmountAllShares() async {
-        let mountpath = self.mountpath
+        let mountpath = self.defaultMountPath
         for share in shares {
             let dir = share.networkShare
             guard let mountDir = dir.pathComponents.last else {
@@ -468,17 +484,17 @@ class Mounter: ObservableObject {
     func prepareMountPrerequisites() {
         // iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
         for toDelete in Settings.filesToDelete {
-            deleteUnneededFiles(path: self.mountpath, filename: toDelete)
+            deleteUnneededFiles(path: self.defaultMountPath, filename: toDelete)
         }
 
         // The directory with the mounts for the network-shares should be empty. All
         // former directories not deleted by the mounter should be nuked to avoid
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
-        deleteUnneededFiles(path: mountpath, filename: nil)
+        deleteUnneededFiles(path: defaultMountPath, filename: nil)
     }
     
     /// performs mount operation for all shares
-    func mountShares() {
+    func mountAllShares() {
         //
         // Check for network connectivity
         let netConnection = Monitor.shared
@@ -493,7 +509,7 @@ class Mounter: ObservableObject {
                     Task {
                         do {
                             // TODO: define mountpath (mountdir and under which name)
-                            try await mountShare(forShare: share, atPath: mountpath)
+                            try await mountShare(forShare: share, atPath: defaultMountPath)
                         } catch {
                             logger.info("Mounting of share \(share.networkShare, privacy: .public) not done.")
                         }
@@ -561,7 +577,7 @@ class Mounter: ObservableObject {
         
         //
         // check if there's already a directory named like the share
-        if !isDirectoryFilesystemMount(atPath: mountpath.appendingPathComponent(mountDir)) {
+        if !isDirectoryFilesystemMount(atPath: defaultMountPath.appendingPathComponent(mountDir)) {
             // if mountStatus is not `mounted` and not `queued` (aka currently trying to mount) and not `errorOnMount` -> try the mount
             if share.mountStatus != MountStatus.mounted && share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount {
                 logger.info("Mount of \(url, privacy: .public) on path \(mountPath, privacy: .public) queued...")
@@ -578,17 +594,24 @@ class Mounter: ObservableObject {
                 // of below it
                 // (https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.8.sdk/System/Library/Frameworks/NetFS.framework/Versions/A/Headers/NetFS.h
                 // swiftlint:disable force_cast
+                
+                // new idea: mount at specific mountpoint instead of letting the OS do it
+                var mountDirectory = defaultMountPath
                 if let mountPoint = share.mountPoint {
-                    mountpath += "/" + mountPoint
-                    mountOptions = [
-                        kNetFSAllowSubMountsKey: true,
-                        kNetFSSoftMountKey: true,
-                        kNetFSMountAtMountDirKey: true
-                    ] as! CFMutableDictionary
+                    mountDirectory += "/" + mountPoint
+                } else {
+                    mountDirectory += "/" + (url.lastPathComponent ?? "")
                 }
+//                    mountOptions = [
+//                        kNetFSAllowSubMountsKey: true,
+//                        kNetFSSoftMountKey: true,
+//                        kNetFSMountAtMountDirKey: true
+//                    ] as! CFMutableDictionary
+//                }
+                try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
                 // swiftlint:enable force_cast
                 let rc = NetFSMountURLSync(url as CFURL,
-                                           NSURL(string: mountpath),
+                                           NSURL(string: mountDirectory),
                                            share.username as CFString?,
                                            share.password as CFString?,
                                            Settings.openOptions,
@@ -620,10 +643,10 @@ class Mounter: ObservableObject {
                     throw MounterError.unknownReturnCode
                 }
             } else if share.mountStatus == MountStatus.mounted {
-                logger.info("Share \(url, privacy: .public) not mounted, share is apparently already mounted.")
+                logger.info("Share \(url, privacy: .public) is apparently already mounted.")
                 throw MounterError.alreadyMounted
             } else if share.mountStatus == MountStatus.queued {
-                logger.info("Share \(url, privacy: .public) not mounted as it is already queued for mounting.")
+                logger.info("Share \(url, privacy: .public) is already queued for mounting.")
                 throw MounterError.mountIsQueued
             } else if share.mountStatus == MountStatus.errorOnMount {
                 logger.info("Share \(url, privacy: .public) not mounted, last time I tried I got a mount error.")

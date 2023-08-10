@@ -87,7 +87,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                         Mounter.mounter.addShareIfNotDuplicate(newShare)
                         Task {
                             do {
-                                try await Mounter.mounter.mountShare(forShare: newShare, atPath: Mounter.mounter.mountpath)
+                                try await Mounter.mounter.mountShare(forShare: newShare, atPath: Mounter.mounter.defaultMountPath)
                                 // add the new share to the app-internal array to display personal shares
                                 shareArray.append(usersNewShare.stringValue)
                                 userDefaults.set(shareArray, forKey: Settings.customSharesKey)
