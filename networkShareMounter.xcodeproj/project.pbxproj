@@ -12,6 +12,7 @@
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
 		F765D0552A852911001D5116 /* ShareManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F765D0542A852911001D5116 /* ShareManager.swift */; };
 		F765D0572A852935001D5116 /* Share.swift in Sources */ = {isa = PBXBuildFile; fileRef = F765D0562A852935001D5116 /* Share.swift */; };
+		F765D0592A853DA3001D5116 /* ShareConfigurationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F765D0582A853DA3001D5116 /* ShareConfigurationManager.swift */; };
 		F77107B7274EC51600556B20 /* Monitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B6274EC51600556B20 /* Monitor.swift */; };
 		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
@@ -51,6 +52,7 @@
 		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
 		F765D0542A852911001D5116 /* ShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareManager.swift; sourceTree = "<group>"; };
 		F765D0562A852935001D5116 /* Share.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Share.swift; sourceTree = "<group>"; };
+		F765D0582A853DA3001D5116 /* ShareConfigurationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareConfigurationManager.swift; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 				F77107BA274EC7D200556B20 /* config.swift */,
 				F742ACF52861CB62009864DF /* AppStatistics.swift */,
 				F77107B8274EC76200556B20 /* Mounter.swift */,
+				F765D0582A853DA3001D5116 /* ShareConfigurationManager.swift */,
 				F765D0562A852935001D5116 /* Share.swift */,
 				F765D0542A852911001D5116 /* ShareManager.swift */,
 				F79B1597274E722000C322A8 /* AppDelegate.swift */,
@@ -306,6 +309,7 @@
 			files = (
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
+				F765D0592A853DA3001D5116 /* ShareConfigurationManager.swift in Sources */,
 				F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */,
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,

@@ -16,7 +16,9 @@ class ShareManager {
     /// Add a share
     func addShare(_ share: Share) {
         os_unfair_lock_lock(&sharesLock)
-        _shares.append(share)
+        if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
+            _shares.append(share)
+        }
         os_unfair_lock_unlock(&sharesLock)
     }
     

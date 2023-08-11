@@ -101,7 +101,7 @@ class Mounter: ObservableObject {
                 let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
                
                 let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: userName, mountPoint: shareElement[Settings.mountPoint])
-                addShareIfNotDuplicate(newShare)
+                addShare(newShare)
             }
         } else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
             /// then look if we have some legacy mdm defined share definitions which will be read **only** if there is no `Settings.mdmNetworkSahresKey` defined!
@@ -113,7 +113,7 @@ class Mounter: ObservableObject {
                     continue
                 }
                 let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
-                addShareIfNotDuplicate(newShare)
+                addShare(newShare)
             }
         }
         // finally get shares defined by the user
@@ -127,7 +127,7 @@ class Mounter: ObservableObject {
                 }
                 let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
                 let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: shareElement[Settings.username])
-                addShareIfNotDuplicate(newShare)
+                addShare(newShare)
             }
         }
         // maybe even here we may have legacy user defined share definitions
@@ -137,7 +137,7 @@ class Mounter: ObservableObject {
                     continue
                 }
                 let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
-                addShareIfNotDuplicate(newShare)
+                addShare(newShare)
             }
         }
         ///
@@ -155,7 +155,7 @@ class Mounter: ObservableObject {
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
                 if let shareURL = URL(string: homeDirectory) {
                     let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
-                    addShareIfNotDuplicate(newShare)
+                    addShare(newShare)
                 }
             }
             // swiftlint:enable force_cast
@@ -176,11 +176,9 @@ class Mounter: ObservableObject {
     /// checks if there is already a share with the same network export. If not,
     /// adds the given share to the array of shares
     /// - Parameter share: share object to check and append to shares array
-    func addShareIfNotDuplicate(_ share: Share) {
-        if !shareManager.allShares.contains(where: { $0.networkShare == share.networkShare }) {
-            shareManager.addShare(share)
-            shares = shareManager.allShares
-        }
+    func addShare(_ share: Share) {
+        shareManager.addShare(share)
+        shares = shareManager.allShares
     }
     
     /// deletes a share at the given Index
