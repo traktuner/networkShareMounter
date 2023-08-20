@@ -84,7 +84,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                 } else {
                     if let newShareURL = URL(string: shareString) {
                         let newShare = Share.createShare(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted)
-                        Mounter.mounter.addShareIfNotDuplicate(newShare)
+                        Mounter.mounter.addShare(newShare)
                         Task {
                             do {
                                 try await Mounter.mounter.mountShare(forShare: newShare, atPath: Mounter.mounter.defaultMountPath)

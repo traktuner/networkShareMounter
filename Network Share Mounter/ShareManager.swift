@@ -31,8 +31,6 @@ class ShareManager {
     
     /// Get all shares
     var allShares: [Share] {
-        os_unfair_lock_lock(&sharesLock)
-        defer { os_unfair_lock_unlock(&sharesLock) }
         return _shares
     }
     
@@ -59,5 +57,62 @@ class ShareManager {
             return
         }
         _shares[index].updateMountStatus(to: newMountStatus)
+    }
+    
+    /// read dictionary of string containig definitions for the share to be mounted
+    /// - Parameter forShare shareElement: Array of String dictionary `[String:String]`
+    /// - Returns: optional `Share?` element
+    func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
+        guard let shareUrlString = shareElement[Settings.networkShare] else {
+            return nil
+        }
+        //
+        // check if there is a mdm defined username. If so, replace possible occurencies of %USERNAME% with that
+        var userName: String = ""
+        if let username = shareElement[Settings.username] {
+            userName = username.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+            userName = NSString(string: userName).expandingTildeInPath
+        }
+        
+        //
+        // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
+        let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+        guard let shareURL = URL(string: shareRectified) else {
+            return nil
+        }
+        let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        
+        let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: userName, mountPoint: shareElement[Settings.mountPoint])
+        return(newShare)
+    }
+    
+    /// read Network Share Mounter version 2 configuration and return an optional Share element
+    /// - Parameter forShare shareElement: an array of strings containig a list of network shares
+    /// - Returns: optional `Share?` element
+    func getLegacyShareConfig(forShare shareElement: String) -> Share? {
+        /// then look if we have some legacy mdm defined share definitions which will be read **only** if there is no `Settings.mdmNetworkSahresKey` defined!
+        //
+        // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
+        let shareRectified = shareElement.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+        guard let shareURL = URL(string: shareRectified) else {
+            return nil
+        }
+        let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
+        return(newShare)
+    }
+    
+    /// read user defined share configuration and return an optional Share element
+    /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
+    /// - Returns: optional `Share?` element
+    func getUserShareConfigs(forShare shareElement: [String: String]) -> Share? {
+        guard let shareUrlString = shareElement[Settings.networkShare] else {
+            return nil
+        }
+        guard let shareURL = URL(string: shareUrlString) else {
+            return nil
+        }
+        let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: shareElement[Settings.username])
+        return(newShare)
     }
 }

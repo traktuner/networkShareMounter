@@ -70,6 +70,7 @@ class Mounter: ObservableObject {
     init() {
         /// initialize the class with the array of shares containig the network shares
         self.shares = shareManager.allShares
+        
         /// create an array from values configured in UserDefaults
         /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
         /// or `Settings.mdmNetworkSahresKey` und user defined `Settings.customSharesKey`.
@@ -78,68 +79,41 @@ class Mounter: ObservableObject {
         /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, not both arays
         /// - then read user defined `Settings.customSharesKey`
         ///
-        /// first look if we have mdm share definitions
         if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
             for shareElement in sharesDict {
-                guard let shareUrlString = shareElement[Settings.networkShare] else {
-                    continue
+                if let newShare = shareManager.getMDMShareConfig(forShare: shareElement) {
+                    addShare(newShare)
                 }
-                //
-                // check if there is a mdm defined username. If so, replace possible occurencies of %USERNAME% with that
-                var userName: String = ""
-                if let username = shareElement[Settings.username] {
-                    userName = username.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-                    userName = NSString(string: userName).expandingTildeInPath
-                }
-                
-                //
-                // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
-                let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-                guard let shareURL = URL(string: shareRectified) else {
-                    continue
-                }
-                let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-               
-                let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: userName, mountPoint: shareElement[Settings.mountPoint])
-                addShare(newShare)
             }
-        } else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
-            /// then look if we have some legacy mdm defined share definitions which will be read **only** if there is no `Settings.mdmNetworkSahresKey` defined!
+        }
+        /// alternatively try to get configured shares with now obsolete
+        /// Network Share Mounter 2 definitions
+        else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
             for share in nwShares {
-                //
-                // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
-                let shareRectified = share.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-                guard let shareURL = URL(string: shareRectified) else {
-                    continue
+                if let newShare = shareManager.getLegacyShareConfig(forShare: share) {
+                    addShare(newShare)
                 }
-                let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
-                addShare(newShare)
             }
         }
-        // finally get shares defined by the user
-        if let sharesDict = userDefaults.array(forKey: Settings.customSharesKey) as? [[String: String]] {
-            for shareElement in sharesDict {
-                guard let shareUrlString = shareElement[Settings.networkShare] else {
-                    continue
+        /// next look if there are some user-defined shares to import
+        if let privSharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
+            for share in privSharesDict {
+                if let newShare = shareManager.getUserShareConfigs(forShare: share) {
+                    addShare(newShare)
                 }
-                guard let shareURL = URL(string: shareUrlString) else {
-                    continue
-                }
-                let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-                let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: shareElement[Settings.username])
-                addShare(newShare)
             }
         }
-        // maybe even here we may have legacy user defined share definitions
-        if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String] {
+        /// at last there may be legacy user defined share definitions
+        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String] {
             for share in nwShares {
                 guard let shareURL = URL(string: share) else {
                     continue
                 }
-                let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
-                addShare(newShare)
+                addShare(Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted))
             }
+            // TODO: convert those legay entries to new UserDefaults definition
         }
+
         ///
         /// try to to get SMBHomeDirectory (only possible in AD/Kerberos environments) and
         /// add the home-share to `shares`
