@@ -14,7 +14,7 @@ If the current user has the attribute `SMBHome` defined via LDAP or Active Direc
  `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`.
 
 ### ⚙️ Configuration preferences
-For an easier configuration of all the preference keys without creating or modifying a custom Configuration Profile in XML format we provieded a JSON Manifest Schema for Jamf Pro. [Download the manifest file](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/master/jamf-manifests/Network%20Share%20Mounter.json). We also added a manifest to the [iMazing Profile Edior](https://imazing.com/profile-editor). 
+For an easier configuration of all the preference keys without creating or modifying a custom Configuration Profile in XML format we provieded a JSON Manifest Schema for Jamf Pro. [Download the manifest file](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/dev/jamf-manifests/Network%20Share%20Mounter.json). We also added a manifest to the [iMazing Profile Edior](https://imazing.com/profile-editor). 
 
  The defaults domain for v2 is `de.fau.rrze.NetworkShareMounter`. Available payload values: 
 
