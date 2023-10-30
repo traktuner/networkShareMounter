@@ -8,6 +8,7 @@
 //
 
 import NetFS
+import Foundation
 
 struct Settings {
     static let defaultsDomain = "de.fau.rrze.NetworkShareMounter"
@@ -21,7 +22,8 @@ struct Settings {
         ] as! CFMutableDictionary
     static let mountOptions = [
         kNetFSAllowSubMountsKey: true,
-        kNetFSSoftMountKey: true
+        kNetFSSoftMountKey: true,
+        kNetFSMountAtMountDirKey: true
         ] as! CFMutableDictionary
     // swiftlint:enable force_cast
     static let filesToDelete = [
@@ -30,7 +32,12 @@ struct Settings {
     ]
     static let statisticsReportURL = "https://faumac.rrze.fau.de/apps"
     
-    /// userDefaults dictionary names
+    /// NSM version 1 and 2 the default path where shares got mounted
+    static let oldDefaultsMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
+    /// if not set otherwise mounts will be done under this path which defaults to macOS's efault `/Volumes`
+    static let defaultMountPath = "/Volumes"
+    
+    /// userDefaults dictionary names, used as keys in userDefaults:
     static let networkSharesKey = "networkShares"
     static let managedNetworkSharesKey = "managedNetworkShares"
     static let customSharesKey = "customNetworkShares"
