@@ -18,6 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window = NSWindow()
     let userDefaults = UserDefaults.standard
     var mountpath = ""
+    var mounter = Mounter()
 
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
@@ -25,6 +26,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var timer = Timer()
     
     let logger = Logger(subsystem: "NetworkShareMounter", category: "App")
+    
+    // define the activityController to et notifications from NSWorkspace
+    var activityController: ActivityController?
     
     //
     // initalize class which will perform all the automounter tasks
@@ -65,7 +69,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentViewController = NetworkShareMounterViewController.newInstance()
 
         // Do any additional setup after loading the view.
-        constructMenu(withMounter: Mounter.mounter)
+        constructMenu(withMounter: mounter)
         
         //
         // start a timer to perform a mount every 5 minutes
@@ -75,24 +79,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let netConnection = Monitor.shared
             let status = netConnection.netOn
             self.logger.info("Current Network Path is \(status, privacy: .public).")
-            Mounter.mounter.mountAllShares()
+            Task {
+                await self.mounter.mountAllShares()
+            }
         })
         
         //
         // start monitoring network connectivity and perform mount/unmount on network changes
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
-                Mounter.mounter.mountAllShares()
+                Task {
+                    await self.mounter.mountAllShares()
+                }
             } else {
                 Task {
-                    await Mounter.mounter.unmountAllShares()
+                    await self.mounter.unmountAllShares()
                 }
             }
         }
 
         //
-        // finally mount all defined shares
-        Mounter.mounter.mountAllShares()
+        // finally mount all defined shares...
+        Task {
+            await self.mounter.mountAllShares()
+        }
+        
+        // ...and fire up the activityController to get system/NSWorkspace notifications
+        activityController = ActivityController.init(withMounter: mounter)
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -100,7 +113,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // unmount all shares before leaving
         if userDefaults.bool(forKey: "unmountOnExit") == true {
             Task {
-                await Mounter.mounter.unmountAllShares()
+                await self.mounter.unmountAllShares()
             }
         }
         //
@@ -111,7 +124,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
         self.logger.info("Current Connection: \(connection.rawValue, privacy: .public) Is reachable: \(reachable.rawValue, privacy: .public)")
         if reachable == Reachable.yes {
-            mounter.mountAllShares()
+            Task {
+                await mounter.mountAllShares()
+            }
         }
     }
 
@@ -125,7 +140,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func openMountDir(_ sender: Any?) {
-        if let mountDirectory =  URL(string: Mounter.mounter.defaultMountPath) {
+        if let mountDirectory =  URL(string: self.mounter.defaultMountPath) {
             self.logger.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
         }
@@ -133,13 +148,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func mountManually(_ sender: Any?) {
         self.logger.info("User triggered mount all shares")
-        Mounter.mounter.mountAllShares()
+        Task {
+            await self.mounter.mountAllShares()
+        }
     }
     
     @objc func unmountShares(_ sender: Any?) {
         self.logger.info("User triggered unmount all shares")
         Task {
-            await Mounter.mounter.unmountAllShares()
+            await self.mounter.unmountAllShares()
         }
     }
     

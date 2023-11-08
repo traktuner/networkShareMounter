@@ -9,6 +9,7 @@
 import Foundation
 import Network
 import OSLog
+import AppKit
 
 enum Reachable: String {
     case yes, nope
