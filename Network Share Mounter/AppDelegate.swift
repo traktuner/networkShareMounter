@@ -89,10 +89,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
                 Task {
+                    self.logger.debug("Got network monitopring callback, mount shares.")
                     await self.mounter.mountAllShares()
                 }
             } else {
                 Task {
+                    self.logger.debug("Got network monitopring callback, unmount shares.")
                     await self.mounter.unmountAllShares()
                 }
             }

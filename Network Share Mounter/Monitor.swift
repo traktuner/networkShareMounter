@@ -16,7 +16,7 @@ enum Reachable: String {
 }
 
 enum Connection: String {
-    case cellular, loopback, wifi, wiredEthernet, other, unknown
+    case cellular, loopback, wifi, wiredEthernet, other, unknown, none
 }
 
 class Monitor {
@@ -43,19 +43,32 @@ extension Monitor {
             self.connType = self.checkConnectionTypeForPath(path)
             self.logger.info("Network connection changed to \(self.connType.rawValue, privacy: .public).")
 
-            if path.availableInterfaces.isEmpty {
-                return callBack(.other, .nope)
-            } else if path.usesInterfaceType(.wifi) {
-                return callBack(.wifi, reachable)
-            } else if path.usesInterfaceType(.cellular) {
-                return callBack(.cellular, reachable)
-            } else if path.usesInterfaceType(.loopback) {
-                return callBack(.loopback, reachable)
-            } else if path.usesInterfaceType(.wiredEthernet) {
-                return callBack(.wiredEthernet, reachable)
-            } else if path.usesInterfaceType(.other) {
-                return callBack(.other, reachable)
+            if path.status == .satisfied {
+                if path.usesInterfaceType(.wifi) {
+                    return callBack(.wifi, reachable)
+                } else if path.usesInterfaceType(.cellular) {
+                    return callBack(.cellular, reachable)
+                } else if path.usesInterfaceType(.wiredEthernet) {
+                    return callBack(.wiredEthernet, reachable)
+                } else {
+                    return callBack(.other, reachable)
+                }
+            } else {
+                return callBack(.none, .nope)
             }
+//            if path.availableInterfaces.isEmpty {
+//                return callBack(.other, .nope)
+//            } else if path.usesInterfaceType(.wifi) {
+//                return callBack(.wifi, reachable)
+//            } else if path.usesInterfaceType(.cellular) {
+//                return callBack(.cellular, reachable)
+//            } else if path.usesInterfaceType(.loopback) {
+//                return callBack(.loopback, reachable)
+//            } else if path.usesInterfaceType(.wiredEthernet) {
+//                return callBack(.wiredEthernet, reachable)
+//            } else if path.usesInterfaceType(.other) {
+//                return callBack(.other, .nope)
+//            }
         }
     }
 }
