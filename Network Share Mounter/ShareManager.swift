@@ -59,6 +59,20 @@ class ShareManager {
         _shares[index].updateMountStatus(to: newMountStatus)
     }
     
+    /// Update the mountPoint of a share at a specific index
+    /// - Parameters:
+    ///   - index: The index of the share to update
+    ///   - mountPoint: The mount point where the share is mounted
+    func updateMountPoint(at index: Int, to mountPoint: String?) {
+        os_unfair_lock_lock(&sharesLock)
+        defer { os_unfair_lock_unlock(&sharesLock) }
+        
+        guard index >= 0 && index < _shares.count else {
+            return
+        }
+        _shares[index].updateMountPoint(to: mountPoint)
+    }
+    
     /// read dictionary of string containig definitions for the share to be mounted
     /// - Parameter forShare shareElement: Array of String dictionary `[String:String]`
     /// - Returns: optional `Share?` element

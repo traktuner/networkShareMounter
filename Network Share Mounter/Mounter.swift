@@ -73,10 +73,10 @@ class Mounter: ObservableObject {
         
         /// create an array from values configured in UserDefaults
         /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
-        /// or `Settings.mdmNetworkSahresKey` und user defined `Settings.customSharesKey`.
+        /// or `Settings.mdmNetworkSahresKey` and user defined `Settings.customSharesKey`.
         ///
         /// **Imprtant**:
-        /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, not both arays
+        /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, NOT both arrays
         /// - then read user defined `Settings.customSharesKey`
         ///
         if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
@@ -111,7 +111,7 @@ class Mounter: ObservableObject {
                 }
                 addShare(Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted))
             }
-            // TODO: convert those legay entries to new UserDefaults definition
+            // TODO: convert those legacy entries to new UserDefaults definition
         }
 
         ///
@@ -139,7 +139,7 @@ class Mounter: ObservableObject {
         }
         // now create the directory where the shares will be mounted
         // check if there is a definition where the shares will be mounted, otherwiese use the default
-        if userDefaults.object(forKey: "location") as? String != "" {
+        if userDefaults.object(forKey: "location") as? String != nil {
             defaultMountPath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
         } else {
             defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
@@ -187,6 +187,16 @@ class Mounter: ObservableObject {
             shares = shareManager.allShares
         }
     }
+    
+    /// update the actualMountPoint for a share element
+    /// - Parameter actualMountPoint: an optional `String` definig where the share is mounted (or not, if not defined)
+    /// - Parameter for: share to be updated
+    func updateShare(actualMountPoint: String?, for share: Share) {
+        if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
+            shareManager.updateMountPoint(at: index, to: actualMountPoint)
+            shares = shareManager.allShares
+        }
+    }
    
     /// prepare folder where the shares will be mounted. It is basically the parent folder containing the mounts
     /// - Parameter atPath: path where the folder will be created
@@ -194,13 +204,13 @@ class Mounter: ObservableObject {
         do {
             //
             // try to create (if not exists) the directory where the network shares will be mounted
-            if !fm.fileExists(atPath: defaultMountPath) {
-                try fm.createDirectory(atPath: defaultMountPath, withIntermediateDirectories: false, attributes: nil)
-                logger.info("Base network mount directory \(self.defaultMountPath, privacy: .public): created")
+            if !fm.fileExists(atPath: mountPath) {
+                try fm.createDirectory(atPath: mountPath, withIntermediateDirectories: false, attributes: nil)
+                logger.info("Base network mount directory \(mountPath, privacy: .public): created")
             }
         } catch {
-            logger.error("Error creating mount folder: \(self.defaultMountPath, privacy: .public):")
-            logger.error("error.localizedDescription")
+            logger.error("Error creating mount folder: \(mountPath, privacy: .public):")
+            logger.error("\(error.localizedDescription)")
             exit(2)
         }
     }
@@ -248,6 +258,7 @@ class Mounter: ObservableObject {
     /// - Parameter path: A string containing the path of the directory containing the mountpoints (`mountpath`)
     /// - Parameter filename: A string containing the name of an obstructing file which should be deleted if it is found
     func deleteUnneededFiles(path: String, filename: String?) {
+    // TODO: doing a cleanup only for the default mount dir cleans obstructing files and directories but not SHARE-1 SHARE-2 direcotries on other locations
         do {
             var filePaths = try fm.contentsOfDirectory(atPath: path)
             filePaths.append("/")
@@ -356,6 +367,7 @@ class Mounter: ObservableObject {
     ///
     /// get all mounted shares and call `unmountShare`
     func unmountAllShares() async {
+        // TODO: don't use mountpath, instead read the shares struct and unmount every mount
         let mountpath = self.defaultMountPath
         for share in shares {
             let dir = share.networkShare
@@ -387,7 +399,43 @@ class Mounter: ObservableObject {
         }
         prepareMountPrerequisites()
     }
+    
     ///
+    /// get all mounted shares (those with the property `actualMountPoint` set) and call `unmountShares`
+    /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
+    func unmountAllMountedShares() async {
+        for share in shares {
+            if let mountpoint = share.actualMountPoint {
+                unmountShare(atPath: mountpoint) { result in
+                    switch result {
+                    case .success:
+                        self.logger.info("Successfully unmounted \(mountpoint), privacy: .public).")
+                        // share status update
+                        self.updateShare(mountStatus: .unmounted, for: share)
+                        // remove/undefine share mountpoint
+                        self.updateShare(actualMountPoint: nil, for: share)
+                    case .failure(let error):
+                        // error on unmount
+                        switch error {
+                        case .invalidMountPath:
+                            self.logger.warning("Could not unmount \(mountpoint), privacy: .public): invalid mount path")
+                            self.updateShare(mountStatus: .unmounted, for: share)
+                            self.updateShare(actualMountPoint: nil, for: share)
+                        case .unmountFailed:
+                            self.logger.warning("Could not unmount \(mountpoint), privacy: .public): unmount failed")
+                            self.updateShare(mountStatus: .mounted, for: share)
+                            self.updateShare(actualMountPoint: nil, for: share)
+                        default:
+                            self.logger.info("Could not unmount \(mountpoint), privacy: .public): unknown error")
+                            self.updateShare(mountStatus: .errorOnMount, for: share)
+                            self.updateShare(actualMountPoint: nil, for: share)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     /// prepare parent directory where the shares will be mounted
     func prepareMountPrerequisites() {
         // iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
@@ -398,11 +446,13 @@ class Mounter: ObservableObject {
         // The directory with the mounts for the network-shares should be empty. All
         // former directories not deleted by the mounter should be nuked to avoid
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
+        
+        // TODO: look if here "defaultMountPath" ist the right way to clean up share mounts. Maybe it's better to go through all defined shares, since some of them could use other mount paths
         deleteUnneededFiles(path: defaultMountPath, filename: nil)
     }
     
     /// performs mount operation for all shares
-    func mountAllShares() {
+    func mountAllShares() async {
         //
         // Check for network connectivity
         let netConnection = Monitor.shared

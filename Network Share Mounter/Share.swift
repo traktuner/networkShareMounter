@@ -28,6 +28,9 @@ enum MountStatus: String {
 /// - Parameter username: optional ``String`` containing the username needed to mount a share
 /// - Parameter mountStatus: Optional ``MountStatus`` describing the actual mount status
 /// - Parameter password: optional ``String`` containing the password to mount the share. Both username and password are retrieved from user's keychain
+/// - Parameter actualMountPoint: optional ``String`` containig the full path of the mountpoint where the
+///   share is actually mounted. This value is set by the mount routine if the mount is successfully mounted and should be removed when the share is
+///   unmounted
 ///
 /// *The following variables could be useful in future versions:*
 /// - options: array of parameters for the mount command
@@ -37,9 +40,10 @@ struct Share: Identifiable {
     var networkShare: URL
     var authType: AuthType
     var username: String?
-    var mountStatus: MountStatus
     var password: String?
+    var mountStatus: MountStatus
     var mountPoint: String?
+    var actualMountPoint: String?
     var id = UUID()
     
     /// Lock for thread-safe access to Share properties
@@ -74,8 +78,15 @@ struct Share: Identifiable {
         }
     }
     
+    /// Update the mount point of a share
+    mutating func updateMountPoint(to mountPoint: String?) {
+        modify { share in
+            share.mountPoint = mountPoint
+        }
+    }
+    
     /// factory-method, to create a new Share object
     static func createShare(networkShare: URL, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil) -> Share {
-        return Share(networkShare: networkShare, authType: authType, username: username, mountStatus: mountStatus, password: password, mountPoint: mountPoint, id: UUID())
+        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, id: UUID())
     }
 }
