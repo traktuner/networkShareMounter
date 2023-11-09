@@ -369,7 +369,7 @@ class Mounter: ObservableObject {
     ///
     /// get all mounted shares (those with the property `actualMountPoint` set) and call `unmountShares`
     /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
-    func unmountAllMountedShares() async {
+    func unmountAllMountedShares(userTriggered: Bool = false) async {
         for share in shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
                 await unmountShare(atPath: mountpoint) { [self] result in
@@ -377,7 +377,11 @@ class Mounter: ObservableObject {
                     case .success:
                         logger.info("Successfully unmounted \(mountpoint, privacy: .public).")
                         // share status update
-                        updateShare(mountStatus: .unmounted, for: share)
+                        if userTriggered {
+                            updateShare(mountStatus: .userUnmounted, for: share)
+                        } else {
+                            updateShare(mountStatus: .unmounted, for: share)
+                        }
                         // remove/undefine share mountpoint
                         updateShare(actualMountPoint: nil, for: share)
                     case .failure(let error):
@@ -419,7 +423,7 @@ class Mounter: ObservableObject {
     }
     
     /// performs mount operation for all shares
-    func mountAllShares() async {
+    func mountAllShares(userTriggered: Bool = false) async {
         //
         // Check for network connectivity
         let netConnection = Monitor.shared
@@ -432,6 +436,11 @@ class Mounter: ObservableObject {
 //                await prepareMountPrerequisites()
                 for share in self.shareManager.allShares {
                     do {
+                        // if the mount was triggered by user set mountStatus
+                        // to .unmounted so it will be mounted
+                        if userTriggered {
+                            updateShare(mountStatus: .unmounted, for: share)
+                        }
                         // TODO: define mountpath (mountdir and under which name)
 //                        self.updateShare(mountStatus: .queued, for: share)
                         let actualMountpoint = try await mountShare(forShare: share, atPath: defaultMountPath)
@@ -534,7 +543,7 @@ class Mounter: ObservableObject {
         if !isDirectoryFilesystemMount(atPath: mountDirectory) {
             // if mountStatus is not `mounted` and not `queued` (aka currently trying to mount) and not `errorOnMount` -> try the mount
             //            if share.mountStatus != MountStatus.mounted && share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount {
-            if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount {
+            if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted {
                 logger.debug("Called mount of \(url, privacy: .public) on path \(mountPath, privacy: .public)")
                 updateShare(mountStatus: .queued, for: share)
                 var mountOptions = Settings.mountOptions
