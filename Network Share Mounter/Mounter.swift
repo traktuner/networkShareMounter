@@ -49,8 +49,9 @@ enum AuthType: String {
 /// classe tro perform mount/unmount operations for network shares
 class Mounter: ObservableObject {
     /// @Published var shares: [Share] allows publishing changes to the shares array
-    @Published var shares = [Share]()
-    private var shareManager = ShareManager()
+//    @Published var shares = [Share]()
+//    private var shareManager = ShareManager()
+    @Published var shareManager = ShareManager()
     
     /// convenience variable for `FileManager.default`
     private let fm = FileManager.default
@@ -72,7 +73,7 @@ class Mounter: ObservableObject {
     
     init() {
         /// initialize the class with the array of shares containig the network shares
-        self.shares = shareManager.allShares
+//        self.shares = shareManager.allShares
         
         /// create an array from values configured in UserDefaults
         /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
@@ -155,7 +156,7 @@ class Mounter: ObservableObject {
     /// - Parameter share: share object to check and append to shares array
     func addShare(_ share: Share) {
         shareManager.addShare(share)
-        shares = shareManager.allShares
+//        shares = shareManager.allShares
     }
     
     /// deletes a share at the given Index
@@ -164,7 +165,7 @@ class Mounter: ObservableObject {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             logger.info("Deleting share: \(share.networkShare, privacy: .public) at Index \(index, privacy: .public)")
             shareManager.removeShare(at: index)
-            shares = shareManager.allShares
+//            shares = shareManager.allShares
         }
     }
     
@@ -172,7 +173,7 @@ class Mounter: ObservableObject {
     func updateShare(for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateShare(at: index, withUpdatedShare: share)
-            shares = shareManager.allShares
+//            shares = shareManager.allShares
         }
     }
     
@@ -188,7 +189,7 @@ class Mounter: ObservableObject {
     func updateShare(mountStatus: MountStatus, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateMountStatus(at: index, to: mountStatus)
-            shares = shareManager.allShares
+//            shares = shareManager.allShares
         }
     }
     
@@ -198,7 +199,7 @@ class Mounter: ObservableObject {
     func updateShare(actualMountPoint: String?, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
-            shares = shareManager.allShares
+//            shares = shareManager.allShares
         }
     }
    
@@ -300,7 +301,7 @@ class Mounter: ObservableObject {
                     // Now let's check if there is some SHARE-1, SHARE-2, ... mount and unmount it
                     //
                     // compare list of shares with mount
-                    for share in self.shares {
+                    for share in self.shareManager.allShares {
                         let shareDirName = share.networkShare
                         //
                         // get the last component of the share, since this is the name of the mount-directory
@@ -369,7 +370,7 @@ class Mounter: ObservableObject {
     /// get all mounted shares (those with the property `actualMountPoint` set) and call `unmountShares`
     /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
     func unmountAllMountedShares() async {
-        for share in shares {
+        for share in shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
                 await unmountShare(atPath: mountpoint) { [self] result in
                     switch result {
@@ -424,12 +425,12 @@ class Mounter: ObservableObject {
         let netConnection = Monitor.shared
         
         if netConnection.netOn {
-            if self.shares.isEmpty {
+            if self.shareManager.allShares.isEmpty {
                 logger.info("No shares configured.")
             } else {
                 // perform cleanup routines before mounting
 //                await prepareMountPrerequisites()
-                for share in self.shares {
+                for share in self.shareManager.allShares {
                     do {
                         // TODO: define mountpath (mountdir and under which name)
 //                        self.updateShare(mountStatus: .queued, for: share)
@@ -462,7 +463,7 @@ class Mounter: ObservableObject {
     /// set mountStatus for all shares
     /// - Parameter to status: mount status of type MountStatus
     func setAllMountStatus(to status: MountStatus) async {
-        for share in shares {
+        for share in shareManager.allShares {
             updateShare(mountStatus: status, for: share)
         }
     }
