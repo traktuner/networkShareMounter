@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if reachable.rawValue == "yes" {
                 Task {
                     self.logger.debug("Got network monitoring callback, mount shares.")
-                    await self.mounter.mountAllShares()
+                    await self.mounter.mountAllShares(userTriggered: true)
                 }
             } else {
                 Task {
@@ -155,14 +155,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func mountManually(_ sender: Any?) {
         self.logger.debug("User triggered mount all shares")
         Task {
-            await self.mounter.mountAllShares()
+            await self.mounter.mountAllShares(userTriggered: true)
         }
     }
     
     @objc func unmountShares(_ sender: Any?) {
         self.logger.debug("User triggered unmount all shares")
         Task {
-            await self.mounter.unmountAllMountedShares()
+            await self.mounter.unmountAllMountedShares(userTriggered: true)
         }
     }
     

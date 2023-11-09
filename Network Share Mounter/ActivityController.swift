@@ -50,7 +50,7 @@ class ActivityController {
         logger.debug("mountAllShares called by didWakeNotification")
         // TODO: call mount shares
         Task {
-            await self.mounter.mountAllShares()
+            await self.mounter.mountAllShares(userTriggered: true)
         }
     }
 }
