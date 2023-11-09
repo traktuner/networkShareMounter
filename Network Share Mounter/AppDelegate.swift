@@ -89,7 +89,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
                 Task {
-                    self.logger.debug("Got network monitopring callback, mount shares.")
+                    self.logger.debug("Got network monitoring callback, mount shares.")
                     await self.mounter.mountAllShares()
                 }
             } else {
@@ -97,7 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // since the mount status after a network change is unknown it will be set
                     // to unknown so it can be tested and maybe remounted if the network connects again
                     await self.mounter.setAllMountStatus(to: MountStatus.undefined)
-                    self.logger.debug("Got network monitopring callback, unmount shares.")
+                    self.logger.debug("Got network monitoring callback, unmount shares.")
                     // trying to unmount all shares
                     await self.mounter.unmountAllMountedShares()
                 }
