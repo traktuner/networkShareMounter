@@ -14,12 +14,15 @@ import Foundation
 /// - Parameter queued: queued for mounting
 /// - Parameter toBeMounted: share should be mounted
 /// - Parameter errorOnMount: failed to mount a shared
+/// - Parameter undefined: share is in an undefined state, e.g. after a network change notification an needs to be checked
 enum MountStatus: String {
     case unmounted = "unmounted"
     case mounted = "mounted"
     case queued = "queued"
     case toBeMounted = "toBeMounted"
     case errorOnMount = "errorOnMount"
+    case unrechable = "unreachable"
+    case undefined = "undefined"
 }
 
 /// describes the different properties and states of a share
@@ -82,6 +85,13 @@ struct Share: Identifiable {
     mutating func updateMountPoint(to mountPoint: String?) {
         modify { share in
             share.mountPoint = mountPoint
+        }
+    }
+    
+    /// Update the mount point of a share
+    mutating func updateActualMountPoint(to actualMountPoint: String?) {
+        modify { share in
+            share.actualMountPoint = actualMountPoint
         }
     }
     

@@ -94,8 +94,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             } else {
                 Task {
+                    // since the mount status after a network change is unknown it will be set
+                    // to unknown so it can be tested and maybe remounted if the network connects again
+                    await self.mounter.setAllMountStatus(to: MountStatus.undefined)
                     self.logger.debug("Got network monitopring callback, unmount shares.")
-                    await self.mounter.unmountAllShares()
+                    // trying to unmount all shares
+                    await self.mounter.unmountAllMountedShares()
                 }
             }
         }
@@ -115,7 +119,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // unmount all shares before leaving
         if userDefaults.bool(forKey: "unmountOnExit") == true {
             Task {
-                await self.mounter.unmountAllShares()
+                await self.mounter.unmountAllMountedShares()
             }
         }
         //
@@ -149,16 +153,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func mountManually(_ sender: Any?) {
-        self.logger.info("User triggered mount all shares")
+        self.logger.debug("User triggered mount all shares")
         Task {
             await self.mounter.mountAllShares()
         }
     }
     
     @objc func unmountShares(_ sender: Any?) {
-        self.logger.info("User triggered unmount all shares")
+        self.logger.debug("User triggered unmount all shares")
         Task {
-            await self.mounter.unmountAllShares()
+            await self.mounter.unmountAllMountedShares()
         }
     }
     

@@ -62,7 +62,7 @@ class ShareManager {
     /// Update the mountPoint of a share at a specific index
     /// - Parameters:
     ///   - index: The index of the share to update
-    ///   - mountPoint: The mount point where the share is mounted
+    ///   - mountPoint: The mount point where the share should be mounted
     func updateMountPoint(at index: Int, to mountPoint: String?) {
         os_unfair_lock_lock(&sharesLock)
         defer { os_unfair_lock_unlock(&sharesLock) }
@@ -71,6 +71,20 @@ class ShareManager {
             return
         }
         _shares[index].updateMountPoint(to: mountPoint)
+    }
+    
+    /// Update the actual used mountPoint of a share at a specific index
+    /// - Parameters:
+    ///   - index: The index of the share to update
+    ///   - actualMountPoint: The mount point where the share is mounted
+    func updateActualMountPoint(at index: Int, to actualMountPoint: String?) {
+        os_unfair_lock_lock(&sharesLock)
+        defer { os_unfair_lock_unlock(&sharesLock) }
+        
+        guard index >= 0 && index < _shares.count else {
+            return
+        }
+        _shares[index].updateActualMountPoint(to: actualMountPoint)
     }
     
     /// read dictionary of string containig definitions for the share to be mounted
