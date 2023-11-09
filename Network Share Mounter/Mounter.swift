@@ -369,6 +369,7 @@ class Mounter: ObservableObject {
     ///
     /// get all mounted shares (those with the property `actualMountPoint` set) and call `unmountShares`
     /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
+    /// - Parameter userTriggered: boolean to define if unmount was triggered by user, defaults to false
     func unmountAllMountedShares(userTriggered: Bool = false) async {
         for share in shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
@@ -378,8 +379,10 @@ class Mounter: ObservableObject {
                         logger.info("Successfully unmounted \(mountpoint, privacy: .public).")
                         // share status update
                         if userTriggered {
+                            // if unmount was triggered by the user, set mountStatus in share to userUnmounted
                             updateShare(mountStatus: .userUnmounted, for: share)
                         } else {
+                            // else set share mountStatus to unmounted
                             updateShare(mountStatus: .unmounted, for: share)
                         }
                         // remove/undefine share mountpoint
@@ -423,6 +426,7 @@ class Mounter: ObservableObject {
     }
     
     /// performs mount operation for all shares
+    /// - Parameter userTriggered: boolean to define if mount was triggered by user, defaults to false
     func mountAllShares(userTriggered: Bool = false) async {
         //
         // Check for network connectivity
@@ -436,8 +440,8 @@ class Mounter: ObservableObject {
 //                await prepareMountPrerequisites()
                 for share in self.shareManager.allShares {
                     do {
-                        // if the mount was triggered by user set mountStatus
-                        // to .unmounted so it will be mounted
+                        // if the mount was triggered by user, set mountStatus
+                        // to .unmounted and therefore it will try to mount
                         if userTriggered {
                             updateShare(mountStatus: .unmounted, for: share)
                         }

@@ -56,19 +56,6 @@ extension Monitor {
             } else {
                 return callBack(.none, .nope)
             }
-//            if path.availableInterfaces.isEmpty {
-//                return callBack(.other, .nope)
-//            } else if path.usesInterfaceType(.wifi) {
-//                return callBack(.wifi, reachable)
-//            } else if path.usesInterfaceType(.cellular) {
-//                return callBack(.cellular, reachable)
-//            } else if path.usesInterfaceType(.loopback) {
-//                return callBack(.loopback, reachable)
-//            } else if path.usesInterfaceType(.wiredEthernet) {
-//                return callBack(.wiredEthernet, reachable)
-//            } else if path.usesInterfaceType(.other) {
-//                return callBack(.other, .nope)
-//            }
         }
     }
 }
