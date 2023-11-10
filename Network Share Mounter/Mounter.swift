@@ -36,6 +36,7 @@ enum MounterError: Error {
     case timedOutHost
     case authenticationError
     case hostIsDown
+    case userUnmounted
 }
 
 /// defines authentication type to mount a share
@@ -373,35 +374,37 @@ class Mounter: ObservableObject {
     func unmountAllMountedShares(userTriggered: Bool = false) async {
         for share in shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
-                await unmountShare(atPath: mountpoint) { [self] result in
-                    switch result {
-                    case .success:
-                        logger.info("Successfully unmounted \(mountpoint, privacy: .public).")
-                        // share status update
-                        if userTriggered {
-                            // if unmount was triggered by the user, set mountStatus in share to userUnmounted
-                            updateShare(mountStatus: .userUnmounted, for: share)
-                        } else {
-                            // else set share mountStatus to unmounted
-                            updateShare(mountStatus: .unmounted, for: share)
-                        }
-                        // remove/undefine share mountpoint
-                        updateShare(actualMountPoint: nil, for: share)
-                    case .failure(let error):
-                        // error on unmount
-                        switch error {
-                        case .invalidMountPath:
-                            logger.warning("Could not unmount \(mountpoint, privacy: .public): invalid mount path")
-                            updateShare(mountStatus: .unmounted, for: share)
+                Task {
+                    await unmountShare(atPath: mountpoint) { [self] result in
+                        switch result {
+                        case .success:
+                            logger.info("Successfully unmounted \(mountpoint, privacy: .public).")
+                            // share status update
+                            if userTriggered {
+                                // if unmount was triggered by the user, set mountStatus in share to userUnmounted
+                                updateShare(mountStatus: .userUnmounted, for: share)
+                            } else {
+                                // else set share mountStatus to unmounted
+                                updateShare(mountStatus: .unmounted, for: share)
+                            }
+                            // remove/undefine share mountpoint
                             updateShare(actualMountPoint: nil, for: share)
-                        case .unmountFailed:
-                            logger.warning("Could not unmount \(mountpoint, privacy: .public): unmount failed")
-                            updateShare(mountStatus: .undefined, for: share)
-                            updateShare(actualMountPoint: nil, for: share)
-                        default:
-                            logger.info("Could not unmount \(mountpoint, privacy: .public): unknown error")
-                            updateShare(mountStatus: .undefined, for: share)
-                            updateShare(actualMountPoint: nil, for: share)
+                        case .failure(let error):
+                            // error on unmount
+                            switch error {
+                            case .invalidMountPath:
+                                logger.warning("Could not unmount \(mountpoint, privacy: .public): invalid mount path")
+                                updateShare(mountStatus: .unmounted, for: share)
+                                updateShare(actualMountPoint: nil, for: share)
+                            case .unmountFailed:
+                                logger.warning("Could not unmount \(mountpoint, privacy: .public): unmount failed")
+                                updateShare(mountStatus: .undefined, for: share)
+                                updateShare(actualMountPoint: nil, for: share)
+                            default:
+                                logger.info("Could not unmount \(mountpoint, privacy: .public): unknown error")
+                                updateShare(mountStatus: .undefined, for: share)
+                                updateShare(actualMountPoint: nil, for: share)
+                            }
                         }
                     }
                 }
@@ -439,32 +442,34 @@ class Mounter: ObservableObject {
                 // perform cleanup routines before mounting
 //                await prepareMountPrerequisites()
                 for share in self.shareManager.allShares {
-                    do {
-                        // if the mount was triggered by user, set mountStatus
-                        // to .unmounted and therefore it will try to mount
-                        if userTriggered {
-                            updateShare(mountStatus: .unmounted, for: share)
+                    Task {
+                        do {
+                            // if the mount was triggered by user, set mountStatus
+                            // to .unmounted and therefore it will try to mount
+                            if userTriggered {
+                                updateShare(mountStatus: .unmounted, for: share)
+                            }
+                            let actualMountpoint = try await mountShare(forShare: share, atPath: defaultMountPath)
+                            updateShare(actualMountPoint: actualMountpoint, for: share)
+                        } catch MounterError.doesNotExist {
+                            updateShare(mountStatus: .errorOnMount, for: share)
+                        } catch MounterError.timedOutHost {
+                            updateShare(mountStatus: .unrechable, for: share)
+                        } catch MounterError.hostIsDown {
+                            updateShare(mountStatus: .unrechable, for: share)
+                        } catch MounterError.noRouteToHost {
+                            updateShare(mountStatus: .unrechable, for: share)
+                        } catch MounterError.authenticationError {
+                            updateShare(mountStatus: .toBeMounted, for: share)
+                        } catch MounterError.shareDoesNotExist {
+                            updateShare(mountStatus: .errorOnMount, for: share)
+                        } catch MounterError.mountIsQueued {
+                            updateShare(mountStatus: .queued, for: share)
+                        } catch MounterError.userUnmounted {
+                            updateShare(mountStatus: .userUnmounted, for: share)
+                        } catch {
+                            updateShare(mountStatus: .unrechable, for: share)
                         }
-                        // TODO: define mountpath (mountdir and under which name)
-//                        self.updateShare(mountStatus: .queued, for: share)
-                        let actualMountpoint = try await mountShare(forShare: share, atPath: defaultMountPath)
-                        updateShare(actualMountPoint: actualMountpoint, for: share)
-                    } catch MounterError.doesNotExist {
-                        updateShare(mountStatus: .errorOnMount, for: share)
-                    } catch MounterError.timedOutHost {
-                        updateShare(mountStatus: .unrechable, for: share)
-                    } catch MounterError.hostIsDown {
-                        updateShare(mountStatus: .unrechable, for: share)
-                    } catch MounterError.noRouteToHost {
-                        updateShare(mountStatus: .unrechable, for: share)
-                    } catch MounterError.authenticationError {
-                        updateShare(mountStatus: .toBeMounted, for: share)
-                    } catch MounterError.shareDoesNotExist {
-                        updateShare(mountStatus: .errorOnMount, for: share)
-                    } catch MounterError.mountIsQueued {
-                        updateShare(mountStatus: .queued, for: share)
-                    } catch {
-                        updateShare(mountStatus: .unrechable, for: share)
                     }
                 }
             }
@@ -541,42 +546,14 @@ class Mounter: ObservableObject {
             mountDirectory += "/" + (url.lastPathComponent ?? "")
         }
         
-        //        //
-        //        // check if there's already a directory named like the share
-        //        if !isDirectoryFilesystemMount(atPath: defaultMountPath.appendingPathComponent(mountDir)) {
+        // check if there's already a directory of type filesystemMount named like the share.
+        // If there is, the share ist PROBABLY already mounted. We should double check this, but
+        //
         if !isDirectoryFilesystemMount(atPath: mountDirectory) {
-            // if mountStatus is not `mounted` and not `queued` (aka currently trying to mount) and not `errorOnMount` -> try the mount
-            //            if share.mountStatus != MountStatus.mounted && share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount {
             if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted {
                 logger.debug("Called mount of \(url, privacy: .public) on path \(mountPath, privacy: .public)")
                 updateShare(mountStatus: .queued, for: share)
                 var mountOptions = Settings.mountOptions
-                //            var mountOptions = [
-                //                kNetFSAllowSubMountsKey: true,
-                //                kNetFSSoftMountKey: true
-                //                ] as! CFMutableDictionary
-                //
-                // check if a specific mountpoint is defined. If yes, the mountpoint will be
-                // added to the mountpath and kNetFSMountAtMountDirKey will be set to true.
-                // this means, that the mount will be done on the specified mountpath instead
-                // of below it
-                // (https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.8.sdk/System/Library/Frameworks/NetFS.framework/Versions/A/Headers/NetFS.h
-                // swiftlint:disable force_cast
-                
-                // new idea: mount at specific mountpoint instead of letting the OS do it
-                //                var mountDirectory = defaultMountPath
-                //                var mountDirectory = mountPath
-                //                if let mountPoint = share.mountPoint {
-                //                    mountDirectory += "/" + mountPoint
-                //                } else {
-                //                    mountDirectory += "/" + (url.lastPathComponent ?? "")
-                //                }
-                //                    mountOptions = [
-                //                        kNetFSAllowSubMountsKey: true,
-                //                        kNetFSSoftMountKey: true,
-                //                        kNetFSMountAtMountDirKey: true
-                //                    ] as! CFMutableDictionary
-                //                }
                 try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
                 // swiftlint:enable force_cast
                 let rc = NetFSMountURLSync(url as CFURL,
@@ -586,6 +563,7 @@ class Mounter: ObservableObject {
                                            Settings.openOptions,
                                            mountOptions,
                                            nil)
+                // swiftlint:disable force_cast
                 switch rc {
                 case 0:
                     logger.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
@@ -628,6 +606,9 @@ class Mounter: ObservableObject {
             } else if share.mountStatus == MountStatus.errorOnMount {
                 logger.info("Share \(url, privacy: .public) not mounted, last time I tried I got a mount error.")
                 throw MounterError.otherError
+            } else if share.mountStatus == MountStatus.userUnmounted {
+                logger.info("Share \(url, privacy: .public) user decied to unmount all shares, not mounting them.")
+                throw MounterError.userUnmounted
             } else {
                 logger.info("Share \(url, privacy: .public) not mounted, I do not know why. It just happened.")
                 throw MounterError.otherError
