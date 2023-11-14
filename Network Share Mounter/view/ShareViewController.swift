@@ -32,6 +32,10 @@ class ShareViewController: NSViewController {
     @IBOutlet private weak var usernameTextField: NSTextField!
     @IBOutlet private weak var passwordTextField: NSSecureTextField!
     @IBOutlet private weak var mountPathTextField: NSTextField!
+    @IBOutlet weak var networkShareAddressInfo: NSButton!
+    @IBOutlet weak var authTypeInfo: NSButton!
+    @IBOutlet weak var authenticationInfo: NSButton!
+    @IBOutlet weak var mountPointInfo: NSButton!
     
     // MARK: - View Lifecycle
     
@@ -39,6 +43,10 @@ class ShareViewController: NSViewController {
         super.viewDidLoad()
         
         configureView()
+        networkShareAddressInfo.image = NSImage(named: NSImage.Name("240px-info"))
+        authTypeInfo.image = NSImage(named: NSImage.Name("240px-info"))
+        authenticationInfo.image = NSImage(named: NSImage.Name("240px-info"))
+        mountPointInfo.image = NSImage(named: NSImage.Name("240px-info"))
     }
     
     // MARK: - Actions
@@ -74,6 +82,27 @@ class ShareViewController: NSViewController {
             usernameTextField.isEnabled = false
             passwordTextField.isEnabled = false
         }
+    }
+    
+    @IBAction func networkShareAddressInfoPressed(_ sender: Any) {
+        let popoverShareViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("PopoverInfoViewController")) as? NSViewController
+        let popover = NSPopover()
+        popover.contentViewController = popoverShareViewController
+        popover.animates = true
+        // swiftlint:disable force_cast
+        let button = sender as! NSButton
+        // swiftlint:enable force_cast
+        popover.show(relativeTo: button.frame, of: self.view, preferredEdge: NSRectEdge.minY)
+        popover.behavior = NSPopover.Behavior.transient
+    }
+    
+    @IBAction func authTypeInfoPressed(_ sender: Any) {
+    }
+    
+    @IBAction func authenticationInfoPressed(_ sender: Any) {
+    }
+    
+    @IBAction func mountPointInfoPressed(_ sender: Any) {
     }
     
     @IBAction private func cancelButtonTapped(_ sender: NSButton) {

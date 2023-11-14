@@ -83,9 +83,11 @@ struct AppStatistics {
         do {
             logger.debug("Trying to connect to statistics server ...")
             let (_, response) = try await session.data(for: request)
+            // swiftlint:disable force_cast
             if (response as! HTTPURLResponse).statusCode == 200 {
                 logger.debug("Reported app statistics.")
             }
+            // swiftlint:enable force_cast
         } catch {
             logger.notice("Connection to reporting server failed.")
         }
