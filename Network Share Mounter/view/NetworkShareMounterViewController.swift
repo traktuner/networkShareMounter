@@ -151,6 +151,18 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         }
         return viewcontroller
     }
+    
+    override func performSegue(withIdentifier identifier: String, sender: Any?) {
+        print("segue - \(identifier)")
+
+//        if let destinationViewController = segue.destination as? ShareViewController {
+//            if let button = sender as? UIButton {
+//                    secondViewController.<buttonIndex> = button.tag
+//                    // Note: add/define var buttonIndex: Int = 0 in <YourDestinationViewController> and print there in viewDidLoad.
+//            }
+//
+//          }
+      }
 
 }
 
