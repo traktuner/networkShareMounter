@@ -683,7 +683,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="527" height="392"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
+                            <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
                                 <rect key="frame" x="20" y="352" width="329" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="329" id="NaM-QM-pJw"/>
@@ -723,7 +723,7 @@
                                                             <rect key="frame" x="8" y="0.0" width="468" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
-                                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
+                                                                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
                                                                     <rect key="frame" x="0.0" y="4" width="453" height="16"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="cMp-HE-rms">
                                                                         <font key="font" usesAppearanceFont="YES"/>
@@ -787,7 +787,7 @@
                                     </binding>
                                 </connections>
                             </button>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
                                 <rect key="frame" x="46" y="80" width="463" height="104"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="104" id="PxI-GN-qLt"/>
@@ -815,7 +815,7 @@ The connection will be testet immediately and will be added only if the server i
                             <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
                                 <rect key="frame" x="20" y="78" width="487" height="5"/>
                             </box>
-                            <textField identifier="appVersion" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
+                            <textField identifier="appVersion" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
                                 <rect key="frame" x="18" y="20" width="63" height="14"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="appVersion" id="GYJ-8b-PG2">
                                     <font key="font" metaFont="smallSystem"/>
@@ -837,7 +837,7 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
                                 </connections>
                             </button>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="U1x-R4-MXP">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="U1x-R4-MXP">
                                 <rect key="frame" x="273" y="20" width="236" height="14"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Developed with ❤️ by FAUmac Team @ FAU" id="Gh3-O0-3mY">
                                     <font key="font" metaFont="smallSystem"/>
@@ -859,7 +859,7 @@ The connection will be testet immediately and will be added only if the server i
                                     <fragment content="Additional network drives may be configured"/>
                                 </attributedString>
                             </button>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
                                 <rect key="frame" x="46" y="202" width="435" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Additional shares" id="2H5-ga-rE8">
@@ -935,75 +935,63 @@ The connection will be testet immediately and will be added only if the server i
                         <rect key="frame" x="0.0" y="0.0" width="617" height="337"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TWC-7v-gbr">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TWC-7v-gbr">
                                 <rect key="frame" x="18" y="301" width="296" height="16"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="292" id="Mou-SL-Nnw"/>
-                                </constraints>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Network share address" id="a90-PA-mz8">
                                     <font key="font" usesAppearanceFont="YES"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="tXZ-2F-XEj">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tXZ-2F-XEj">
                                 <rect key="frame" x="18" y="271" width="257" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Active Directory / Kerberos authentication" id="eVA-NB-rDE">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Yd8-w1-vJf">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yd8-w1-vJf">
                                 <rect key="frame" x="18" y="242" width="197" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Username on the network share" id="gUE-zm-T5N">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="dPF-y7-z2y">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dPF-y7-z2y">
                                 <rect key="frame" x="18" y="211" width="194" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Password on the network share" id="5fb-mu-cd4">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="3aE-wj-lU8">
-                                <rect key="frame" x="18" y="180" width="232" height="16"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="path where the share will be mounted" id="pLI-ew-uOb">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="i3D-kw-hBc">
+                            <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="i3D-kw-hBc">
                                 <rect key="frame" x="307" y="298" width="290" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="hQs-yn-2pH">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fia-Z0-U3w">
+                            <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fia-Z0-U3w">
                                 <rect key="frame" x="307" y="239" width="290" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="cm7-oq-XeS">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="G3c-89-ZoE">
-                                <rect key="frame" x="307" y="177" width="290" height="21"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="WxS-aX-4Qd">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <secureTextField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mdA-UP-dTn">
+                            <secureTextField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mdA-UP-dTn">
                                 <rect key="frame" x="307" y="208" width="290" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="D64-vR-s4M">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -1013,14 +1001,16 @@ The connection will be testet immediately and will be added only if the server i
                                     </allowedInputSourceLocales>
                                 </secureTextFieldCell>
                             </secureTextField>
-                            <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="ciR-nE-hXS">
+                            <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="ciR-nE-hXS">
                                 <rect key="frame" x="557" y="266" width="42" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <connections>
                                     <action selector="authTypeSwitchChanged:" target="H6U-AN-RMc" id="u9N-Wq-UVV"/>
                                 </connections>
                             </switch>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="V28-4N-8eM">
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="V28-4N-8eM">
                                 <rect key="frame" x="13" y="13" width="124" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="2R8-Za-AZT">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1028,32 +1018,24 @@ The connection will be testet immediately and will be added only if the server i
 Gw
 </string>
                                 </buttonCell>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="110" id="e9y-Jv-uNz"/>
-                                </constraints>
                                 <connections>
                                     <action selector="cancelButtonTapped:" target="H6U-AN-RMc" id="K2O-Bg-sB9"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JNn-QP-JtC">
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JNn-QP-JtC">
                                 <rect key="frame" x="480" y="13" width="124" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Save" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="l6h-Ep-Kih">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="110" id="bBj-PK-nBI"/>
-                                </constraints>
                                 <connections>
                                     <action selector="saveButtonTapped:" target="H6U-AN-RMc" id="0Fj-6u-zj4"/>
                                 </connections>
                             </button>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IHB-Jc-5sI">
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IHB-Jc-5sI">
                                 <rect key="frame" x="77" y="48" width="463" height="104"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="104" id="RWV-iU-RaG"/>
-                                    <constraint firstAttribute="width" constant="459" id="bXW-qd-lf4"/>
-                                </constraints>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" selectable="YES" enabled="NO" id="SyX-Mr-uDg">
                                     <font key="font" metaFont="system"/>
                                     <string key="title">You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. 
@@ -1091,65 +1073,7 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="authTypeInfoPressed:" target="H6U-AN-RMc" id="ZgS-Xp-ehe"/>
                                 </connections>
                             </button>
-                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="abd-5F-ZcN">
-                                <rect key="frame" x="281" y="240" width="20" height="20"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="hKF-ja-sxQ">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <attributedString key="userComments">
-                                    <fragment content="Additional network drives may be configured"/>
-                                </attributedString>
-                                <connections>
-                                    <action selector="authenticationInfoPressed:" target="H6U-AN-RMc" id="83u-TF-VQS"/>
-                                </connections>
-                            </button>
-                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2sJ-gC-46w">
-                                <rect key="frame" x="279" y="178" width="20" height="20"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="B5B-rI-11N">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <attributedString key="userComments">
-                                    <fragment content="Additional network drives may be configured"/>
-                                </attributedString>
-                                <connections>
-                                    <action selector="mountPointInfoPressed:" target="H6U-AN-RMc" id="9T4-hJ-lSD"/>
-                                </connections>
-                            </button>
                         </subviews>
-                        <constraints>
-                            <constraint firstItem="G3c-89-ZoE" firstAttribute="leading" secondItem="i3D-kw-hBc" secondAttribute="leading" id="20G-GK-5tc"/>
-                            <constraint firstItem="V28-4N-8eM" firstAttribute="leading" secondItem="3aE-wj-lU8" secondAttribute="leading" id="33J-Zy-ukb"/>
-                            <constraint firstItem="V28-4N-8eM" firstAttribute="leading" secondItem="tXZ-2F-XEj" secondAttribute="leading" id="4D2-Lh-YTO"/>
-                            <constraint firstAttribute="trailing" secondItem="JNn-QP-JtC" secondAttribute="trailing" constant="20" symbolic="YES" id="5fr-wD-1en"/>
-                            <constraint firstItem="JNn-QP-JtC" firstAttribute="trailing" secondItem="G3c-89-ZoE" secondAttribute="trailing" id="5vj-Gc-TQA"/>
-                            <constraint firstItem="G3c-89-ZoE" firstAttribute="leading" secondItem="3aE-wj-lU8" secondAttribute="trailing" constant="59" id="6Q3-kB-f5r"/>
-                            <constraint firstItem="V28-4N-8eM" firstAttribute="leading" secondItem="o1x-lv-AFs" secondAttribute="leading" constant="20" symbolic="YES" id="6bC-w2-0ep"/>
-                            <constraint firstItem="G3c-89-ZoE" firstAttribute="top" secondItem="mdA-UP-dTn" secondAttribute="bottom" constant="10" symbolic="YES" id="97h-kT-4XR"/>
-                            <constraint firstItem="fia-Z0-U3w" firstAttribute="top" secondItem="ciR-nE-hXS" secondAttribute="bottom" constant="8" symbolic="YES" id="BF8-0X-2hp"/>
-                            <constraint firstItem="V28-4N-8eM" firstAttribute="baseline" secondItem="JNn-QP-JtC" secondAttribute="baseline" id="BFa-e2-eSp"/>
-                            <constraint firstItem="JNn-QP-JtC" firstAttribute="trailing" secondItem="ciR-nE-hXS" secondAttribute="trailing" id="Has-gQ-XNJ"/>
-                            <constraint firstItem="JNn-QP-JtC" firstAttribute="trailing" secondItem="i3D-kw-hBc" secondAttribute="trailing" id="Hw4-Jv-ADy"/>
-                            <constraint firstItem="JNn-QP-JtC" firstAttribute="trailing" secondItem="fia-Z0-U3w" secondAttribute="trailing" id="KjG-Qs-gsA"/>
-                            <constraint firstItem="JNn-QP-JtC" firstAttribute="trailing" secondItem="mdA-UP-dTn" secondAttribute="trailing" id="Nha-zF-H1d"/>
-                            <constraint firstItem="G3c-89-ZoE" firstAttribute="leading" secondItem="fia-Z0-U3w" secondAttribute="leading" id="SPs-wB-FSf"/>
-                            <constraint firstAttribute="bottom" secondItem="V28-4N-8eM" secondAttribute="bottom" constant="20" symbolic="YES" id="Uoo-TH-lRu"/>
-                            <constraint firstItem="3aE-wj-lU8" firstAttribute="top" secondItem="dPF-y7-z2y" secondAttribute="bottom" constant="15" id="Uyv-q5-Bsw"/>
-                            <constraint firstItem="G3c-89-ZoE" firstAttribute="leading" secondItem="mdA-UP-dTn" secondAttribute="leading" id="XFc-rH-k21"/>
-                            <constraint firstItem="mdA-UP-dTn" firstAttribute="top" secondItem="fia-Z0-U3w" secondAttribute="bottom" constant="10" symbolic="YES" id="Xiq-i3-ApI"/>
-                            <constraint firstItem="V28-4N-8eM" firstAttribute="leading" secondItem="Yd8-w1-vJf" secondAttribute="leading" id="bGl-Pf-nZ3"/>
-                            <constraint firstItem="ciR-nE-hXS" firstAttribute="top" secondItem="i3D-kw-hBc" secondAttribute="bottom" constant="8" symbolic="YES" id="bKj-T5-x9I"/>
-                            <constraint firstItem="Yd8-w1-vJf" firstAttribute="baseline" secondItem="fia-Z0-U3w" secondAttribute="baseline" id="lxM-0a-vjP"/>
-                            <constraint firstItem="tXZ-2F-XEj" firstAttribute="centerY" secondItem="ciR-nE-hXS" secondAttribute="centerY" id="nt9-UL-pZG"/>
-                            <constraint firstItem="V28-4N-8eM" firstAttribute="leading" secondItem="dPF-y7-z2y" secondAttribute="leading" id="qCi-yI-tNW"/>
-                            <constraint firstItem="G3c-89-ZoE" firstAttribute="top" secondItem="o1x-lv-AFs" secondAttribute="top" constant="139" id="u7T-iu-mnR"/>
-                            <constraint firstItem="V28-4N-8eM" firstAttribute="leading" secondItem="TWC-7v-gbr" secondAttribute="leading" id="xdp-3W-qid"/>
-                            <constraint firstItem="TWC-7v-gbr" firstAttribute="baseline" secondItem="i3D-kw-hBc" secondAttribute="baseline" id="yPB-Hb-LnY"/>
-                            <constraint firstItem="3aE-wj-lU8" firstAttribute="baseline" secondItem="G3c-89-ZoE" secondAttribute="baseline" id="zHS-sU-pAT"/>
-                        </constraints>
                         <shadow key="shadow">
                             <color key="color" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </shadow>
@@ -1157,12 +1081,11 @@ The connection will be testet immediately and will be added only if the server i
                     <connections>
                         <outlet property="authTypeInfo" destination="H3a-fG-lp9" id="8HT-sD-AeF"/>
                         <outlet property="authTypeSwitch" destination="ciR-nE-hXS" id="fFF-t6-5Bs"/>
-                        <outlet property="authenticationInfo" destination="abd-5F-ZcN" id="cLN-hN-mpB"/>
-                        <outlet property="mountPathTextField" destination="G3c-89-ZoE" id="SOB-8G-6d7"/>
-                        <outlet property="mountPointInfo" destination="2sJ-gC-46w" id="rza-he-oXy"/>
                         <outlet property="networkShareAddressInfo" destination="hZ8-YX-GBO" id="z0d-aq-ebs"/>
                         <outlet property="networkShareTextField" destination="i3D-kw-hBc" id="n1q-gZ-g03"/>
+                        <outlet property="passwordText" destination="dPF-y7-z2y" id="Dyp-65-bUb"/>
                         <outlet property="passwordTextField" destination="mdA-UP-dTn" id="I14-5x-stH"/>
+                        <outlet property="usernameText" destination="Yd8-w1-vJf" id="m0g-Ll-akm"/>
                         <outlet property="usernameTextField" destination="fia-Z0-U3w" id="PEq-OS-mUt"/>
                     </connections>
                 </viewController>
@@ -1178,11 +1101,14 @@ The connection will be testet immediately and will be added only if the server i
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xXX-7H-ACC">
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xXX-7H-ACC">
                                 <rect key="frame" x="18" y="20" width="414" height="260"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" selectable="YES" title="Multiline Label" id="eMs-qJ-z1B">
+                                <textFieldCell key="cell" selectable="YES" id="eMs-qJ-z1B">
                                     <font key="font" usesAppearanceFont="YES"/>
+                                    <string key="title">You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. 
+Enter the share as    smb://server.name/export/path
+The connection will be testet immediately and will be added only if the server is reachable and the share is available.</string>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -1205,7 +1131,7 @@ The connection will be testet immediately and will be added only if the server i
                         <rect key="frame" x="0.0" y="0.0" width="500" height="209"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Wok-A8-TAw">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Wok-A8-TAw">
                                 <rect key="frame" x="20" y="157" width="462" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" title="Folgende Freigaben hat dein Systemadministrator konfiguriert: ein möglichst" id="iZd-9D-vrE">
@@ -1214,7 +1140,7 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="98p-Rf-iVe">
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="98p-Rf-iVe">
                                 <rect key="frame" x="22" y="20" width="458" height="129"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" alignment="left" title="Multiline Label" drawsBackground="YES" id="GOi-L7-Gni">

@@ -31,11 +31,10 @@ class ShareViewController: NSViewController {
     @IBOutlet private weak var authTypeSwitch: NSSwitch!
     @IBOutlet private weak var usernameTextField: NSTextField!
     @IBOutlet private weak var passwordTextField: NSSecureTextField!
-    @IBOutlet private weak var mountPathTextField: NSTextField!
     @IBOutlet weak var networkShareAddressInfo: NSButton!
     @IBOutlet weak var authTypeInfo: NSButton!
-    @IBOutlet weak var authenticationInfo: NSButton!
-    @IBOutlet weak var mountPointInfo: NSButton!
+    @IBOutlet weak var usernameText: NSTextField!
+    @IBOutlet weak var passwordText: NSTextField!
     
     // MARK: - View Lifecycle
     
@@ -45,8 +44,6 @@ class ShareViewController: NSViewController {
         configureView()
         networkShareAddressInfo.image = NSImage(named: NSImage.Name("240px-info"))
         authTypeInfo.image = NSImage(named: NSImage.Name("240px-info"))
-        authenticationInfo.image = NSImage(named: NSImage.Name("240px-info"))
-        mountPointInfo.image = NSImage(named: NSImage.Name("240px-info"))
     }
     
     // MARK: - Actions
@@ -62,9 +59,8 @@ class ShareViewController: NSViewController {
 //        let authType = AuthType(rawValue: authTypeString)
         let username = usernameTextField.stringValue
         let password = passwordTextField.stringValue
-        let mountPath = mountPathTextField.stringValue
         
-        let shareData = ShareData(networkShare: networkShareURL, authType: authType, username: username, password: password, mountPath: mountPath)
+        let shareData = ShareData(networkShare: networkShareURL, authType: authType, username: username, password: password)
         
         // Do something with the share data
         
@@ -73,14 +69,22 @@ class ShareViewController: NSViewController {
     
     
     @IBAction func authTypeSwitchChanged(_ sender: Any) {
-        if authTypeSwitch.state == NSControl.StateValue.on {
+        if authTypeSwitch.state == NSControl.StateValue.off {
             authType = AuthType.pwd
             usernameTextField.isEnabled = true
             passwordTextField.isEnabled = true
+            usernameTextField.isHidden = false
+            passwordTextField.isHidden = false
+            usernameText.isHidden = false
+            passwordText.isHidden = false
         } else {
             authType = AuthType.krb
             usernameTextField.isEnabled = false
             passwordTextField.isEnabled = false
+            usernameTextField.isHidden = true
+            passwordTextField.isHidden = true
+            usernameText.isHidden = true
+            passwordText.isHidden = true
         }
     }
     
@@ -99,12 +103,6 @@ class ShareViewController: NSViewController {
     @IBAction func authTypeInfoPressed(_ sender: Any) {
     }
     
-    @IBAction func authenticationInfoPressed(_ sender: Any) {
-    }
-    
-    @IBAction func mountPointInfoPressed(_ sender: Any) {
-    }
-    
     @IBAction private func cancelButtonTapped(_ sender: NSButton) {
         dismiss(nil)
     }
@@ -120,6 +118,13 @@ class ShareViewController: NSViewController {
         authTypeSwitch.state = NSControl.StateValue.off
         usernameTextField.stringValue = shareData.username ?? ""
         passwordTextField.stringValue = shareData.password ?? ""
-        mountPathTextField.stringValue = shareData.mountPath ?? ""
+        authTypeSwitch.state = NSControl.StateValue.off
+        authType = AuthType.pwd
+        usernameTextField.isEnabled = true
+        passwordTextField.isEnabled = true
+        usernameTextField.isHidden = false
+        passwordTextField.isHidden = false
+        usernameText.isHidden = false
+        passwordText.isHidden = false
     }
 }
