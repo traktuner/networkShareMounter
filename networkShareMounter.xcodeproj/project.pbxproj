@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F70E7EEA2B035FE1008D087F /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70E7EE92B035FE1008D087F /* ShareViewController.swift */; };
 		F72985C42760EF3800FCF8C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F72985C62760EF3800FCF8C9 /* Localizable.strings */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
@@ -23,6 +22,7 @@
 		F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */; };
 		F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BA06342A49B51C00DE982F /* PopoverViewController.swift */; };
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
+		F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,7 +45,6 @@
 /* Begin PBXFileReference section */
 		A0A95EB12A7A512C00B3A445 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Main.strings; sourceTree = "<group>"; };
 		A0A95EB22A7A512C00B3A445 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
-		F70E7EE92B035FE1008D087F /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		F7291FEC275FD17C000A147E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C12760EE3F00FCF8C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		F72985C52760EF3800FCF8C9 /* en */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -70,6 +69,7 @@
 		F7BA06342A49B51C00DE982F /* PopoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverViewController.swift; sourceTree = "<group>"; };
 		F7C992A1279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
 		F7C992A2279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "Network Share Mounter/view/ShareViewController.swift"; sourceTree = SOURCE_ROOT; };
 		F7EAB854279AF36400EED76B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Main.strings; sourceTree = "<group>"; };
 		F7EAB855279AF36400EED76B /* it */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F7EAB856279AFEDF00EED76B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
@@ -125,15 +125,14 @@
 			children = (
 				F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */,
 				F72985C62760EF3800FCF8C9 /* Localizable.strings */,
-				F7D601392B00E06600ACFD3B /* model */,
-				F79B1597274E722000C322A8 /* AppDelegate.swift */,
-				F77107B8274EC76200556B20 /* Mounter.swift */,
-				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
+				F77107BA274EC7D200556B20 /* config.swift */,
+				F7E727A82B03AA0D0036CF15 /* model */,
 				F742ACF52861CB62009864DF /* AppStatistics.swift */,
+				F79B1597274E722000C322A8 /* AppDelegate.swift */,
+				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
 				F77107B6274EC51600556B20 /* Monitor.swift */,
 				F7796E112AFBE5AB008F6A26 /* ActivityController.swift */,
-				F77107BA274EC7D200556B20 /* config.swift */,
-				F7D601342B00D18B00ACFD3B /* view */,
+				F7E727A72B03A9FB0036CF15 /* view */,
 				F79B159B274E722100C322A8 /* Assets.xcassets */,
 				F79B159D274E722100C322A8 /* Main.storyboard */,
 				F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */,
@@ -141,21 +140,22 @@
 			path = "Network Share Mounter";
 			sourceTree = "<group>";
 		};
-		F7D601342B00D18B00ACFD3B /* view */ = {
+		F7E727A72B03A9FB0036CF15 /* view */ = {
 			isa = PBXGroup;
 			children = (
-				F70E7EE92B035FE1008D087F /* ShareViewController.swift */,
-				F7BA06342A49B51C00DE982F /* PopoverViewController.swift */,
+				F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */,
 				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
+				F7BA06342A49B51C00DE982F /* PopoverViewController.swift */,
 			);
 			path = view;
 			sourceTree = "<group>";
 		};
-		F7D601392B00E06600ACFD3B /* model */ = {
+		F7E727A82B03AA0D0036CF15 /* model */ = {
 			isa = PBXGroup;
 			children = (
-				F765D0542A852911001D5116 /* ShareManager.swift */,
+				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F765D0562A852935001D5116 /* Share.swift */,
+				F765D0542A852911001D5116 /* ShareManager.swift */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -328,7 +328,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
-				F70E7EEA2B035FE1008D087F /* ShareViewController.swift in Sources */,
+				F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
 				F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */,
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
@@ -536,11 +536,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-<<<<<<< Updated upstream
 				CURRENT_PROJECT_VERSION = 66;
-=======
-				CURRENT_PROJECT_VERSION = 68;
->>>>>>> Stashed changes
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -585,11 +581,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-<<<<<<< Updated upstream
 				CURRENT_PROJECT_VERSION = 66;
-=======
-				CURRENT_PROJECT_VERSION = 68;
->>>>>>> Stashed changes
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -628,11 +620,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-<<<<<<< Updated upstream
 				CURRENT_PROJECT_VERSION = 66;
-=======
-				CURRENT_PROJECT_VERSION = 68;
->>>>>>> Stashed changes
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -664,11 +652,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-<<<<<<< Updated upstream
 				CURRENT_PROJECT_VERSION = 66;
-=======
-				CURRENT_PROJECT_VERSION = 68;
->>>>>>> Stashed changes
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -696,11 +680,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
-<<<<<<< Updated upstream
 				CURRENT_PROJECT_VERSION = 66;
-=======
-				CURRENT_PROJECT_VERSION = 68;
->>>>>>> Stashed changes
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -732,11 +712,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
-<<<<<<< Updated upstream
 				CURRENT_PROJECT_VERSION = 66;
-=======
-				CURRENT_PROJECT_VERSION = 68;
->>>>>>> Stashed changes
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
