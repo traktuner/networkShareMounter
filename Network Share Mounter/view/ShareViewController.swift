@@ -1,4 +1,3 @@
-//
 //  ShareViewController.swift
 //  Network Share Mounter
 //
@@ -31,10 +30,10 @@ class ShareViewController: NSViewController {
     @IBOutlet private weak var authTypeSwitch: NSSwitch!
     @IBOutlet private weak var usernameTextField: NSTextField!
     @IBOutlet private weak var passwordTextField: NSSecureTextField!
-    @IBOutlet weak var networkShareAddressInfo: NSButton!
-    @IBOutlet weak var authTypeInfo: NSButton!
     @IBOutlet weak var usernameText: NSTextField!
+    @IBOutlet weak var authInfoHelpButton: NSButton!
     @IBOutlet weak var passwordText: NSTextField!
+    @IBOutlet weak var shareHelpButton: NSButton!
     
     // MARK: - View Lifecycle
     
@@ -42,8 +41,8 @@ class ShareViewController: NSViewController {
         super.viewDidLoad()
         
         configureView()
-        networkShareAddressInfo.image = NSImage(named: NSImage.Name("240px-info"))
-        authTypeInfo.image = NSImage(named: NSImage.Name("240px-info"))
+        authInfoHelpButton.image = NSImage(named: NSImage.Name("240px-info"))
+        shareHelpButton.image = NSImage(named: NSImage.Name("240px-info"))
     }
     
     // MARK: - Actions
@@ -88,19 +87,26 @@ class ShareViewController: NSViewController {
         }
     }
     
-    @IBAction func networkShareAddressInfoPressed(_ sender: Any) {
-        let popoverShareViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("PopoverInfoViewController")) as? NSViewController
-        let popover = NSPopover()
-        popover.contentViewController = popoverShareViewController
-        popover.animates = true
-        // swiftlint:disable force_cast
-        let button = sender as! NSButton
-        // swiftlint:enable force_cast
-        popover.show(relativeTo: button.frame, of: self.view, preferredEdge: NSRectEdge.minY)
-        popover.behavior = NSPopover.Behavior.transient
-    }
+    let popover = NSPopover()
+        
+//        @IBAction func helpButtonClicked(_ sender: NSButton) {
+//            
+//            let helpPopoverViewController = HelpPopoverViewController()
+//            helpPopoverViewController.helpText = "This is the help text for button \(helpButton.tag)"
+//            
+//            popover.contentViewController = helpPopoverViewController
+//            popover.show(relativeTo: helpButton.bounds, of: helpButton, preferredEdge: .maxY)
+//        }
     
-    @IBAction func authTypeInfoPressed(_ sender: Any) {
+    @IBAction func helpButtonClicked(_ sender: NSButton) {
+        let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
+        let popover = NSPopover()
+        popover.contentViewController = helpPopoverViewController
+//        helpPopoverViewController.helpText = "This is the help text for button \(sender.tag)"
+        helpPopoverViewController.helpText = "jAe-0E-wsF"
+        popover.animates = true
+        popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: NSRectEdge.minY)
+        popover.behavior = NSPopover.Behavior.transient
     }
     
     @IBAction private func cancelButtonTapped(_ sender: NSButton) {
