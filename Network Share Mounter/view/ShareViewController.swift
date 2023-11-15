@@ -19,6 +19,11 @@ class ShareViewController: NSViewController {
         var mountPath: String?
     }
     
+    // MARK: - help messages
+    var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
+                    NSLocalizedString("help-new-share", comment: ""),
+                    NSLocalizedString("help-authType", comment: "")]
+    
     // MARK: - Properties
     
     var shareData: ShareData?
@@ -41,8 +46,8 @@ class ShareViewController: NSViewController {
         super.viewDidLoad()
         
         configureView()
-        authInfoHelpButton.image = NSImage(named: NSImage.Name("240px-info"))
-        shareHelpButton.image = NSImage(named: NSImage.Name("240px-info"))
+        authInfoHelpButton.image = NSImage(named: NSImage.Name("fragezeichen-im-kreis"))
+        shareHelpButton.image = NSImage(named: NSImage.Name("fragezeichen-im-kreis"))
     }
     
     // MARK: - Actions
@@ -103,7 +108,7 @@ class ShareViewController: NSViewController {
         let popover = NSPopover()
         popover.contentViewController = helpPopoverViewController
 //        helpPopoverViewController.helpText = "This is the help text for button \(sender.tag)"
-        helpPopoverViewController.helpText = "jAe-0E-wsF"
+        helpPopoverViewController.helpText = helpText[sender.tag]
         popover.animates = true
         popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: NSRectEdge.minY)
         popover.behavior = NSPopover.Behavior.transient

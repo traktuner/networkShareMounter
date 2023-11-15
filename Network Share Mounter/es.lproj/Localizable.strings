@@ -25,3 +25,9 @@
 /* Additional shares */
 "Additional shares" = "Unidades de red configuradas adicionales";
 
+/* Helptext for shares */
+"help-new-share" = "Puede agregar y montar cualquier recurso share de red de Windows (smb/cifs) siempre que conozca el nombre del servidor y la ruta de exportación. \nLa conexión se probará inmediatamente y el recurso compartido se conectará si el servidor resp. share es accesible. \n\nIngrese el recurso compartido como: smb://server.name/export/path";
+
+/* Helptext for authType */
+"help-authType" = "Para conectar una unidad de red, debes autenticarte en el servidor.\nEn una empresa o universidad, esto se hace a menudo a través de Microsoft Active Directory y Kerberos, y es el método preferido. En un entorno privado, la autenticación se realiza con un nombre de usuario y una contraseña.\n\nEn caso de duda, consulta a tu administrador.";
+

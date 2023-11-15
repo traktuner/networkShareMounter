@@ -267,7 +267,7 @@
 "buJ-ug-pKt.title" = "Use Selection for Find";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "Puoi aggiungere e montare qualsiasi condivisione di rete di Windows (smb/cifs) purché tu conosca il nome del server e il percorso di esportazione.\nLa connessione verrà testata immediatamente e la condivisione verrà collegata se il server rispettivo o la condivisione sono raggiungibili.\n\nInserisci la condivisione come: smb://server.nome/percorso/esportazione";
+"c4d-tI-W6k.title" = "Puoi aggiungere, modificare o eliminare i tuoi percorsi di rete (smb/cifs).\nSe stai utilizzando l'app in un ambiente aziendale o universitario, il tuo amministratore di sistema potrebbe aver definito ulteriori percorsi di rete che non puoi modificare.";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
@@ -330,7 +330,7 @@
 "mK6-2p-4JG.title" = "Check Grammar With Spelling";
 
 /* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
-"mZ5-S4-8d0.title" = "Aggiungi condivisione";
+"mZ5-S4-8d0.title" = "Modifica condivisione";
 
 /* Class = "NSMenuItem"; title = "Ligatures"; ObjectID = "o6e-r0-MWq"; */
 "o6e-r0-MWq.title" = "Ligatures";

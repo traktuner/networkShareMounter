@@ -25,3 +25,9 @@
 /* Additional shares */
 "Additional shares" = "Lecteurs réseau supplémentaires configurés";
 
+/* Helptext for shares */
+"help-new-share" = "Vous pouvez ajouter et monter n'importe quelle partage réseau Windows (smb/cifs) tant que vous connaissez le nom du serveur et le chemin d'exportation. \nLa connexion sera testée immédiatement et le partage sera connecté si le serveur ou le partage est accessible.\n\nEntrez le partage comme suit : smb://nom.du.serveur/chemin/d'exportation";
+
+/* Helptext for authType */
+"help-authType" = "Pour connecter un lecteur réseau, vous devez vous authentifier auprès du serveur.\nDans une entreprise ou une université, cela se fait souvent via Microsoft Active Directory et Kerberos et est la méthode préférée. Dans un environnement privé, l'authentification se fait avec un nom d'utilisateur et un mot de passe.\n\nEn cas de doute, consultez votre administrateur.";
+

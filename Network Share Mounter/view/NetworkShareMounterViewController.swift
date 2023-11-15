@@ -55,8 +55,11 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @objc func handleClickColumn() {
         if tableView.clickedRow >= 0 {
             removeShareButton.isEnabled = true
+            var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
+            usersNewShare.stringValue = shareArray[tableView.selectedRow]
         } else {
             removeShareButton.isEnabled = false
+            usersNewShare.stringValue=""
         }
     }
 

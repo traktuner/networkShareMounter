@@ -25,3 +25,9 @@
 /* Additional shares */
 "Additional shares" = "Overige netwerkverbindingen";
 
+/* Helptext for shares */
+"help-new-share" = "Je kunt elke Windows (smb/cifs) netwerkshare toevoegen en mounten zolang je de servernaam en het exportpad kent. \nDe verbinding wordt onmiddellijk getest en de share wordt verbonden als de server resp. share bereikbaar is. \n\nVoer de share naam in als: smb://server.name/export/path";
+
+/* Helptext for authType */
+"help-authType" = "Om een netwerkstation toe te voegen, moet je je authenticeren bij de server.\nIn een bedrijf of universiteit gebeurt dit vaak via Microsoft Active Directory en Kerberos, wat de voorkeursmethode is. In een privéomgeving gebeurt de authenticatie met een gebruikersnaam en wachtwoord.\n\nBij twijfel raadpleeg je beheerder.";
+

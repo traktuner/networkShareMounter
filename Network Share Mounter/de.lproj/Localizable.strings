@@ -25,3 +25,8 @@
 /* Additional shares */
 "Additional shares" = "Weitere konfigurierte Netzlaufwerke";
 
+/* Helptext for shares */
+"help-new-share" = "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Netzwerklaufwerke (smb/cifs) hinzufügen und verbinden. \nDie Erreichbarkeit wird sofort getestet. Bei Erfolg wird der Server und Freigabepfad hinzugefügt. \n\nVerwende hierzu die Form: smb://server.name/pfad/";
+
+/* Helptext for authType */
+"help-authType" = "Zum Einbinden eines Netzwerklaufwerks musst du dich gegenüber dem Server authentifizieren.\nIn einer Firma oder Universität wird dies oft über Microsoft Active Directory und Kerberos gemacht und ist der präferierte Weg. Im privaten Umfeld erfolgt die Authentifizierung über Nutzername und Passwort.\n\nFrage im Zweifel deinen Administrator.";

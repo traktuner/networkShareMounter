@@ -25,3 +25,8 @@
 /* Additional shares */
 "Additional shares" = "Additional configured network drives";
 
+/* Helptext for shares */
+"help-new-share" = "You can add and mount any Windows (smb/cifs) network share as long as you know the server name and export path. \nThe connection will be tested immediately and the share will be connected if the server resp. share is reachable. \n\nEnter the share as: smb://server.name/export/path";
+
+/* Helptext for authType */
+"help-authType" = "To connect a network drive, you need to authenticate yourself to the server.\nIn a company or university, this is often done through Microsoft Active Directory and Kerberos and is the preferred method. In a private setting, authentication is done using a username and password.\n\nIf in doubt, consult your administrator.";
