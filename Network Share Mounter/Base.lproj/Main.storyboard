@@ -679,7 +679,7 @@
         <scene sceneID="hIz-AP-VOD">
             <objects>
                 <viewController title="NetworkShareMounterViewController" storyboardIdentifier="NetworkShareMounterViewController" id="XfG-lQ-9wD" customClass="NetworkShareMounterViewController" customModule="Network_Share_Mounter" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="m2S-Jp-Qdl">
+                    <view key="view" id="m2S-Jp-Qdl" userLabel="View">
                         <rect key="frame" x="0.0" y="0.0" width="527" height="392"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
@@ -708,7 +708,7 @@
                                             <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                             <tableColumns>
                                                 <tableColumn width="473" minWidth="40" maxWidth="1000" id="Ydh-sn-YZQ">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Share">
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                     </tableHeaderCell>
@@ -723,7 +723,7 @@
                                                             <rect key="frame" x="8" y="0.0" width="468" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
-                                                                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
+                                                                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" contentType="url" translatesAutoresizingMaskIntoConstraints="NO" id="ci4-hV-QOK">
                                                                     <rect key="frame" x="0.0" y="4" width="453" height="16"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="cMp-HE-rms">
                                                                         <font key="font" usesAppearanceFont="YES"/>
@@ -731,7 +731,7 @@
                                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                                     </textFieldCell>
                                                                     <connections>
-                                                                        <binding destination="yc9-SB-hYJ" name="value" keyPath="objectValue" id="3bK-H2-jw3">
+                                                                        <binding destination="yc9-SB-hYJ" name="value" keyPath="objectValue.networkShare" id="do0-Pb-Rpq">
                                                                             <dictionary key="options">
                                                                                 <bool key="NSContinuouslyUpdatesValue" value="YES"/>
                                                                                 <bool key="NSValidatesImmediately" value="YES"/>
@@ -753,7 +753,7 @@
                                                 </tableColumn>
                                             </tableColumns>
                                             <connections>
-                                                <binding destination="1RO-SO-9Fv" name="content" keyPath="values.customNetworkShares" id="OCK-fi-ytZ"/>
+                                                <binding destination="kpk-L1-An4" name="content" keyPath="arrangedObjects" id="Gow-eD-YDC"/>
                                             </connections>
                                         </tableView>
                                     </subviews>
@@ -764,7 +764,7 @@
                                     <constraint firstAttribute="height" constant="122" id="ZwS-D2-O7I"/>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="487" id="wI1-aP-cGs"/>
                                 </constraints>
-                                <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="fNF-bT-aGQ">
+                                <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="0.098765432098765427" horizontal="YES" id="fNF-bT-aGQ">
                                     <rect key="frame" x="1" y="105" width="485" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
@@ -842,20 +842,6 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lNF-6E-Xii">
-                                <rect key="frame" x="487" y="200" width="20" height="20"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="bPP-T6-tuo">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <connections>
-                                        <action selector="showPopover:" target="XfG-lQ-9wD" id="LeU-gH-lKQ"/>
-                                    </connections>
-                                </buttonCell>
-                                <attributedString key="userComments">
-                                    <fragment content="Additional network drives may be configured"/>
-                                </attributedString>
-                            </button>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bYw-WJ-O9f">
                                 <rect key="frame" x="20" y="202" width="20" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -868,7 +854,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
-                                <rect key="frame" x="64" y="204" width="413" height="16"/>
+                                <rect key="frame" x="64" y="204" width="399" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Additional shares" id="2H5-ga-rE8">
                                     <font key="font" metaFont="system"/>
@@ -876,6 +862,13 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="NmF-bn-oWA">
+                                <rect key="frame" x="467" y="196" width="42" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <connections>
+                                    <action selector="toggleManagedSharesAction:" target="XfG-lQ-9wD" id="h6P-qQ-O3Z"/>
+                                </connections>
+                            </switch>
                         </subviews>
                         <constraints>
                             <constraint firstItem="J0j-se-pTf" firstAttribute="top" secondItem="8ip-Eo-ik3" secondAttribute="bottom" constant="39" id="2a8-24-auM"/>
@@ -905,20 +898,27 @@ The connection will be testet immediately and will be added only if the server i
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="ShowPopover" destination="bPP-T6-tuo" id="XRi-Ka-Bl3"/>
+                        <outlet property="addNewShareButton" destination="bYw-WJ-O9f" id="W2d-1A-HVK"/>
                         <outlet property="addShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
                         <outlet property="additionalSharesText" destination="2H5-ga-rE8" id="bOu-ET-T8G"/>
                         <outlet property="appVersion" destination="GYJ-8b-PG2" id="64i-KJ-MXy"/>
                         <outlet property="horizontalLine" destination="uWO-es-rt8" id="3JW-XC-Trg"/>
                         <outlet property="launchAtLoginRadioButton" destination="wTV-XD-Goa" id="CB2-bP-YlP"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
-                        <outlet property="showPopoverButton" destination="lNF-6E-Xii" id="tkZ-Zj-utQ"/>
+                        <outlet property="shareArrayController" destination="kpk-L1-An4" id="7wJ-Yi-UKv"/>
                         <outlet property="tableView" destination="s3k-Dc-wH1" id="tOr-hm-vxp"/>
+                        <outlet property="toggleManagedSwitch" destination="NmF-bn-oWA" id="4FE-1k-Zdb"/>
                         <outlet property="usersNewShare" destination="AgX-Bj-3ll" id="ez4-Jt-o2u"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="1RO-SO-9Fv"/>
+                <arrayController objectClassName="Network_Share_Mounter.UserShare" id="kpk-L1-An4" userLabel="Share Array Controller">
+                    <classReference key="objectClass" className="UserShare" moduleName="Network_Share_Mounter" moduleProvider="target"/>
+                    <connections>
+                        <binding destination="XfG-lQ-9wD" name="contentArray" keyPath="userShares" id="Tje-ya-odI"/>
+                    </connections>
+                </arrayController>
             </objects>
             <point key="canvasLocation" x="118.5" y="277"/>
         </scene>
@@ -1004,7 +1004,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </switch>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="V28-4N-8eM">
-                                <rect key="frame" x="13" y="13" width="124" height="32"/>
+                                <rect key="frame" x="13" y="13" width="154" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="2R8-Za-AZT">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1018,7 +1018,7 @@ Gw
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JNn-QP-JtC">
-                                <rect key="frame" x="543" y="13" width="124" height="32"/>
+                                <rect key="frame" x="513" y="13" width="154" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Save" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="l6h-Ep-Kih">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1120,42 +1120,6 @@ The connection will be testet immediately and will be added only if the server i
                 <customObject id="xde-Ad-g22" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1497" y="297"/>
-        </scene>
-        <!--Popover View Controller-->
-        <scene sceneID="pSL-aV-icg">
-            <objects>
-                <viewController title="PopoverViewController" storyboardIdentifier="PopoverViewController" id="pdo-lZ-KWW" userLabel="Popover View Controller" customClass="PopoverViewController" customModule="Network_Share_Mounter" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="8Pv-wL-Hn1" userLabel="Popover View">
-                        <rect key="frame" x="0.0" y="0.0" width="500" height="209"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                        <subviews>
-                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Wok-A8-TAw">
-                                <rect key="frame" x="20" y="157" width="462" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" title="Folgende Freigaben hat dein Systemadministrator konfiguriert: ein möglichst" id="iZd-9D-vrE">
-                                    <font key="font" textStyle="headline" name=".SFNS-Bold"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="98p-Rf-iVe">
-                                <rect key="frame" x="22" y="20" width="458" height="129"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" alignment="left" title="Multiline Label" drawsBackground="YES" id="GOi-L7-Gni">
-                                    <font key="font" size="12" name="Menlo-Regular"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" red="0.11764705882352941" green="0.11764705882352941" blue="0.11764705882352941" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
-                                </textFieldCell>
-                            </textField>
-                        </subviews>
-                    </view>
-                    <connections>
-                        <outlet property="listOfShares" destination="98p-Rf-iVe" id="unc-5U-dwz"/>
-                    </connections>
-                </viewController>
-                <customObject id="Eey-Bx-SMw" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-428" y="185.5"/>
         </scene>
     </scenes>
     <resources>

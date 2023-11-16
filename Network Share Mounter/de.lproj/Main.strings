@@ -411,3 +411,6 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "iZd-9D-vrE"; */
 "iZd-9D-vrE.title" = "Folgende Freigaben hat dein Systemadministrator konfiguriert:";
+
+/* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
+"l6h-Ep-Kih.title" = "Freigabe hinzufügen";

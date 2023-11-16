@@ -23,7 +23,7 @@
 "About Network Share Mounter" = "Over Network Share Mounter";
 
 /* Additional shares */
-"Additional shares" = "Overige netwerkverbindingen";
+"Additional shares" = "Toon beheerde netwerkverbindingen";
 
 /* Helptext for shares */
 "help-new-share" = "Je kunt elke Windows (smb/cifs) netwerkshare toevoegen en mounten zolang je de servernaam en het exportpad kent. \nDe verbinding wordt onmiddellijk getest en de share wordt verbonden als de server resp. share bereikbaar is. \n\nVoer de share naam in als: smb://server.name/export/path";

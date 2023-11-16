@@ -15,16 +15,35 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     let userDefaults = UserDefaults.standard
 
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
+    // prepare an array of type UserShare to store the defined shares while showing this view
+    @objc dynamic var userShares: [UserShare] = []
+    // variable with mdm and user defined shares
+    var shareArray : [Share] = []
     
     // swiftlint:disable force_cast
+    // appDelegate is used to accesss variables in AppDelegate
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     // swiftlint:enable force_cast
     
     let logger = Logger(subsystem: "NetworkShareMounter", category: "NSMViewController")
+    
+    // toggle to show user defined or managed shares
+    var showManagedShares = false
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
+        
+        shareArray = appDelegate.mounter.shareManager.allShares
+        //
+        // copy all mdm and user defined shares to a local array
+        for definedShare in shareArray {
+            // select those which are not managed
+            if !definedShare.managed {
+                userShares.append(UserShare(networkShare: definedShare.networkShare.absoluteString, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+            }
+        }
 
         addShareButton.isEnabled = true
         removeShareButton.isEnabled = false
@@ -42,21 +61,20 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
         appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
         
-        let shares: [String] = UserDefaults.standard.array(forKey: Settings.networkSharesKey) as? [String] ?? []
-        if shares.isEmpty {
-            showPopoverButton.isHidden = true
+//        let shares: [String] = UserDefaults.standard.array(forKey: Settings.networkSharesKey) as? [String] ?? []
+        if  appDelegate.mounter.shareManager.allShares.isEmpty {
             additionalSharesText.title = ""
         } else {
-            showPopoverButton.image = NSImage(named: NSImage.Name("240px-info"))
             additionalSharesText.title = NSLocalizedString("Additional shares", comment: "Additional shares")
         }
     }
 
     @objc func handleClickColumn() {
-        if tableView.clickedRow >= 0 {
-            removeShareButton.isEnabled = true
-            var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
-            usersNewShare.stringValue = shareArray[tableView.selectedRow]
+        if tableView.clickedRow >= 0 && toggleManagedSwitch.state == NSControl.StateValue.off {
+            if !userShares[tableView.selectedRow].managed {
+                removeShareButton.isEnabled = true
+                usersNewShare.stringValue =  userShares[tableView.selectedRow].networkShare
+            }
         } else {
             removeShareButton.isEnabled = false
             usersNewShare.stringValue=""
@@ -69,6 +87,38 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
     @IBOutlet weak var addShareButton: NSButton!
 
+    @IBOutlet var shareArrayController: NSArrayController!
+    
+    @IBOutlet weak var toggleManagedSwitch: NSSwitch!
+    
+    @IBAction func toggleManagedSharesAction(_ sender: Any) {
+        if toggleManagedSwitch.state == NSControl.StateValue.off {
+            showManagedShares = false
+            userShares.removeAll()
+            addShareButton.isEnabled = true
+            addNewShareButton.isEnabled = true
+            usersNewShare.stringValue=""
+            for definedShare in shareArray {
+                if !definedShare.managed {
+                    userShares.append(UserShare(networkShare: definedShare.networkShare.absoluteString, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                }
+            }
+        } else {
+            showManagedShares = true
+            removeShareButton.isEnabled = false
+            userShares.removeAll()
+            addShareButton.isEnabled = false
+            addNewShareButton.isEnabled = false
+            usersNewShare.stringValue=""
+            for definedShare in shareArray {
+                if definedShare.managed {
+                    userShares.append(UserShare(networkShare: definedShare.networkShare.absoluteString, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                }
+            }
+        }
+    }
+    
+    
     @IBAction func addShare(_ sender: NSButton) {
         let shareString = usersNewShare.stringValue
         // if the share URL string contains a space, the URL vill not
@@ -86,18 +136,19 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     self.logger.debug("\(shareString, privacy: .public) is already in list of user's customNetworkShares")
                 } else {
                     if let newShareURL = URL(string: shareString) {
-                        let newShare = Share.createShare(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted)
-                        Mounter.mounter.addShare(newShare)
+                        // TODO: username and password if set
+                        let newShare = Share.createShare(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted, managed: false)
+                        appDelegate.mounter.addShare(newShare)
                         Task {
                             do {
-                                try await Mounter.mounter.mountShare(forShare: newShare, atPath: Mounter.mounter.defaultMountPath)
+                                try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
                                 // add the new share to the app-internal array to display personal shares
                                 shareArray.append(usersNewShare.stringValue)
                                 userDefaults.set(shareArray, forKey: Settings.customSharesKey)
                                 usersNewShare.stringValue=""
                             } catch {
                                 // share did not mount, remove it from the array of shares
-                                Mounter.mounter.removeShare(for: newShare)
+                                appDelegate.mounter.removeShare(for: newShare)
                                 logger.warning("Mounting of new share \(self.usersNewShare.stringValue, privacy: .public) failed: \(error, privacy: .public)")
                             }
                         }
@@ -107,8 +158,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         }
     }
 
-    @IBOutlet weak var showPopover: NSButtonCell!
-
+    @IBOutlet weak var addNewShareButton: NSButton!
+    
     @IBOutlet weak var horizontalLine: NSBox!
     
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
@@ -116,8 +167,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBOutlet weak var tableView: NSTableView!
 
     @IBOutlet weak var removeShareButton: NSButton!
-
-    @IBOutlet weak var showPopoverButton: NSButton!
     
     @IBOutlet weak var additionalSharesText: NSTextFieldCell!
     
@@ -130,18 +179,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             //UserDefaults.standard.set(shareArray, forKey: "customNetworkShares")
             // tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
         }
-    }
-
-    @IBAction func showPopover(_ sender: Any) {
-        let popoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("PopoverViewController")) as? NSViewController
-        let popover = NSPopover()
-        popover.contentViewController = popoverViewController
-        popover.animates = true
-        // swiftlint:disable force_cast
-        let button = sender as! NSButton
-        // swiftlint:enable force_cast
-        popover.show(relativeTo: button.frame, of: self.view, preferredEdge: NSRectEdge.minY)
-        popover.behavior = NSPopover.Behavior.transient
     }
     
     // MARK: Storyboard instantiation

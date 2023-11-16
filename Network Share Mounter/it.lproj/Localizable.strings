@@ -23,7 +23,7 @@
 "About Network Share Mounter" = "Informazioni Network Share Mounter";
 
 /* Additional shares */
-"Additional shares" = "Altre unità di rete configurate";
+"Additional shares" = "Mostra unità di rete gestite";
 
 /* Helptext for shares */
 "help-new-share" = "Puoi aggiungere e montare qualsiasi condivisione di rete di Windows (smb/cifs) purché tu conosca il nome del server e il percorso di esportazione.\nLa connessione verrà testata immediatamente e la condivisione verrà collegata se il server rispettivo o la condivisione sono raggiungibili.\n\nInserisci la condivisione come: smb://server.nome/percorso/esportazione";

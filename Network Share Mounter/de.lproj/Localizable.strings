@@ -23,7 +23,7 @@
 "About Network Share Mounter" = "Über Network Share Mounter";
 
 /* Additional shares */
-"Additional shares" = "Weitere konfigurierte Netzlaufwerke";
+"Additional shares" = "Zeige verwaltete Netzlaufwerke";
 
 /* Helptext for shares */
 "help-new-share" = "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Netzwerklaufwerke (smb/cifs) hinzufügen und verbinden. \nDie Erreichbarkeit wird sofort getestet. Bei Erfolg wird der Server und Freigabepfad hinzugefügt. \n\nVerwende hierzu die Form: smb://server.name/pfad/";

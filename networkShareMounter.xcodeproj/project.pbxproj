@@ -20,6 +20,7 @@
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F79B159F274E722100C322A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F79B159D274E722100C322A8 /* Main.storyboard */; };
 		F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */; };
+		F7A383ED2B065E1400CA70E2 /* UserShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A383EC2B065E1400CA70E2 /* UserShare.swift */; };
 		F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */; };
 		F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BA06342A49B51C00DE982F /* PopoverViewController.swift */; };
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
@@ -68,6 +69,7 @@
 		F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Network Share MounterUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Network-Share-Mounter-Info.plist"; sourceTree = SOURCE_ROOT; };
 		F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMounterViewController.swift; sourceTree = "<group>"; };
+		F7A383EC2B065E1400CA70E2 /* UserShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserShare.swift; sourceTree = "<group>"; };
 		F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpPopoverView.swift; sourceTree = "<group>"; };
 		F7BA06342A49B51C00DE982F /* PopoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverViewController.swift; sourceTree = "<group>"; };
 		F7C992A1279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
@@ -130,8 +132,8 @@
 				F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */,
 				F72985C62760EF3800FCF8C9 /* Localizable.strings */,
 				F77107BA274EC7D200556B20 /* config.swift */,
-				F7E727A82B03AA0D0036CF15 /* model */,
 				F742ACF52861CB62009864DF /* AppStatistics.swift */,
+				F7E727A82B03AA0D0036CF15 /* model */,
 				F79B1597274E722000C322A8 /* AppDelegate.swift */,
 				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
 				F77107B6274EC51600556B20 /* Monitor.swift */,
@@ -160,6 +162,7 @@
 			children = (
 				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F765D0562A852935001D5116 /* Share.swift */,
+				F7A383EC2B065E1400CA70E2 /* UserShare.swift */,
 				F765D0542A852911001D5116 /* ShareManager.swift */,
 			);
 			path = model;
@@ -337,6 +340,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7A383ED2B065E1400CA70E2 /* UserShare.swift in Sources */,
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,

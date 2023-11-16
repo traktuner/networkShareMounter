@@ -69,7 +69,7 @@ struct AppStatistics {
     /// - **bundleID**
     func reportAppInstallation() async -> Void {
 #if DEBUG
-        logger.debug("Debugging app, not reporting anything ...")
+        logger.debug("Debugging app, not reporting anything to statistics server ...")
 #else
         let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
         guard let reportURL = URL(string: Settings.statisticsReportURL + reportData) else {

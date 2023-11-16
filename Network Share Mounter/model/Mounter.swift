@@ -114,7 +114,7 @@ class Mounter: ObservableObject {
                 guard let shareURL = URL(string: share) else {
                     continue
                 }
-                addShare(Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted))
+                addShare(Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
             // TODO: convert those legacy entries to new UserDefaults definition
         }
@@ -133,7 +133,7 @@ class Mounter: ObservableObject {
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
                 if let shareURL = URL(string: homeDirectory) {
-                    let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
+                    let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
                     addShare(newShare)
                 }
             }
@@ -145,11 +145,12 @@ class Mounter: ObservableObject {
         // now create the directory where the shares will be mounted
         // check if there is a definition where the shares will be mounted, otherwiese use the default
         if userDefaults.object(forKey: "location") as? String != nil {
-            defaultMountPath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+            self.defaultMountPath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
         } else {
-            defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
+            self.defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
         }
-        createMountFolder(atPath: defaultMountPath)
+        logger.debug("defaultMountPath is \(self.defaultMountPath, privacy: .public)")
+        createMountFolder(atPath: self.defaultMountPath)
     }
     
     /// checks if there is already a share with the same network export. If not,

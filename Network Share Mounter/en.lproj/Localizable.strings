@@ -23,7 +23,7 @@
 "About Network Share Mounter" = "About Network Share Mounter";
 
 /* Additional shares */
-"Additional shares" = "Additional configured network drives";
+"Additional shares" = "Show managed network drives";
 
 /* Helptext for shares */
 "help-new-share" = "You can add and mount any Windows (smb/cifs) network share as long as you know the server name and export path. \nThe connection will be tested immediately and the share will be connected if the server resp. share is reachable. \n\nEnter the share as: smb://server.name/export/path";
