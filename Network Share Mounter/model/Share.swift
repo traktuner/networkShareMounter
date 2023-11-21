@@ -23,6 +23,7 @@ enum MountStatus: String {
     case errorOnMount = "errorOnMount"
     case unrechable = "unreachable"
     case undefined = "undefined"
+    case unauthenticated = "unauthenticated"
     case userUnmounted = "userUnmounted"
 }
 

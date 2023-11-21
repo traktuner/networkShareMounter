@@ -74,7 +74,6 @@ class Mounter: ObservableObject {
     
     init() {
         /// initialize the class with the array of shares containig the network shares
-//        self.shares = shareManager.allShares
         
         /// create an array from values configured in UserDefaults
         /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
@@ -461,7 +460,7 @@ class Mounter: ObservableObject {
                         } catch MounterError.noRouteToHost {
                             updateShare(mountStatus: .unrechable, for: share)
                         } catch MounterError.authenticationError {
-                            updateShare(mountStatus: .toBeMounted, for: share)
+                            updateShare(mountStatus: .unauthenticated, for: share)
                         } catch MounterError.shareDoesNotExist {
                             updateShare(mountStatus: .errorOnMount, for: share)
                         } catch MounterError.mountIsQueued {

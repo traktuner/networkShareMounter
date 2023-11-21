@@ -16,16 +16,15 @@
 		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7796E112AFBE5AB008F6A26 /* ActivityController.swift */; };
+		F78B9D752B0BA7EF00043327 /* PasswordManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* PasswordManager.swift */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F79B159F274E722100C322A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F79B159D274E722100C322A8 /* Main.storyboard */; };
 		F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */; };
 		F7A383ED2B065E1400CA70E2 /* UserShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A383EC2B065E1400CA70E2 /* UserShare.swift */; };
 		F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */; };
-		F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BA06342A49B51C00DE982F /* PopoverViewController.swift */; };
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 		F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */; };
-		F7E727AD2B03CDD70036CF15 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = F7E727AC2B03CDD70036CF15 /* KeychainAccess */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +59,7 @@
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		F7796E112AFBE5AB008F6A26 /* ActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityController.swift; sourceTree = "<group>"; };
+		F78B9D742B0BA7EF00043327 /* PasswordManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordManager.swift; sourceTree = "<group>"; };
 		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F79B159B274E722100C322A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -71,7 +71,6 @@
 		F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMounterViewController.swift; sourceTree = "<group>"; };
 		F7A383EC2B065E1400CA70E2 /* UserShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserShare.swift; sourceTree = "<group>"; };
 		F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpPopoverView.swift; sourceTree = "<group>"; };
-		F7BA06342A49B51C00DE982F /* PopoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverViewController.swift; sourceTree = "<group>"; };
 		F7C992A1279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
 		F7C992A2279B1E5000CEB9B2 /* fr */ = {isa = PBXFileReference; explicitFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "Network Share Mounter/view/ShareViewController.swift"; sourceTree = SOURCE_ROOT; };
@@ -86,7 +85,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F7E727AD2B03CDD70036CF15 /* KeychainAccess in Frameworks */,
 				F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -149,7 +147,6 @@
 		F7E727A72B03A9FB0036CF15 /* view */ = {
 			isa = PBXGroup;
 			children = (
-				F7BA06342A49B51C00DE982F /* PopoverViewController.swift */,
 				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
 				F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */,
 				F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */,
@@ -161,6 +158,7 @@
 			isa = PBXGroup;
 			children = (
 				F77107B8274EC76200556B20 /* Mounter.swift */,
+				F78B9D742B0BA7EF00043327 /* PasswordManager.swift */,
 				F765D0562A852935001D5116 /* Share.swift */,
 				F7A383EC2B065E1400CA70E2 /* UserShare.swift */,
 				F765D0542A852911001D5116 /* ShareManager.swift */,
@@ -187,7 +185,6 @@
 			name = "Network Share Mounter";
 			packageProductDependencies = (
 				F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */,
-				F7E727AC2B03CDD70036CF15 /* KeychainAccess */,
 			);
 			productName = "Network Share Mounter";
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
@@ -274,7 +271,6 @@
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
-				F7E727AB2B03CDD70036CF15 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -344,8 +340,8 @@
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
-				F7BA06352A49B51C00DE982F /* PopoverViewController.swift in Sources */,
 				F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */,
+				F78B9D752B0BA7EF00043327 /* PasswordManager.swift in Sources */,
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
@@ -795,15 +791,6 @@
 				minimumVersion = 4.2.0;
 			};
 		};
-		F7E727AB2B03CDD70036CF15 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
-			requirement = {
-				kind = versionRange;
-				maximumVersion = 5.0.0;
-				minimumVersion = 4.2.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -811,11 +798,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */;
 			productName = LaunchAtLogin;
-		};
-		F7E727AC2B03CDD70036CF15 /* KeychainAccess */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F7E727AB2B03CDD70036CF15 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
-			productName = KeychainAccess;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
