@@ -41,7 +41,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         for definedShare in shareArray {
             // select those which are not managed
             if !definedShare.managed {
-                userShares.append(UserShare(networkShare: definedShare.networkShare.absoluteString, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
             }
         }
 
@@ -100,7 +100,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             usersNewShare.stringValue=""
             for definedShare in shareArray {
                 if !definedShare.managed {
-                    userShares.append(UserShare(networkShare: definedShare.networkShare.absoluteString, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                    userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
                 }
             }
         } else {
@@ -112,7 +112,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             usersNewShare.stringValue=""
             for definedShare in shareArray {
                 if definedShare.managed {
-                    userShares.append(UserShare(networkShare: definedShare.networkShare.absoluteString, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                    userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
                 }
             }
         }
@@ -135,22 +135,20 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                 if shareArray.contains(shareString) {
                     self.logger.debug("\(shareString, privacy: .public) is already in list of user's customNetworkShares")
                 } else {
-                    if let newShareURL = URL(string: shareString) {
-                        // TODO: username and password if set
-                        let newShare = Share.createShare(networkShare: newShareURL, authType: .krb, mountStatus: .unmounted, managed: false)
-                        appDelegate.mounter.addShare(newShare)
-                        Task {
-                            do {
-                                try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
-                                // add the new share to the app-internal array to display personal shares
-                                shareArray.append(usersNewShare.stringValue)
-                                userDefaults.set(shareArray, forKey: Settings.customSharesKey)
-                                usersNewShare.stringValue=""
-                            } catch {
-                                // share did not mount, remove it from the array of shares
-                                appDelegate.mounter.removeShare(for: newShare)
-                                logger.warning("Mounting of new share \(self.usersNewShare.stringValue, privacy: .public) failed: \(error, privacy: .public)")
-                            }
+                    // TODO: username and password if set
+                    let newShare = Share.createShare(networkShare: shareString, authType: .krb, mountStatus: .unmounted, managed: false)
+                    appDelegate.mounter.addShare(newShare)
+                    Task {
+                        do {
+                            try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
+                            // add the new share to the app-internal array to display personal shares
+                            shareArray.append(usersNewShare.stringValue)
+                            userDefaults.set(shareArray, forKey: Settings.customSharesKey)
+                            usersNewShare.stringValue=""
+                        } catch {
+                            // share did not mount, remove it from the array of shares
+                            appDelegate.mounter.removeShare(for: newShare)
+                            logger.warning("Mounting of new share \(self.usersNewShare.stringValue, privacy: .public) failed: \(error, privacy: .public)")
                         }
                     }
                 }

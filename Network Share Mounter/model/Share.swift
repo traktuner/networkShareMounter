@@ -25,6 +25,8 @@ enum MountStatus: String {
     case undefined = "undefined"
     case unauthenticated = "unauthenticated"
     case userUnmounted = "userUnmounted"
+    case missingPassword = "missingPassword"
+    case wrongPassword = "wrongPassword"
 }
 
 /// describes the different properties and states of a share
@@ -42,7 +44,7 @@ enum MountStatus: String {
 /// - autoMount: for future use, the possibility to not mount shares automatically
 /// - localMountPoint: for future use, define a mount point for the share
 struct Share: Identifiable {
-    var networkShare: URL
+    var networkShare: String
     var authType: AuthType
     var username: String?
     var password: String?
@@ -99,7 +101,7 @@ struct Share: Identifiable {
     }
     
     /// factory-method, to create a new Share object
-    static func createShare(networkShare: URL, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true) -> Share {
+    static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true) -> Share {
         return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, id: UUID())
     }
 }

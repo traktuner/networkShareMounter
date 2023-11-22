@@ -29,10 +29,7 @@ class PasswordManager: NSObject {
     /// - Parameter forShare: ``String`` containing the URL of a network share
     /// - Parameter withUsername: ``String`` contining the username to connect the network share
     /// - Parameter andPassword: ``String`` containing the password for username
-    func makeQuery(share: String, username: String) throws -> [String: Any]  {
-        guard let shareURL = URL(string: share) else {
-            throw KeychainError.malformedShare
-        }
+    func makeQuery(share shareURL: URL, username: String) throws -> [String: Any]  {
         let host = shareURL.pathComponents[1]
         let path = shareURL.lastPathComponent
         /// Description of the CFDictionary for a new keychain entry
@@ -44,6 +41,8 @@ class PasswordManager: NSObject {
         /// kSecAttrPath -> the path part of the share
         /// kSecAttrProtocol -> the protocol part of the share
         /// kSecAttrLabel -> the name of the keychain entry, shown as "Name:" in Schlüsselbundverwaltung
+        /// kSecUseDataProtectionKeychain -> kCFBooleanTrue - a key whose value indicates whether to treat macOS keychain items like iOS keychain items
+        ///     (look at https://developer.apple.com/forums/thread/114456)
         ///
         /// example
         ///     username: batman
@@ -72,7 +71,7 @@ class PasswordManager: NSObject {
     /// - Parameter forShare: ``String`` containing the URL of a network share
     /// - Parameter withUsername: ``String`` contining the username to connect the network share
     /// - Parameter andPassword: ``String`` containing the password for username
-    func saveCredential(forShare share: String, withUsername username: String, andPpassword password: String) throws {
+    func saveCredential(forShare share: URL, withUsername username: String, andPpassword password: String) throws {
         do {
             var q = try makeQuery(share: share, username: username)
             q[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
@@ -91,9 +90,9 @@ class PasswordManager: NSObject {
     /// function to delete a specific keychain entry defined by
     /// - Parameter forShare: ``share`` name of the share
     /// - Parameter withUsername: ``username`` login for share
-    func removeCredential(forShare share: String, withUsername username: String) throws {
+    func removeCredential(forShare share: URL, withUsername username: String) throws {
         do {
-            var q = try makeQuery(share: share, username: username)
+            let q = try makeQuery(share: share, username: username)
             
             // try to get the password for share and username. If none is returned, the
             // entry does not exist and there is no need to remove an entry -> return
@@ -115,7 +114,7 @@ class PasswordManager: NSObject {
     /// function to retrieve a password from the keychain
     /// - Parameter forShare: ``share`` name of the share
     /// - Parameter withUsername: ``username`` login for share
-    func retrievePassword(forShare share: String, withUsername username: String) throws -> String? {
+    func retrievePassword(forShare share: URL, withUsername username: String) throws -> String? {
         do {
             var q = try makeQuery(share: share, username: username)
             q[kSecReturnData as String] = kCFBooleanTrue!

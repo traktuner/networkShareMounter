@@ -7,9 +7,11 @@
 //
 
 import Foundation
+import OSLog
 
 /// class `ShareManager` to manage the shares (array fo Share)
 class ShareManager {
+    let logger = Logger(subsystem: "NetworkShareMounter", category: "ShareManager")
     private var sharesLock = os_unfair_lock()
     private var _shares: [Share] = []
     
@@ -105,12 +107,22 @@ class ShareManager {
         //
         // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
         let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-        guard let shareURL = URL(string: shareRectified) else {
-            return nil
-        }
         let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        var password: String?
+        var mountStatus = MountStatus.unmounted
+        if shareAuthType == AuthType.pwd {
+            do {
+                if let keychainPassword = try PasswordManager().retrievePassword(forShare: URL(string: shareRectified)!, withUsername: userName) {
+                    password = keychainPassword
+                }
+            } catch {
+                logger.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain")
+                mountStatus = MountStatus.missingPassword
+                password = nil
+            }
+        }
         
-        let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: userName, mountPoint: shareElement[Settings.mountPoint], managed: true)
+        let newShare = Share.createShare(networkShare: shareRectified, authType: shareAuthType, mountStatus: mountStatus, username: userName, password: password, mountPoint: shareElement[Settings.mountPoint], managed: true)
         return(newShare)
     }
     
@@ -122,10 +134,7 @@ class ShareManager {
         //
         // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
         let shareRectified = shareElement.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-        guard let shareURL = URL(string: shareRectified) else {
-            return nil
-        }
-        let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+        let newShare = Share.createShare(networkShare: shareRectified, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
         return(newShare)
     }
     
@@ -136,11 +145,21 @@ class ShareManager {
         guard let shareUrlString = shareElement[Settings.networkShare] else {
             return nil
         }
-        guard let shareURL = URL(string: shareUrlString) else {
-            return nil
+        var password: String?
+        var mountStatus = MountStatus.unmounted
+        if let username = shareElement[Settings.username] {
+            do {
+                if let keychainPassword = try PasswordManager().retrievePassword(forShare: URL(string: shareUrlString)!, withUsername: username) {
+                    password = keychainPassword
+                }
+            } catch {
+                logger.warning("Password for share \(shareUrlString, privacy: .public) not found in user's keychain")
+                mountStatus = MountStatus.missingPassword
+                password = nil
+            }
         }
         let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        let newShare = Share.createShare(networkShare: shareURL, authType: shareAuthType, mountStatus: MountStatus.unmounted, username: shareElement[Settings.username], managed: false)
+        let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Settings.username], password: password, managed: false)
         return(newShare)
     }
 }

@@ -110,10 +110,7 @@ class Mounter: ObservableObject {
         /// at last there may be legacy user defined share definitions
         else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String] {
             for share in nwShares {
-                guard let shareURL = URL(string: share) else {
-                    continue
-                }
-                addShare(Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
+                addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
             // TODO: convert those legacy entries to new UserDefaults definition
         }
@@ -131,10 +128,8 @@ class Mounter: ObservableObject {
                 var homeDirectory = result[0]
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                if let shareURL = URL(string: homeDirectory) {
-                    let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
-                    addShare(newShare)
-                }
+                let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+                addShare(newShare)
             }
             // swiftlint:enable force_cast
         } catch {
@@ -303,7 +298,7 @@ class Mounter: ObservableObject {
                     //
                     // compare list of shares with mount
                     for share in self.shareManager.allShares {
-                        let shareDirName = share.networkShare
+                        let shareDirName = URL(string: share.networkShare)!
                         //
                         // get the last component of the share, since this is the name of the mount-directory
                         if let shareMountDir = shareDirName.pathComponents.last {
@@ -496,7 +491,7 @@ class Mounter: ObservableObject {
         // To do so, create a copy so that the evil magic is gone.
         // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
         //
-        let url = share.networkShare
+        let url = URL(string: share.networkShare)!
         let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
         guard let encodedShare = url.absoluteString.addingPercentEncoding(withAllowedCharacters: csCopy) else {
             logger.warning("❌ could not encode share for \(share.networkShare, privacy: .public)")
@@ -553,7 +548,7 @@ class Mounter: ObservableObject {
             if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted {
                 logger.debug("Called mount of \(url, privacy: .public) on path \(mountPath, privacy: .public)")
                 updateShare(mountStatus: .queued, for: share)
-                var mountOptions = Settings.mountOptions
+                let mountOptions = Settings.mountOptions
                 try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
                 // swiftlint:enable force_cast
                 let rc = NetFSMountURLSync(url as CFURL,
