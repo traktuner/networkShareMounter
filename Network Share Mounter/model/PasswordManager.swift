@@ -18,21 +18,22 @@ enum KeychainError: Error {
     case noPassword
     case malformedShare
     case unexpectedPasswordData
+    case undefinedError
+    case errorRemovingEntry
+    case errorRetrievingPassword
     case errorWithStatus(status: OSStatus)
 }
 
 class PasswordManager: NSObject {
-    /// function to store a new keychain entry. An existing entry will be overwritten
+    /// function to create a query to use with keychain
     /// - Parameter forShare: ``String`` containing the URL of a network share
     /// - Parameter withUsername: ``String`` contining the username to connect the network share
     /// - Parameter andPassword: ``String`` containing the password for username
-    func saveCredential(forShare share: String, withUsername username: String, andPpassword password: String) throws {
+    func makeQuery(share: String, username: String) throws -> [String: Any]  {
         guard let shareURL = URL(string: share) else {
             throw KeychainError.malformedShare
         }
-        guard let host = shareURL.host else {
-            throw KeychainError.malformedShare
-        }
+        let host = shareURL.pathComponents[1]
         let path = shareURL.lastPathComponent
         /// Description of the CFDictionary for a new keychain entry
         ///
@@ -58,64 +59,79 @@ class PasswordManager: NSObject {
         ///                             kSecAttrLabel as String: Settings.defaultsDomain,
         ///                             kSecAttrLabel as String: "fileserver.batcave.org",
         ///                             kSecValueData as String: "!'mB4tM4n".data(using: String.Encoding.utf8)!]
-        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+        let q: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrServer as String: host,
                                     kSecAttrProtocol as String: kSecAttrProtocolSMB,
                                     kSecAttrPath as String: path,
-                                    kSecAttrLabel as String: host,
-                                    kSecValueData as String: password.data(using: String.Encoding.utf8)!]
-        /// Delete existing entry (if applicable)
-        SecItemDelete(query as CFDictionary)
-        
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainError.errorWithStatus(status: status)
+                                    kSecAttrLabel as String: host]
+        return q
+    }
+    
+    /// function to store a new keychain entry. An existing entry will be overwritten
+    /// - Parameter forShare: ``String`` containing the URL of a network share
+    /// - Parameter withUsername: ``String`` contining the username to connect the network share
+    /// - Parameter andPassword: ``String`` containing the password for username
+    func saveCredential(forShare share: String, withUsername username: String, andPpassword password: String) throws {
+        do {
+            var q = try makeQuery(share: share, username: username)
+            q[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
+            /// Delete existing entry (if applicable)
+            SecItemDelete(q as CFDictionary)
+            
+            let status = SecItemAdd(q as CFDictionary, nil)
+            guard status == errSecSuccess else {
+                throw KeychainError.errorWithStatus(status: status)
+            }
+        } catch {
+            throw KeychainError.undefinedError
         }
-        
     }
 
     /// function to delete a specific keychain entry defined by
-    /// - Parameter _: hash to reference stored keychain item
-    func removeCredential(_ key: String) {
-        guard let object = PasswordManager.get(key) else {
-            return
-        }
-        
-        var q: [String: Any] = [
-            kSecClass as String: kSecClassInternetPassword as String,
-            kSecValueData as String: object.data(using: .utf8)!,
-            kSecAttrAccount as String: key,
-            kSecUseDataProtectionKeychain as String: kCFBooleanTrue as Any
-        ]
-        
-        // Delete existing (if applicable)
-        let sanityCheck = SecItemDelete(q as CFDictionary)
-        if sanityCheck != noErr {
-            print("Error deleting keychain item: \(sanityCheck.description)")
+    /// - Parameter forShare: ``share`` name of the share
+    /// - Parameter withUsername: ``username`` login for share
+    func removeCredential(forShare share: String, withUsername username: String) throws {
+        do {
+            var q = try makeQuery(share: share, username: username)
+            
+            // try to get the password for share and username. If none is returned, the
+            // entry does not exist and there is no need to remove an entry -> return
+            do {
+                let pw = try retrievePassword(forShare: share, withUsername: username)
+            } catch {
+                return
+            }
+            
+            let status = SecItemDelete(q as CFDictionary)
+            guard status == errSecSuccess else {
+                throw KeychainError.errorRemovingEntry
+            }
+        } catch {
+            throw KeychainError.errorRemovingEntry
         }
     }
     
-    /// internal class function to retrieve keychain entry
-    /// - Parameter key: hash to reference the stored Keychain item
-    /// - Returns: optional String containing
-    internal class func get(_ key: String) -> String? {
-        var q: [String: Any] = [
-            kSecClass as String: kSecClassInternetPassword,
-            kSecReturnData as String: kCFBooleanTrue!,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecAttrAccount as String: key,
-            kSecUseDataProtectionKeychain as String: kCFBooleanTrue as Any
-        ]
-        
-        q[kSecUseDataProtectionKeychain as String] = kCFBooleanTrue
-        var ref: AnyObject? = nil
-        
-        let sanityCheck = SecItemCopyMatching(q as CFDictionary, &ref)
-        if sanityCheck != noErr { return nil }
-        
-        if let parsedData = ref as? Data {
-            return String(data: parsedData, encoding: .utf8)
+    /// function to retrieve a password from the keychain
+    /// - Parameter forShare: ``share`` name of the share
+    /// - Parameter withUsername: ``username`` login for share
+    func retrievePassword(forShare share: String, withUsername username: String) throws -> String? {
+        do {
+            var q = try makeQuery(share: share, username: username)
+            q[kSecReturnData as String] = kCFBooleanTrue!
+            q[kSecMatchLimit as String] = kSecMatchLimitOne
+            var ref: AnyObject? = nil
+            
+            let status = SecItemCopyMatching(q as CFDictionary, &ref)
+            guard status == errSecSuccess else {
+                throw KeychainError.errorRetrievingPassword
+            }
+            
+            if let parsedData = ref as? Data {
+                return String(data: parsedData, encoding: .utf8) ?? ""
+            }
+        } catch {
+            throw KeychainError.errorRetrievingPassword
         }
         return nil
     }
