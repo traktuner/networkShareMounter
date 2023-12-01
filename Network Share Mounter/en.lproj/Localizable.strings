@@ -30,3 +30,9 @@
 
 /* Helptext for authType */
 "help-authType" = "To connect a network drive, you need to authenticate yourself to the server.\nIn a company or university, this is often done through Microsoft Active Directory and Kerberos and is the preferred method. In a private setting, authentication is done using a username and password.\n\nIf in doubt, consult your administrator.";
+
+/* Helptext for username */
+"help-username" = "The username with which you log in to the network drive.";
+
+/* Helptext for password */
+"help-password" = "The password with which you log in to the network drive.";

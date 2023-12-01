@@ -30,3 +30,9 @@
 
 /* Helptext for authType */
 "help-authType" = "Per collegare un'unità di rete, devi autenticarti presso il server.\nIn un'azienda o università, ciò avviene spesso tramite Microsoft Active Directory e Kerberos ed è il metodo preferito. In un contesto privato, l'autenticazione avviene tramite nome utente e password.\n\nIn caso di dubbi, consulta l'amministratore";
+
+/* Helptext for username */
+"help-username" = "Il nome utente con cui accedi all'unità di rete.";
+
+/* Helptext for password */
+"help-password" = "La password con cui accedi all'unità di rete";

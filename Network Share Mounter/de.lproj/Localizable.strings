@@ -30,3 +30,9 @@
 
 /* Helptext for authType */
 "help-authType" = "Zum Einbinden eines Netzwerklaufwerks musst du dich gegenüber dem Server authentifizieren.\nIn einer Firma oder Universität wird dies oft über Microsoft Active Directory und Kerberos gemacht und ist der präferierte Weg. Im privaten Umfeld erfolgt die Authentifizierung über Nutzername und Passwort.\n\nFrage im Zweifel deinen Administrator.";
+
+/* Helptext for username */
+"help-username" = "Der Nutzername mit dem du dich am Netzwerklaufwerk anmeldest.";
+
+/* Helptext for password */
+"help-password" = "Das Passwort mit dem du dich am Netzwerklaufwer anmeldest.";

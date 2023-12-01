@@ -31,3 +31,8 @@
 /* Helptext for authType */
 "help-authType" = "Om een netwerkstation toe te voegen, moet je je authenticeren bij de server.\nIn een bedrijf of universiteit gebeurt dit vaak via Microsoft Active Directory en Kerberos, wat de voorkeursmethode is. In een privéomgeving gebeurt de authenticatie met een gebruikersnaam en wachtwoord.\n\nBij twijfel raadpleeg je beheerder.";
 
+/* Helptext for username */
+"help-username" = "De gebruikersnaam waarmee je inlogt op het netwerkstation.";
+
+/* Helptext for password */
+"help-password" = "Het wachtwoord waarmee je inlogt op het netwerkstation.";
