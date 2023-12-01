@@ -73,7 +73,7 @@ class Mounter: ObservableObject {
 //    var defaultMountPath = UserDefaults.standard.object(forKey: "location") as? String ?? Settings.defaultMountPath
     
     init() {
-        /// initialize the class with the array of shares containig the network shares
+        /// initialize the shareArray containing MDM and user defined shares
         shareManager.createShareArray()
 
         ///

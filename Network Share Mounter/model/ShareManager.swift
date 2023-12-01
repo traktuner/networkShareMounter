@@ -203,31 +203,55 @@ class ShareManager {
             for share in nwShares {
                 addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
-            // TODO: convert those legacy entries to new UserDefaults definition
+//            removeLegacyShareConfigs()
         }
     }
     
     /// write user defined share configuration
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
-    func writeUserShareConfigs(shareConfigs: [Share]) {
+    func writeUserShareConfigs(shareArray: [Share]) {
         var userDefaultsConfigs: [[String: String]] = []
         
-        for share in shareConfigs {
-            var shareConfig: [String: String] = [:]
-            
-            shareConfig[Settings.networkShare] = share.networkShare
-            shareConfig[Settings.authType] = share.authType.rawValue
-            shareConfig[Settings.username] = share.username
-            
-            // Nur Passwort speichern, wenn es in der Keychain gefunden wurde
-            if let password = share.password {
-                // Hier können Sie den Code einfügen, um das Passwort in der Keychain zu speichern, falls erforderlich
+        for share in shareArray {
+            //
+            // save MDM non-managed shares
+            if share.managed == false {
+                var shareConfig: [String: String] = [:]
+                
+                shareConfig[Settings.networkShare] = share.networkShare
+                
+                shareConfig[Settings.authType] = share.authType.rawValue
+                shareConfig[Settings.username] = share.username
+                if let mountPoint = share.mountPoint {
+                    shareConfig[Settings.mountPoint] = mountPoint
+                }
+                if let username = share.username {
+                    shareConfig[Settings.username] = username
+                }
+//                shareConfig[Settings.location] = share.location
+                
+                // Nur Passwort speichern, wenn es in der Keychain gefunden wurde
+                if let password = share.password {
+                    if let username = share.username {
+                        let pwm = PasswordManager()
+                        do {
+                            try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPpassword: password)
+                        } catch {
+                            logger.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
+                        }
+                    }
+                }
+                
+                userDefaultsConfigs.append(shareConfig)
             }
-            
-            userDefaultsConfigs.append(shareConfig)
         }
         
         userDefaults.set(userDefaultsConfigs, forKey: Settings.managedNetworkSharesKey)
+        userDefaults.synchronize()
+    }
+    
+    private func removeLegacyShareConfigs() {
+        userDefaults.removeObject(forKey: Settings.customSharesKey)
         userDefaults.synchronize()
     }
 
