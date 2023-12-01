@@ -31,15 +31,19 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     var showManagedShares = false
     
 
+    // MARK: - initialize view
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         
+        //
+        // create a local copy of the global Shares array
         shareArray = appDelegate.mounter.shareManager.allShares
         //
         // copy all mdm and user defined shares to a local array
         for definedShare in shareArray {
-            // select those which are not managed
+            //
+            // on load select those which are not managed
             if !definedShare.managed {
                 userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
             }
@@ -53,6 +57,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             horizontalLine.isHidden = true
         }
 
+        //
+        // create an action to react on user clicks in tableview
         tableView.action = #selector(handleClickColumn)
     
         //
@@ -94,8 +100,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBOutlet weak var toggleManagedSwitch: NSSwitch!
     
     
-    // MARK: - toggle between managed shares and user defined shares
-    
+    /// function toggle between managed shares and user defined shares
     @IBAction func toggleManagedSharesAction(_ sender: Any) {
         if toggleManagedSwitch.state == NSControl.StateValue.off {
             showManagedShares = false
@@ -123,58 +128,10 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         }
     }
     
-    // MARK: - prepare to hand over the object for the user-selected tableview column (aka share URL)
-    
+    /// function to prepare to hand over the object for the user-selected tableview column (aka share URL)
     @IBAction func modifyShare(_ sender: NSButton) {
         let shareString = usersNewShare.stringValue
         self.performSegue(withIdentifier: "ShareViewSegue", sender: self)
-//
-//        var selectedShare = shareArray.filter{$0.networkShare == shareString}
-//        
-//        
-//        let row = self.tableView.selectedRow
-//        if row >= 0 {
-//            var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
-//            shareArray.remove(at: row)
-//            userDefaults.set(shareArray, forKey: Settings.customSharesKey)
-//            //UserDefaults.standard.set(shareArray, forKey: "customNetworkShares")
-//            // tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
-//        }
-//        
-//        // if the share URL string contains a space, the URL vill not
-//        // validate as valid. Therefore we replace the " " with a "_"
-//        // and test this string.
-//        // Of course this is a hack and not the best way to solve the
-//        // problem. But hey, every now and then I code, I am obbligated
-//        // to cheat. ¯\_(ツ)_/¯ 
-//        // TODO: the following code is to add a new share instead of modifying an existing. This code is from the old method
-//        let shareURL = shareString.replacingOccurrences(of: " ",
-//                                                       with: "_")
-//        if shareURL.isValidURL {
-//            if shareString.hasPrefix("smb://") || shareString.hasPrefix("cifs://") {
-//                var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
-//                if shareArray.contains(shareString) {
-//                    self.logger.debug("\(shareString, privacy: .public) is already in list of user's customNetworkShares")
-//                } else {
-//                    // TODO: username and password if set
-//                    let newShare = Share.createShare(networkShare: shareString, authType: .krb, mountStatus: .unmounted, managed: false)
-//                    appDelegate.mounter.addShare(newShare)
-//                    Task {
-//                        do {
-//                            try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
-//                            // add the new share to the app-internal array to display personal shares
-//                            shareArray.append(usersNewShare.stringValue)
-//                            userDefaults.set(shareArray, forKey: Settings.customSharesKey)
-//                            usersNewShare.stringValue=""
-//                        } catch {
-//                            // share did not mount, remove it from the array of shares
-//                            appDelegate.mounter.removeShare(for: newShare)
-//                            logger.warning("Mounting of new share \(self.usersNewShare.stringValue, privacy: .public) failed: \(error, privacy: .public)")
-//                        }
-//                    }
-//                }
-//            }
-//        }
     }
 
     @IBOutlet weak var addNewShareButton: NSButton!
@@ -189,15 +146,20 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     
     @IBOutlet weak var additionalSharesText: NSTextFieldCell!
     
-    // TODO: implement remove share
+    /// IBAction function called if removeShare button is pressed.
+    /// This will remove the share in the selected row in tableView
     @IBAction func removeShare(_ sender: NSButton) {
         let row = self.tableView.selectedRow
+        // this if is probably not needed, but I feel safer with it ;-)
         if row >= 0 {
-            var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
-            shareArray.remove(at: row)
-            userDefaults.set(shareArray, forKey: Settings.customSharesKey)
-            //UserDefaults.standard.set(shareArray, forKey: "customNetworkShares")
-            // tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
+            // if a share with the selected name is found, delete it
+            if let selectedShare = shareArray.filter({$0.networkShare == usersNewShare.stringValue}).first {
+                self.logger.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
+                appDelegate.mounter.removeShare(for: selectedShare)
+                // AFAIK this will also remove the entry in the local shareArray?
+                tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
+                usersNewShare.stringValue=""
+            }
         }
     }
     
@@ -212,25 +174,16 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         return viewcontroller
     }
     
+    // MARK: prepare segues by setting certain values
     override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShareViewSegue" {
             if let shareViewController = segue.destinationController as? ShareViewController {
+                // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
+                // new share will be added
                 shareViewController.selectedShareURL = usersNewShare.stringValue
             }
         }
     }
-//    
-//    override func performSegue(withIdentifier identifier: String, sender: Any?) {
-//        print("segue - \(identifier)")
-////        if let destinationViewController = segue.destination as? ShareViewController {
-////            if let button = sender as? UIButton {
-////                    secondViewController.<buttonIndex> = button.tag
-////                    // Note: add/define var buttonIndex: Int = 0 in <YourDestinationViewController> and print there in viewDidLoad.
-////            }
-////
-////          }
-//      }
-
 }
 
 extension NetworkShareMounterViewController: NSTableViewDelegate {

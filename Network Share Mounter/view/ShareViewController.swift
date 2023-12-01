@@ -108,18 +108,11 @@ class ShareViewController: NSViewController {
             // TODO: Handle invalid input
             return
         }
-        let networkShare = networkShareTextField.stringValue
-//        let authTypeString = authTypePopUpButton.selectedItem?.title,
-//        let authType = AuthType(rawValue: authTypeString)
         let username = usernameTextField.stringValue
         let password = passwordTextField.stringValue
         
         let shareData = ShareData(networkShare: networkShareURL, authType: authType, username: username, password: password)
         
-        // Do something with the share data
-        
-        // TODO: Import from NetworkShareMounterViewController
-//        let shareString = usersNewShare.stringValue
         // if the share URL string contains a space, the URL vill not
         // validate as valid. Therefore we replace the " " with a "_"
         // and test this string.
@@ -130,38 +123,35 @@ class ShareViewController: NSViewController {
         if shareURL.isValidURL {
             if networkShareText.hasPrefix("smb://") || networkShareText.hasPrefix("cifs://") {
                 // TODO: check if share is already in list of shares
-//                var shareArray = userDefaults.object(forKey: Settings.customSharesKey) as? [String] ?? [String]()
-//                if shareArray.contains(shareString) {
-//                    self.logger.debug("\(shareString, privacy: .public) is already in list of user's customNetworkShares")
-//                } else {
+                if let selectedShare = shareArray.filter({$0.networkShare == networkShareText}).first {
+                    // do something, show warning, whatsoever
+                    self.logger.debug("\(networkShareText, privacy: .public) is already in list of user's or mdm defined network shares")
+                } else {
                 var newShare: Share
                 if username.isEmpty {
                     newShare = Share.createShare(networkShare: networkShareText, authType: .krb, mountStatus: .unmounted, managed: false)
                 } else {
                     newShare = Share.createShare(networkShare: networkShareText, authType: .pwd, mountStatus: .unmounted, username: username, password: password, managed: false)
                 }
-                    appDelegate.mounter.addShare(newShare)
+//                    appDelegate.mounter.addShare(newShare)
                     Task {
                         do {
-                                try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
-                            // add the new share to the app-internal array to display personal shares
-//                            shareArray.append(usersNewShare.stringValue)
-//                            userDefaults.set(shareArray, forKey: Settings.customSharesKey)
-//                            usersNewShare.stringValue=""
+                            let returned = try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
+                            logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
+                            appDelegate.mounter.addShare(newShare)
                             dismiss(nil)
                         } catch {
                             // share did not mount, remove it from the array of shares
                             appDelegate.mounter.removeShare(for: newShare)
-//                            logger.warning("Mounting of new share \(self.usersNewShare.stringValue, privacy: .public) failed: \(error, privacy: .public)")
                             logger.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
                         }
                     }
-//                }
+                }
             } else {
-                
+                // not valid share entered
+                self.logger.error("\(networkShareText, privacy: .public) is not a valid share, since it does not start with smb:// or cifs://")
             }
         }
-//        dismiss(nil)
     }
     
     
@@ -190,21 +180,11 @@ class ShareViewController: NSViewController {
     }
     
     let popover = NSPopover()
-        
-//        @IBAction func helpButtonClicked(_ sender: NSButton) {
-//            
-//            let helpPopoverViewController = HelpPopoverViewController()
-//            helpPopoverViewController.helpText = "This is the help text for button \(helpButton.tag)"
-//            
-//            popover.contentViewController = helpPopoverViewController
-//            popover.show(relativeTo: helpButton.bounds, of: helpButton, preferredEdge: .maxY)
-//        }
     
     @IBAction func helpButtonClicked(_ sender: NSButton) {
         let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
         let popover = NSPopover()
         popover.contentViewController = helpPopoverViewController
-//        helpPopoverViewController.helpText = "This is the help text for button \(sender.tag)"
         helpPopoverViewController.helpText = helpText[sender.tag]
         popover.animates = true
         popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: NSRectEdge.minY)
