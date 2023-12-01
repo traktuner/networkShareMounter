@@ -74,46 +74,7 @@ class Mounter: ObservableObject {
     
     init() {
         /// initialize the class with the array of shares containig the network shares
-        
-        /// create an array from values configured in UserDefaults
-        /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
-        /// or `Settings.mdmNetworkSahresKey` and user defined `Settings.customSharesKey`.
-        ///
-        /// **Imprtant**:
-        /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, NOT both arrays
-        /// - then read user defined `Settings.customSharesKey`
-        ///
-        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
-            for shareElement in sharesDict {
-                if let newShare = shareManager.getMDMShareConfig(forShare: shareElement) {
-                    addShare(newShare)
-                }
-            }
-        }
-        /// alternatively try to get configured shares with now obsolete
-        /// Network Share Mounter 2 definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
-            for share in nwShares {
-                if let newShare = shareManager.getLegacyShareConfig(forShare: share) {
-                    addShare(newShare)
-                }
-            }
-        }
-        /// next look if there are some user-defined shares to import
-        if let privSharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
-            for share in privSharesDict {
-                if let newShare = shareManager.getUserShareConfigs(forShare: share) {
-                    addShare(newShare)
-                }
-            }
-        }
-        /// at last there may be legacy user defined share definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String] {
-            for share in nwShares {
-                addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
-            }
-            // TODO: convert those legacy entries to new UserDefaults definition
-        }
+        shareManager.createShareArray()
 
         ///
         /// try to to get SMBHomeDirectory (only possible in AD/Kerberos environments) and

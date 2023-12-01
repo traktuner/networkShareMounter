@@ -14,6 +14,7 @@ class ShareManager {
     let logger = Logger(subsystem: "NetworkShareMounter", category: "ShareManager")
     private var sharesLock = os_unfair_lock()
     private var _shares: [Share] = []
+    private let userDefaults = UserDefaults.standard
     
     /// Add a share
     func addShare(_ share: Share) {
@@ -162,4 +163,72 @@ class ShareManager {
         let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Settings.username], password: password, managed: false)
         return(newShare)
     }
+    
+    ///
+    func createShareArray() {
+        /// create an array from values configured in UserDefaults
+        /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
+        /// or `Settings.mdmNetworkSahresKey` and user defined `Settings.customSharesKey`.
+        ///
+        /// **Important**:
+        /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, NOT both arrays
+        /// - then read user defined `Settings.customSharesKey`
+        ///
+        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
+            for shareElement in sharesDict {
+                if let newShare = self.getMDMShareConfig(forShare: shareElement) {
+                    addShare(newShare)
+                }
+            }
+        }
+        /// alternatively try to get configured shares with now obsolete
+        /// Network Share Mounter 2 definitions
+        else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
+            for share in nwShares {
+                if let newShare = self.getLegacyShareConfig(forShare: share) {
+                    addShare(newShare)
+                }
+            }
+        }
+        /// next look if there are some user-defined shares to import
+        if let privSharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
+            for share in privSharesDict {
+                if let newShare = self.getUserShareConfigs(forShare: share) {
+                    addShare(newShare)
+                }
+            }
+        }
+        /// at last there may be legacy user defined share definitions
+        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String] {
+            for share in nwShares {
+                addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
+            }
+            // TODO: convert those legacy entries to new UserDefaults definition
+        }
+    }
+    
+    /// write user defined share configuration
+    /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
+    func writeUserShareConfigs(shareConfigs: [Share]) {
+        var userDefaultsConfigs: [[String: String]] = []
+        
+        for share in shareConfigs {
+            var shareConfig: [String: String] = [:]
+            
+            shareConfig[Settings.networkShare] = share.networkShare
+            shareConfig[Settings.authType] = share.authType.rawValue
+            shareConfig[Settings.username] = share.username
+            
+            // Nur Passwort speichern, wenn es in der Keychain gefunden wurde
+            if let password = share.password {
+                // Hier können Sie den Code einfügen, um das Passwort in der Keychain zu speichern, falls erforderlich
+            }
+            
+            userDefaultsConfigs.append(shareConfig)
+        }
+        
+        userDefaults.set(userDefaultsConfigs, forKey: Settings.managedNetworkSharesKey)
+        userDefaults.synchronize()
+    }
+
 }
