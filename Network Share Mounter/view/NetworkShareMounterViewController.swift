@@ -156,6 +156,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             if let selectedShare = shareArray.filter({$0.networkShare == usersNewShare.stringValue}).first {
                 self.logger.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
                 appDelegate.mounter.removeShare(for: selectedShare)
+                appDelegate.mounter.shareManager.writeUserShareConfigs()
                 // AFAIK this will also remove the entry in the local shareArray?
                 tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
                 usersNewShare.stringValue=""

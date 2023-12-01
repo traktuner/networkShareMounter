@@ -139,10 +139,12 @@ class ShareViewController: NSViewController {
                             let returned = try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
                             logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
                             appDelegate.mounter.addShare(newShare)
+                            appDelegate.mounter.shareManager.writeUserShareConfigs()
                             dismiss(nil)
                         } catch {
                             // share did not mount, remove it from the array of shares
                             appDelegate.mounter.removeShare(for: newShare)
+                            appDelegate.mounter.shareManager.writeUserShareConfigs()
                             logger.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
                         }
                     }

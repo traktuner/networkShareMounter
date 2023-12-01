@@ -38,9 +38,14 @@ struct Settings {
     static let defaultMountPath = "/Volumes"
     
     /// userDefaults dictionary names, used as keys in userDefaults:
+    /// legacy MDM key
     static let networkSharesKey = "networkShares"
+    /// MDM key
     static let managedNetworkSharesKey = "managedNetworkShares"
+    /// legacy user defined key
     static let customSharesKey = "customNetworkShares"
+    /// user defined key
+    static let userNetworkShares = "userNetworkShares"
     /// auhType of the share (.krb or pwd)
     static let authType = "authType"
     /// share export path

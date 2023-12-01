@@ -191,7 +191,7 @@ class ShareManager {
             }
         }
         /// next look if there are some user-defined shares to import
-        if let privSharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
+        if let privSharesDict = userDefaults.array(forKey: Settings.userNetworkShares) as? [[String: String]] {
             for share in privSharesDict {
                 if let newShare = self.getUserShareConfigs(forShare: share) {
                     addShare(newShare)
@@ -209,10 +209,11 @@ class ShareManager {
     
     /// write user defined share configuration
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
-    func writeUserShareConfigs(shareArray: [Share]) {
+    func writeUserShareConfigs() {
         var userDefaultsConfigs: [[String: String]] = []
         
-        for share in shareArray {
+        
+        for share in _shares {
             //
             // save MDM non-managed shares
             if share.managed == false {
@@ -246,7 +247,7 @@ class ShareManager {
             }
         }
         
-        userDefaults.set(userDefaultsConfigs, forKey: Settings.managedNetworkSharesKey)
+        userDefaults.set(userDefaultsConfigs, forKey: Settings.userNetworkShares)
         userDefaults.synchronize()
     }
     
