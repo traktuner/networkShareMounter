@@ -13,8 +13,10 @@ import OSLog
 class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, DataDelegate {
     func didReceiveData(_ data: Any) {
         print("Data is \(data)")
+        // swiftlint:disable force_cast
         let newShare = data as! Share
-        self.userShares.append(UserShare(networkShare: newShare.networkShare, 
+        // swiftlint:enable force_cast
+        self.userShares.append(UserShare(networkShare: newShare.networkShare,
                                          authType: (newShare.authType == AuthType.pwd ? true : false),
                                          username: newShare.username,
                                          password: newShare.password,
