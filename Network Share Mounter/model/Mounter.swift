@@ -130,23 +130,16 @@ class Mounter: ObservableObject {
     func updateShare(for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateShare(at: index, withUpdatedShare: share)
-//            shares = shareManager.allShares
         }
     }
     
     /// update mountStatus for a share element
     /// - Parameter mountStatus: new MountStatus
     /// - Parameter for: share to be updated
-//    func updateShare(mountStatus: MountStatus, for share: Share) {
-//        if let index = shares.firstIndex(where: { $0.id == share.id }) {
-//            shares[index].mountStatus = mountStatus
-//        }
-//    }
     // TODO: EXEC BAD ADRESS on network loss
     func updateShare(mountStatus: MountStatus, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateMountStatus(at: index, to: mountStatus)
-//            shares = shareManager.allShares
         }
     }
     
@@ -156,7 +149,6 @@ class Mounter: ObservableObject {
     func updateShare(actualMountPoint: String?, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
-//            shares = shareManager.allShares
         }
     }
    
@@ -489,7 +481,7 @@ class Mounter: ObservableObject {
         //
         // check if there is already filesystem-mount named like the share
         let dir = URL(fileURLWithPath: encodedShare)
-        guard let mountDir = dir.pathComponents.last else {
+        guard dir.pathComponents.last != nil else {
             logger.warning("❌ could not determine mount dir component of share \(encodedShare, privacy: .public)")
             updateShare(mountStatus: .errorOnMount, for: share)
             throw MounterError.errorCheckingMountDir
@@ -499,7 +491,15 @@ class Mounter: ObservableObject {
         if let mountPoint = share.mountPoint {
             mountDirectory += "/" + mountPoint
         } else {
-            mountDirectory += "/" + (url.lastPathComponent ?? "")
+            // check if the share URL has a path component. If not
+            // use servername as mount directory
+            if (url.lastPathComponent ?? "") == "" {
+                // use share's server name as mount directory
+                mountDirectory += "/" + (url.host ?? "mnt")
+            } else {
+                // use the export path of the share as mount directory
+                mountDirectory += "/" + (url.lastPathComponent ?? "mnt")
+            }
         }
         
         // check if there's already a directory of type filesystemMount named like the share.
