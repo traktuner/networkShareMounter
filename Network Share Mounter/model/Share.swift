@@ -35,6 +35,7 @@ enum MountStatus: String {
 /// - Parameter username: optional ``String`` containing the username needed to mount a share
 /// - Parameter mountStatus: Optional ``MountStatus`` describing the actual mount status
 /// - Parameter password: optional ``String`` containing the password to mount the share. Both username and password are retrieved from user's keychain
+/// - Parameter mountpoint: optional ``String`` specific mountpoint for the share
 /// - Parameter actualMountPoint: optional ``String`` containig the full path of the mountpoint where the
 ///   share is actually mounted. This value is set by the mount routine if the mount is successfully mounted and should be removed when the share is
 ///   unmounted

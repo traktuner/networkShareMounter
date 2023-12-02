@@ -123,9 +123,8 @@ class ShareViewController: NSViewController {
         let shareURL = networkShareText.replacingOccurrences(of: " ", with: "_")
         if shareURL.isValidURL {
             if networkShareText.hasPrefix("smb://") || networkShareText.hasPrefix("cifs://") {
-                // TODO: check if share is already in list of shares
                 if let selectedShare = shareArray.filter({$0.networkShare == networkShareText}).first {
-                    // do something, show warning, whatsoever
+                    // TODO: do something, show warning, whatsoever if the share is already there
                     self.logger.debug("\(networkShareText, privacy: .public) is already in list of user's or mdm defined network shares")
                 } else {
                 var newShare: Share

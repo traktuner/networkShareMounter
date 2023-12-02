@@ -38,7 +38,6 @@ class ActivityController {
     
     // call unmount shares on NSWorkspace notification
     @objc func unmountShares() {
-        // TODO: call unmount shares
         logger.debug("unmountAllShares called by willSleepNotification")
         Task {
             await self.mounter.unmountAllMountedShares()
@@ -48,7 +47,6 @@ class ActivityController {
     // call mount shares on NSWorkspace notification
     @objc func mountShares() {
         logger.debug("mountAllShares called by didWakeNotification")
-        // TODO: call mount shares
         Task {
             await self.mounter.mountAllShares(userTriggered: true)
         }

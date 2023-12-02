@@ -203,8 +203,7 @@ class ShareManager {
             for share in nwShares {
                 addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
-            // TODO: remove the comments of the following line
-//            removeLegacyShareConfigs()
+            removeLegacyShareConfigs()
         }
     }
     

@@ -136,7 +136,7 @@ class Mounter: ObservableObject {
     /// update mountStatus for a share element
     /// - Parameter mountStatus: new MountStatus
     /// - Parameter for: share to be updated
-    // TODO: EXEC BAD ADRESS on network loss
+    // TODO: EXEC BAD ADRESS on network loss (can't recreate the problem at the moment?)
     func updateShare(mountStatus: MountStatus, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateMountStatus(at: index, to: mountStatus)
@@ -210,7 +210,6 @@ class Mounter: ObservableObject {
     /// - Parameter path: A string containing the path of the directory containing the mountpoints (`mountpath`)
     /// - Parameter filename: A string containing the name of an obstructing file which should be deleted if it is found
     func deleteUnneededFiles(path: String, filename: String?) async {
-    // TODO: doing a cleanup only for the default mount dir cleans obstructing files and directories but not SHARE-1 SHARE-2 direcotries on other locations
         do {
             var filePaths = try fm.contentsOfDirectory(atPath: path)
             filePaths.append("/")
@@ -372,7 +371,19 @@ class Mounter: ObservableObject {
         // former directories not deleted by the mounter should be nuked to avoid
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
         
-        // TODO: look if here "defaultMountPath" ist the right way to clean up share mounts. Maybe it's better to go through all defined shares, since some of them could use other mount paths
+        // TODO: check if ths is not too dangerous
+        for share in shareManager.allShares {
+            // check if there is a specific mountpoint for the share. If yes, get the
+            // parent directory. This is the path where the mountpoint itself is located
+            if let path = share.mountPoint {
+                let url = URL(fileURLWithPath: path)
+                // remove the last component (aka mointpoint) to get the containing
+                // parent directory
+                let parentDirectory = url.deletingLastPathComponent().path
+                await deleteUnneededFiles(path: parentDirectory, filename: nil)
+            }
+        }
+        // look for unneded files at the defaultMountPath
         await deleteUnneededFiles(path: defaultMountPath, filename: nil)
     }
     
