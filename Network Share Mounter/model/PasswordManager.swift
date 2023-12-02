@@ -30,7 +30,7 @@ class PasswordManager: NSObject {
     /// - Parameter withUsername: ``String`` contining the username to connect the network share
     /// - Parameter andPassword: ``String`` containing the password for username
     func makeQuery(share shareURL: URL, username: String) throws -> [String: Any]  {
-        let host = shareURL.pathComponents[1]
+        let host = shareURL.host
         let path = shareURL.lastPathComponent
         /// Description of the CFDictionary for a new keychain entry
         ///
@@ -60,10 +60,10 @@ class PasswordManager: NSObject {
         ///                             kSecValueData as String: "!'mB4tM4n".data(using: String.Encoding.utf8)!]
         let q: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrAccount as String: username,
-                                    kSecAttrServer as String: host,
+                                    kSecAttrServer as String: host as Any,
                                     kSecAttrProtocol as String: kSecAttrProtocolSMB,
                                     kSecAttrPath as String: path,
-                                    kSecAttrLabel as String: host]
+                                    kSecAttrLabel as String: host as Any]
         return q
     }
     
