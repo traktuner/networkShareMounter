@@ -23,4 +23,16 @@
 "About Network Share Mounter" = "Informazioni Network Share Mounter";
 
 /* Additional shares */
-"Additional shares" = "Altre unità di rete configurate";
+"Additional shares" = "Mostra unità di rete gestite";
+
+/* Helptext for shares */
+"help-new-share" = "Puoi aggiungere e montare qualsiasi condivisione di rete di Windows (smb/cifs) purché tu conosca il nome del server e il percorso di esportazione.\nLa connessione verrà testata immediatamente e la condivisione verrà collegata se il server rispettivo o la condivisione sono raggiungibili.\n\nInserisci la condivisione come: smb://server.nome/percorso/esportazione";
+
+/* Helptext for authType */
+"help-authType" = "Per collegare un'unità di rete, devi autenticarti presso il server.\nIn un'azienda o università, ciò avviene spesso tramite Microsoft Active Directory e Kerberos ed è il metodo preferito. In un contesto privato, l'autenticazione avviene tramite nome utente e password.\n\nIn caso di dubbi, consulta l'amministratore";
+
+/* Helptext for username */
+"help-username" = "Il nome utente con cui accedi all'unità di rete.";
+
+/* Helptext for password */
+"help-password" = "La password con cui accedi all'unità di rete";

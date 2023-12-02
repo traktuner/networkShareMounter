@@ -95,7 +95,7 @@
 "Bw7-FT-i3A.title" = "Save As…";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "Je kunt elke Windows (smb/cifs) netwerkshare toevoegen en mounten zolang je de servernaam en het exportpad kent. \nDe verbinding wordt onmiddellijk getest en de share wordt verbonden als de server resp. share bereikbaar is. \n\nVoer de share naam in als: smb://server.name/export/path";
+"c4d-tI-W6k.title" = "Je kunt je netwerkstations (smb/cifs) toevoegen, wijzigen of verwijderen.\nAls je de app in een zakelijke of universitaire omgeving gebruikt, heeft je systeembeheerder mogelijk aanvullende netwerkstations gedefinieerd die je niet kunt wijzigen.";
 
 /* Class = "NSMenu"; title = "Transformations"; ObjectID = "c8a-y6-VQd"; */
 "c8a-y6-VQd.title" = "Transformations";
@@ -236,7 +236,7 @@
 "MkV-Pr-PK5.title" = "Copy Ruler";
 
 /* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
-"mZ5-S4-8d0.title" = "Share toevoegen";
+"mZ5-S4-8d0.title" = "Delen bewerken";
 
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "NMo-om-nkz"; */
 "NMo-om-nkz.title" = "Services";
@@ -411,3 +411,5 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "iZd-9D-vrE"; */
 "iZd-9D-vrE.title" = "Uw systeembeheerder heeft de volgende netwerkschijven geconfigureerd:";
+
+"l6h-Ep-Kih.title" = "Share toevoegen";

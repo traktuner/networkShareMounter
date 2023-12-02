@@ -18,10 +18,10 @@
 "FKE-Sm-Kum.title" = "Centre d'aide de Network Share Mounter";
 
 /* Class = "NSButtonCell"; title = "Add share"; ObjectID = "mZ5-S4-8d0"; */
-"mZ5-S4-8d0.title" = "Ajouter un partage";
+"mZ5-S4-8d0.title" = "Modifier un partage";
 
 /* Class = "NSTextFieldCell"; title = "You can mount any Windows (smb/cifs) network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."; ObjectID = "c4d-tI-W6k"; */
-"c4d-tI-W6k.title" = "Vous pouvez ajouter et monter n'importe quelle partage réseau Windows (smb/cifs) tant que vous connaissez le nom du serveur et le chemin d'exportation. \nLa connexion sera testée immédiatement et le partage sera connecté si le serveur ou le partage est accessible.\n\nEntrez le partage comme suit : smb://nom.du.serveur/chemin/d'exportation";
+"c4d-tI-W6k.title" = "Vous pouvez ajouter, modifier ou supprimer vos lecteurs réseau (smb/cifs).\nSi vous utilisez l'application dans un environnement professionnel ou universitaire, votre administrateur système peut avoir défini des lecteurs réseau supplémentaires que vous ne pouvez pas modifier";
 
 /* ================================================================================ */
 
@@ -417,3 +417,5 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "iZd-9D-vrE"; */
 "iZd-9D-vrE.title" = "Votre administrateur système a configuré les partages réseau suivants:";
+
+"l6h-Ep-Kih.title" = "Ajouter un partage";

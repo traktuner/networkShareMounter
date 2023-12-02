@@ -73,51 +73,8 @@ class Mounter: ObservableObject {
 //    var defaultMountPath = UserDefaults.standard.object(forKey: "location") as? String ?? Settings.defaultMountPath
     
     init() {
-        /// initialize the class with the array of shares containig the network shares
-//        self.shares = shareManager.allShares
-        
-        /// create an array from values configured in UserDefaults
-        /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
-        /// or `Settings.mdmNetworkSahresKey` and user defined `Settings.customSharesKey`.
-        ///
-        /// **Imprtant**:
-        /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, NOT both arrays
-        /// - then read user defined `Settings.customSharesKey`
-        ///
-        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
-            for shareElement in sharesDict {
-                if let newShare = shareManager.getMDMShareConfig(forShare: shareElement) {
-                    addShare(newShare)
-                }
-            }
-        }
-        /// alternatively try to get configured shares with now obsolete
-        /// Network Share Mounter 2 definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
-            for share in nwShares {
-                if let newShare = shareManager.getLegacyShareConfig(forShare: share) {
-                    addShare(newShare)
-                }
-            }
-        }
-        /// next look if there are some user-defined shares to import
-        if let privSharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
-            for share in privSharesDict {
-                if let newShare = shareManager.getUserShareConfigs(forShare: share) {
-                    addShare(newShare)
-                }
-            }
-        }
-        /// at last there may be legacy user defined share definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String] {
-            for share in nwShares {
-                guard let shareURL = URL(string: share) else {
-                    continue
-                }
-                addShare(Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted))
-            }
-            // TODO: convert those legacy entries to new UserDefaults definition
-        }
+        /// initialize the shareArray containing MDM and user defined shares
+        shareManager.createShareArray()
 
         ///
         /// try to to get SMBHomeDirectory (only possible in AD/Kerberos environments) and
@@ -132,10 +89,8 @@ class Mounter: ObservableObject {
                 var homeDirectory = result[0]
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
                 homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                if let shareURL = URL(string: homeDirectory) {
-                    let newShare = Share.createShare(networkShare: shareURL, authType: AuthType.krb, mountStatus: MountStatus.unmounted)
-                    addShare(newShare)
-                }
+                let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+                addShare(newShare)
             }
             // swiftlint:enable force_cast
         } catch {
@@ -145,11 +100,12 @@ class Mounter: ObservableObject {
         // now create the directory where the shares will be mounted
         // check if there is a definition where the shares will be mounted, otherwiese use the default
         if userDefaults.object(forKey: "location") as? String != nil {
-            defaultMountPath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+            self.defaultMountPath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
         } else {
-            defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
+            self.defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
         }
-        createMountFolder(atPath: defaultMountPath)
+        logger.debug("defaultMountPath is \(self.defaultMountPath, privacy: .public)")
+        createMountFolder(atPath: self.defaultMountPath)
     }
     
     /// checks if there is already a share with the same network export. If not,
@@ -174,23 +130,16 @@ class Mounter: ObservableObject {
     func updateShare(for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateShare(at: index, withUpdatedShare: share)
-//            shares = shareManager.allShares
         }
     }
     
     /// update mountStatus for a share element
     /// - Parameter mountStatus: new MountStatus
     /// - Parameter for: share to be updated
-//    func updateShare(mountStatus: MountStatus, for share: Share) {
-//        if let index = shares.firstIndex(where: { $0.id == share.id }) {
-//            shares[index].mountStatus = mountStatus
-//        }
-//    }
-    // TODO: EXEC BAD ADRESS on network loss
+    // TODO: EXEC BAD ADRESS on network loss (can't recreate the problem at the moment?)
     func updateShare(mountStatus: MountStatus, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateMountStatus(at: index, to: mountStatus)
-//            shares = shareManager.allShares
         }
     }
     
@@ -200,7 +149,6 @@ class Mounter: ObservableObject {
     func updateShare(actualMountPoint: String?, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
-//            shares = shareManager.allShares
         }
     }
    
@@ -262,7 +210,6 @@ class Mounter: ObservableObject {
     /// - Parameter path: A string containing the path of the directory containing the mountpoints (`mountpath`)
     /// - Parameter filename: A string containing the name of an obstructing file which should be deleted if it is found
     func deleteUnneededFiles(path: String, filename: String?) async {
-    // TODO: doing a cleanup only for the default mount dir cleans obstructing files and directories but not SHARE-1 SHARE-2 direcotries on other locations
         do {
             var filePaths = try fm.contentsOfDirectory(atPath: path)
             filePaths.append("/")
@@ -303,7 +250,7 @@ class Mounter: ObservableObject {
                     //
                     // compare list of shares with mount
                     for share in self.shareManager.allShares {
-                        let shareDirName = share.networkShare
+                        let shareDirName = URL(string: share.networkShare)!
                         //
                         // get the last component of the share, since this is the name of the mount-directory
                         if let shareMountDir = shareDirName.pathComponents.last {
@@ -424,7 +371,19 @@ class Mounter: ObservableObject {
         // former directories not deleted by the mounter should be nuked to avoid
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
         
-        // TODO: look if here "defaultMountPath" ist the right way to clean up share mounts. Maybe it's better to go through all defined shares, since some of them could use other mount paths
+        // TODO: check if ths is not too dangerous
+        for share in shareManager.allShares {
+            // check if there is a specific mountpoint for the share. If yes, get the
+            // parent directory. This is the path where the mountpoint itself is located
+            if let path = share.mountPoint {
+                let url = URL(fileURLWithPath: path)
+                // remove the last component (aka mointpoint) to get the containing
+                // parent directory
+                let parentDirectory = url.deletingLastPathComponent().path
+                await deleteUnneededFiles(path: parentDirectory, filename: nil)
+            }
+        }
+        // look for unneded files at the defaultMountPath
         await deleteUnneededFiles(path: defaultMountPath, filename: nil)
     }
     
@@ -460,7 +419,7 @@ class Mounter: ObservableObject {
                         } catch MounterError.noRouteToHost {
                             updateShare(mountStatus: .unrechable, for: share)
                         } catch MounterError.authenticationError {
-                            updateShare(mountStatus: .toBeMounted, for: share)
+                            updateShare(mountStatus: .unauthenticated, for: share)
                         } catch MounterError.shareDoesNotExist {
                             updateShare(mountStatus: .errorOnMount, for: share)
                         } catch MounterError.mountIsQueued {
@@ -496,7 +455,7 @@ class Mounter: ObservableObject {
         // To do so, create a copy so that the evil magic is gone.
         // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
         //
-        let url = share.networkShare
+        let url = URL(string: share.networkShare)!
         let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
         guard let encodedShare = url.absoluteString.addingPercentEncoding(withAllowedCharacters: csCopy) else {
             logger.warning("❌ could not encode share for \(share.networkShare, privacy: .public)")
@@ -533,7 +492,7 @@ class Mounter: ObservableObject {
         //
         // check if there is already filesystem-mount named like the share
         let dir = URL(fileURLWithPath: encodedShare)
-        guard let mountDir = dir.pathComponents.last else {
+        guard dir.pathComponents.last != nil else {
             logger.warning("❌ could not determine mount dir component of share \(encodedShare, privacy: .public)")
             updateShare(mountStatus: .errorOnMount, for: share)
             throw MounterError.errorCheckingMountDir
@@ -543,7 +502,15 @@ class Mounter: ObservableObject {
         if let mountPoint = share.mountPoint {
             mountDirectory += "/" + mountPoint
         } else {
-            mountDirectory += "/" + (url.lastPathComponent ?? "")
+            // check if the share URL has a path component. If not
+            // use servername as mount directory
+            if (url.lastPathComponent ?? "") == "" {
+                // use share's server name as mount directory
+                mountDirectory += "/" + (url.host ?? "mnt")
+            } else {
+                // use the export path of the share as mount directory
+                mountDirectory += "/" + (url.lastPathComponent ?? "mnt")
+            }
         }
         
         // check if there's already a directory of type filesystemMount named like the share.
@@ -553,7 +520,7 @@ class Mounter: ObservableObject {
             if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted {
                 logger.debug("Called mount of \(url, privacy: .public) on path \(mountPath, privacy: .public)")
                 updateShare(mountStatus: .queued, for: share)
-                var mountOptions = Settings.mountOptions
+                let mountOptions = Settings.mountOptions
                 try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
                 // swiftlint:enable force_cast
                 let rc = NetFSMountURLSync(url as CFURL,

@@ -68,8 +68,14 @@ lane :commonTasks do
     files: [                                # List of files to process (optional)
         "Network Share Mounter/AppDelegate.swift",
         "Network Share Mounter/Monitor.swift",
-        "Network Share Mounter/Mounter.swift",
-        "Network Share Mounter/NetworkShareMounterViewController.swift",
+        "Network Share Mounter/AppStatistics.swift",
+        "Network Share Mounter/ActivityController.swift",
+        "Network Share Mounter/model/Mounter.swift",
+        "Network Share Mounter/model/Share.swift",
+        "Network Share Mounter/model/ShareManager.swift",
+        "Network Share Mounter/view/NetworkShareMounterViewController.swift",
+        "Network Share Mounter/view/PopoverViewController.swift",
+        "Network Share Mounter/view/ShareViewController.swift",
         "Network Share Mounter/config.swift"
     ],
     raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails

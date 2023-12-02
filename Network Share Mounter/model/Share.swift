@@ -23,7 +23,10 @@ enum MountStatus: String {
     case errorOnMount = "errorOnMount"
     case unrechable = "unreachable"
     case undefined = "undefined"
+    case unauthenticated = "unauthenticated"
     case userUnmounted = "userUnmounted"
+    case missingPassword = "missingPassword"
+    case wrongPassword = "wrongPassword"
 }
 
 /// describes the different properties and states of a share
@@ -32,6 +35,7 @@ enum MountStatus: String {
 /// - Parameter username: optional ``String`` containing the username needed to mount a share
 /// - Parameter mountStatus: Optional ``MountStatus`` describing the actual mount status
 /// - Parameter password: optional ``String`` containing the password to mount the share. Both username and password are retrieved from user's keychain
+/// - Parameter mountpoint: optional ``String`` specific mountpoint for the share
 /// - Parameter actualMountPoint: optional ``String`` containig the full path of the mountpoint where the
 ///   share is actually mounted. This value is set by the mount routine if the mount is successfully mounted and should be removed when the share is
 ///   unmounted
@@ -41,13 +45,14 @@ enum MountStatus: String {
 /// - autoMount: for future use, the possibility to not mount shares automatically
 /// - localMountPoint: for future use, define a mount point for the share
 struct Share: Identifiable {
-    var networkShare: URL
+    var networkShare: String
     var authType: AuthType
     var username: String?
     var password: String?
     var mountStatus: MountStatus
     var mountPoint: String?
     var actualMountPoint: String?
+    var managed: Bool
     var id = UUID()
     
     /// Lock for thread-safe access to Share properties
@@ -97,7 +102,7 @@ struct Share: Identifiable {
     }
     
     /// factory-method, to create a new Share object
-    static func createShare(networkShare: URL, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil) -> Share {
-        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, id: UUID())
+    static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true) -> Share {
+        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, id: UUID())
     }
 }
