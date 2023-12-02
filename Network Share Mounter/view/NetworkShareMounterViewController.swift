@@ -14,7 +14,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
     func didReceiveData(_ data: Any) {
         print("Data is \(data)")
         let newShare = data as! Share
-        self.userShares.append(UserShare(networkShare: newShare.networkShare, authType: (newShare.authType == AuthType.pwd ? true : false), username: newShare.username, password: newShare.password, mountPoint: newShare.mountPoint, managed: newShare.managed))
+        self.userShares.append(UserShare(networkShare: newShare.networkShare, 
+                                         authType: (newShare.authType == AuthType.pwd ? true : false),
+                                         username: newShare.username,
+                                         password: newShare.password,
+                                         mountPoint: newShare.mountPoint,
+                                         managed: newShare.managed))
         self.tableView.reloadData()
     }
     
@@ -47,7 +52,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
             //
             // on load select those which are not managed
             if !definedShare.managed {
-                userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                userShares.append(UserShare(networkShare: definedShare.networkShare, 
+                                            authType: true,
+                                            username: definedShare.username,
+                                            password: definedShare.password,
+                                            mountPoint: definedShare.mountPoint,
+                                            managed: definedShare.managed))
             }
         }
 
@@ -112,7 +122,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
             usersNewShare.stringValue=""
             for definedShare in appDelegate.mounter.shareManager.allShares {
                 if !definedShare.managed {
-                    self.userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                    self.userShares.append(UserShare(networkShare: definedShare.networkShare,
+                                                     authType: true,
+                                                     username: definedShare.username,
+                                                     password: definedShare.password,
+                                                     mountPoint: definedShare.mountPoint,
+                                                     managed: definedShare.managed))
                 }
             }
         } else {
@@ -124,7 +139,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
             usersNewShare.stringValue=""
             for definedShare in appDelegate.mounter.shareManager.allShares {
                 if definedShare.managed {
-                    self.userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                    self.userShares.append(UserShare(networkShare: definedShare.networkShare,
+                                                     authType: true,
+                                                     username: definedShare.username,
+                                                     password: definedShare.password,
+                                                     mountPoint: definedShare.mountPoint,
+                                                     managed: definedShare.managed))
                 }
             }
         }
@@ -132,7 +152,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
     
     /// function to prepare to hand over the object for the user-selected tableview column (aka share URL)
     @IBAction func modifyShare(_ sender: NSButton) {
-        let shareString = usersNewShare.stringValue
         self.performSegue(withIdentifier: "ShareViewSegue", sender: self)
     }
 

@@ -58,13 +58,13 @@ class PasswordManager: NSObject {
         ///                             kSecAttrLabel as String: Settings.defaultsDomain,
         ///                             kSecAttrLabel as String: "fileserver.batcave.org",
         ///                             kSecValueData as String: "!'mB4tM4n".data(using: String.Encoding.utf8)!]
-        let q: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+        let query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrServer as String: host as Any,
                                     kSecAttrProtocol as String: kSecAttrProtocolSMB,
                                     kSecAttrPath as String: path,
                                     kSecAttrLabel as String: host as Any]
-        return q
+        return query
     }
     
     /// function to store a new keychain entry. An existing entry will be overwritten
@@ -73,12 +73,12 @@ class PasswordManager: NSObject {
     /// - Parameter andPassword: ``String`` containing the password for username
     func saveCredential(forShare share: URL, withUsername username: String, andPpassword password: String) throws {
         do {
-            var q = try makeQuery(share: share, username: username)
-            q[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
+            var query = try makeQuery(share: share, username: username)
+            query[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
             /// Delete existing entry (if applicable)
-            SecItemDelete(q as CFDictionary)
+            SecItemDelete(query as CFDictionary)
             
-            let status = SecItemAdd(q as CFDictionary, nil)
+            let status = SecItemAdd(query as CFDictionary, nil)
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
@@ -92,7 +92,7 @@ class PasswordManager: NSObject {
     /// - Parameter withUsername: ``username`` login for share
     func removeCredential(forShare share: URL, withUsername username: String) throws {
         do {
-            let q = try makeQuery(share: share, username: username)
+            let query = try makeQuery(share: share, username: username)
             
             // try to get the password for share and username. If none is returned, the
             // entry does not exist and there is no need to remove an entry -> return
@@ -102,7 +102,7 @@ class PasswordManager: NSObject {
                 return
             }
             
-            let status = SecItemDelete(q as CFDictionary)
+            let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess else {
                 throw KeychainError.errorRemovingEntry
             }
@@ -116,12 +116,12 @@ class PasswordManager: NSObject {
     /// - Parameter withUsername: ``username`` login for share
     func retrievePassword(forShare share: URL, withUsername username: String) throws -> String? {
         do {
-            var q = try makeQuery(share: share, username: username)
-            q[kSecReturnData as String] = kCFBooleanTrue!
-            q[kSecMatchLimit as String] = kSecMatchLimitOne
+            var query = try makeQuery(share: share, username: username)
+            query[kSecReturnData as String] = kCFBooleanTrue!
+            query[kSecMatchLimit as String] = kSecMatchLimitOne
             var ref: AnyObject? = nil
             
-            let status = SecItemCopyMatching(q as CFDictionary, &ref)
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
             guard status == errSecSuccess else {
                 throw KeychainError.errorRetrievingPassword
             }

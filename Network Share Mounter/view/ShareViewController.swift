@@ -185,7 +185,9 @@ class ShareViewController: NSViewController {
     let popover = NSPopover()
     
     @IBAction func helpButtonClicked(_ sender: NSButton) {
+        // swiftlint:disable force_cast
         let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
+        // swiftlint:enable force_cast
         let popover = NSPopover()
         popover.contentViewController = helpPopoverViewController
         helpPopoverViewController.helpText = helpText[sender.tag]

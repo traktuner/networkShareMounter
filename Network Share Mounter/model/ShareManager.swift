@@ -123,7 +123,13 @@ class ShareManager {
             }
         }
         
-        let newShare = Share.createShare(networkShare: shareRectified, authType: shareAuthType, mountStatus: mountStatus, username: userName, password: password, mountPoint: shareElement[Settings.mountPoint], managed: true)
+        let newShare = Share.createShare(networkShare: shareRectified, 
+                                         authType: shareAuthType,
+                                         mountStatus: mountStatus,
+                                         username: userName,
+                                         password: password,
+                                         mountPoint: shareElement[Settings.mountPoint],
+                                         managed: true)
         return(newShare)
     }
     
