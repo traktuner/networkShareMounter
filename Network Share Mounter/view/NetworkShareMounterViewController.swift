@@ -15,13 +15,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
         print("Data is \(data)")
         let newShare = data as! Share
         self.userShares.append(UserShare(networkShare: newShare.networkShare, authType: (newShare.authType == AuthType.pwd ? true : false), username: newShare.username, password: newShare.password, mountPoint: newShare.mountPoint, managed: newShare.managed))
-//        for definedShare in shareArray {
-//            //
-//            // on load select those which are not managed
-//            if !definedShare.managed {
-//                userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
-//            }
-//        }
         self.tableView.reloadData()
     }
     
@@ -31,8 +24,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     // prepare an array of type UserShare to store the defined shares while showing this view
     @objc dynamic var userShares: [UserShare] = []
-    // variable with mdm and user defined shares
-//    var shareArray : [Share] = []
     
     // swiftlint:disable force_cast
     // appDelegate is used to accesss variables in AppDelegate
@@ -50,9 +41,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
         super.viewDidLoad()
         tableView.delegate = self
         
-        //
-        // create a local copy of the global Shares array
-//        shareArray = appDelegate.mounter.shareManager.allShares
         //
         // copy all mdm and user defined shares to a local array
         for definedShare in appDelegate.mounter.shareManager.allShares {
