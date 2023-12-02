@@ -183,7 +183,7 @@ class ShareManager {
         }
         /// alternatively try to get configured shares with now obsolete
         /// Network Share Mounter 2 definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
+        if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
             for share in nwShares {
                 if let newShare = self.getLegacyShareConfig(forShare: share) {
                     addShare(newShare)
@@ -203,6 +203,7 @@ class ShareManager {
             for share in nwShares {
                 addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
+            // TODO: remove the comments of the following line
 //            removeLegacyShareConfigs()
         }
     }

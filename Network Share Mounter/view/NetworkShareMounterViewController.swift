@@ -10,7 +10,21 @@ import Cocoa
 import LaunchAtLogin
 import OSLog
 
-class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
+class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, DataDelegate {
+    func didReceiveData(_ data: Any) {
+        print("Data is \(data)")
+        let newShare = data as! Share
+        self.userShares.append(UserShare(networkShare: newShare.networkShare, authType: (newShare.authType == AuthType.pwd ? true : false), username: newShare.username, password: newShare.password, mountPoint: newShare.mountPoint, managed: newShare.managed))
+//        for definedShare in shareArray {
+//            //
+//            // on load select those which are not managed
+//            if !definedShare.managed {
+//                userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+//            }
+//        }
+        self.tableView.reloadData()
+    }
+    
 
     let userDefaults = UserDefaults.standard
 
@@ -18,7 +32,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     // prepare an array of type UserShare to store the defined shares while showing this view
     @objc dynamic var userShares: [UserShare] = []
     // variable with mdm and user defined shares
-    var shareArray : [Share] = []
+//    var shareArray : [Share] = []
     
     // swiftlint:disable force_cast
     // appDelegate is used to accesss variables in AppDelegate
@@ -38,10 +52,10 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         
         //
         // create a local copy of the global Shares array
-        shareArray = appDelegate.mounter.shareManager.allShares
+//        shareArray = appDelegate.mounter.shareManager.allShares
         //
         // copy all mdm and user defined shares to a local array
-        for definedShare in shareArray {
+        for definedShare in appDelegate.mounter.shareManager.allShares {
             //
             // on load select those which are not managed
             if !definedShare.managed {
@@ -77,10 +91,10 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
     @objc func handleClickColumn() {
         if tableView.clickedRow >= 0 && toggleManagedSwitch.state == NSControl.StateValue.off {
-            if !userShares[tableView.selectedRow].managed {
+            if !self.userShares[tableView.selectedRow].managed {
                 removeShareButton.isEnabled = true
                 modifyShareButton.isEnabled = true
-                usersNewShare.stringValue =  userShares[tableView.selectedRow].networkShare
+                usersNewShare.stringValue =  self.userShares[tableView.selectedRow].networkShare
             }
         } else {
             removeShareButton.isEnabled = false
@@ -104,25 +118,25 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBAction func toggleManagedSharesAction(_ sender: Any) {
         if toggleManagedSwitch.state == NSControl.StateValue.off {
             showManagedShares = false
-            userShares.removeAll()
+            self.userShares.removeAll()
             modifyShareButton.isEnabled = false
             addNewShareButton.isEnabled = true
             usersNewShare.stringValue=""
-            for definedShare in shareArray {
+            for definedShare in appDelegate.mounter.shareManager.allShares {
                 if !definedShare.managed {
-                    userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                    self.userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
                 }
             }
         } else {
             showManagedShares = true
             removeShareButton.isEnabled = false
-            userShares.removeAll()
+            self.userShares.removeAll()
             modifyShareButton.isEnabled = false
             addNewShareButton.isEnabled = false
             usersNewShare.stringValue=""
-            for definedShare in shareArray {
+            for definedShare in appDelegate.mounter.shareManager.allShares {
                 if definedShare.managed {
-                    userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
+                    self.userShares.append(UserShare(networkShare: definedShare.networkShare, authType: true, username: definedShare.username, password: definedShare.password, mountPoint: definedShare.mountPoint, managed: definedShare.managed))
                 }
             }
         }
@@ -153,12 +167,14 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         // this if is probably not needed, but I feel safer with it ;-)
         if row >= 0 {
             // if a share with the selected name is found, delete it
-            if let selectedShare = shareArray.filter({$0.networkShare == usersNewShare.stringValue}).first {
+            if let selectedShare = appDelegate.mounter.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                 self.logger.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
                 appDelegate.mounter.removeShare(for: selectedShare)
+                // update userDefaults
                 appDelegate.mounter.shareManager.writeUserShareConfigs()
-                // AFAIK this will also remove the entry in the local shareArray?
-                tableView.removeRows(at: IndexSet(integer:row), withAnimation:.effectFade)
+                // remove share from local userShares array bound to tableView
+                self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
+//                self.tableView.reloadData()
                 usersNewShare.stringValue=""
             }
         }
@@ -181,6 +197,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             if let shareViewController = segue.destinationController as? ShareViewController {
                 // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
                 // new share will be added
+                shareViewController.delegate = self
                 shareViewController.selectedShareURL = usersNewShare.stringValue
             }
         }
@@ -206,3 +223,8 @@ extension String {
         }
     }
 }
+
+protocol DataDelegate: class {
+    func didReceiveData(_ data: Any)
+}
+

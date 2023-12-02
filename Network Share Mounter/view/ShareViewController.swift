@@ -33,6 +33,7 @@ class ShareViewController: NSViewController {
     var shareData: ShareData?
     var authType: AuthType = AuthType.krb
     var shareArray : [Share] = []
+    weak var delegate: DataDelegate?
     
     // MARK: - Outlets
     
@@ -140,6 +141,7 @@ class ShareViewController: NSViewController {
                             logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
                             appDelegate.mounter.addShare(newShare)
                             appDelegate.mounter.shareManager.writeUserShareConfigs()
+                            delegate?.didReceiveData(newShare)
                             dismiss(nil)
                         } catch {
                             // share did not mount, remove it from the array of shares
