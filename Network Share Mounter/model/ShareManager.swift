@@ -37,6 +37,15 @@ class ShareManager {
         return _shares
     }
     
+    /// delete all shares, delete array entries is not already empty
+    func removeAllShares() {
+        os_unfair_lock_lock(&sharesLock)
+        if !_shares.isEmpty {
+            _shares.removeAll()
+        }
+        os_unfair_lock_unlock(&sharesLock)
+    }
+    
     /// Update a share at a specific index
     func updateShare(at index: Int, withUpdatedShare updatedShare: Share) {
         os_unfair_lock_lock(&sharesLock)
@@ -170,6 +179,10 @@ class ShareManager {
         return(newShare)
     }
     
+    func reReadShares() {
+        
+    }
+    
     ///
     func createShareArray() {
         /// create an array from values configured in UserDefaults
@@ -180,19 +193,23 @@ class ShareManager {
         /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, NOT both arrays
         /// - then read user defined `Settings.customSharesKey`
         ///
+        var usedNewMDMprofile = false
         if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
             for shareElement in sharesDict {
                 if let newShare = self.getMDMShareConfig(forShare: shareElement) {
+                    usedNewMDMprofile = true
                     addShare(newShare)
                 }
             }
         }
         /// alternatively try to get configured shares with now obsolete
         /// Network Share Mounter 2 definitions
-        if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
-            for share in nwShares {
-                if let newShare = self.getLegacyShareConfig(forShare: share) {
-                    addShare(newShare)
+        if !usedNewMDMprofile {
+            if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
+                for share in nwShares {
+                    if let newShare = self.getLegacyShareConfig(forShare: share) {
+                        addShare(newShare)
+                    }
                 }
             }
         }
