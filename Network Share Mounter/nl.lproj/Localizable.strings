@@ -36,3 +36,6 @@
 
 /* Helptext for password */
 "help-password" = "Het wachtwoord waarmee je inlogt op het netwerkstation.";
+
+/* Helptext for show managed shares */
+"help-show-managed-shares" = "En empresas o universidades, la configuración de las unidades de red se gestiona a menudo a través de la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. \n\nNo puedes eliminar ni modificar estas unidades predefinidas.";

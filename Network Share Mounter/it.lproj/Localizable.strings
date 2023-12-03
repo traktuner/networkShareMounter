@@ -36,3 +36,6 @@
 
 /* Helptext for password */
 "help-password" = "La password con cui accedi all'unità di rete";
+
+/* Helptext for show managed shares */
+"help-show-managed-shares" = "Nelle aziende o nelle università, l'impostazione per le unità di rete è spesso gestita tramite Mobile Device Management (MDM). Ciò significa che il tuo amministratore collega automaticamente determinate unità al tuo Mac. \n\nNon puoi eliminare o modificare queste unità predefinite.";

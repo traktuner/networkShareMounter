@@ -11,6 +11,12 @@ import LaunchAtLogin
 import OSLog
 
 class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, DataDelegate {
+    
+    // MARK: - help messages
+    var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
+                    NSLocalizedString("help-show-managed-shares", comment: "")]
+    
+    
     func didReceiveData(_ data: Any) {
         print("Data is \(data)")
         // swiftlint:disable force_cast
@@ -41,6 +47,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
     
     // toggle to show user defined or managed shares
     var showManagedShares = false
+    
+    let popover = NSPopover()
     
 
     // MARK: - initialize view
@@ -87,6 +95,15 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
         } else {
             additionalSharesText.title = NSLocalizedString("Additional shares", comment: "Additional shares")
         }
+//        let symbolConfig = NSImage.SymbolConfiguration(scale: .large)
+//
+//        if let symbolImage = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help") {
+//            let resizedImage = symbolImage.withSymbolConfiguration(symbolConfig)
+//            
+//            managedSharesHelp.image = resizedImage
+//            managedSharesHelp.imageScaling = .scaleProportionallyDown
+//        }
+//        managedSharesHelp.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
     }
 
     @objc func handleClickColumn() {
@@ -112,6 +129,20 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
     @IBOutlet var shareArrayController: NSArrayController!
     
     @IBOutlet weak var toggleManagedSwitch: NSSwitch!
+    
+    @IBOutlet weak var managedSharesHelp: NSButton!
+    
+    @IBAction func helpButtonClicked(_ sender: NSButton) {
+        // swiftlint:disable force_cast
+        let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
+        // swiftlint:enable force_cast
+        let popover = NSPopover()
+        popover.contentViewController = helpPopoverViewController
+        helpPopoverViewController.helpText = helpText[sender.tag]
+        popover.animates = true
+        popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: NSRectEdge.minY)
+        popover.behavior = NSPopover.Behavior.transient
+    }
     
     
     /// function toggle between managed shares and user defined shares
