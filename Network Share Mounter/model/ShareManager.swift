@@ -37,6 +37,15 @@ class ShareManager {
         return _shares
     }
     
+    /// delete all shares, delete array entries is not already empty
+    func removeAllShares() {
+        os_unfair_lock_lock(&sharesLock)
+        if !_shares.isEmpty {
+            _shares.removeAll()
+        }
+        os_unfair_lock_unlock(&sharesLock)
+    }
+    
     /// Update a share at a specific index
     func updateShare(at index: Int, withUpdatedShare updatedShare: Share) {
         os_unfair_lock_lock(&sharesLock)
@@ -170,34 +179,126 @@ class ShareManager {
         return(newShare)
     }
     
-    ///
+    func updateShareArray() {
+        // read MDM shares
+        var usedNewMDMprofile = false
+        logger.debug("Checking possible changes in MDM profile")
+        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
+            var newShares: [Share] = []
+            for shareElement in sharesDict {
+                if var newShare = self.getMDMShareConfig(forShare: shareElement) {
+                    usedNewMDMprofile = true
+                    // check if share exists and if not, add it to array of shares
+                    // addShare() would check if an element exists and skips it,
+                    // but the new share definition could differ from the new one get from MDM
+                    if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
+                        logger.debug("Adding new share \(newShare.networkShare, privacy: .public)")
+                        addShare(newShare)
+                    } else {
+                        if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
+                            // save some stati from actual share element and save them to new share
+                            // read from MDM. Then overwrite the share with the new data
+                            logger.debug("Found existing share \(newShare.networkShare, privacy: .public), updating status.")
+                            newShare.mountStatus = allShares[index].mountStatus
+                            newShare.id = allShares[index].id
+                            newShare.actualMountPoint  = allShares[index].actualMountPoint
+                            updateShare(at: index, withUpdatedShare: newShare)
+                        }
+                    }
+                    newShares.append(newShare)
+                }
+            }
+            // get the difference between _shares and the new share read from MDM
+            let differing = _shares.filter { _shares in
+                !newShares.contains { newShares in
+                    _shares.networkShare == newShares.networkShare
+                }
+            }
+            // remove found shares
+            for remove in differing {
+                if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
+                    if _shares[index].managed == true {
+                        logger.debug("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                        removeShare(at: index)
+                    }
+                }
+            }
+        }
+        if !usedNewMDMprofile {
+            // the same as above with the legacy MDM profiles
+            if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String], !nwShares.isEmpty {
+                var newShares: [Share] = []
+                for share in nwShares {
+                    if var newShare = self.getLegacyShareConfig(forShare: share) {
+                        usedNewMDMprofile = true
+                        // check if share exists and if not, add it to array of shares
+                        // addShare() would check if an element exists and skips it,
+                        // but the new share definition could differ from the new one get from MDM
+                        if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
+                            addShare(newShare)
+                            newShares.append(newShare)
+                        } else {
+                            if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
+                                // save some stati from actual share element and save them to new share
+                                // read from MDM. Then overwrite the share with the new data
+                                newShare.mountStatus = allShares[index].mountStatus
+                                newShare.id = allShares[index].id
+                                newShare.actualMountPoint  = allShares[index].actualMountPoint
+                                updateShare(at: index, withUpdatedShare: newShare)
+                                newShares.append(newShare)
+                            }
+                        }
+                    }
+                }
+                // get the difference between _shares and the new share read from MDM
+                let differing = _shares.filter { _shares in
+                    !newShares.contains { newShares in
+                        _shares.networkShare == newShares.networkShare
+                    }
+                }
+                // remove found shares
+                for remove in differing {
+                    if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
+                        if _shares[index].managed == true {
+                            logger.info("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                            removeShare(at: index)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /// create an array from values configured in UserDefaults
+    /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
+    /// or `Settings.mdmNetworkSahresKey` and user defined `Settings.customSharesKey`.
     func createShareArray() {
-        /// create an array from values configured in UserDefaults
-        /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
-        /// or `Settings.mdmNetworkSahresKey` and user defined `Settings.customSharesKey`.
-        ///
         /// **Important**:
         /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, NOT both arrays
         /// - then read user defined `Settings.customSharesKey`
         ///
-        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]] {
+        var usedNewMDMprofile = false
+        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             for shareElement in sharesDict {
                 if let newShare = self.getMDMShareConfig(forShare: shareElement) {
+                    usedNewMDMprofile = true
                     addShare(newShare)
                 }
             }
         }
         /// alternatively try to get configured shares with now obsolete
         /// Network Share Mounter 2 definitions
-        if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String] {
-            for share in nwShares {
-                if let newShare = self.getLegacyShareConfig(forShare: share) {
-                    addShare(newShare)
+        if !usedNewMDMprofile {
+            if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String], !nwShares.isEmpty {
+                for share in nwShares {
+                    if let newShare = self.getLegacyShareConfig(forShare: share) {
+                        addShare(newShare)
+                    }
                 }
             }
         }
         /// next look if there are some user-defined shares to import
-        if let privSharesDict = userDefaults.array(forKey: Settings.userNetworkShares) as? [[String: String]] {
+        if let privSharesDict = userDefaults.array(forKey: Settings.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
             for share in privSharesDict {
                 if let newShare = self.getUserShareConfigs(forShare: share) {
                     addShare(newShare)
@@ -205,7 +306,7 @@ class ShareManager {
             }
         }
         /// at last there may be legacy user defined share definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String] {
+        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String], !nwShares.isEmpty {
             for share in nwShares {
                 addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }

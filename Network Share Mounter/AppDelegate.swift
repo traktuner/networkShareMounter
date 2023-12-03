@@ -80,6 +80,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let status = netConnection.netOn
             self.logger.info("Current Network Path is \(status, privacy: .public).")
             Task {
+                // call updateShareArray() to reflect possible changes in MDM profile
+                self.mounter.shareManager.updateShareArray()
                 await self.mounter.mountAllShares()
             }
         })
@@ -90,6 +92,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if reachable.rawValue == "yes" {
                 Task {
                     self.logger.debug("Got network monitoring callback, mount shares.")
+                    // call updateShareArray() to reflect possible changes in MDM profile
+                    self.mounter.shareManager.updateShareArray()
                     await self.mounter.mountAllShares(userTriggered: true)
                 }
             } else {
@@ -100,6 +104,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self.logger.debug("Got network monitoring callback, unmount shares.")
                     // trying to unmount all shares
                     await self.mounter.unmountAllMountedShares()
+                    // call updateShareArray() to reflect possible changes in MDM profile
+                    self.mounter.shareManager.updateShareArray()
                 }
             }
         }
@@ -127,14 +133,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.monitor.cancel()
     }
 
-    private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
-        self.logger.info("Current Connection: \(connection.rawValue, privacy: .public) Is reachable: \(reachable.rawValue, privacy: .public)")
-        if reachable == Reachable.yes {
-            Task {
-                await mounter.mountAllShares()
-            }
-        }
-    }
+// obsolete code?
+//    private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
+//        self.logger.info("Current Connection: \(connection.rawValue, privacy: .public) Is reachable: \(reachable.rawValue, privacy: .public)")
+//        if reachable == Reachable.yes {
+//            Task {
+//                await mounter.mountAllShares()
+//            }
+//        }
+//    }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
