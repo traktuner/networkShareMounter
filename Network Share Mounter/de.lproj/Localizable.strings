@@ -36,3 +36,6 @@
 
 /* Helptext for password */
 "help-password" = "Das Passwort mit dem du dich am Netzwerklaufwer anmeldest.";
+
+/* Helptext for show managed shares */
+"help-show-managed-shares" = "In Firmen oder Universitäten wird die Einstellung für Netzwerklaufwerke oft über das Gerätemanagement (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. \n\nDu kannst diese vorgegebenen Laufwerke nicht löschen oder verändern.";

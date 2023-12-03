@@ -24,7 +24,7 @@ class ShareViewController: NSViewController {
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("help-new-share", comment: ""),
                     NSLocalizedString("help-authType", comment: ""),
-                    NSLocalizedString("help-uername", comment: ""),
+                    NSLocalizedString("help-username", comment: ""),
                     NSLocalizedString("help-password", comment: "")]
     
     // MARK: - Properties
@@ -63,10 +63,10 @@ class ShareViewController: NSViewController {
         
         configureView()
         shareArray = appDelegate.mounter.shareManager.allShares
-        authInfoHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
-        shareHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
-        usernameHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
-        passwordHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
+//        authInfoHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
+//        shareHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
+//        usernameHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
+//        passwordHelpButton.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
         // check if NetworkShareMounter View has set selectedShareURL
         // if yes, prefill the data
         if let shareString = selectedShareURL {

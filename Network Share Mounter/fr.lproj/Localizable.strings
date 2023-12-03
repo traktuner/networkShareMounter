@@ -36,3 +36,6 @@
 
 /* Helptext for password */
 "help-password" = "Le mot de passe avec lequel vous vous connectez au lecteur réseau.";
+
+/* Helptext for show managed shares */
+"help-show-managed-shares" = "Dans les entreprises ou les universités, le paramétrage des lecteurs réseau est souvent géré via la gestion des appareils mobiles (MDM). Cela signifie que votre administrateur connecte automatiquement certains lecteurs à votre Mac. \n\nVous ne pouvez pas supprimer ou modifier ces lecteurs prédéfinis.";

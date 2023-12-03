@@ -36,3 +36,6 @@
 
 /* Helptext for password */
 "help-password" = "The password with which you log in to the network drive.";
+
+/* Helptext for show managed shares */
+"help-show-managed-shares" = "In companies or universities, the setting for network drives is often managed through Mobile Device Management (MDM). This means that your administrator automatically connects certain drives to your Mac. \n\nYou cannot delete or modify these predefined drives.";
