@@ -1,0 +1,574 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "About Network Share Mounter" : {
+      "comment" : "About Network Share Mounter",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Über Network Share Mounter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sobre Network Share Mounter"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À propos de Network Share Mounter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informazioni Network Share Mounter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over Network Share Mounter"
+          }
+        }
+      }
+    },
+    "Additional shares" : {
+      "comment" : "Additional shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeige verwaltete Netzlaufwerke"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show managed network drives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar unidades de red administradas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les lecteurs réseau gérés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra unità di rete gestite"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon beheerde netwerkverbindingen"
+          }
+        }
+      }
+    },
+    "help-authType" : {
+      "comment" : "Helptext for authType",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um ein Netzwerklaufwerk einzubinden, musst du dich beim Server authentifizieren.\nIn Unternehmen und Universitäten wird dies in der Regel über Microsoft Active Directory und Kerberos durchgeführt, was der bevorzugte Weg ist. In privaten Umgebungen erfolgt die Authentifizierung über Benutzernamen und Passwort.\n\nWenn du unsicher bist, verwende die Authentifizierung über Benutzernamen und Passwort oder frage deinen Administrator."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To connect a network drive, you need to authenticate yourself to the server.\nIn a company or university, this is often done through Microsoft Active Directory and Kerberos and is the preferred method. In a private setting, authentication is done using a username and password.\n\nIf in doubt, consult your administrator."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para conectar una unidad de red, debes autenticarte en el servidor.\nEn una empresa o universidad, esto se hace a menudo a través de Microsoft Active Directory y Kerberos, y es el método preferido. En un entorno privado, la autenticación se realiza con un nombre de usuario y una contraseña.\n\nEn caso de duda, consulta a tu administrador."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour connecter un lecteur réseau, vous devez vous authentifier auprès du serveur.\nDans une entreprise ou une université, cela se fait souvent via Microsoft Active Directory et Kerberos et est la méthode préférée. Dans un environnement privé, l'authentification se fait avec un nom d'utilisateur et un mot de passe.\n\nEn cas de doute, consultez votre administrateur."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per collegare un'unità di rete, devi autenticarti presso il server.\nIn un'azienda o università, ciò avviene spesso tramite Microsoft Active Directory e Kerberos ed è il metodo preferito. In un contesto privato, l'autenticazione avviene tramite nome utente e password.\n\nIn caso di dubbi, consulta l'amministratore"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om een netwerkstation toe te voegen, moet je je authenticeren bij de server.\nIn een bedrijf of universiteit gebeurt dit vaak via Microsoft Active Directory en Kerberos, wat de voorkeursmethode is. In een privéomgeving gebeurt de authenticatie met een gebruikersnaam en wachtwoord.\n\nBij twijfel raadpleeg je beheerder."
+          }
+        }
+      }
+    },
+    "help-new-share" : {
+      "comment" : "Helptext for shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Netzwerklaufwerke (smb/cifs) hinzufügen und verbinden.\nDie Erreichbarkeit wird sofort getestet. Wenn die Verbindung erfolgreich ist, wird der Server und der Freigabepfad hinzugefügt.\n\nVerwende hierzu die Form: smb://server.name/pfad/"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can add and mount any Windows (smb/cifs) network share as long as you know the server name and export path. \nThe connection will be tested immediately and the share will be connected if the server resp. share is reachable. \n\nEnter the share as: smb://server.name/export/path"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puede agregar y montar cualquier recurso share de red de Windows (smb/cifs) siempre que conozca el nombre del servidor y la ruta de exportación. \nLa conexión se probará inmediatamente y el recurso compartido se conectará si el servidor resp. share es accesible. \n\nIngrese el recurso compartido como: smb://server.name/export/path"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous pouvez ajouter et monter n'importe quelle partage réseau Windows (smb/cifs) tant que vous connaissez le nom du serveur et le chemin d'exportation. \nLa connexion sera testée immédiatement et le partage sera connecté si le serveur ou le partage est accessible.\n\nEntrez le partage comme suit : smb://nom.du.serveur/chemin/d'exportation"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puoi aggiungere e montare qualsiasi condivisione di rete di Windows (smb/cifs) purché tu conosca il nome del server e il percorso di esportazione.\nLa connessione verrà testata immediatamente e la condivisione verrà collegata se il server rispettivo o la condivisione sono raggiungibili.\n\nInserisci la condivisione come: smb://server.nome/percorso/esportazione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt elke Windows (smb/cifs) netwerkshare toevoegen en mounten zolang je de servernaam en het exportpad kent. \nDe verbinding wordt onmiddellijk getest en de share wordt verbonden als de server resp. share bereikbaar is. \n\nVoer de share naam in als: smb://server.name/export/path"
+          }
+        }
+      }
+    },
+    "help-password" : {
+      "comment" : "Helptext for password",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Passwort mit dem du dich am Netzwerklaufwer anmeldest."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The password with which you log in to the network drive."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La contraseña con la que inicias sesión en la unidad de red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mot de passe avec lequel vous vous connectez au lecteur réseau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La password con cui accedi all'unità di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het wachtwoord waarmee je inlogt op het netwerkstation."
+          }
+        }
+      }
+    },
+    "help-show-managed-shares" : {
+      "comment" : "Helptext for show managed shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Firmen oder Universitäten wird die Einstellung für Netzwerklaufwerke oft über das Gerätemanagement (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. \n\nDu kannst diese vorgegebenen Laufwerke nicht löschen oder verändern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In companies or universities, the setting for network drives is often managed through Mobile Device Management (MDM). This means that your administrator automatically connects certain drives to your Mac. \n\nYou cannot delete or modify these predefined drives."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas o universidades, la configuración de las unidades de red se gestiona a menudo a través de la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. \n\nNo puedes eliminar ni modificar estas unidades predefinidas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans les entreprises ou les universités, le paramétrage des lecteurs réseau est souvent géré via la gestion des appareils mobiles (MDM). Cela signifie que votre administrateur connecte automatiquement certains lecteurs à votre Mac. \n\nVous ne pouvez pas supprimer ou modifier ces lecteurs prédéfinis."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelle aziende o nelle università, l'impostazione per le unità di rete è spesso gestita tramite Mobile Device Management (MDM). Ciò significa che il tuo amministratore collega automaticamente determinate unità al tuo Mac. \n\nNon puoi eliminare o modificare queste unità predefinite."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas o universidades, la configuración de las unidades de red se gestiona a menudo a través de la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. \n\nNo puedes eliminar ni modificar estas unidades predefinidas."
+          }
+        }
+      }
+    },
+    "help-username" : {
+      "comment" : "Helptext for username",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Nutzername mit dem du dich am Netzwerklaufwerk anmeldest."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The username with which you log in to the network drive."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El nombre de usuario con el que inicias sesión en la unidad de red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nom d'utilisateur avec lequel vous vous connectez au lecteur réseau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il nome utente con cui accedi all'unità di rete."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De gebruikersnaam waarmee je inlogt op het netwerkstation."
+          }
+        }
+      }
+    },
+    "Mount shares" : {
+      "comment" : "Mount shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde Freigaben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar fracciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monter les partages"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connetti condivisioni"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkverbinding maken"
+          }
+        }
+      }
+    },
+    "Network Share Mounter" : {
+      "comment" : "Info",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        }
+      }
+    },
+    "Preferences" : {
+      "comment" : "Preferences",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuraciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préférences"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferenze"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorkeuren"
+          }
+        }
+      }
+    },
+    "Preferences ..." : {
+      "comment" : "Preferences",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen ..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferencias ..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préférences ..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferenze ..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorkeuren ..."
+          }
+        }
+      }
+    },
+    "Quit Network Share Mounter" : {
+      "comment" : "Quit Network Share Mounter",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter beenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar Network Share Mounter"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitter Network Share Mounter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esci Network Share Mounter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sluit Network Share Mounter"
+          }
+        }
+      }
+    },
+    "Show mounted shares" : {
+      "comment" : "Show mounted shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeige eingebundene Freigaben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar fracciones installadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les partages montés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra condivisioni montate"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laat netwerkverbindingen zien"
+          }
+        }
+      }
+    },
+    "Sorry, no help available" : {
+      "comment" : "this should not happen",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entschuldigung, keine Hilfe verfügbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo siento, no hay ayuda disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désolé, aucune aide disponible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiacente, nessun aiuto disponibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorry, geen hulp beschikbaar."
+          }
+        }
+      }
+    },
+    "Unmount shares" : {
+      "comment" : "Unmount shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trenne Freigaben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desinstalar fracciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démonter les partages"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnetta condivisioni"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinding verbreken"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
