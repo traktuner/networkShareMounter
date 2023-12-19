@@ -13,31 +13,6 @@ import OpenDirectory
 import AppKit
 import OSLog
 
-/// enum following the ``Error`` protocol describing various shre mount error results
-enum MounterError: Error {
-    case errorCreatingMountFolder
-    case errorCheckingMountDir
-    case errorOnEncodingShareURL
-    case invalidMountURL
-    case invalidHost
-    case mountpointInaccessible
-    case couldNotTestConnectivity
-    case invalidMountOptions
-    case alreadyMounted
-    case mountIsQueued
-    case targetNotReachable
-    case otherError
-    case noRouteToHost
-    case doesNotExist
-    case shareDoesNotExist
-    case unknownReturnCode
-    case invalidMountPath
-    case unmountFailed
-    case timedOutHost
-    case authenticationError
-    case hostIsDown
-    case userUnmounted
-}
 
 /// defines authentication type to mount a share
 /// - Parameter krb: kerberos authentication
@@ -313,6 +288,48 @@ class Mounter: ObservableObject {
             completion(.failure(.invalidMountPath))
         }
     }
+    ///
+    /// function to unmount share if mounted
+    /// - Parameter for share: share to unmount
+    /// - Parameter userTriggered: bool, true, if user triggered unmount, defaults to false
+    func unmountShare(for share: Share, userTriggered: Bool = false) {
+        if let mountpoint = share.actualMountPoint {
+            Task {
+                await unmountShare(atPath: mountpoint) { [self] result in
+                    switch result {
+                    case .success:
+                        logger.info("Successfully unmounted \(mountpoint, privacy: .public).")
+                        // share status update
+                        if userTriggered {
+                            // if unmount was triggered by the user, set mountStatus in share to userUnmounted
+                            updateShare(mountStatus: .userUnmounted, for: share)
+                        } else {
+                            // else set share mountStatus to unmounted
+                            updateShare(mountStatus: .unmounted, for: share)
+                        }
+                        // remove/undefine share mountpoint
+                        updateShare(actualMountPoint: nil, for: share)
+                    case .failure(let error):
+                        // error on unmount
+                        switch error {
+                        case .invalidMountPath:
+                            logger.warning("Could not unmount \(mountpoint, privacy: .public): invalid mount path")
+                            updateShare(mountStatus: .unmounted, for: share)
+                            updateShare(actualMountPoint: nil, for: share)
+                        case .unmountFailed:
+                            logger.warning("Could not unmount \(mountpoint, privacy: .public): unmount failed")
+                            updateShare(mountStatus: .undefined, for: share)
+                            updateShare(actualMountPoint: nil, for: share)
+                        default:
+                            logger.info("Could not unmount \(mountpoint, privacy: .public): unknown error")
+                            updateShare(mountStatus: .undefined, for: share)
+                            updateShare(actualMountPoint: nil, for: share)
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     ///
     /// get all mounted shares (those with the property `actualMountPoint` set) and call `unmountShares`
@@ -419,7 +436,7 @@ class Mounter: ObservableObject {
                         } catch MounterError.noRouteToHost {
                             updateShare(mountStatus: .unrechable, for: share)
                         } catch MounterError.authenticationError {
-                            updateShare(mountStatus: .unauthenticated, for: share)
+                            updateShare(mountStatus: .invalidCredentials, for: share)
                         } catch MounterError.shareDoesNotExist {
                             updateShare(mountStatus: .errorOnMount, for: share)
                         } catch MounterError.mountIsQueued {
@@ -455,7 +472,10 @@ class Mounter: ObservableObject {
         // To do so, create a copy so that the evil magic is gone.
         // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
         //
-        let url = URL(string: share.networkShare)!
+        guard let url = URL(string: share.networkShare) else {
+            logger.warning("❌ could not finde share for \(share.networkShare, privacy: .public)")
+            throw MounterError.errorOnEncodingShareURL
+        }
         let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
         guard let encodedShare = url.absoluteString.addingPercentEncoding(withAllowedCharacters: csCopy) else {
             logger.warning("❌ could not encode share for \(share.networkShare, privacy: .public)")
