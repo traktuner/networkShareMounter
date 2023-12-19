@@ -23,10 +23,9 @@ enum MountStatus: String {
     case errorOnMount = "errorOnMount"
     case unrechable = "unreachable"
     case undefined = "undefined"
-    case unauthenticated = "unauthenticated"
     case userUnmounted = "userUnmounted"
     case missingPassword = "missingPassword"
-    case wrongPassword = "wrongPassword"
+    case invalidCredentials = "invalidCredentials"
 }
 
 /// describes the different properties and states of a share

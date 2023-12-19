@@ -18,6 +18,7 @@ class ShareViewController: NSViewController {
         var username: String?
         var password: String?
         var mountPath: String?
+        var managed: Bool
     }
     
     // MARK: - help messages
@@ -31,6 +32,7 @@ class ShareViewController: NSViewController {
     
     var selectedShareURL: String?
     var shareData: ShareData?
+    var isManaged = false
     var authType: AuthType = AuthType.krb
     var shareArray : [Share] = []
     weak var delegate: DataDelegate?
@@ -47,7 +49,13 @@ class ShareViewController: NSViewController {
     @IBOutlet weak var shareHelpButton: NSButton!
     @IBOutlet weak var usernameHelpButton: NSButton!
     @IBOutlet weak var passwordHelpButton: NSButton!
+    @IBOutlet weak var saveButton: NSButton!
     
+    @IBOutlet weak var progressIndicator: NSProgressIndicator!
+    @IBOutlet weak var shareAddressText: NSTextField!
+    @IBOutlet weak var authTypeText: NSTextField!
+    @IBOutlet weak var shareViewText: NSTextField!
+    @IBOutlet weak var authTypeHelpButton: NSButton!
     // MARK: - initialization
     
     // swiftlint:disable force_cast
@@ -62,36 +70,51 @@ class ShareViewController: NSViewController {
         super.viewDidLoad()
         
         configureView()
+        progressIndicator.isHidden = true
+        authType = AuthType.pwd
         shareArray = appDelegate.mounter.shareManager.allShares
+        
         // check if NetworkShareMounter View has set selectedShareURL
         // if yes, prefill the data
         if let shareString = selectedShareURL {
             if let selectedShare = shareArray.filter({$0.networkShare == shareString}).first {
+                saveButton.title =  NSLocalizedString("Save", comment: "Save data")
                 networkShareTextField.stringValue = selectedShare.networkShare
-                if selectedShare.authType == AuthType.pwd {
-                    authTypeSwitch.state = NSControl.StateValue.off
-                    authType = AuthType.pwd
-                    usernameTextField.isEnabled = true
-                    passwordTextField.isEnabled = true
-                    usernameTextField.isHidden = false
-                    passwordTextField.isHidden = false
-                    usernameHelpButton.isHidden = false
-                    passwordHelpButton.isHidden = false
-                    usernameText.isHidden = false
-                    passwordText.isHidden = false
-                    usernameTextField.stringValue = selectedShare.username ?? ""
-                    passwordTextField.stringValue = selectedShare.password ?? ""
+                isManaged = selectedShare.managed
+                // if the share is managed only username and password should be changed
+                if selectedShare.managed {
+                    networkShareTextField.isEditable = false
+                    authTypeSwitch.isEnabled = false
+                    authTypeSwitch.isHidden = true
+                    authTypeText.isHidden = true
+                    authTypeHelpButton.isHidden = true
+                    shareViewText.isHidden = true
                 } else {
-                    authTypeSwitch.state = NSControl.StateValue.on
-                    authType = AuthType.krb
-                    usernameTextField.isEnabled = false
-                    passwordTextField.isEnabled = false
-                    usernameTextField.isHidden = true
-                    passwordTextField.isHidden = true
-                    usernameHelpButton.isHidden = true
-                    passwordHelpButton.isHidden = true
-                    usernameText.isHidden = true
-                    passwordText.isHidden = true
+                    if selectedShare.authType == AuthType.pwd {
+                        authTypeSwitch.state = NSControl.StateValue.off
+                        authType = AuthType.pwd
+                        usernameTextField.isEnabled = true
+                        passwordTextField.isEnabled = true
+                        usernameTextField.isHidden = false
+                        passwordTextField.isHidden = false
+                        usernameHelpButton.isHidden = false
+                        passwordHelpButton.isHidden = false
+                        usernameText.isHidden = false
+                        passwordText.isHidden = false
+                        usernameTextField.stringValue = selectedShare.username ?? ""
+                        passwordTextField.stringValue = selectedShare.password ?? ""
+                    } else {
+                        authTypeSwitch.state = NSControl.StateValue.on
+                        authType = AuthType.krb
+                        usernameTextField.isEnabled = false
+                        passwordTextField.isEnabled = false
+                        usernameTextField.isHidden = true
+                        passwordTextField.isHidden = true
+                        usernameHelpButton.isHidden = true
+                        passwordHelpButton.isHidden = true
+                        usernameText.isHidden = true
+                        passwordText.isHidden = true
+                    }
                 }
             }
         }
@@ -107,49 +130,116 @@ class ShareViewController: NSViewController {
         }
         let username = usernameTextField.stringValue
         let password = passwordTextField.stringValue
-        
-        let shareData = ShareData(networkShare: networkShareURL, authType: authType, username: username, password: password)
-        
-        // if the share URL string contains a space, the URL vill not
-        // validate as valid. Therefore we replace the " " with a "_"
-        // and test this string.
-        // Of course this is a hack and not the best way to solve the
-        // problem. But hey, every now and then I code, I am obbligated
-        // to cheat. ¯\_(ツ)_/¯
+
+        let shareData = ShareData(networkShare: networkShareURL, authType: authType, username: username, password: password, managed: isManaged)
+
         let shareURL = networkShareText.replacingOccurrences(of: " ", with: "_")
         if shareURL.isValidURL {
-            if networkShareText.hasPrefix("smb://") || networkShareText.hasPrefix("cifs://") {
-                if let selectedShare = shareArray.filter({$0.networkShare == networkShareText}).first {
-                    // TODO: do something, show warning, whatsoever if the share is already there
-                    self.logger.debug("\(networkShareText, privacy: .public) is already in list of user's or mdm defined network shares")
-                } else {
-                var newShare: Share
-                if username.isEmpty {
-                    newShare = Share.createShare(networkShare: networkShareText, authType: .krb, mountStatus: .unmounted, managed: false)
-                } else {
-                    newShare = Share.createShare(networkShare: networkShareText, authType: .pwd, mountStatus: .unmounted, username: username, password: password, managed: false)
-                }
-//                    appDelegate.mounter.addShare(newShare)
-                    Task {
-                        do {
-                            let returned = try await appDelegate.mounter.mountShare(forShare: newShare, atPath: appDelegate.mounter.defaultMountPath)
-                            logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
-                            appDelegate.mounter.addShare(newShare)
-                            appDelegate.mounter.shareManager.writeUserShareConfigs()
-                            delegate?.didReceiveData(newShare)
-                            dismiss(nil)
-                        } catch {
-                            // share did not mount, remove it from the array of shares
-                            appDelegate.mounter.removeShare(for: newShare)
-                            appDelegate.mounter.shareManager.writeUserShareConfigs()
-                            logger.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
-                        }
-                    }
+            progressIndicator.isHidden = false
+            saveButton.isEnabled = false
+            progressIndicator.startAnimation(self)
+            handleShareURL(networkShareText: networkShareText, shareData: shareData)
+        }
+    }
+    
+    
+    ///
+    /// check if share is new or an existing share should be updated
+    /// - Parameter networkShareText: String containig the URL of a share
+    /// - Parameter shareData: ShareData Struct containing relevant share data
+    private func handleShareURL(networkShareText: String, shareData: ShareData) {
+        if networkShareText.hasPrefix("smb://") || networkShareText.hasPrefix("cifs://") || networkShareText.hasPrefix("https://") || networkShareText.hasPrefix("afp://") {
+            let newShare = Share.createShare(networkShare: networkShareText, authType: shareData.authType, mountStatus: .unmounted, username: shareData.username, password: shareData.password, managed: shareData.managed)
+
+            if let existingShare = shareArray.filter({$0.networkShare == networkShareText}).first {
+                self.logger.debug("Updating existing share \(networkShareText, privacy: .public).")
+                Task {
+                    await updateExistingShare(existingShare: existingShare, newShare: newShare, networkShareText: networkShareText)
                 }
             } else {
-                // not valid share entered
-                self.logger.error("\(networkShareText, privacy: .public) is not a valid share, since it does not start with smb:// or cifs://")
+                Task {
+                    await addNewShare(newShare: newShare, networkShareText: networkShareText)
+                }
             }
+        } else {
+            // not valid share entered
+            self.logger.error("\(networkShareText, privacy: .public) is not a valid share, since it does not start with smb:// or cifs://")
+            showErrorDialog(error: MounterError.errorOnEncodingShareURL)
+            progressIndicator.stopAnimation(self)
+            progressIndicator.isHidden = true
+            saveButton.isEnabled = true
+        }
+    }
+    
+    ///
+    /// update an existing share
+    /// - Parameter existingShare: Share struct containing data of an existing share entry
+    /// - Parameter newShare: Share struct containig changed data to update
+    /// - Parameter networkShareText: String contianing the URL of the share
+    private func updateExistingShare(existingShare: Share, newShare: Share, networkShareText: String) async {
+        self.appDelegate.mounter.unmountShare(for: existingShare)
+//        Task { [self, newShare] in
+            do {
+                let returned = try await self.appDelegate.mounter.mountShare(forShare: newShare, atPath: self.appDelegate.mounter.defaultMountPath)
+                logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
+                self.appDelegate.mounter.updateShare(for: newShare)
+                self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+                dismiss(nil)
+            } catch {
+                // share did not mount, reset it to the former state
+                self.appDelegate.mounter.updateShare(for: existingShare)
+                self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+                logger.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
+                showErrorDialog(error: error)
+                progressIndicator.stopAnimation(self)
+                progressIndicator.isHidden = true
+                saveButton.isEnabled = true
+            }
+//        }
+    }
+    
+    ///
+    /// add a new share
+    /// - Parameter newShare: Share struct containing the relevant data to add a share
+    /// - Parameter networkShareText: String with the URL of the share
+    private func addNewShare(newShare: Share, networkShareText: String) async {
+//        Task { [self, newShare] in
+            do {
+                let returned = try await self.appDelegate.mounter.mountShare(forShare: newShare, atPath: self.appDelegate.mounter.defaultMountPath)
+                logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
+                self.appDelegate.mounter.addShare(newShare)
+                self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+                self.delegate?.didReceiveData(newShare)
+                dismiss(nil)
+            } catch {
+                // share did not mount, remove it from the array of shares
+                self.appDelegate.mounter.removeShare(for: newShare)
+                self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+                logger.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
+                showErrorDialog(error: error)
+                progressIndicator.stopAnimation(self)
+                progressIndicator.isHidden = true
+                saveButton.isEnabled = true
+            }
+//        }
+    }
+    
+    ///
+    /// show dialog to inform user what went worng
+    /// - Parameter error: Error type containing the error code to display
+    private func showErrorDialog(error: Error) {
+        let a: NSAlert = NSAlert()
+        a.messageText = "\(error.localizedDescription)"
+        a.informativeText = NSLocalizedString("Please check the data entered", comment: "Please check the data entered")
+        a.addButton(withTitle: "OK")
+        a.alertStyle = NSAlert.Style.warning
+
+        if let viewWindow = self.view.window {
+            a.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
+                if(modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn){
+                    self.logger.debug("User informed about error \(error, privacy: .public)")
+                }
+            })
         }
     }
     

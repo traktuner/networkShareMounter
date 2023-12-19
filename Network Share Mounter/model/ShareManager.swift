@@ -21,6 +21,19 @@ class ShareManager {
         os_unfair_lock_lock(&sharesLock)
         if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
             _shares.append(share)
+            print("username: \(share.username), password\(share.password)")
+            //
+            // save password in keychain
+            if let password = share.password {
+                if let username = share.username {
+                    let pwm = PasswordManager()
+                    do {
+                        try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPpassword: password)
+                    } catch {
+                        logger.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
+                    }
+                }
+            }
         }
         os_unfair_lock_unlock(&sharesLock)
     }
@@ -28,6 +41,18 @@ class ShareManager {
     /// Remove a share at a specific index
     func removeShare(at index: Int) {
         os_unfair_lock_lock(&sharesLock)
+        // remove keychain entry for share
+        if let password = _shares[index].password {
+            if let username = _shares[index].username {
+                let pwm = PasswordManager()
+                do {
+                    logger.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
+                    try pwm.removeCredential(forShare: URL(string: self._shares[index].networkShare)!, withUsername: username)
+                } catch {
+                    logger.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
+                }
+            }
+        }
         _shares.remove(at: index)
         os_unfair_lock_unlock(&sharesLock)
     }
@@ -312,17 +337,23 @@ class ShareManager {
             }
             removeLegacyShareConfigs()
         }
+        let myNewShare = Share.createShare(networkShare: "smb://meinserver.fau.de/share",
+                                           authType: AuthType.pwd,
+                                           mountStatus: MountStatus.unmounted,
+                                         password: "password",
+                                         managed: true)
+        addShare(myNewShare)
     }
     
     /// write user defined share configuration
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
-    func writeUserShareConfigs() {
+    func saveModifiedShareConfigs() {
         var userDefaultsConfigs: [[String: String]] = []
         
         
         for share in _shares {
             //
-            // save MDM non-managed shares
+            // save non-managed shares in userconfig
             if share.managed == false {
                 var shareConfig: [String: String] = [:]
                 
@@ -336,24 +367,10 @@ class ShareManager {
                 if let username = share.username {
                     shareConfig[Settings.username] = username
                 }
-//                shareConfig[Settings.location] = share.location
-                
-                // Nur Passwort speichern, wenn es in der Keychain gefunden wurde
-                if let password = share.password {
-                    if let username = share.username {
-                        let pwm = PasswordManager()
-                        do {
-                            try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPpassword: password)
-                        } catch {
-                            logger.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
-                        }
-                    }
-                }
-                
+                // shareConfig[Settings.location] = share.location
                 userDefaultsConfigs.append(shareConfig)
             }
         }
-        
         userDefaults.set(userDefaultsConfigs, forKey: Settings.userNetworkShares)
         userDefaults.synchronize()
     }
