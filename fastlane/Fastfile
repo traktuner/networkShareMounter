@@ -67,19 +67,19 @@ lane :commonTasks do
     config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
     files: [                                # List of files to process (optional)
         "Network Share Mounter/config.swift",
-        "Network Share Mounter/Migrate.swift",
         "Network Share Mounter/model/UserShare.swift",
         "Network Share Mounter/model/Mounter.swift",
         "Network Share Mounter/model/ShareManager.swift",
         "Network Share Mounter/model/Share.swift",
         "Network Share Mounter/model/PasswordManager.swift",
-        "Network Share Mounter/AppStatistics.swift",
+        "Network Share Mounter/model/Errorcodes.swift",
+        "Network Share Mounter/model/AppStatistics.swift",
         "Network Share Mounter/view/NetworkShareMounterViewController.swift",
         "Network Share Mounter/view/ShareViewController.swift",
         "Network Share Mounter/view/HelpPopoverView.swift",
-        "Network Share Mounter/Monitor.swift",
-        "Network Share Mounter/AppDelegate.swift",
-        "Network Share Mounter/ActivityController.swift"
+        "Network Share Mounter/Helper/Monitor.swift",
+        "Network Share Mounter/Helper/ActivityController.swift",
+        "Network Share Mounter/AppDelegate.swift"
     ],
     raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
     ignore_exit_status: false    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status

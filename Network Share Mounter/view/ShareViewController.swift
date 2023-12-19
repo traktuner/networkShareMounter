@@ -228,14 +228,14 @@ class ShareViewController: NSViewController {
     /// show dialog to inform user what went worng
     /// - Parameter error: Error type containing the error code to display
     private func showErrorDialog(error: Error) {
-        let a: NSAlert = NSAlert()
-        a.messageText = "\(error.localizedDescription)"
-        a.informativeText = NSLocalizedString("Please check the data entered", comment: "Please check the data entered")
-        a.addButton(withTitle: "OK")
-        a.alertStyle = NSAlert.Style.warning
+        let alert: NSAlert = NSAlert()
+        alert.messageText = "\(error.localizedDescription)"
+        alert.informativeText = NSLocalizedString("Please check the data entered", comment: "Please check the data entered")
+        alert.addButton(withTitle: "OK")
+        alert.alertStyle = NSAlert.Style.warning
 
         if let viewWindow = self.view.window {
-            a.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
+            alert.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
                 if(modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn){
                     self.logger.debug("User informed about error \(error, privacy: .public)")
                 }
