@@ -337,12 +337,6 @@ class ShareManager {
             }
             removeLegacyShareConfigs()
         }
-        let myNewShare = Share.createShare(networkShare: "smb://meinserver.fau.de/share",
-                                           authType: AuthType.pwd,
-                                           mountStatus: MountStatus.unmounted,
-                                         password: "password",
-                                         managed: true)
-        addShare(myNewShare)
     }
     
     /// write user defined share configuration
