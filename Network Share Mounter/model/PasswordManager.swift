@@ -32,6 +32,7 @@ class PasswordManager: NSObject {
     func makeQuery(share shareURL: URL, username: String) throws -> [String: Any]  {
         let host = shareURL.host
         let path = shareURL.lastPathComponent
+        let urlScheme = shareURL.scheme
         /// Description of the CFDictionary for a new keychain entry
         ///
         /// kSecClass -> kSecClassInternetPassword (keychain entry with more than just the password
@@ -54,16 +55,28 @@ class PasswordManager: NSObject {
         ///                             kSecAttrAccount as String: "batman"",
         ///                             kSecAttrServer as String: "fileserver.batcave.org",
         ///                             kSecAttrPath as String: "enemies",
-        ///                             kSecAttrProtocol as String: kSecAttrProtocolSMB,
+        ///                             kSecAttrProtocol as String: kSecAttrProtocolSMB, kSecAttrProtocolAFP, kSecAttrProtocolHTTPS, kSecAttrProtocolFTP
         ///                             kSecAttrLabel as String: Settings.defaultsDomain,
         ///                             kSecAttrLabel as String: "fileserver.batcave.org",
         ///                             kSecValueData as String: "!'mB4tM4n".data(using: String.Encoding.utf8)!]
-        let query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrServer as String: host as Any,
-                                    kSecAttrProtocol as String: kSecAttrProtocolSMB,
+//                                    kSecAttrProtocol as String: kSecAttrProtocolSMB,
                                     kSecAttrPath as String: path,
                                     kSecAttrLabel as String: host as Any]
+        switch urlScheme {
+        case "https":
+            query[kSecAttrProtocol as String] = kSecAttrProtocolHTTPS
+        case "afp":
+            query[kSecAttrProtocol as String] = kSecAttrProtocolAFP
+        case "smb":
+            query[kSecAttrProtocol as String] = kSecAttrProtocolSMB
+        case "cifs":
+            query[kSecAttrProtocol as String] = kSecAttrProtocolSMB
+        default:
+            query[kSecAttrProtocol as String] = kSecAttrProtocolSMB
+        }
         return query
     }
     

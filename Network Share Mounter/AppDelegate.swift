@@ -70,6 +70,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Do any additional setup after loading the view.
         constructMenu(withMounter: mounter)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
         
         //
         // start a timer to perform a mount every 5 minutes
@@ -132,16 +133,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // end network monitoring
         monitor.monitor.cancel()
     }
-
-// obsolete code?
-//    private func performMount(_ connection: Connection, reachable: Reachable, mounter: Mounter) {
-//        self.logger.info("Current Connection: \(connection.rawValue, privacy: .public) Is reachable: \(reachable.rawValue, privacy: .public)")
-//        if reachable == Reachable.yes {
-//            Task {
-//                await mounter.mountAllShares()
-//            }
-//        }
-//    }
+    
+    func setAlertMenuIcon(to alert: Bool) {
+        guard let button = self.statusItem.button else { return }
+            button.image = NSImage(named: NSImage.Name(alert ? MenuImageName.alert.rawValue : MenuImageName.normal.rawValue))
+    }
+    
+    ///
+    /// provide a method to react to certain events
+    @objc func handleErrorNotification(_ notification: NSNotification) {
+        if notification.userInfo?["AuthError"] is Error {
+            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+            DispatchQueue.main.async {
+                // Ändert die Farbe des Menuicons
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                }
+            }
+        } else if notification.userInfo?["ClearError"] is Error {
+            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+            DispatchQueue.main.async {
+                // Ändert die Farbe des Menuicons
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                }
+            }
+        } else if notification.userInfo?["FailError"] is Error {
+            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+            DispatchQueue.main.async {
+                // Ändert die Farbe des Menuicons
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
+                }
+            }
+        }
+    }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true

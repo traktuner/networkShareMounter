@@ -7,3 +7,6 @@
 //
 
 import Foundation
+extension Notification.Name {
+    static let nsmNotification = Notification.Name("NSMNotification")
+}

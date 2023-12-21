@@ -18,7 +18,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
     
     
     func didReceiveData(_ data: Any) {
-        print("Data is \(data)")
         // swiftlint:disable force_cast
         let newShare = data as! Share
         // swiftlint:enable force_cast
@@ -62,8 +61,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
         for definedShare in appDelegate.mounter.shareManager.allShares {
             //
             // on load select those which are not managed
-            if !definedShare.managed {
-                userShares.append(UserShare(networkShare: definedShare.networkShare, 
+            if !definedShare.managed || definedShare.authType == AuthType.pwd {
+                userShares.append(UserShare(networkShare: definedShare.networkShare,
                                             authType: definedShare.authType.rawValue,
                                             username: definedShare.username,
                                             password: definedShare.password,
@@ -252,10 +251,13 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate, Da
     override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShareViewSegue" {
             if let shareViewController = segue.destinationController as? ShareViewController {
-                // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
-                // new share will be added
-                shareViewController.delegate = self
-                shareViewController.selectedShareURL = usersNewShare.stringValue
+                if let selectedShare = appDelegate.mounter.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
+                    // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
+                    // new share will be added
+                    shareViewController.shareData = ShareViewController.ShareData(networkShare: URL(string: selectedShare.networkShare)!, authType: selectedShare.authType, username: selectedShare.username, password: selectedShare.password, managed: selectedShare.managed)
+                    shareViewController.delegate = self
+                    shareViewController.selectedShareURL = usersNewShare.stringValue
+                }
             }
         }
     }
@@ -281,7 +283,7 @@ extension String {
     }
 }
 
-protocol DataDelegate: class {
+protocol DataDelegate: AnyObject {
     func didReceiveData(_ data: Any)
 }
 

@@ -7,3 +7,9 @@
 //
 
 import Foundation
+
+enum MenuImageName: String {
+    case normal = "networkShareMounter"
+    case alert = "networkShareMounterMenuYellow"
+    case error = "networkShareMounterMenuRed"
+}

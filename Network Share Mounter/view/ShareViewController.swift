@@ -151,10 +151,12 @@ class ShareViewController: NSViewController {
         if networkShareText.hasPrefix("smb://") || networkShareText.hasPrefix("cifs://") || networkShareText.hasPrefix("https://") || networkShareText.hasPrefix("afp://") {
             let newShare = Share.createShare(networkShare: networkShareText, authType: shareData.authType, mountStatus: .unmounted, username: shareData.username, password: shareData.password, managed: shareData.managed)
 
-            if let existingShare = shareArray.filter({$0.networkShare == networkShareText}).first {
-                self.logger.debug("Updating existing share \(networkShareText, privacy: .public).")
-                Task {
-                    await updateExistingShare(existingShare: existingShare, newShare: newShare, networkShareText: networkShareText)
+            if shareArray.contains(where: { $0.networkShare == newShare.networkShare }) {
+                if let existingShare = appDelegate.mounter.getShare(forNetworkShare: newShare.networkShare) {
+                    self.logger.debug("Updating existing share \(networkShareText, privacy: .public).")
+                    Task {
+                        await updateExistingShare(existingShare: existingShare, newShare: newShare, networkShareText: networkShareText)
+                    }
                 }
             } else {
                 Task {
@@ -184,6 +186,7 @@ class ShareViewController: NSViewController {
                 logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
                 self.appDelegate.mounter.updateShare(for: newShare)
                 self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+                NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["ClearError": MounterError.noError])
                 dismiss(nil)
             } catch {
                 // share did not mount, reset it to the former state

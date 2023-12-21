@@ -42,6 +42,8 @@ class Mounter: ObservableObject {
     /// get home direcotry for the user running the app
     let userHomeDirectory: String = FileManager.default.homeDirectoryForCurrentUser.path
     
+    var authErrorCounter = 0
+    
     // TODO: this code should be cleaned up for new userDefaults values
     private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
     var defaultMountPath: String = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
@@ -88,7 +90,6 @@ class Mounter: ObservableObject {
     /// - Parameter share: share object to check and append to shares array
     func addShare(_ share: Share) {
         shareManager.addShare(share)
-//        shares = shareManager.allShares
     }
     
     /// deletes a share at the given Index
@@ -97,15 +98,23 @@ class Mounter: ObservableObject {
         if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
             logger.info("Deleting share: \(share.networkShare, privacy: .public) at Index \(index, privacy: .public)")
             shareManager.removeShare(at: index)
-//            shares = shareManager.allShares
         }
     }
     
     /// Update a share object at a specific index and update the shares array
     func updateShare(for share: Share) {
-        if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
+        if let index = shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             shareManager.updateShare(at: index, withUpdatedShare: share)
         }
+    }
+    
+    func getShare(forNetworkShare networkShare: String) -> Share? {
+        for share in self.shareManager.allShares {
+            if share.networkShare == networkShare {
+                return share
+            }
+        }
+        return nil
     }
     
     /// update mountStatus for a share element
@@ -113,7 +122,7 @@ class Mounter: ObservableObject {
     /// - Parameter for: share to be updated
     // TODO: EXEC BAD ADRESS on network loss (can't recreate the problem at the moment?)
     func updateShare(mountStatus: MountStatus, for share: Share) {
-        if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
+        if let index = shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             shareManager.updateMountStatus(at: index, to: mountStatus)
         }
     }
@@ -122,7 +131,7 @@ class Mounter: ObservableObject {
     /// - Parameter actualMountPoint: an optional `String` definig where the share is mounted (or not, if not defined)
     /// - Parameter for: share to be updated
     func updateShare(actualMountPoint: String?, for share: Share) {
-        if let index = shareManager.allShares.firstIndex(where: { $0.id == share.id }) {
+        if let index = shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
         }
     }
@@ -418,7 +427,7 @@ class Mounter: ObservableObject {
                 // perform cleanup routines before mounting
 //                await prepareMountPrerequisites()
                 for share in self.shareManager.allShares {
-                    Task {
+//                    Task {
                         do {
                             // if the mount was triggered by user, set mountStatus
                             // to .unmounted and therefore it will try to mount
@@ -436,6 +445,7 @@ class Mounter: ObservableObject {
                         } catch MounterError.noRouteToHost {
                             updateShare(mountStatus: .unrechable, for: share)
                         } catch MounterError.authenticationError {
+                            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
                             updateShare(mountStatus: .invalidCredentials, for: share)
                         } catch MounterError.shareDoesNotExist {
                             updateShare(mountStatus: .errorOnMount, for: share)
@@ -446,7 +456,7 @@ class Mounter: ObservableObject {
                         } catch {
                             updateShare(mountStatus: .unrechable, for: share)
                         }
-                    }
+//                    }
                 }
             }
         } else {
@@ -487,8 +497,6 @@ class Mounter: ObservableObject {
             updateShare(mountStatus: .errorOnMount, for: share)
             throw MounterError.invalidMountURL
         }
-        //        logger.warning("URL is: \(url.absoluteString, privacy: .public) - and escapedString is \(encodedShare, privacy: .public)")
-        //        let encodedShare = self.shares[index].networkShare.absoluteString
         guard let host = url.host else {
             logger.warning("❌ could not determine hostname for \(share.networkShare, privacy: .public)")
             updateShare(mountStatus: .errorOnMount, for: share)

@@ -21,7 +21,6 @@ class ShareManager {
         os_unfair_lock_lock(&sharesLock)
         if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
             _shares.append(share)
-            print("username: \(share.username), password\(share.password)")
             //
             // save password in keychain
             if let password = share.password {
@@ -42,15 +41,13 @@ class ShareManager {
     func removeShare(at index: Int) {
         os_unfair_lock_lock(&sharesLock)
         // remove keychain entry for share
-        if let password = _shares[index].password {
-            if let username = _shares[index].username {
-                let pwm = PasswordManager()
-                do {
-                    logger.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
-                    try pwm.removeCredential(forShare: URL(string: self._shares[index].networkShare)!, withUsername: username)
-                } catch {
-                    logger.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
-                }
+        if let username = _shares[index].username {
+            let pwm = PasswordManager()
+            do {
+                logger.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
+                try pwm.removeCredential(forShare: URL(string: self._shares[index].networkShare)!, withUsername: username)
+            } catch {
+                logger.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
             }
         }
         _shares.remove(at: index)
@@ -77,6 +74,26 @@ class ShareManager {
         guard index >= 0 && index < _shares.count else {
             os_unfair_lock_unlock(&sharesLock)
             return
+        }
+        //
+        // remove existing keychain entry first since it wouldn't be found with the new data
+        if let username = _shares[index].username {
+            let pwm = PasswordManager()
+            do {
+                try pwm.removeCredential(forShare: URL(string: _shares[index].networkShare)!, withUsername: username)
+            } catch {
+            }
+        }
+        //
+        // save password in keychain
+        if let password = updatedShare.password {
+            if let username = updatedShare.username {
+                let pwm = PasswordManager()
+                do {
+                    try pwm.saveCredential(forShare: URL(string: updatedShare.networkShare)!, withUsername: username, andPpassword: password)
+                } catch {
+                }
+            }
         }
         _shares[index] = updatedShare
         os_unfair_lock_unlock(&sharesLock)
@@ -337,6 +354,14 @@ class ShareManager {
             }
             removeLegacyShareConfigs()
         }
+//        let myNewShare = Share.createShare(networkShare: "https://faubox.rrze.uni-erlangen.de/webdav",
+//                                        authType: AuthType.pwd,
+//                                        mountStatus: MountStatus.unmounted,
+//                                        username: "unrz142",
+//                                        password: "password",
+//                                        managed: true)
+//                addShare(myNewShare)
+
     }
     
     /// write user defined share configuration
