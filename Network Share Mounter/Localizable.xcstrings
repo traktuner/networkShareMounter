@@ -1,6 +1,47 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "⚠️ Authentication problem..." : {
+      "comment" : "Authentication problem",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authentifizierungsproblem..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authentication problem..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema de autenticación..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problème d'authentification..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema di autenticazione..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authenticatieprobleem..."
+          }
+        }
+      }
+    },
     "About Network Share Mounter" : {
       "comment" : "About Network Share Mounter",
       "localizations" : {
@@ -73,6 +114,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toon beheerde netwerkverbindingen"
+          }
+        }
+      }
+    },
+    "authenticate-share-button" : {
+      "comment" : "Button text to change authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe authentifizieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticar compartición"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifier le partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autentica condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel authenticeren"
           }
         }
       }
@@ -252,6 +328,47 @@
         }
       }
     },
+    "help-auth-error" : {
+      "comment" : "Help text shown if some shares are not authenticated",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich habe ein Problem mit der Authentifizierung der oben genannten Netzwerklaufwerke festgestellt. Bitte überprüfe, ob deine Anmeldedaten korrekt sind, um die Freigaben zu verbinden.\n\nIn Unternehmen oder Universitäten wird die Einrichtung von Netzlaufwerken oft über Mobile Device Management (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. Je nach Authentifizierung musst du einmalig deinen Benutzernamen und dein Passwort eingeben. Klicke dazu bitte auf eine Freigabe und dann auf \"Freigabe bearbeiten.\""
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I have identified an issue with the authentication of the network drives mentioned above. Please check if your login credentials are correct to connect to the shares.\n\nIn companies or universities, the setup of network drives is often managed through Mobile Device Management (MDM). This means that your administrator automatically connects certain drives to your Mac. Depending on the authentication, you may need to enter your username and password once. To do this, please click on a share and then on \"Edit Share.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He identificado un problema con la autenticación de las unidades de red mencionadas anteriormente. Por favor, verifica si tus credenciales de inicio de sesión son correctas para conectarte a las comparticiones.\n\nEn empresas o universidades, la configuración de las unidades de red suele gestionarse mediante la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. Dependiendo de la autenticación, es posible que debas ingresar tu nombre de usuario y contraseña una vez. Para hacerlo, haz clic en una compartición y luego en \"Editar compartición.\""
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "J'ai identifié un problème avec l'authentification des lecteurs réseau mentionnés ci-dessus. Veuillez vérifier si vos identifiants de connexion sont corrects pour vous connecter aux partages.\n\nDans les entreprises ou les universités, la configuration des lecteurs réseau est souvent gérée via la gestion des appareils mobiles (MDM). Cela signifie que votre administrateur connecte automatiquement certains lecteurs à votre Mac. Selon l'authentification, vous devrez peut-être entrer votre nom d'utilisateur et votre mot de passe une fois. Pour ce faire, veuillez cliquer sur un partage, puis sur \"Modifier le partage.\""
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ho riscontrato un problema con l'autenticazione delle unità di rete menzionate sopra. Controlla se le tue credenziali di accesso sono corrette per connetterti alle condivisioni.\n\nNelle aziende o nelle università, la configurazione delle unità di rete è spesso gestita tramite Mobile Device Management (MDM). Ciò significa che il tuo amministratore collega automaticamente determinate unità al tuo Mac. In base all'autenticazione, potresti dover inserire una sola volta il tuo nome utente e la tua password. Per farlo, fai clic su una condivisione e poi su \"Modifica condivisione.\""
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ik heb een probleem geconstateerd met de authenticatie van de hierboven genoemde netwerkstations. Controleer of je aanmeldingsgegevens correct zijn om verbinding te maken met de gedeelde mappen.\n\nIn bedrijven of universiteiten wordt de configuratie van netwerkstations vaak beheerd via Mobile Device Management (MDM). Dit betekent dat je beheerder automatisch bepaalde stations met je Mac verbindt. Afhankelijk van de authenticatie moet je eenmalig je gebruikersnaam en wachtwoord invoeren. Klik hiervoor op een gedeelde map en vervolgens op \"Delen bewerken.\""
+          }
+        }
+      }
+    },
     "help-authType" : {
       "comment" : "Helptext for authType",
       "localizations" : {
@@ -294,7 +411,7 @@
       }
     },
     "help-new-share" : {
-      "comment" : "Helptext for shares",
+      "comment" : "Help text with some infos about adding new shares",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -632,6 +749,47 @@
         }
       }
     },
+    "modify-share-button" : {
+      "comment" : "Button text to modify share",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe bearbeiten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar la liberación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifica condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delen bewerken"
+          }
+        }
+      }
+    },
     "Mount queued" : {
       "comment" : "Mount queued",
       "localizations" : {
@@ -815,7 +973,39 @@
       }
     },
     "no error occured" : {
-      "comment" : "no error occured"
+      "comment" : "no error occured",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es ist kein Fehler aufgetreten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha producido ningún error."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune erreur ne s'est produite."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun errore è avvenuto."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Er is geen fout opgetreden."
+          }
+        }
+      }
     },
     "Other error" : {
       "comment" : "Other error",

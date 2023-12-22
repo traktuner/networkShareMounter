@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F70457ED2B31A62E00506DF4 /* Errorcodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70457EC2B31A62E00506DF4 /* Errorcodes.swift */; };
+		F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */; };
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
@@ -50,6 +51,7 @@
 
 /* Begin PBXFileReference section */
 		F70457EC2B31A62E00506DF4 /* Errorcodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errorcodes.swift; sourceTree = "<group>"; };
+		F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayShareTypes.swift; sourceTree = "<group>"; };
 		F72B13E92B332987001BDEEA /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
 		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
@@ -171,6 +173,7 @@
 				F7A383EC2B065E1400CA70E2 /* UserShare.swift */,
 				F765D0542A852911001D5116 /* ShareManager.swift */,
 				F742ACF52861CB62009864DF /* AppStatistics.swift */,
+				F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -360,6 +363,7 @@
 				F72B13EA2B332987001BDEEA /* Menu.swift in Sources */,
 				F70457ED2B31A62E00506DF4 /* Errorcodes.swift in Sources */,
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
+				F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */,
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
 				F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */,
 				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,

@@ -42,7 +42,7 @@ class Mounter: ObservableObject {
     /// get home direcotry for the user running the app
     let userHomeDirectory: String = FileManager.default.homeDirectoryForCurrentUser.path
     
-    var authErrorCounter = 0
+    var errorStatus: MounterError = .noError
     
     // TODO: this code should be cleaned up for new userDefaults values
     private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
@@ -445,6 +445,7 @@ class Mounter: ObservableObject {
                         } catch MounterError.noRouteToHost {
                             updateShare(mountStatus: .unrechable, for: share)
                         } catch MounterError.authenticationError {
+                            errorStatus = .authenticationError
                             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
                             updateShare(mountStatus: .invalidCredentials, for: share)
                         } catch MounterError.shareDoesNotExist {

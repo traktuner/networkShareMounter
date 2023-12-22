@@ -148,6 +148,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                    self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
                 }
             }
         } else if notification.userInfo?["ClearError"] is Error {
@@ -156,6 +157,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    self.constructMenu(withMounter: self.mounter)
                 }
             }
         } else if notification.userInfo?["FailError"] is Error {
@@ -206,8 +208,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.open(openURL)
     }
 
-    func constructMenu(withMounter mounter: Mounter) {
+    ///
+    /// function which reads configured profiles to construct App's menu
+    func constructMenu(withMounter mounter: Mounter, andStatus: MounterError? = nil) {
         let menu = NSMenu()
+        
+        switch andStatus {
+        case .authenticationError:
+            self.logger.debug("Constructing authentication problem menu.")
+            mounter.errorStatus = .authenticationError
+            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
+                                    action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+            menu.addItem(NSMenuItem.separator())
+            
+        default:
+            mounter.errorStatus = .noError
+            self.logger.debug("Constructing default menu.")
+        }
         
         if userDefaults.string(forKey: "helpURL")!.description.isValidURL {
             menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),

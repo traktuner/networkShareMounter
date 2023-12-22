@@ -11,7 +11,7 @@ import OSLog
 
 class ShareViewController: NSViewController {
     
-    var callback: ((Share?) -> Void)?
+    var callback: ((String?) -> Void)?
     
     // Share struct
     struct ShareData {
@@ -140,12 +140,16 @@ class ShareViewController: NSViewController {
                 progressIndicator.isHidden = false
                 saveButton.isEnabled = false
                 progressIndicator.startAnimation(self)
-                if let newShare = await handleShareURL(networkShareText: networkShareText, shareData: shareData) {
-                    callback?(newShare)
-                    dismiss(nil)
-//                    self.view.window?.windowController?.close()
-                } else {
-                    
+                Task { [self, shareData] in
+                    if let newShare = await handleShareURL(networkShareText: networkShareText, shareData: shareData) {
+                        progressIndicator.isHidden = true
+                        callback?("save")
+                        dismiss(nil)
+                        //                    self.view.window?.windowController?.close()
+                    } else {
+                        progressIndicator.isHidden = true
+                        dismiss(nil)
+                    }
                 }
             }
         }
@@ -293,6 +297,8 @@ class ShareViewController: NSViewController {
     }
     
     @IBAction private func cancelButtonTapped(_ sender: NSButton) {
+        
+        callback?("cancel")
         dismiss(nil)
     }
     

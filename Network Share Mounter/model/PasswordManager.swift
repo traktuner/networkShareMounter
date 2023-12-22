@@ -110,7 +110,7 @@ class PasswordManager: NSObject {
             // try to get the password for share and username. If none is returned, the
             // entry does not exist and there is no need to remove an entry -> return
             do {
-                let pw = try retrievePassword(forShare: share, withUsername: username)
+                _ = try retrievePassword(forShare: share, withUsername: username)
             } catch {
                 return
             }

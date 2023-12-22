@@ -354,14 +354,6 @@ class ShareManager {
             }
             removeLegacyShareConfigs()
         }
-//        let myNewShare = Share.createShare(networkShare: "https://faubox.rrze.uni-erlangen.de/webdav",
-//                                        authType: AuthType.pwd,
-//                                        mountStatus: MountStatus.unmounted,
-//                                        username: "unrz142",
-//                                        password: "password",
-//                                        managed: true)
-//                addShare(myNewShare)
-
     }
     
     /// write user defined share configuration
