@@ -256,10 +256,8 @@ class Mounter: ObservableObject {
                                                 switch error {
                                                 case .invalidMountPath:
                                                     logger.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): invalid mount path")
-                                                    print("Ungültiger Mount-Pfad.")
                                                 case .unmountFailed:
                                                     logger.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unmount failed")
-                                                    print("Unmount fehlgeschlagen.")
                                                 default:
                                                     logger.info("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unknown error")
                                                 }
@@ -427,7 +425,7 @@ class Mounter: ObservableObject {
                 // perform cleanup routines before mounting
 //                await prepareMountPrerequisites()
                 for share in self.shareManager.allShares {
-//                    Task {
+                    Task {
                         do {
                             // if the mount was triggered by user, set mountStatus
                             // to .unmounted and therefore it will try to mount
@@ -436,14 +434,15 @@ class Mounter: ObservableObject {
                             }
                             let actualMountpoint = try await mountShare(forShare: share, atPath: defaultMountPath)
                             updateShare(actualMountPoint: actualMountpoint, for: share)
+                            updateShare(mountStatus: .mounted, for: share)
                         } catch MounterError.doesNotExist {
                             updateShare(mountStatus: .errorOnMount, for: share)
                         } catch MounterError.timedOutHost {
-                            updateShare(mountStatus: .unrechable, for: share)
+                            updateShare(mountStatus: .unreachable, for: share)
                         } catch MounterError.hostIsDown {
-                            updateShare(mountStatus: .unrechable, for: share)
+                            updateShare(mountStatus: .unreachable, for: share)
                         } catch MounterError.noRouteToHost {
-                            updateShare(mountStatus: .unrechable, for: share)
+                            updateShare(mountStatus: .unreachable, for: share)
                         } catch MounterError.authenticationError {
                             errorStatus = .authenticationError
                             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
@@ -455,9 +454,9 @@ class Mounter: ObservableObject {
                         } catch MounterError.userUnmounted {
                             updateShare(mountStatus: .userUnmounted, for: share)
                         } catch {
-                            updateShare(mountStatus: .unrechable, for: share)
+                            updateShare(mountStatus: .unreachable, for: share)
                         }
-//                    }
+                    }
                 }
             }
         } else {
@@ -509,12 +508,12 @@ class Mounter: ObservableObject {
         let hostReachability = SCNetworkReachabilityCreateWithName(nil, (host as NSString).utf8String!)
         guard SCNetworkReachabilityGetFlags(hostReachability!, &flags) == true else {
             logger.warning("⚠️ could not determine reachability for host \(host, privacy: .public)")
-            updateShare(mountStatus: .unrechable, for: share)
+            updateShare(mountStatus: .unreachable, for: share)
             throw MounterError.couldNotTestConnectivity
         }
         guard flags.contains(.reachable) == true else {
             logger.warning("⚠️ \(host, privacy: .public): target not reachable")
-            updateShare(mountStatus: .unrechable, for: share)
+            updateShare(mountStatus: .unreachable, for: share)
             throw MounterError.targetNotReachable
         }
         

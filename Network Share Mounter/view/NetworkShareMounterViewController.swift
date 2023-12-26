@@ -14,7 +14,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
     // MARK: - help messages
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
-                    NSLocalizedString("help-show-managed-shares", comment: "")]
+                    NSLocalizedString("help-show-managed-shares", comment: ""),
+                    NSLocalizedString("mount-status-info-text", comment: "")]
 
     let userDefaults = UserDefaults.standard
 
@@ -47,10 +48,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             launchAtLoginRadioButton.isHidden = true
             horizontalLine.isHidden = true
         }
-
-        //
-        // create an action to react on user clicks in tableview
-        tableView.action = #selector(handleClickColumn)
     
         //
         // get build and version number of the app
@@ -62,7 +59,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             additionalSharesText.isHidden = true
         } else {
             additionalSharesText.isHidden = false
-            additionalSharesText.stringValue = NSLocalizedString("Additional shares", comment: "Additional shares")
         }
 //        let symbolConfig = NSImage.SymbolConfiguration(scale: .large)
 //
@@ -97,25 +93,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         }
     }
 
-    @objc func handleClickColumn() {
-        if tableView.clickedRow >= 0 {
-            // if share is not managed
-            removeShareButton.isEnabled = false
-            modifyShareButton.isEnabled = false
-            usersNewShare.stringValue=""
-            if !self.userShares[tableView.selectedRow].managed ||
-                    // or authType for share is password
-                    self.userShares[tableView.selectedRow].authType == AuthType.pwd.rawValue {
-                
-                removeShareButton.isEnabled = true
-                modifyShareButton.isEnabled = true
-                usersNewShare.stringValue =  self.userShares[tableView.selectedRow].networkShare
-                if self.userShares[tableView.selectedRow].managed {
-                    removeShareButton.isEnabled = false
-                }
-            }
-        }
-    }
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
     
     @IBOutlet weak var additionalSharesText: NSTextField!
@@ -188,7 +165,41 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
     @IBOutlet weak var removeShareButton: NSButton!
     
-    
+    @IBAction func tableViewClicked(_ sender: NSTabView) {
+        if tableView.clickedRow >= 0 {
+            if tableView.clickedColumn == 0 {
+                // swiftlint:disable force_cast
+                let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
+                // swiftlint:enable force_cast
+                let popover = NSPopover()
+                popover.contentViewController = helpPopoverViewController
+                helpPopoverViewController.helpText = helpText[(sender as AnyObject).tag]
+                popover.animates = true
+                popover.behavior = NSPopover.Behavior.transient
+                let rowRect = tableView.rect(ofRow: tableView.clickedRow)
+                popover.show(relativeTo: rowRect, of: sender, preferredEdge: NSRectEdge.maxY)
+            } else {
+                // if share is not managed
+                removeShareButton.isEnabled = false
+                modifyShareButton.isEnabled = false
+                usersNewShare.stringValue=""
+                if !self.userShares[tableView.selectedRow].managed ||
+                    // or authType for share is password
+                    self.userShares[tableView.selectedRow].authType == AuthType.pwd.rawValue {
+                    
+                    removeShareButton.isEnabled = true
+                    modifyShareButton.isEnabled = true
+                    usersNewShare.stringValue =  self.userShares[tableView.selectedRow].networkShare
+                    if self.userShares[tableView.selectedRow].managed {
+                        removeShareButton.isEnabled = false
+                    }
+                }
+            }
+        } else {
+            removeShareButton.isEnabled = false
+            modifyShareButton.isEnabled = false
+        }
+    }
     /// IBAction function called if removeShare button is pressed.
     /// This will remove the share in the selected row in tableView
     @IBAction func removeShare(_ sender: NSButton) {
@@ -252,7 +263,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     ///- Parameter type: enum of various types of shares to check for
     private func refreshUserArray(type: DisplayShareTypes) {
         self.appDelegate.mounter.shareManager.allShares.forEach { definedShare in
-
+            // set mount symbol
+            var mountSymbol =   (definedShare.mountStatus == .mounted) ? "🟢" :
+                                (definedShare.mountStatus == .queued) ? "🟣" :
+                                (definedShare.mountStatus == .invalidCredentials) ? "🟠" :
+                                (definedShare.mountStatus == .errorOnMount) ? "🔴":
+                                "⚪️"
             let shouldAppend: Bool
             switch type {
                 case .managed:
@@ -269,10 +285,11 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     shouldAppend = !definedShare.managed
                 case .missingPassword:
                     shouldAppend = definedShare.authType == .pwd && (definedShare.password == "" || definedShare.password == nil)
+                    mountSymbol = "🟠"
             }
 
             if shouldAppend {
-                // check and skip if share is alreadi in userShares
+                // check and skip if share is already in userShares
                 if !self.userShares.contains(where: { $0.networkShare == definedShare.networkShare }) {
                     self.userShares.append(UserShare(networkShare: definedShare.networkShare,
                                                      authType: definedShare.authType.rawValue,
@@ -280,7 +297,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                                                      password: definedShare.password,
                                                      mountPoint: definedShare.mountPoint,
                                                      managed: definedShare.managed,
-                                                     mountStatus: definedShare.mountStatus.rawValue))
+                                                     mountStatus: definedShare.mountStatus.rawValue,
+                                                     mountSymbol: mountSymbol))
                 }
             }
         }

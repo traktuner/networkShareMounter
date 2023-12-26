@@ -177,7 +177,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func showInfo(_ sender: Any?) {
         self.logger.info("Some day maybe show some useful information about Network Share Mounter")
-//        print("Some day maybe show some useful information about Network Share Mounter")
     }
 
     @objc func openMountDir(_ sender: Any?) {

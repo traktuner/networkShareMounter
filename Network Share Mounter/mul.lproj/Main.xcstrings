@@ -3322,6 +3322,18 @@
         }
       }
     },
+    "k27-MA-16e.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Table View Cell\"; ObjectID = \"k27-MA-16e\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Table View Cell"
+          }
+        }
+      }
+    },
     "KaW-ft-85H.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Revert to Saved\"; ObjectID = \"KaW-ft-85H\";",
       "extractionState" : "extracted_with_value",
@@ -3568,6 +3580,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bring All to Front"
+          }
+        }
+      }
+    },
+    "LF0-pV-Fyq.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Text Cell\"; ObjectID = \"LF0-pV-Fyq\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Text Cell"
           }
         }
       }

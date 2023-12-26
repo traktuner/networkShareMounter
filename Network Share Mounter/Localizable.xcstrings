@@ -77,47 +77,6 @@
         }
       }
     },
-    "Additional shares" : {
-      "comment" : "Additional shares",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeige verwaltete Netzlaufwerke"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show managed network drives"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar unidades de red administradas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher les lecteurs réseau gérés"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra unità di rete gestite"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toon beheerde netwerkverbindingen"
-          }
-        }
-      }
-    },
     "authenticate-share-button" : {
       "comment" : "Button text to change authentication",
       "localizations" : {
@@ -860,6 +819,47 @@
         }
       }
     },
+    "mount-status-info-text" : {
+      "comment" : "short info to mount status icons",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 eingebunden\n⚪️ nicht eingebunden / nicht erreichbar\n🟠 fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 mounted\n⚪️ not mounted / not reachable\n🟠 missing credentials\n🟣 mount queued"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 montado\n⚪️ no montado / no accesible\n🟠 credenciales faltantes\n🟣 montaje en cola"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 monté\n⚪️ non monté / non accessible\n🟠 identifiants manquants\n🟣 montage en file d'attente"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 montato\n⚪️ non montato / non raggiungibile\n🟠 credenziali mancanti\n🟣 montaggio in coda"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 gekoppeld\n⚪️ niet gekoppeld / niet bereikbaar\n🟠 ontbrekende referenties\n🟣 koppeling in de wachtrij"
+          }
+        }
+      }
+    },
     "Mountpoint is inacessible" : {
       "comment" : "Mountpoint is inacessible",
       "localizations" : {
@@ -1290,6 +1290,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gedeelde map is al gekoppeld."
+          }
+        }
+      }
+    },
+    "ShareView-Text" : {
+      "comment" : "Default text to show on ShareView window",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kannst jede Windows (smb/cifs), afp oder WebDAV-Netzwerkfreigabe einbinden, solange du den Servernamen und den Freigabepfad kennst.\nGib die Freigabe als smb://server.name/export/path ein.\nDie Verbindung wird sofort getestet und nur hinzugefügt, wenn der Server erreichbar und die Freigabe verfügbar ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can mount any Windows (smb/cifs), afp or WebDAV network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puedes montar cualquier recurso compartido de red de Windows (smb/cifs), afp o WebDAV siempre y cuando conozcas el nombre del servidor y la ruta de exportación.\nIngresa el recurso compartido como smb://nombre.del.servidor/ruta/de/exportación.\nLa conexión se probará de inmediato y se agregará solo si el servidor es accesible y el recurso compartido está disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous pouvez monter n'importe quelle partage réseau Windows (smb/cifs), afp ou WebDAV tant que vous connaissez le nom du serveur et le chemin d'exportation.\nEntrez la partage comme smb://server.name/export/path.\nLa connexion sera testée immédiatement et ne sera ajoutée que si le serveur est accessible et la partage est disponible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puoi montare qualsiasi condivisione di rete Windows (smb/cifs), afp o WebDAV purché tu conosca il nome del server e il percorso di esportazione.\nInserisci la condivisione come smb://server.name/export/path.\nLa connessione verrà testata immediatamente e verrà aggiunta solo se il server è raggiungibile e la condivisione è disponibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt elke Windows (smb/cifs), afp of WebDAV netwerkshare koppelen zolang je de servernaam en het exportpad kent.\nVoer de share in als smb://server.name/export/path.\nDe verbinding wordt onmiddellijk getest en wordt alleen toegevoegd als de server bereikbaar is en de share beschikbaar is."
           }
         }
       }

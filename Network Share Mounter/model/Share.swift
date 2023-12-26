@@ -21,7 +21,7 @@ enum MountStatus: String {
     case queued = "queued"
     case toBeMounted = "toBeMounted"
     case errorOnMount = "errorOnMount"
-    case unrechable = "unreachable"
+    case unreachable = "unreachable"
     case undefined = "undefined"
     case userUnmounted = "userUnmounted"
     case missingPassword = "missingPassword"

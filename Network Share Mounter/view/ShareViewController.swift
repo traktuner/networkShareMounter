@@ -74,6 +74,7 @@ class ShareViewController: NSViewController {
         progressIndicator.isHidden = true
         authType = AuthType.pwd
         shareArray = appDelegate.mounter.shareManager.allShares
+        shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
         
         // check if NetworkShareMounter View has set selectedShareURL
         // if yes, prefill the data
@@ -141,7 +142,7 @@ class ShareViewController: NSViewController {
                 saveButton.isEnabled = false
                 progressIndicator.startAnimation(self)
                 Task { [self, shareData] in
-                    if let newShare = await handleShareURL(networkShareText: networkShareText, shareData: shareData) {
+                    if (await handleShareURL(networkShareText: networkShareText, shareData: shareData)) != nil {
                         progressIndicator.isHidden = true
                         callback?("save")
                         dismiss(nil)
