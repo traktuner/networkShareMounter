@@ -235,7 +235,9 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     // MARK: prepare segues by setting certain values
     override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShareViewSegue" {
+            // swiftlint:disable force_cast
             let shareViewController = segue.destinationController as! ShareViewController
+            // swiftlint:enable force_cast
             // callback action for data coming from shareViewController
             shareViewController.callback = { result in
                 if result != "cancel" {
@@ -252,7 +254,11 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             if let selectedShare = appDelegate.mounter.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                     // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
                     // new share will be added
-                    shareViewController.shareData = ShareViewController.ShareData(networkShare: URL(string: selectedShare.networkShare)!, authType: selectedShare.authType, username: selectedShare.username, password: selectedShare.password, managed: selectedShare.managed)
+                    shareViewController.shareData = ShareViewController.ShareData(networkShare: URL(string: selectedShare.networkShare)!, 
+                                                                                  authType: selectedShare.authType,
+                                                                                  username: selectedShare.username,
+                                                                                  password: selectedShare.password,
+                                                                                  managed: selectedShare.managed)
                     shareViewController.selectedShareURL = usersNewShare.stringValue
             }
         }
