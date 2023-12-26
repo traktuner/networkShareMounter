@@ -11,7 +11,6 @@ import OSLog
 
 /// class `ShareManager` to manage the shares (array fo Share)
 class ShareManager {
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "ShareManager")
     private var sharesLock = os_unfair_lock()
     private var _shares: [Share] = []
     private let userDefaults = UserDefaults.standard
@@ -29,7 +28,7 @@ class ShareManager {
                     do {
                         try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPpassword: password)
                     } catch {
-                        logger.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
+                        Logger.shareManager.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
                     }
                 }
             }
@@ -44,10 +43,10 @@ class ShareManager {
         if let username = _shares[index].username {
             let pwm = PasswordManager()
             do {
-                logger.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
+                Logger.shareManager.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
                 try pwm.removeCredential(forShare: URL(string: self._shares[index].networkShare)!, withUsername: username)
             } catch {
-                logger.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
+                Logger.shareManager.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
             }
         }
         _shares.remove(at: index)
@@ -168,7 +167,7 @@ class ShareManager {
                     password = keychainPassword
                 }
             } catch {
-                logger.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain")
+                Logger.shareManager.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain")
                 mountStatus = MountStatus.missingPassword
                 password = nil
             }
@@ -211,7 +210,7 @@ class ShareManager {
                     password = keychainPassword
                 }
             } catch {
-                logger.warning("Password for share \(shareUrlString, privacy: .public) not found in user's keychain")
+                Logger.shareManager.warning("Password for share \(shareUrlString, privacy: .public) not found in user's keychain")
                 mountStatus = MountStatus.missingPassword
                 password = nil
             }
@@ -224,7 +223,7 @@ class ShareManager {
     func updateShareArray() {
         // read MDM shares
         var usedNewMDMprofile = false
-        logger.debug("Checking possible changes in MDM profile")
+        Logger.shareManager.debug("Checking possible changes in MDM profile")
         if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             var newShares: [Share] = []
             for shareElement in sharesDict {
@@ -234,13 +233,13 @@ class ShareManager {
                     // addShare() would check if an element exists and skips it,
                     // but the new share definition could differ from the new one get from MDM
                     if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
-                        logger.debug("Adding new share \(newShare.networkShare, privacy: .public)")
+                        Logger.shareManager.debug("Adding new share \(newShare.networkShare, privacy: .public)")
                         addShare(newShare)
                     } else {
                         if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
                             // save some stati from actual share element and save them to new share
                             // read from MDM. Then overwrite the share with the new data
-                            logger.debug("Found existing share \(newShare.networkShare, privacy: .public), updating status.")
+                            Logger.shareManager.debug("Found existing share \(newShare.networkShare, privacy: .public), updating status.")
                             newShare.mountStatus = allShares[index].mountStatus
                             newShare.id = allShares[index].id
                             newShare.actualMountPoint  = allShares[index].actualMountPoint
@@ -260,7 +259,7 @@ class ShareManager {
             for remove in differing {
                 if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
                     if _shares[index].managed == true {
-                        logger.debug("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                        Logger.shareManager.debug("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
                         removeShare(at: index)
                     }
                 }
@@ -302,7 +301,7 @@ class ShareManager {
                 for remove in differing {
                     if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
                         if _shares[index].managed == true {
-                            logger.info("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                            Logger.shareManager.info("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
                             removeShare(at: index)
                         }
                     }

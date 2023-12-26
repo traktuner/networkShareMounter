@@ -28,8 +28,6 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     // swiftlint:enable force_cast
     
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "NSMViewController")
-    
     // toggle to show user defined or managed shares
     var showManagedShares = false
     
@@ -208,9 +206,9 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         if row >= 0 {
             // if a share with the selected name is found, delete it
             if let selectedShare = appDelegate.mounter.getShare(forNetworkShare: usersNewShare.stringValue) {
-                self.logger.debug("unmounting share \(selectedShare.networkShare, privacy: .public)")
+                Logger.networkShareViewController.debug("unmounting share \(selectedShare.networkShare, privacy: .public)")
                 self.appDelegate.mounter.unmountShare(for: selectedShare)
-                self.logger.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
+                Logger.networkShareViewController.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
                 self.appDelegate.mounter.removeShare(for: selectedShare)
                 // update userDefaults
                 self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
@@ -313,20 +311,4 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
 extension NetworkShareMounterViewController: NSTableViewDelegate {
 
-}
-
-extension String {
-    /// Extension for ``String`` to check if the string itself is a valid URL
-    /// - Returns: true if the string is a valid URL
-    var isValidURL: Bool {
-        // swiftlint:disable force_try
-        let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-        // swiftlint:denable force_try
-        if let match = detector.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.utf16.count)) {
-            // it is a link, if the match covers the whole string
-            return match.range.length == self.utf16.count
-        } else {
-            return false
-        }
-    }
 }

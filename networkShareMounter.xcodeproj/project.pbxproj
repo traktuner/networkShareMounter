@@ -29,7 +29,9 @@
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 		F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */; };
 		F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */; };
-		F7F392752B347CE8001547F2 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F392742B347CE8001547F2 /* Notification.swift */; };
+		F7EF65CC2B3B4B6100051D44 /* PKINIT.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CB2B3B4B6100051D44 /* PKINIT.swift */; };
+		F7EF65CE2B3B4BEE00051D44 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CD2B3B4BEE00051D44 /* Extensions.swift */; };
+		F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CF2B3B4DFC00051D44 /* Logger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,7 +78,9 @@
 		F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F7CF6E652B1DFB6400643574 /* mul */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = mul; path = mul.lproj/Main.xcstrings; sourceTree = "<group>"; };
 		F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "Network Share Mounter/view/ShareViewController.swift"; sourceTree = SOURCE_ROOT; };
-		F7F392742B347CE8001547F2 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
+		F7EF65CB2B3B4B6100051D44 /* PKINIT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PKINIT.swift; sourceTree = "<group>"; };
+		F7EF65CD2B3B4BEE00051D44 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		F7EF65CF2B3B4DFC00051D44 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +133,7 @@
 			children = (
 				F77107B6274EC51600556B20 /* Monitor.swift */,
 				F7796E112AFBE5AB008F6A26 /* ActivityController.swift */,
+				F7EF65CF2B3B4DFC00051D44 /* Logger.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -141,6 +146,8 @@
 				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
 				F77107BA274EC7D200556B20 /* config.swift */,
 				F79B1597274E722000C322A8 /* AppDelegate.swift */,
+				F7EF65CD2B3B4BEE00051D44 /* Extensions.swift */,
+				F7EF65CA2B3B4B3200051D44 /* krb */,
 				F7E727A82B03AA0D0036CF15 /* model */,
 				F70457EB2B307C8D00506DF4 /* Helper */,
 				F7E727A72B03A9FB0036CF15 /* view */,
@@ -167,7 +174,6 @@
 				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F72B13E92B332987001BDEEA /* Menu.swift */,
 				F70457EC2B31A62E00506DF4 /* Errorcodes.swift */,
-				F7F392742B347CE8001547F2 /* Notification.swift */,
 				F78B9D742B0BA7EF00043327 /* PasswordManager.swift */,
 				F765D0562A852935001D5116 /* Share.swift */,
 				F7A383EC2B065E1400CA70E2 /* UserShare.swift */,
@@ -176,6 +182,14 @@
 				F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */,
 			);
 			path = model;
+			sourceTree = "<group>";
+		};
+		F7EF65CA2B3B4B3200051D44 /* krb */ = {
+			isa = PBXGroup;
+			children = (
+				F7EF65CB2B3B4B6100051D44 /* PKINIT.swift */,
+			);
+			path = krb;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -354,15 +368,17 @@
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
-				F7F392752B347CE8001547F2 /* Notification.swift in Sources */,
 				F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */,
 				F78B9D752B0BA7EF00043327 /* PasswordManager.swift in Sources */,
+				F7EF65CE2B3B4BEE00051D44 /* Extensions.swift in Sources */,
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
+				F7EF65CC2B3B4B6100051D44 /* PKINIT.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
 				F72B13EA2B332987001BDEEA /* Menu.swift in Sources */,
 				F70457ED2B31A62E00506DF4 /* Errorcodes.swift in Sources */,
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
+				F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */,
 				F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */,
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
 				F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */,

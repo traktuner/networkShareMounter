@@ -23,7 +23,6 @@ struct AppStatistics {
     var reportURL = Settings.statisticsReportURL
     var bundleID = "UNKNOWN"
     let userDefaults = UserDefaults.standard
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "AppStatistics")
     
     init() {
         self.instanceUUID = getInstanceUUID()
@@ -69,7 +68,7 @@ struct AppStatistics {
     /// - **bundleID**
     func reportAppInstallation() async -> Void {
 #if DEBUG
-        logger.debug("Debugging app, not reporting anything to statistics server ...")
+        Logger.appStatistics.debug("Debugging app, not reporting anything to statistics server ...")
 #else
         let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
         guard let reportURL = URL(string: Settings.statisticsReportURL + reportData) else {
@@ -81,15 +80,15 @@ struct AppStatistics {
         let session = URLSession(configuration: sessionConfiguration)
 
         do {
-            logger.debug("Trying to connect to statistics server ...")
+            Logger.appStatistics.debug("Trying to connect to statistics server ...")
             let (_, response) = try await session.data(for: request)
             // swiftlint:disable force_cast
             if (response as! HTTPURLResponse).statusCode == 200 {
-                logger.debug("Reported app statistics.")
+                Logger.appStatistics.debug("Reported app statistics.")
             }
             // swiftlint:enable force_cast
         } catch {
-            logger.notice("Connection to reporting server failed.")
+            Logger.appStatistics.debug("Connection to reporting server failed.")
         }
 #endif
         return()

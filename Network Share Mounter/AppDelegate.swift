@@ -25,8 +25,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     var timer = Timer()
     
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "App")
-    
     // define the activityController to et notifications from NSWorkspace
     var activityController: ActivityController?
     
@@ -76,10 +74,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // start a timer to perform a mount every 5 minutes
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-            self.logger.info("Passed \(timerInterval, privacy: .public) seconds, performing mount operartions.")
+            Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing mount operartions.")
             let netConnection = Monitor.shared
             let status = netConnection.netOn
-            self.logger.info("Current Network Path is \(status, privacy: .public).")
+            Logger.app.info("Current Network Path is \(status, privacy: .public).")
             Task {
                 // call updateShareArray() to reflect possible changes in MDM profile
                 self.mounter.shareManager.updateShareArray()
@@ -92,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
                 Task {
-                    self.logger.debug("Got network monitoring callback, mount shares.")
+                    Logger.app.debug("Got network monitoring callback, mount shares.")
                     // call updateShareArray() to reflect possible changes in MDM profile
                     self.mounter.shareManager.updateShareArray()
                     await self.mounter.mountAllShares(userTriggered: true)
@@ -102,7 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // since the mount status after a network change is unknown it will be set
                     // to unknown so it can be tested and maybe remounted if the network connects again
                     await self.mounter.setAllMountStatus(to: MountStatus.undefined)
-                    self.logger.debug("Got network monitoring callback, unmount shares.")
+                    Logger.app.debug("Got network monitoring callback, unmount shares.")
                     // trying to unmount all shares
                     await self.mounter.unmountAllMountedShares()
                     // call updateShareArray() to reflect possible changes in MDM profile
@@ -176,25 +174,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func showInfo(_ sender: Any?) {
-        self.logger.info("Some day maybe show some useful information about Network Share Mounter")
+        Logger.app.info("Some day maybe show some useful information about Network Share Mounter")
     }
 
     @objc func openMountDir(_ sender: Any?) {
         if let mountDirectory =  URL(string: self.mounter.defaultMountPath) {
-            self.logger.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
+            Logger.app.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
         }
     }
     
     @objc func mountManually(_ sender: Any?) {
-        self.logger.debug("User triggered mount all shares")
+        Logger.app.debug("User triggered mount all shares")
         Task {
             await self.mounter.mountAllShares(userTriggered: true)
         }
     }
     
     @objc func unmountShares(_ sender: Any?) {
-        self.logger.debug("User triggered unmount all shares")
+        Logger.app.debug("User triggered unmount all shares")
         Task {
             await self.mounter.unmountAllMountedShares(userTriggered: true)
         }
@@ -214,7 +212,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         switch andStatus {
         case .authenticationError:
-            self.logger.debug("Constructing authentication problem menu.")
+            Logger.app.debug("Constructing authentication problem menu.")
             mounter.errorStatus = .authenticationError
             menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
                                     action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
@@ -222,7 +220,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
         default:
             mounter.errorStatus = .noError
-            self.logger.debug("Constructing default menu.")
+            Logger.app.debug("Constructing default menu.")
         }
         
         if userDefaults.string(forKey: "helpURL")!.description.isValidURL {

@@ -20,8 +20,6 @@ enum Connection: String {
 }
 
 class Monitor {
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "NetworkMonitor")
-    
     static public let shared = Monitor()
     let monitor: NWPathMonitor
     private let queue = DispatchQueue(label: "Monitor")
@@ -41,7 +39,7 @@ extension Monitor {
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
             self.netOn = path.status == .satisfied
             self.connType = self.checkConnectionTypeForPath(path)
-            self.logger.info("Network connection changed to \(self.connType.rawValue, privacy: .public).")
+            Logger.networkMonitor.info("Network connection changed to \(self.connType.rawValue, privacy: .public).")
 
             if path.status == .satisfied {
                 if path.usesInterfaceType(.wifi) {
