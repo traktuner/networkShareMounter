@@ -21,7 +21,7 @@ enum MountStatus: String {
     case queued = "queued"
     case toBeMounted = "toBeMounted"
     case errorOnMount = "errorOnMount"
-    case unrechable = "unreachable"
+    case unreachable = "unreachable"
     case undefined = "undefined"
     case userUnmounted = "userUnmounted"
     case missingPassword = "missingPassword"
@@ -52,7 +52,7 @@ struct Share: Identifiable {
     var mountPoint: String?
     var actualMountPoint: String?
     var managed: Bool
-    var id = UUID()
+    var id = UUID().uuidString
     
     /// Lock for thread-safe access to Share properties
     private var lock = os_unfair_lock()
@@ -102,6 +102,6 @@ struct Share: Identifiable {
     
     /// factory-method, to create a new Share object
     static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true) -> Share {
-        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, id: UUID())
+        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, id: UUID().uuidString)
     }
 }

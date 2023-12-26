@@ -32,6 +32,7 @@ enum MounterError: Error {
     case authenticationError
     case hostIsDown
     case userUnmounted
+    case noError
 }
 
 extension MounterError: LocalizedError {
@@ -147,6 +148,12 @@ extension MounterError: LocalizedError {
                 "User-mounted share",
                 comment: "CoUser-mounted sharemment"
             )
+        case .noError:
+            return NSLocalizedString(
+                "no error occured",
+                comment: "no error occured"
+            )
         }
     }
 }
+

@@ -16,8 +16,9 @@ class UserShare: NSObject {
     @objc dynamic var mountPoint: String?
     @objc dynamic var managed: Bool
     @objc dynamic var mountStatus: String
+    @objc dynamic var mountSymbol: String
     
-    init(networkShare: String, authType: String, username: String?, password: String?, mountPoint: String?, managed: Bool, mountStatus: String) {
+    init(networkShare: String, authType: String, username: String?, password: String?, mountPoint: String?, managed: Bool, mountStatus: String, mountSymbol: String) {
         self.networkShare = networkShare
         self.authType = authType
         self.username = username
@@ -25,5 +26,6 @@ class UserShare: NSObject {
         self.mountPoint = mountPoint
         self.managed = managed
         self.mountStatus = mountStatus
+        self.mountSymbol = mountSymbol
     }
 }

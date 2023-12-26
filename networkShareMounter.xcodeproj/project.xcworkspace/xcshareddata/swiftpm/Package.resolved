@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "dogeadauth",
+      "kind" : "remoteSourceControl",
+      "location" : "https://gitlab.rrze.fau.de/faumac/dogeadauth",
+      "state" : {
+        "branch" : "main",
+        "revision" : "c4376832ebc2ff659d73add1c454b107db933375"
+      }
+    },
+    {
       "identity" : "launchatlogin",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sindresorhus/LaunchAtLogin",

@@ -1,6 +1,47 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "⚠️ Authentication problem..." : {
+      "comment" : "Authentication problem",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authentifizierungsproblem..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authentication problem..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema de autenticación..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problème d'authentification..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema di autenticazione..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authenticatieprobleem..."
+          }
+        }
+      }
+    },
     "About Network Share Mounter" : {
       "comment" : "About Network Share Mounter",
       "localizations" : {
@@ -36,43 +77,37 @@
         }
       }
     },
-    "Additional shares" : {
-      "comment" : "Additional shares",
+    "authenticate-share-button" : {
+      "comment" : "Button text to change authentication",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zeige verwaltete Netzlaufwerke"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show managed network drives"
+            "value" : "Freigabe authentifizieren"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostrar unidades de red administradas"
+            "value" : "Autenticar compartición"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher les lecteurs réseau gérés"
+            "value" : "Authentifier le partage"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mostra unità di rete gestite"
+            "value" : "Autentica condivisione"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toon beheerde netwerkverbindingen"
+            "value" : "Deel authenticeren"
           }
         }
       }
@@ -252,6 +287,47 @@
         }
       }
     },
+    "help-auth-error" : {
+      "comment" : "Help text shown if some shares are not authenticated",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich habe ein Problem mit der Authentifizierung der oben genannten Netzwerklaufwerke festgestellt. Bitte überprüfe, ob deine Anmeldedaten korrekt sind, um die Freigaben zu verbinden.\n\nIn Unternehmen oder Universitäten wird die Einrichtung von Netzlaufwerken oft über Mobile Device Management (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. Je nach Authentifizierung musst du einmalig deinen Benutzernamen und dein Passwort eingeben. Klicke dazu bitte auf eine Freigabe und dann auf \"Freigabe bearbeiten.\""
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I have identified an issue with the authentication of the network drives mentioned above. Please check if your login credentials are correct to connect to the shares.\n\nIn companies or universities, the setup of network drives is often managed through Mobile Device Management (MDM). This means that your administrator automatically connects certain drives to your Mac. Depending on the authentication, you may need to enter your username and password once. To do this, please click on a share and then on \"Edit Share.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He identificado un problema con la autenticación de las unidades de red mencionadas anteriormente. Por favor, verifica si tus credenciales de inicio de sesión son correctas para conectarte a las comparticiones.\n\nEn empresas o universidades, la configuración de las unidades de red suele gestionarse mediante la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. Dependiendo de la autenticación, es posible que debas ingresar tu nombre de usuario y contraseña una vez. Para hacerlo, haz clic en una compartición y luego en \"Editar compartición.\""
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "J'ai identifié un problème avec l'authentification des lecteurs réseau mentionnés ci-dessus. Veuillez vérifier si vos identifiants de connexion sont corrects pour vous connecter aux partages.\n\nDans les entreprises ou les universités, la configuration des lecteurs réseau est souvent gérée via la gestion des appareils mobiles (MDM). Cela signifie que votre administrateur connecte automatiquement certains lecteurs à votre Mac. Selon l'authentification, vous devrez peut-être entrer votre nom d'utilisateur et votre mot de passe une fois. Pour ce faire, veuillez cliquer sur un partage, puis sur \"Modifier le partage.\""
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ho riscontrato un problema con l'autenticazione delle unità di rete menzionate sopra. Controlla se le tue credenziali di accesso sono corrette per connetterti alle condivisioni.\n\nNelle aziende o nelle università, la configurazione delle unità di rete è spesso gestita tramite Mobile Device Management (MDM). Ciò significa che il tuo amministratore collega automaticamente determinate unità al tuo Mac. In base all'autenticazione, potresti dover inserire una sola volta il tuo nome utente e la tua password. Per farlo, fai clic su una condivisione e poi su \"Modifica condivisione.\""
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ik heb een probleem geconstateerd met de authenticatie van de hierboven genoemde netwerkstations. Controleer of je aanmeldingsgegevens correct zijn om verbinding te maken met de gedeelde mappen.\n\nIn bedrijven of universiteiten wordt de configuratie van netwerkstations vaak beheerd via Mobile Device Management (MDM). Dit betekent dat je beheerder automatisch bepaalde stations met je Mac verbindt. Afhankelijk van de authenticatie moet je eenmalig je gebruikersnaam en wachtwoord invoeren. Klik hiervoor op een gedeelde map en vervolgens op \"Delen bewerken.\""
+          }
+        }
+      }
+    },
     "help-authType" : {
       "comment" : "Helptext for authType",
       "localizations" : {
@@ -294,7 +370,7 @@
       }
     },
     "help-new-share" : {
-      "comment" : "Helptext for shares",
+      "comment" : "Help text with some infos about adding new shares",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -632,6 +708,47 @@
         }
       }
     },
+    "modify-share-button" : {
+      "comment" : "Button text to modify share",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe bearbeiten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar la liberación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifica condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delen bewerken"
+          }
+        }
+      }
+    },
     "Mount queued" : {
       "comment" : "Mount queued",
       "localizations" : {
@@ -698,6 +815,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Netwerkverbinding maken"
+          }
+        }
+      }
+    },
+    "mount-status-info-text" : {
+      "comment" : "short info to mount status icons",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 eingebunden\n⚪️ nicht eingebunden / nicht erreichbar\n🟠 fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 mounted\n⚪️ not mounted / not reachable\n🟠 missing credentials\n🟣 mount queued"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 montado\n⚪️ no montado / no accesible\n🟠 credenciales faltantes\n🟣 montaje en cola"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 monté\n⚪️ non monté / non accessible\n🟠 identifiants manquants\n🟣 montage en file d'attente"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 montato\n⚪️ non montato / non raggiungibile\n🟠 credenziali mancanti\n🟣 montaggio in coda"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 gekoppeld\n⚪️ niet gekoppeld / niet bereikbaar\n🟠 ontbrekende referenties\n🟣 koppeling in de wachtrij"
           }
         }
       }
@@ -810,6 +968,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Network Share Mounter"
+          }
+        }
+      }
+    },
+    "no error occured" : {
+      "comment" : "no error occured",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es ist kein Fehler aufgetreten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha producido ningún error."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune erreur ne s'est produite."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun errore è avvenuto."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Er is geen fout opgetreden."
           }
         }
       }
@@ -1097,6 +1290,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gedeelde map is al gekoppeld."
+          }
+        }
+      }
+    },
+    "ShareView-Text" : {
+      "comment" : "Default text to show on ShareView window",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kannst jede Windows (smb/cifs), afp oder WebDAV-Netzwerkfreigabe einbinden, solange du den Servernamen und den Freigabepfad kennst.\nGib die Freigabe als smb://server.name/export/path ein.\nDie Verbindung wird sofort getestet und nur hinzugefügt, wenn der Server erreichbar und die Freigabe verfügbar ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can mount any Windows (smb/cifs), afp or WebDAV network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puedes montar cualquier recurso compartido de red de Windows (smb/cifs), afp o WebDAV siempre y cuando conozcas el nombre del servidor y la ruta de exportación.\nIngresa el recurso compartido como smb://nombre.del.servidor/ruta/de/exportación.\nLa conexión se probará de inmediato y se agregará solo si el servidor es accesible y el recurso compartido está disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous pouvez monter n'importe quelle partage réseau Windows (smb/cifs), afp ou WebDAV tant que vous connaissez le nom du serveur et le chemin d'exportation.\nEntrez la partage comme smb://server.name/export/path.\nLa connexion sera testée immédiatement et ne sera ajoutée que si le serveur est accessible et la partage est disponible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puoi montare qualsiasi condivisione di rete Windows (smb/cifs), afp o WebDAV purché tu conosca il nome del server e il percorso di esportazione.\nInserisci la condivisione come smb://server.name/export/path.\nLa connessione verrà testata immediatamente e verrà aggiunta solo se il server è raggiungibile e la condivisione è disponibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt elke Windows (smb/cifs), afp of WebDAV netwerkshare koppelen zolang je de servernaam en het exportpad kent.\nVoer de share in als smb://server.name/export/path.\nDe verbinding wordt onmiddellijk getest en wordt alleen toegevoegd als de server bereikbaar is en de share beschikbaar is."
           }
         }
       }
