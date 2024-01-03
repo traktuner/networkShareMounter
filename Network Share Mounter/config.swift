@@ -32,6 +32,8 @@ struct Settings {
     ]
     static let statisticsReportURL = "https://faumac.rrze.fau.de/apps"
     
+    
+    
     /// NSM version 1 and 2 the default path where shares got mounted
     static let oldDefaultsMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
     /// if not set otherwise mounts will be done under this path which defaults to macOS's efault `/Volumes`
@@ -56,4 +58,7 @@ struct Settings {
     static let username = "username"
     /// optional location of the directory containig the mounts
     static let location = "location"
+    /// optional bool to define if user's keychain should sync via iCloud
+    /// defaults to false
+    static let keychainiCloudSync = "keychainiCloudSync"
 }

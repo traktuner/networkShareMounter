@@ -2,8 +2,21 @@
 //  Account.swift
 //  Network Share Mounter
 //
-//  Created by Longariva, Gregor (RRZE) on 26.12.23.
-//  Copyright © 2023 Regionales Rechenzentrum Erlangen. All rights reserved.
+//  Created by Longariva, Gregor (RRZE) on 15.12.23.
+//  Copyright © 2020 Orchard & Grove, Inc. All rights reserved.
+//  Copyright © 2023 RRZE. All rights reserved.
 //
 
 import Foundation
+
+struct DogeAccount: Codable, Equatable {
+    var displayName: String
+    var upn: String
+    var keychain: Bool
+    var automatic: Bool
+    var pubkeyHash: String?
+}
+
+struct DogeAccounts: Codable {
+    var accounts: [DogeAccount]
+}

@@ -11,7 +11,7 @@ import Foundation
 import OSLog
 import dogeADAuth
 
-public struct NoMAD_SessionUserObject {
+public struct Doge_SessionUserObject {
     var userPrincipal: String
     var session: dogeADSession
     var aging: Bool
@@ -22,10 +22,10 @@ public struct NoMAD_SessionUserObject {
 
 class AutomaticSignIn {
     
-    let workQueue = DispatchQueue(label: "de.fau.rrze.nomad.kerberos", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
+    let workQueue = DispatchQueue(label: "de.fau.rrze.doge.kerberos", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     
     var prefs = PreferenceManager()
-    var nomadAccounts = [NoMADAccount]()
+    var nomadAccounts = [DogeAccount]()
     var workers = [AutomaticSignInWorker]()
     
     init() {
@@ -74,7 +74,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         let princs = klist.klist().map({ $0.principal })
         
         resolver.resolve(query: "_ldap._tcp." + domain.lowercased(), completion: { i in
-            Logger.networkQueries.info("SRV Response for: _ldap._tcp.\(self.domain, privacy: .public)")
+            Logger.automaticSignIn.info("SRV Response for: _ldap._tcp.\(self.domain, privacy: .public)")
             switch i {
             case .success(let result):
                 if result.SRVRecords.count > 0 {
@@ -118,7 +118,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
                 }
             }
         } catch {
-            Logger.keychain.error("unable to find keychain item for user: \(self.userName, privacy: .public)")
+            Logger.automaticSignIn.error("unable to find keychain item for user: \(self.userName, privacy: .public)")
         }
     }
     
@@ -129,22 +129,28 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     }
     
     func dogeADAuthenticationSucceded() {
-        Logger.authentication.info("Auth succeded for user: \(self.userName, privacy: .public)")
+        Logger.automaticSignIn.info("Auth succeded for user: \(self.userName, privacy: .public)")
         cliTask("kswitch -p \(self.session.userPrincipal )")
         session.userInfo()
     }
     
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
-        Logger.authentication.info("Auth failed for user: \(self.userName, privacy: .public), Error: \(description, privacy: .public)")
+        Logger.automaticSignIn.info("Auth failed for user: \(self.userName, privacy: .public), Error: \(description, privacy: .public)")
         switch error {
         case .AuthenticationFailure, .PasswordExpired:
-            Logger.keychain.info("Removing bad password from keychain")
+            Logger.automaticSignIn.info("Removing bad password from keychain")
             let keyUtil = KeychainUtil()
             if keyUtil.findAndDelete(self.userName.lowercased()) {
-                Logger.keychain.info("Successfully removed keychain item")
+                Logger.automaticSignIn.info("Successfully removed keychain item")
             }
         default:
             break
         }
+    }
+    
+    func dogeADUserInformation(user: ADUserRecord) {
+        print("User info: \(user)")
+        prefs.setADUserInfo(user: user)
+        mainMenu.buildMenu()
     }
 }

@@ -26,7 +26,7 @@ class ShareManager {
                 if let username = share.username {
                     let pwm = PasswordManager()
                     do {
-                        try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPpassword: password)
+                        try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPassword: password)
                     } catch {
                         Logger.shareManager.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
                     }
@@ -89,7 +89,7 @@ class ShareManager {
             if let username = updatedShare.username {
                 let pwm = PasswordManager()
                 do {
-                    try pwm.saveCredential(forShare: URL(string: updatedShare.networkShare)!, withUsername: username, andPpassword: password)
+                    try pwm.saveCredential(forShare: URL(string: updatedShare.networkShare)!, withUsername: username, andPassword: password)
                 } catch {
                 }
             }
