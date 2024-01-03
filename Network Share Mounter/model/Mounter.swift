@@ -442,8 +442,11 @@ class Mounter: ObservableObject {
                         } catch MounterError.noRouteToHost {
                             updateShare(mountStatus: .unreachable, for: share)
                         } catch MounterError.authenticationError {
-                            errorStatus = .authenticationError
-                            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+                            // set error status if authentication error occured and auth type is not Kerberos
+                            if share.authType != .krb {
+                                errorStatus = .authenticationError
+                                NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+                            }
                             updateShare(mountStatus: .invalidCredentials, for: share)
                         } catch MounterError.shareDoesNotExist {
                             updateShare(mountStatus: .errorOnMount, for: share)
