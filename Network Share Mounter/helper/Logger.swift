@@ -23,4 +23,6 @@ extension Logger {
     static let shareViewController = Logger(subsystem: subsystem, category: "shareViewController")
     static let kerberos = Logger(subsystem: subsystem, category: "kerberos")
     static let automaticSignIn = Logger(subsystem: subsystem, category: "automaticSignIn")
+    static let tasks = Logger(subsystem: subsystem, category: "tasks")
+    static let directoryOperations = Logger(subsystem: subsystem, category: "directoryOperations")
 }

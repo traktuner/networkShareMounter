@@ -33,6 +33,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //    let mounter = Mounter.init()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        /// set defaults for a few keys in userDefaults
+        /// userDefaults.register allows to define default values if a value
+        /// was not defined. Pretty slick
+        UserDefaults.standard.register(
+            defaults: [
+                "keychainiCloudSync": false,
+                "authenticationDialogImage": "nsm_logo"
+            ]
+        )
+        
         window.isReleasedWhenClosed = false
         //
         // using "register" instead of "get" will set the values according to the plist read

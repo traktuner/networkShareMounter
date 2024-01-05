@@ -26,10 +26,10 @@ public extension DSQueryable {
     /// `ODNode` to DSLocal for queries and account manipulation.
     var localNode: ODNode? {
         do {
-            Logger.networkQueries.info("Finding the OpenDirectory DSLocal node.")
+            Logger.directoryOperations.info("Finding the OpenDirectory DSLocal node.")
             return try ODNode.init(session: ODSession.default(), type: ODNodeType(kODNodeTypeLocalNodes))
         } catch {
-            Logger.networkQueries.info("ODError creating local node.")
+            Logger.directoryOperations.info("ODError creating local node.")
             return nil
         }
     }
@@ -62,13 +62,13 @@ public extension DSQueryable {
             let userRecord = try getLocalRecord(shortName)
             if let authAuthorities = try userRecord.values(forAttribute: kODAttributeTypeAuthenticationAuthority) as? [String] {
                 if authAuthorities.contains(";LocalCachedUser;") {
-                    Logger.networkQueries.info("User is a mobile account.")
+                    Logger.directoryOperations.info("User is a mobile account.")
                     return true
                 }
-                Logger.networkQueries.info("User is not a mobile account.")
+                Logger.directoryOperations.info("User is not a mobile account.")
                 return false
             }
-            Logger.networkQueries.error("Something went wrong checking for a mobile account.")
+            Logger.directoryOperations.error("Something went wrong checking for a mobile account.")
             throw DSQueryableErrors.odFailure
         } catch {
             throw error
@@ -91,7 +91,7 @@ public extension DSQueryable {
             let castError = error as NSError
             switch castError.code {
             case Int(kODErrorCredentialsInvalid.rawValue):
-                Logger.networkQueries.error("Tested password for user account: \(userName, privacy: .public) is not valid.")
+                Logger.directoryOperations.error("Tested password for user account: \(userName, privacy: .public) is not valid.")
                 return false
             default:
                 throw error
@@ -107,7 +107,7 @@ public extension DSQueryable {
     /// - Throws: Either an `ODFrameworkErrors` or a `DSQueryableErrors` if there is an error or the user is not local.
     func getLocalRecord(_ shortName: String) throws -> ODRecord {
         do {
-            Logger.networkQueries.debug("Building OD query for name: \(shortName, privacy: .public)...")
+            Logger.directoryOperations.debug("Building OD query for name: \(shortName, privacy: .public)...")
             let query = try ODQuery.init(node: localNode,
                                          forRecordTypes: kODRecordTypeUsers,
                                          attribute: kODAttributeTypeRecordName,
@@ -120,17 +120,17 @@ public extension DSQueryable {
             }
 
             if records.count > 1 {
-                Logger.networkQueries.error("More than one local user found for name \(shortName, privacy: .public).")
+                Logger.directoryOperations.error("More than one local user found for name \(shortName, privacy: .public).")
                 throw DSQueryableErrors.multipleUsersFound
             }
             guard let record = records.first else {
-                Logger.networkQueries.info("No local user found.")
+                Logger.directoryOperations.info("No local user found.")
                 throw DSQueryableErrors.notLocalUser
             }
-            Logger.networkQueries.info("Found local user.")
+            Logger.directoryOperations.info("Found local user.")
             return record
         } catch {
-            Logger.networkQueries.error("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
+            Logger.directoryOperations.error("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
@@ -145,7 +145,7 @@ public extension DSQueryable {
             try localNode?.passwordContentCheck(pass, forRecordName: "")
             return true
         } catch {
-            Logger.networkQueries.error("Local OpenDirectory Error while trying to validate user: \(error.localizedDescription, privacy: .public)")
+            Logger.directoryOperations.error("Local OpenDirectory Error while trying to validate user: \(error.localizedDescription, privacy: .public)")
         }
         return false
     }
@@ -168,7 +168,7 @@ public extension DSQueryable {
             }
             return results
         } catch {
-            Logger.networkQueries.error("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
+            Logger.directoryOperations.error("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
@@ -188,7 +188,7 @@ public extension DSQueryable {
             }
             return nonSystem
         } catch {
-            Logger.networkQueries.error("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
+            Logger.directoryOperations.error("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
@@ -201,13 +201,13 @@ public extension DSQueryable {
             let userRecord: ODRecord = try getLocalRecord(userName)
             let avatarPaths = try userRecord.values(forAttribute: kODAttributeTypePicture)
             if let imagePath = avatarPaths.first as? String {
-                Logger.networkQueries.info("Found avatar for user: \(userName, privacy: .public)")
+                Logger.directoryOperations.info("Found avatar for user: \(userName, privacy: .public)")
                 return imagePath
             }
-            Logger.networkQueries.info("Could not find avatar for user: \(userName, privacy: .public)")
+            Logger.directoryOperations.info("Could not find avatar for user: \(userName, privacy: .public)")
             return nil
         } catch {
-            Logger.networkQueries.info("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
+            Logger.directoryOperations.info("Local OpenDirectory Error while trying to check for local user: \(error.localizedDescription, privacy: .public)")
         }
         return nil
     }

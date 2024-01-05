@@ -73,7 +73,8 @@ class PasswordManager: NSObject {
                                     kSecAttrServer as String: host as Any,
                                     kSecAttrPath as String: path,
                                     kSecAttrLabel as String: host as Any,
-                                    kSecAttrSynchronizable as CFBoolean: ]
+                                    kSecAttrSynchronizable as String: UserDefaults.standard.bool(forKey: Settings.keychainiCloudSync)
+                                    ]
         switch urlScheme {
         case "https":
             query[kSecAttrProtocol as String] = kSecAttrProtocolHTTPS
@@ -164,12 +165,58 @@ class PasswordManager: NSObject {
         }
     }
     
+    /// delete a specific keychain entry defined by
+    /// - Parameter forhUsername: ``username`` login for share
+    func removeCredential(forUsername username: String) throws {
+        do {
+            let query = try makeQuery(label: FAU.keyChainService, username: username, accessGroup: FAU.keyChainAccessGroup)
+            
+            // try to get the password for share and username. If none is returned, the
+            // entry does not exist and there is no need to remove an entry -> return
+            do {
+                _ = try retrievePassword(forUsername: username)
+            } catch {
+                return
+            }
+            
+            let status = SecItemDelete(query as CFDictionary)
+            guard status == errSecSuccess else {
+                throw KeychainError.errorRemovingEntry
+            }
+        } catch {
+            throw KeychainError.errorRemovingEntry
+        }
+    }
+    
     /// retrieve a password from the keychain
     /// - Parameter forShare: ``share`` name of the share
     /// - Parameter withUsername: ``username`` login for share
     func retrievePassword(forShare share: URL, withUsername username: String) throws -> String? {
         do {
             var query = try makeQuery(share: share, username: username)
+            query[kSecReturnData as String] = kCFBooleanTrue!
+            query[kSecMatchLimit as String] = kSecMatchLimitOne
+            var ref: AnyObject? = nil
+            
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            guard status == errSecSuccess else {
+                throw KeychainError.errorRetrievingPassword
+            }
+            
+            if let parsedData = ref as? Data {
+                return String(data: parsedData, encoding: .utf8) ?? ""
+            }
+        } catch {
+            throw KeychainError.errorRetrievingPassword
+        }
+        return nil
+    }
+    
+    /// retrieve a password from the keychain
+    /// - Parameter forUsername: ``username`` login for share
+    func retrievePassword(forUsername username: String) throws -> String? {
+        do {
+            var query = try makeQuery(label: FAU.keyChainService, username: username, accessGroup: FAU.keyChainAccessGroup)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
             var ref: AnyObject? = nil

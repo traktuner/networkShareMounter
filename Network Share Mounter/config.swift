@@ -31,9 +31,7 @@ struct Settings {
         ".autodiskmounted"
     ]
     static let statisticsReportURL = "https://faumac.rrze.fau.de/apps"
-    
-    
-    
+
     /// NSM version 1 and 2 the default path where shares got mounted
     static let oldDefaultsMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
     /// if not set otherwise mounts will be done under this path which defaults to macOS's efault `/Volumes`
@@ -61,4 +59,7 @@ struct Settings {
     /// optional bool to define if user's keychain should sync via iCloud
     /// defaults to false
     static let keychainiCloudSync = "keychainiCloudSync"
+    
+    /// key to define the logo/image on kerbeors login screen, defaults to
+    static let authenticationDialogImage = "authenticationDialogImage"
 }

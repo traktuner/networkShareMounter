@@ -84,35 +84,36 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
                         self.auth()
                     }
                 } else {
-                    Logger.networkQueries.info("No RSV records found.")
+                    Logger.automaticSignIn.info("No RSV records found.")
                 }
             case .failure(let error):
-                Logger.networkQueries.error("No DNS results for domain \(self.domain, privacy: .public), unable to automatically login. Error: \(error, privacy: .public)")
+                Logger.automaticSignIn.error("No DNS results for domain \(self.domain, privacy: .public), unable to automatically login. Error: \(error, privacy: .public)")
             }
         })
     }
     
     func auth() {
-        let keyUtil = KeychainUtil()
+        let keyUtil = PasswordManager()
         
         do {
             if pubkeyHash == nil || pubkeyHash == "" {
-                try keyUtil.findPassword(userName.lowercased())
-                session.userPass = keyUtil.password
-                session.delegate = self
-                keyUtil.scrub()
-                session.authenticate()
+                if let pass = try keyUtil.retrievePassword(forUsername: userName) {
+                    session.userPass = pass
+                    session.delegate = self
+                    session.authenticate()
+                }
             } else {
                 if let certs = PKINIT.shared.returnCerts(),
                    let pubKey = self.pubkeyHash {
                     for cert in certs {
                         if cert.pubKeyHash == pubKey {
-                            RunLoop.main.perform {
-                                if mainMenu.authUI == nil {
-                                    mainMenu.authUI = AuthUI()
-                                }
-                                mainMenu.authUI?.window!.forceToFrontAndFocus(nil)
-                            }
+                            // FIXME: 
+//                            RunLoop.main.perform {
+//                                if mainMenu.authUI == nil {
+//                                    mainMenu.authUI = AuthUI()
+//                                }
+//                                mainMenu.authUI?.window!.forceToFrontAndFocus(nil)
+//                            }
                         }
                     }
                 }
@@ -139,9 +140,12 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         switch error {
         case .AuthenticationFailure, .PasswordExpired:
             Logger.automaticSignIn.info("Removing bad password from keychain")
-            let keyUtil = KeychainUtil()
-            if keyUtil.findAndDelete(self.userName.lowercased()) {
+            let keyUtil = PasswordManager()
+            do {
+                try keyUtil.removeCredential(forUsername: self.userName)
                 Logger.automaticSignIn.info("Successfully removed keychain item")
+            } catch {
+                Logger.automaticSignIn.info("Failed to remove keychain item for username \(self.userName)")
             }
         default:
             break
@@ -151,6 +155,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     func dogeADUserInformation(user: ADUserRecord) {
         print("User info: \(user)")
         prefs.setADUserInfo(user: user)
-        mainMenu.buildMenu()
+        // FIXME:
+//        mainMenu.buildMenu()
     }
 }

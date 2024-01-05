@@ -23,7 +23,6 @@ class TicketManager: dogeADUserSessionDelegate {
 
     var session: dogeADSession?
     var prefs = PreferenceManager()
-    var kcUtil = KeychainUtil()
     var defaults = UserDefaults.standard
 
     func setup() {
@@ -43,7 +42,8 @@ class TicketManager: dogeADUserSessionDelegate {
         // get the password then get the tickets
 
         do {
-            session?.userPass = try kcUtil.findPassword(prefs.string(for: .lastUser) ?? "NONE")
+            // FIXME:
+//            session?.userPass = try kcUtil.findPassword(prefs.string(for: .lastUser) ?? "NONE")
         } catch {
             return
         }
@@ -104,9 +104,11 @@ class TicketManager: dogeADUserSessionDelegate {
         session?.userPass = "********"
 
         switch error {
-        case .AuthenticationFailure, .PasswordExpired :
+        case .AuthenticationFailure, .PasswordExpired : 
             // password is bad or expired, we should remove the password
-            _ = kcUtil.deletePassword()
+            // FIXME:
+            break
+//            _ = kcUtil.deletePassword()
         default :
             break
         }
@@ -137,7 +139,8 @@ class TicketManager: dogeADUserSessionDelegate {
         defaults.set(user.cn, forKey: PreferenceKeys.userCN.rawValue)
         defaults.set(user.groups, forKey: PreferenceKeys.groups.rawValue)
         defaults.set(user.computedExireDate, forKey: PreferenceKeys.menuPasswordExpires.rawValue)
-        defaults.set(user.passwordSet, forKey: PreferenceKeys.userPasswordSetDates.rawValue)
+        // FIXME:
+//        defaults.set(user.passwordSet, forKey: PreferenceKeys.userPasswordSetDates.rawValue)
         defaults.set(user.homeDirectory, forKey: PreferenceKeys.userHome.rawValue)
         defaults.set(user.userPrincipal, forKey: PreferenceKeys.userPrincipal.rawValue)
         defaults.set(user.customAttributes, forKey: PreferenceKeys.customLDAPAttributesResults.rawValue)

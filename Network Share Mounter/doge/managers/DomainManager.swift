@@ -42,7 +42,7 @@ class DomainManager {
 }
 
 extension DomainManager: AccountUpdate {
-    func updateAccounts(accounts: [NoMADAccount]) {
+    func updateAccounts(accounts: [DogeAccount]) {
         let accountDomains = AccountsManager.shared.returnAllDomains()
         domains.removeAll()
         for domain in accountDomains {

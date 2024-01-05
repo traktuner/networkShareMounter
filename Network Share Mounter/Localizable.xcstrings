@@ -77,6 +77,9 @@
         }
       }
     },
+    "auth-button-text" : {
+      "comment" : "text on authenticate button"
+    },
     "authenticate-share-button" : {
       "comment" : "Button text to change authentication",
       "localizations" : {
@@ -146,6 +149,18 @@
           }
         }
       }
+    },
+    "authui-button-text" : {
+      "comment" : "value shown as username"
+    },
+    "authui-password-text" : {
+      "comment" : "value shown as username"
+    },
+    "authui-username-text" : {
+      "comment" : "value shown as username"
+    },
+    "cancel" : {
+      "comment" : "cancel"
     },
     "Cannot encode server URL" : {
       "comment" : "Cannot encode server URL",

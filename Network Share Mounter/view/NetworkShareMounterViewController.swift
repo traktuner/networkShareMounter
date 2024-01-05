@@ -26,6 +26,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     // swiftlint:disable force_cast
     // appDelegate is used to accesss variables in AppDelegate
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    
+    var enterpriseLoginWindow: EnterpriseLoginWindow?
     // swiftlint:enable force_cast
     
     // toggle to show user defined or managed shares
@@ -149,6 +151,15 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBAction func addSharePressed(_ sender: NSButton) {
         usersNewShare.stringValue=""
         self.performSegue(withIdentifier: "ShareViewSegue", sender: self)
+    }
+    
+    @IBAction func enterpriseAuthButtonKlicked(_ sender: Any) {
+        if enterpriseLoginWindow == nil {
+            enterpriseLoginWindow = EnterpriseLoginWindow()
+        }
+        enterpriseLoginWindow!.showWindow(self)
+//        enterpriseLoginWindow!.authwindow!.forceToFrontAndFocus(nil)
+        
     }
     
     @IBOutlet weak var addNewShareButton: NSButton!
