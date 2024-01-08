@@ -4943,18 +4943,6 @@
         }
       }
     },
-    "Ti7-J5-bP3.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"Multiline Label\"; ObjectID = \"Ti7-J5-bP3\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Multiline Label"
-          }
-        }
-      }
-    },
     "tlD-Oa-oAM.title" : {
       "comment" : "Class = \"NSMenu\"; title = \"Kern\"; ObjectID = \"tlD-Oa-oAM\";",
       "extractionState" : "extracted_with_value",

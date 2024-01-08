@@ -22,8 +22,6 @@ public struct Doge_SessionUserObject {
 
 class AutomaticSignIn {
     
-    let workQueue = DispatchQueue(label: "de.fau.rrze.doge.kerberos", qos: .userInitiated, attributes: [], autoreleaseFrequency: .inherit, target: nil)
-    
     var prefs = PreferenceManager()
     var nomadAccounts = [DogeAccount]()
     var workers = [AutomaticSignInWorker]()
@@ -39,12 +37,10 @@ class AutomaticSignIn {
         self.workers.removeAll()
         
         for account in AccountsManager.shared.accounts {
-            if account.automatic {
-                workQueue.async {
-                    let worker = AutomaticSignInWorker(userName: account.upn, pubkeyHash: account.pubkeyHash)
-                    worker.checkUser()
-                    self.workers.append(worker)
-                }
+            Task {
+                let worker = AutomaticSignInWorker(userName: account.upn)
+                await worker.checkUser()
+                self.workers.append(worker)
             }
         }
         cliTask("kswitch -p \(defaultPrinc ?? "")")
@@ -55,20 +51,18 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     var prefs = PreferenceManager()
     var userName: String
-    var pubkeyHash: String?
     var session: dogeADSession
     var resolver = SRVResolver()
     let domain: String
     
-    init(userName: String, pubkeyHash: String?) {
+    init(userName: String) {
         self.userName = userName
-        self.pubkeyHash = pubkeyHash
         domain = userName.userDomain() ?? ""
         self.session = dogeADSession(domain: domain, user: userName.user())
         self.session.setupSessionFromPrefs(prefs: prefs)
     }
     
-    func checkUser() {
+    func checkUser() async {
         
         let klist = KlistUtil()
         let princs = klist.klist().map({ $0.principal })
@@ -96,27 +90,10 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         let keyUtil = PasswordManager()
         
         do {
-            if pubkeyHash == nil || pubkeyHash == "" {
-                if let pass = try keyUtil.retrievePassword(forUsername: userName) {
-                    session.userPass = pass
-                    session.delegate = self
-                    session.authenticate()
-                }
-            } else {
-                if let certs = PKINIT.shared.returnCerts(),
-                   let pubKey = self.pubkeyHash {
-                    for cert in certs {
-                        if cert.pubKeyHash == pubKey {
-                            // FIXME: 
-//                            RunLoop.main.perform {
-//                                if mainMenu.authUI == nil {
-//                                    mainMenu.authUI = AuthUI()
-//                                }
-//                                mainMenu.authUI?.window!.forceToFrontAndFocus(nil)
-//                            }
-                        }
-                    }
-                }
+            if let pass = try keyUtil.retrievePassword(forUsername: userName) {
+                session.userPass = pass
+                session.delegate = self
+                session.authenticate()
             }
         } catch {
             Logger.automaticSignIn.error("unable to find keychain item for user: \(self.userName, privacy: .public)")
@@ -153,9 +130,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     }
     
     func dogeADUserInformation(user: ADUserRecord) {
-        print("User info: \(user)")
+        Logger.automaticSignIn.debug("User info: \(user.userPrincipal)")
         prefs.setADUserInfo(user: user)
-        // FIXME:
-//        mainMenu.buildMenu()
     }
 }

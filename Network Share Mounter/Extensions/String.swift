@@ -104,4 +104,17 @@ extension String {
         return cleanString //.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
         
     }
+    
+    func removeDomain() -> String {
+        if self.contains("@") {
+            let split = self.components(separatedBy: "@")
+            return split[0]
+        } else {
+            return self
+        }
+    }
+    
+    mutating func appendDomain(domain: String) {
+        self = self.appending("@" + domain)
+    }
 }

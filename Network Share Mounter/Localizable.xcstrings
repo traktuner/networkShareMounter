@@ -77,9 +77,6 @@
         }
       }
     },
-    "auth-button-text" : {
-      "comment" : "text on authenticate button"
-    },
     "authenticate-share-button" : {
       "comment" : "Button text to change authentication",
       "localizations" : {
@@ -151,16 +148,290 @@
       }
     },
     "authui-button-text" : {
-      "comment" : "value shown as username"
+      "comment" : "text on authenticate button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accedi"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aanmelden"
+          }
+        }
+      }
+    },
+    "authui-infotext" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Unternehmen oder Universitäten wird oft eine zentrale Authentifizierung über Kerberos-Tickets verwendet, um auf Netzwerkfreigaben oder andere Ressourcen zuzugreifen.\nDies funktioniert ähnlich wie ein Eintrittsticket für einen Freizeitpark: Du erhältst einmalig eine Eintrittskarte und kannst damit die Fahrgeschäfte besuchen, indem du das Ticket vorzeigst.\n\nDiese App funktioniert ähnlich - nach der Anmeldung erhältst du ein virtuelles Ticket, mit dem sich dein Mac im Netzwerk identifiziert. Das Ticket hat eine begrenzte Gültigkeitsdauer, daher erfolgt die Authentifizierung regelmäßig.\nDie App speichert deinen Benutzernamen und dein Passwort sicher in deinem persönlichen Schlüsselbund und erledigt die Authentifizierung im Hintergrund. \nBeachte, dass Tickets normalerweise nur im Firmen- oder Universitätsnetzwerk ausgestellt werden. Wenn sich dein Mac im Netzwerk befindet, werden automatisch neue Tickets ausgestellt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In companies or universities, central authentication via Kerberos tickets is often used to access network shares or other resources. \nThis works similar to an entry ticket for an amusement park: you receive a one-time entry ticket and can use it to access the rides by presenting the ticket. \n\nThis app functions similarly - after login, you receive a virtual ticket that identifies your Mac on the network. The ticket has a limited validity period, so authentication occurs regularly. The app securely stores your username and password in your personal keychain and handles authentication in the background. Note that tickets are usually issued only in the company or university network. \nWhen your Mac is on the network, new tickets are automatically issued."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas o universidades, la autenticación central mediante tickets Kerberos se suele utilizar para acceder a recursos compartidos de red u otros recursos. \nEsto funciona de manera similar a un boleto de entrada a un parque de diversiones: recibe un boleto de entrada único y puede usarlo para visitar las atracciones mostrando el boleto. \n\nEsta aplicación funciona de manera similar: después de registrarse, recibe un boleto virtual /ticket) que su Mac utiliza para identificarse en la red. El billete tiene un período de validez limitado, por lo que la autenticación se realiza periódicamente. La aplicación almacena de forma segura su nombre de usuario y contraseña en su llavero personal y maneja la autenticación en segundo plano. \nTenga en cuenta que los billetes normalmente sólo se emiten en la red de la empresa o de la universidad. Cuando su Mac está en la red, se emiten nuevos boletos automáticamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans les entreprises ou les universités, l'authentification centralisée via des tickets Kerberos est souvent utilisée pour accéder aux partages réseau ou à d'autres ressources. \nCela fonctionne de la même manière qu'un ticket d'entrée dans un parc d'attractions : vous recevez un ticket d'entrée unique et pouvez l'utiliser pour visiter les manèges en présentant le ticket. \n\nCette application fonctionne de la même manière : après votre inscription, vous recevez un ticket virtuel que votre Mac utilise pour s'identifier sur le réseau. Le ticket a une durée de validité limitée, l'authentification a donc lieu régulièrement. L'application stocke en toute sécurité votre nom d'utilisateur et votre mot de passe dans votre trousseau personnel et gère l'authentification en arrière-plan. \nA noter que les billets sont généralement émis uniquement sur le réseau de l'entreprise ou de l'université. Lorsque votre Mac est sur le réseau, de nouveaux tickets sont automatiquement émis."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelle aziende o nelle università, spesso si utilizza l'autenticazione centralizzata tramite ticket Kerberos per accedere a condivisioni di rete o ad altre risorse. \nQuesto funziona in modo simile a un biglietto d'ingresso per un parco divertimenti: ricevi un biglietto d'ingresso monouso e puoi usarlo per accedere alle attrazioni mostrando il biglietto. \n\nQuesta app funziona in modo simile: dopo aver effettuato l'accesso, ricevi un ticket virtuale che identifica il tuo Mac sulla rete. Il ticket ha una durata limitata, quindi l'autenticazione avviene regolarmente. L'app memorizza in modo sicuro il tuo nome utente e la tua password nel tuo portachiavi personale e gestisce l'autenticazione in background. \nNota che i ticket vengono di solito emessi solo all'interno della rete aziendale o universitaria. Quando il tuo Mac è sulla rete, vengono emessi automaticamente nuovi tikcet."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In bedrijven of universiteiten wordt centrale authenticatie via Kerberos-tickets vaak gebruikt om toegang te krijgen tot netwerkshares of andere bronnen. \nDit werkt hetzelfde als een toegangsbewijs voor een attractiepark: u ontvangt een eenmalig toegangsbewijs en kunt hiermee op vertoon van het kaartje de attracties bezoeken. \n\nDeze app werkt op dezelfde manier: na registratie ontvang je een virtueel ticket dat je Mac gebruikt om zichzelf op het netwerk te identificeren. Het ticket heeft een beperkte geldigheidsduur, waardoor authenticatie regelmatig plaatsvindt. De app slaat uw gebruikersnaam en wachtwoord veilig op in uw persoonlijke sleutelhanger en verzorgt de authenticatie op de achtergrond. Houd er rekening mee dat tickets meestal alleen via het bedrijfs- of universiteitsnetwerk worden uitgegeven. \nWanneer uw Mac verbinding heeft met het netwerk, worden er automatisch nieuwe tickets uitgegeven."
+          }
+        }
+      }
     },
     "authui-password-text" : {
-      "comment" : "value shown as username"
+      "comment" : "value shown as password",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraseña"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot de passe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoord"
+          }
+        }
+      }
+    },
+    "authui-password-text-FAU" : {
+      "comment" : "value shown as FAU password",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Passwort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraseña IdM"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot de passe IdM"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password IdM"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Wachtwoord"
+          }
+        }
+      }
     },
     "authui-username-text" : {
-      "comment" : "value shown as username"
+      "comment" : "value shown as username",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzername"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Username"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de usuario"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom d'utilisateur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome utente"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikersnaam"
+          }
+        }
+      }
+    },
+    "authui-username-text-FAU" : {
+      "comment" : "value shown as FAU username",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Kennung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM User name"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de usuario IdM"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom d'utilisateur IdM"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome utente IdM"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Gebruikersnaam"
+          }
+        }
+      }
     },
     "cancel" : {
-      "comment" : "cancel"
+      "comment" : "cancel",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulla"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuleren"
+          }
+        }
+      }
     },
     "Cannot encode server URL" : {
       "comment" : "Cannot encode server URL",

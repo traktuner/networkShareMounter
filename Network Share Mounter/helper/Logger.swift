@@ -25,4 +25,5 @@ extension Logger {
     static let automaticSignIn = Logger(subsystem: subsystem, category: "automaticSignIn")
     static let tasks = Logger(subsystem: subsystem, category: "tasks")
     static let directoryOperations = Logger(subsystem: subsystem, category: "directoryOperations")
+    static let authUI = Logger(subsystem: subsystem, category: "authUI")
 }
