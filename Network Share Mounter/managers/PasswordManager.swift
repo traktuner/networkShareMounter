@@ -140,6 +140,27 @@ class PasswordManager: NSObject {
             throw KeychainError.undefinedError
         }
     }
+    
+    /// store a new keychain entry. An existing entry will be overwritten
+    /// - Parameter forUsername: ``String`` contining the username to connect the network share
+    /// - Parameter andPassword: ``String`` containing the password for username
+    /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
+    /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
+    func saveCredential(forUsername username: String, andPassword password: String, accessGroup: String? = nil, comment: String? = nil) throws {
+        do {
+            var query = try makeQuery(label: FAU.keyChainService, username: username, accessGroup: FAU.keyChainAccessGroup)
+            query[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
+            /// Delete existing entry (if applicable)
+            SecItemDelete(query as CFDictionary)
+            
+            let status = SecItemAdd(query as CFDictionary, nil)
+            guard status == errSecSuccess else {
+                throw KeychainError.errorWithStatus(status: status)
+            }
+        } catch {
+            throw KeychainError.undefinedError
+        }
+    }
 
     /// delete a specific keychain entry defined by
     /// - Parameter forShare: ``share`` name of the share

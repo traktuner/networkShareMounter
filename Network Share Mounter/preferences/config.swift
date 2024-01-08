@@ -59,6 +59,8 @@ struct Settings {
     /// optional bool to define if user's keychain should sync via iCloud
     /// defaults to false
     static let keychainiCloudSync = "keychainiCloudSync"
+    /// optional string containing AD/Kerberos Domain
+    static let kerberosDomain = "kerberosDomain"
     
     /// key to define the logo/image on kerbeors login screen, defaults to
     static let authenticationDialogImage = "authenticationDialogImage"
