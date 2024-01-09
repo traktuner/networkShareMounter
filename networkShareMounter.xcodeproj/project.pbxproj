@@ -46,7 +46,6 @@
 		F7EF65F72B3B5DF500051D44 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65F62B3B5DF500051D44 /* Date.swift */; };
 		F7EF65F92B3B5E0800051D44 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65F82B3B5E0800051D44 /* URL.swift */; };
 		F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */; };
-		F7EF65FD2B3B5E3B00051D44 /* NSWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FC2B3B5E3B00051D44 /* NSWindow.swift */; };
 		F7EF66022B3B5F1700051D44 /* NetworkWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66012B3B5F1700051D44 /* NetworkWatcher.swift */; };
 		F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */; };
 /* End PBXBuildFile section */
@@ -112,7 +111,6 @@
 		F7EF65F62B3B5DF500051D44 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
 		F7EF65F82B3B5E0800051D44 /* URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupSession.swift; sourceTree = "<group>"; };
-		F7EF65FC2B3B5E3B00051D44 /* NSWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSWindow.swift; sourceTree = "<group>"; };
 		F7EF66012B3B5F1700051D44 /* NetworkWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWatcher.swift; sourceTree = "<group>"; };
 		F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSTaskWrapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -293,7 +291,6 @@
 				F7EF65F62B3B5DF500051D44 /* Date.swift */,
 				F7EF65F82B3B5E0800051D44 /* URL.swift */,
 				F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */,
-				F7EF65FC2B3B5E3B00051D44 /* NSWindow.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -496,7 +493,6 @@
 				F7EF65F02B3B5CCD00051D44 /* FAUconstants.swift in Sources */,
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
 				F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */,
-				F7EF65FD2B3B5E3B00051D44 /* NSWindow.swift in Sources */,
 				F7EF65E62B3B582F00051D44 /* DogeAccount.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
@@ -700,7 +696,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 93;
+				CURRENT_PROJECT_VERSION = 94;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -708,7 +704,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Network-Share-Mounter-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 Regionales Rechenzentrum Erlangen. All rights reserved.";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -745,7 +742,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 93;
+				CURRENT_PROJECT_VERSION = 94;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -753,7 +750,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Network-Share-Mounter-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 Regionales Rechenzentrum Erlangen. All rights reserved.";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (

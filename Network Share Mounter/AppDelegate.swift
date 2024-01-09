@@ -19,6 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let userDefaults = UserDefaults.standard
     var mountpath = ""
     var mounter = Mounter()
+    var backGroundManager = BackGroundManager()
 
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
@@ -85,13 +86,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // start a timer to perform a mount every 5 minutes
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-            Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing mount operartions.")
+            Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing operartions.")
             let netConnection = Monitor.shared
             let status = netConnection.netOn
             Logger.app.info("Current Network Path is \(status, privacy: .public).")
             Task {
+                Logger.app.debug("... processing automatic sign in (if configured)")
+                await self.backGroundManager.processAutomaticSignIn()
+                Logger.app.debug("... check for possible MDM profile changes")
                 // call updateShareArray() to reflect possible changes in MDM profile
                 self.mounter.shareManager.updateShareArray()
+                Logger.app.debug("... mounting shares.")
                 await self.mounter.mountAllShares()
             }
         })
@@ -101,9 +106,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
                 Task {
-                    Logger.app.debug("Got network monitoring callback, mount shares.")
+                    Logger.app.debug("Got network monitoring callback:")
+                    Logger.app.debug("... processing automatic sign in (if configured)")
+                    await self.backGroundManager.processAutomaticSignIn()
+                    Logger.app.debug("... check for possible MDM profile changes")
                     // call updateShareArray() to reflect possible changes in MDM profile
                     self.mounter.shareManager.updateShareArray()
+                    Logger.app.debug("... mounting shares.")
                     await self.mounter.mountAllShares(userTriggered: true)
                 }
             } else {
@@ -121,8 +130,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         //
-        // finally mount all defined shares...
+        // finally authenticate and mount all defined shares...
         Task {
+            await self.backGroundManager.processAutomaticSignIn()
             await self.mounter.mountAllShares()
         }
         

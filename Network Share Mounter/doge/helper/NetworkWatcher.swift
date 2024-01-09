@@ -34,7 +34,9 @@ class NetworkWatcher {
             kNetworkUpdateTimer = Timer.init(timeInterval: 3, repeats: false, block: {_ in
                 kNetworkUpdatePending = false
                 //NotificationQueue.default.enqueue(Notification(name: Notification.Name(rawValue: kNetworkUpdateNotification)), postingStyle: .now)
-                BackGroundManager.shared.processAutomaticSignIn()
+                Task {
+                    await BackGroundManager.shared.processAutomaticSignIn()
+                }
             })
 
             RunLoop.main.add(kNetworkUpdateTimer!, forMode: RunLoop.Mode.default)

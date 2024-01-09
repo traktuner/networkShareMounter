@@ -21,10 +21,10 @@ class BackGroundManager {
     
     init() {
         setupAutomaticSignIn()
-        nw.setup()
+//        nw.setup()
     }
     
-    @objc func processAutomaticSignIn() {
+    @objc func processAutomaticSignIn() async {
             self.automaticSignIn = AutomaticSignIn()
     }
     

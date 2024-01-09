@@ -23,7 +23,7 @@ public struct Doge_SessionUserObject {
 class AutomaticSignIn {
     
     var prefs = PreferenceManager()
-    var nomadAccounts = [DogeAccount]()
+//    var dogeAccounts = [DogeAccount]()
     var workers = [AutomaticSignInWorker]()
     
     init() {
