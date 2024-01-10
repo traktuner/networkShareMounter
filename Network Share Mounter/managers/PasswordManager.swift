@@ -12,7 +12,7 @@ import Security
 /// Description of the CFDictionary for a new keychain entry
 ///
 /// kSecClass -> kSecClassInternetPassword (keychain entry with more than just the password
-/// kSecAttrService -> string with
+/// kSecAttrService -> string indicating the item's service
 /// kSecAttrComment -> string containing a comment to the keychain entry
 /// kSecAttrAccessGroup -> string with identifier for group with access to keychain entry
 /// kSecAttrAccount -> string with username

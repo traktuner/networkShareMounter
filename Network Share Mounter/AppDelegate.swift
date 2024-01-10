@@ -35,16 +35,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
-        /// set defaults for a few keys in userDefaults
-        /// userDefaults.register allows to define default values if a value
-        /// was not defined. Pretty slick
-        UserDefaults.standard.register(
-            defaults: [
-                "keychainiCloudSync": false,
-                "authenticationDialogImage": "nsm_logo"
-            ]
-        )
-        
         window.isReleasedWhenClosed = false
         //
         // using "register" instead of "get" will set the values according to the plist read
@@ -65,9 +55,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         //
         // register App according to userDefaults as "start at login"
-        // LaunchAtLogin.isEnabled = userDefaults.bool(forKey: "autostart")
-        // LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: "autostart") ?? true
-        if userDefaults.bool(forKey: "autostart") != false {
+        // LaunchAtLogin.isEnabled = userDefaults.bool(forKey: Settings.autostart)
+        // LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: Settings.autostart) ?? true
+        if userDefaults.bool(forKey: Settings.autostart) != false {
             LaunchAtLogin.isEnabled = true
         } else {
             LaunchAtLogin.isEnabled = false
@@ -91,8 +81,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let status = netConnection.netOn
             Logger.app.info("Current Network Path is \(status, privacy: .public).")
             Task {
-                Logger.app.debug("... processing automatic sign in (if configured)")
-                await self.backGroundManager.processAutomaticSignIn()
+                // run authenticaction only if kerberos auth is enabled
+                // forcing unwrapping the optional is OK, since values are "registered"
+                // and set to empty string if not set
+                if !self.userDefaults.string(forKey: Settings.kerberosDomain)!.isEmpty {
+                    Logger.app.debug("... processing automatic sign in (if configured)")
+                    await self.backGroundManager.processAutomaticSignIn()
+                }
                 Logger.app.debug("... check for possible MDM profile changes")
                 // call updateShareArray() to reflect possible changes in MDM profile
                 self.mounter.shareManager.updateShareArray()
@@ -107,8 +102,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if reachable.rawValue == "yes" {
                 Task {
                     Logger.app.debug("Got network monitoring callback:")
-                    Logger.app.debug("... processing automatic sign in (if configured)")
-                    await self.backGroundManager.processAutomaticSignIn()
+                    // run authenticaction only if kerberos auth is enabled
+                    if !self.userDefaults.string(forKey: Settings.kerberosDomain)!.isEmpty {
+                        Logger.app.debug("... processing automatic sign in (if configured)")
+                        await self.backGroundManager.processAutomaticSignIn()
+                    }
                     Logger.app.debug("... check for possible MDM profile changes")
                     // call updateShareArray() to reflect possible changes in MDM profile
                     self.mounter.shareManager.updateShareArray()
@@ -132,7 +130,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // finally authenticate and mount all defined shares...
         Task {
-            await self.backGroundManager.processAutomaticSignIn()
+            // run authenticaction only if kerberos auth is enabled
+            if !self.userDefaults.string(forKey: Settings.kerberosDomain)!.isEmpty {
+                await self.backGroundManager.processAutomaticSignIn()
+            }
             await self.mounter.mountAllShares()
         }
         
@@ -143,7 +144,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ aNotification: Notification) {
         //
         // unmount all shares before leaving
-        if userDefaults.bool(forKey: "unmountOnExit") == true {
+        if userDefaults.bool(forKey: Settings.unmountOnExit) == true {
             Task {
                 await self.mounter.unmountAllMountedShares()
             }
@@ -220,7 +221,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func openHelpURL(_ sender: Any?) {
-        guard let url = userDefaults.string(forKey: "helpURL"), let openURL = URL(string: url) else {
+        guard let url = userDefaults.string(forKey: Settings.helpURL), let openURL = URL(string: url) else {
             return
         }
         NSWorkspace.shared.open(openURL)
@@ -244,7 +245,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Logger.app.debug("Constructing default menu.")
         }
         
-        if userDefaults.string(forKey: "helpURL")!.description.isValidURL {
+        if userDefaults.string(forKey: Settings.helpURL)!.description.isValidURL {
             menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),
                                     action: #selector(AppDelegate.openHelpURL(_:)), keyEquivalent: ""))
         }
@@ -259,7 +260,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
                                 action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
-        if userDefaults.bool(forKey: "canQuit") != false {
+        if userDefaults.bool(forKey: Settings.canQuit) != false {
             menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
                                     action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))

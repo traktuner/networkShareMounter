@@ -45,7 +45,8 @@ class Mounter: ObservableObject {
     // TODO: this code should be cleaned up for new userDefaults values
     private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
     var defaultMountPath: String = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
-//    var defaultMountPath = UserDefaults.standard.object(forKey: "location") as? String ?? Settings.defaultMountPath
+    // TODO: should this be changed?
+//    var defaultMountPath = UserDefaults.standard.object(forKey: Settings.location) as? String ?? Settings.defaultMountPath
     
     init() {
         /// initialize the shareArray containing MDM and user defined shares
@@ -74,8 +75,8 @@ class Mounter: ObservableObject {
         }
         // now create the directory where the shares will be mounted
         // check if there is a definition where the shares will be mounted, otherwiese use the default
-        if userDefaults.object(forKey: "location") as? String != nil {
-            self.defaultMountPath = NSString(string: userDefaults.string(forKey: "location")!).expandingTildeInPath
+        if userDefaults.object(forKey: Settings.location) as? String != nil {
+            self.defaultMountPath = NSString(string: userDefaults.string(forKey: Settings.location)!).expandingTildeInPath
         } else {
             self.defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
         }
@@ -202,7 +203,7 @@ class Mounter: ObservableObject {
                 if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                     //
                     // Clean up the directory containing the mounts only if defined in userdefaults
-                    if userDefaults.bool(forKey: "cleanupLocationDirectory") == true {
+                    if userDefaults.bool(forKey: Settings.cleanupLocationDirectory) == true {
                         //
                         // if the function has a parameter we want to handle files, not directories
                         if let unwrappedFilename = filename {

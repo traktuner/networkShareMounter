@@ -37,31 +37,52 @@ struct Settings {
     /// if not set otherwise mounts will be done under this path which defaults to macOS's efault `/Volumes`
     static let defaultMountPath = "/Volumes"
     
-    /// userDefaults dictionary names, used as keys in userDefaults:
-    /// legacy MDM key
+    /// **userDefaults dictionary names, used as keys in userDefaults:**
+    ///
+    /// key for a boolean value if shares should be unmounted on exit
+    static let unmountOnExit = "unmountOnExit"
+    /// key for a string kontaining help url
+    static let helpURL = "helpURL"
+    /// key for a boolean value defining if user can change autostart behaviour
+    static let canChangeAutostart = "canChangeAutostart"
+    /// key for a boolean value defining if user can quit the app
+    static let canQuit = "canQuit"
+    /// key for a boolean value defining if app will start on login
+    static let autostart = "autostart"
+    /// key for a string containing a boolean defining if mount directory will be cleaned up
+    static let cleanupLocationDirectory = "cleanupLocationDirectory"
+    /// key for a string containing apps UUID (used for app statistics)
+    static let UUID = "UUID"
+    /// legacy key for former MDM defined shares
     static let networkSharesKey = "networkShares"
     /// MDM key
     static let managedNetworkSharesKey = "managedNetworkShares"
-    /// legacy user defined key
+    /// **The following keys are used as dictionary keys for mdm managed network shares:**
+        /// auhType of the share (.krb or pwd)
+        static let authType = "authType"
+        /// share export path
+        static let networkShare = "networkShare"
+        /// optional mount point of the specific share
+        static let mountPoint = "mountPoint"
+        /// optional username to use on mount
+        static let username = "username"
+    /// legacy key for user defined shares
     static let customSharesKey = "customNetworkShares"
-    /// user defined key
+    /// key for user defined shares
     static let userNetworkShares = "userNetworkShares"
-    /// auhType of the share (.krb or pwd)
-    static let authType = "authType"
-    /// share export path
-    static let networkShare = "networkShare"
-    /// optional mount point of the specific share
-    static let mountPoint = "mountPoint"
-    /// optional username to use on mount
-    static let username = "username"
     /// optional location of the directory containig the mounts
     static let location = "location"
+    /// optional string containing AD/Kerberos Domain
+    static let kerberosDomain = "kerberosDomain"
     /// optional bool to define if user's keychain should sync via iCloud
     /// defaults to false
     static let keychainiCloudSync = "keychainiCloudSync"
-    /// optional string containing AD/Kerberos Domain
-    static let kerberosDomain = "kerberosDomain"
-    
-    /// key to define the logo/image on kerbeors login screen, defaults to
+    /// key to define the logo/image on kerbeors login screen, defaults to nsm_logo
     static let authenticationDialogImage = "authenticationDialogImage"
+    /// optional key to define the service name used to stroe keychain entries
+    static let keyChainService = "keyChainService"
+    /// key to define keychain entry comment
+    static let keyChainComment = "keyChainComment"
+    /// key for values used to store user accounts
+    static let Accounts = "Accounts"
 }

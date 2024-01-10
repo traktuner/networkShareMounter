@@ -43,7 +43,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         modifyShareButton.isEnabled = false
         removeShareButton.isEnabled = false
 
-        if userDefaults.bool(forKey: "canChangeAutostart") == false {
+        if userDefaults.bool(forKey: Settings.canChangeAutostart) == false {
             launchAtLoginRadioButton.isHidden = true
             horizontalLine.isHidden = true
         }

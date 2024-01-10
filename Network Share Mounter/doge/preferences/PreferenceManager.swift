@@ -10,12 +10,12 @@
 import Foundation
 import dogeADAuth
 
-let kStateDomain = "de.fau.rrze.doge.state"
-let kSharedDefaultsName = "C8F68RFW4L.doge.shared"
+let kStateDomain = "de.fau.rrze.NetworkShareMounter.doge.state"
+let kSharedDefaultsName = "C8F68RFW4L.NetworkShareMounter.doge.shared"
 
 extension UserDefaults {
     @objc dynamic var Accounts: Data? {
-        return data(forKey: "Accounts")
+        return data(forKey: Settings.Accounts)
     }
 }
 

@@ -33,11 +33,11 @@ struct AppStatistics {
     /// Generate or read a UUID unique for the installation
     /// - Returns: a string containig installation's UUID
     private func getInstanceUUID() -> String {
-        if let uuid = userDefaults.string(forKey: "UUID") {
+        if let uuid = userDefaults.string(forKey: Settings.UUID) {
             return(uuid)
         } else {
             let uuid = UUID().uuidString
-            userDefaults.set(uuid, forKey: "UUID")
+            userDefaults.set(uuid, forKey: Settings.UUID)
             return(uuid)
         }
     }

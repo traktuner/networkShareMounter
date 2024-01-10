@@ -852,15 +852,6 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="removeShare:" target="XfG-lQ-9wD" id="7Vc-GJ-XBH"/>
                                 </connections>
                             </button>
-                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
-                                <rect key="frame" x="67" y="216" width="549" height="16"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Additional shares" id="2H5-ga-rE8">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <button tag="1" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EnA-eX-Gzp">
                                 <rect key="frame" x="622" y="188" width="20" height="65"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -929,6 +920,15 @@ The connection will be testet immediately and will be added only if the server i
                                     <segue destination="6r4-rb-dJs" kind="sheet" id="Prd-vl-gJZ"/>
                                 </connections>
                             </button>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
+                                <rect key="frame" x="67" y="212" width="549" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Additional shares" id="2H5-ga-rE8">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                     <connections>

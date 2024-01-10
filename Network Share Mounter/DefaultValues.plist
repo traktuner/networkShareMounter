@@ -2,6 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>managedNetworkShares</key>
+	<array/>
+	<key>keyChainService</key>
+	<string>Network Share Mounter</string>
+	<key>keyChainComment</key>
+	<string>Generated and used by Network Share Mounter</string>
+	<key>keychainiCloudSync</key>
+	<false/>
+	<key>authenticationDialogImage</key>
+	<string>nsm_logo</string>
+	<key>kerberosDomain</key>
+	<string></string>
 	<key>autostart</key>
 	<false/>
 	<key>canQuit</key>

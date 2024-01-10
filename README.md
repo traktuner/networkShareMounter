@@ -64,7 +64,7 @@ If you're using a MDM solution like *Jamf Pro* you can create a policy to start 
 
 ##### **4) Managed Login Itmes with macOS Ventura**
 
-With macOS Ventura, Apple has added a feature to show apps which are starting and working in the background. Users also have the posibillity to enable or disable these specific apps. To prevent disabling the Network share Mounter autostart you can add a [managed login item](https://support.apple.com/guide/deployment/managed-login-items-payload-settings-dep07b92494/web)" payload to the Network Share Mounter configuration profile or create a seperate profile containing the necessery values. Example:
+With macOS Ventura, Apple has added a feature to show apps which are starting and working in the background. Users also have the posibillity to enable or disable these specific apps. To prevent disabling the Network share Mounter autostart you can add a [managed login item](https://support.apple.com/guide/deployment/managed-login-items-payload-settings-dep07b92494/web) payload to the Network Share Mounter configuration profile or create a seperate profile containing the necessery values. Example:
 
 * Rule Type: `Bundle Identifier`
 * Rule Value: `de.fau.rrze.NetworkShareMounter`

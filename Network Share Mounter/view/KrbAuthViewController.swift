@@ -51,9 +51,13 @@ class KrbAuthViewController: NSViewController {
     // MARK: - initialize view
     override func viewDidLoad() {
         super.viewDidLoad()
-        // force unwrap is ok since authenticationDialogImage is a registered default in AppDelegate
-        logo.image = NSImage(named: userDefaults.string(forKey: Settings.authenticationDialogImage)!)
-        if userDefaults.string(forKey: Settings.kerberosDomain)?.lowercased() != FAU.kerberosDomain {
+        if ((userDefaults.string(forKey: Settings.defaultsDomain)?.contains(FAU.kerberosDomain)) != nil) {
+            logo.image = NSImage(named: FAU.authenticationDialogImage)
+        } else {
+            // force unwrap is ok since authenticationDialogImage is a registered default in AppDelegate
+            logo.image = NSImage(named: userDefaults.string(forKey: Settings.authenticationDialogImage)!)
+        }
+        if userDefaults.string(forKey: Settings.kerberosDomain)?.lowercased() == FAU.kerberosDomain {
             usernameText.stringValue = NSLocalizedString("authui-username-text-FAU", comment: "value shown as FAU username")
             passwordText.stringValue = NSLocalizedString("authui-password-text-FAU", comment: "value shown as FAU password")
         } else {
