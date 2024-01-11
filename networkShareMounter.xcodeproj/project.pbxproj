@@ -166,6 +166,9 @@
 				F77107B6274EC51600556B20 /* Monitor.swift */,
 				F7796E112AFBE5AB008F6A26 /* ActivityController.swift */,
 				F7EF65CF2B3B4DFC00051D44 /* Logger.swift */,
+				F7EF66012B3B5F1700051D44 /* NetworkWatcher.swift */,
+				F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */,
+				F7EF65D12B3B56A600051D44 /* AutomaticSignIn.swift */,
 			);
 			path = helper;
 			sourceTree = "<group>";
@@ -175,6 +178,8 @@
 			children = (
 				F77107BA274EC7D200556B20 /* config.swift */,
 				F7EF65EF2B3B5CCD00051D44 /* FAUconstants.swift */,
+				F7EF65EB2B3B5C8B00051D44 /* PreferenceKeys.swift */,
+				F7EF65ED2B3B5CA700051D44 /* PreferenceManager.swift */,
 			);
 			path = preferences;
 			sourceTree = "<group>";
@@ -188,7 +193,7 @@
 				F79B1597274E722000C322A8 /* AppDelegate.swift */,
 				F78455422B4C52F000A8F507 /* preferences */,
 				F7EF65F12B3B5D7000051D44 /* Extensions */,
-				F7EF65CA2B3B4B3200051D44 /* doge */,
+				F7EF65D62B3B571600051D44 /* lookups */,
 				F7EF65DD2B3B57AB00051D44 /* managers */,
 				F7E727A82B03AA0D0036CF15 /* model */,
 				F7E727A72B03A9FB0036CF15 /* view */,
@@ -215,6 +220,7 @@
 		F7E727A82B03AA0D0036CF15 /* model */ = {
 			isa = PBXGroup;
 			children = (
+				F7EF65E52B3B582F00051D44 /* DogeAccount.swift */,
 				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F70457EC2B31A62E00506DF4 /* Errorcodes.swift */,
 				F765D0562A852935001D5116 /* Share.swift */,
@@ -223,28 +229,6 @@
 				F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */,
 			);
 			path = model;
-			sourceTree = "<group>";
-		};
-		F7EF65CA2B3B4B3200051D44 /* doge */ = {
-			isa = PBXGroup;
-			children = (
-				F7EF66002B3B5F1000051D44 /* helper */,
-				F7EF65EA2B3B5C6000051D44 /* preferences */,
-				F7EF65E42B3B581F00051D44 /* model */,
-				F7EF65D62B3B571600051D44 /* lookups */,
-				F7EF65D52B3B56D800051D44 /* tasks */,
-			);
-			path = doge;
-			sourceTree = "<group>";
-		};
-		F7EF65D52B3B56D800051D44 /* tasks */ = {
-			isa = PBXGroup;
-			children = (
-				F7EF65D32B3B56D300051D44 /* BackgroundManager.swift */,
-				F7EF65D12B3B56A600051D44 /* AutomaticSignIn.swift */,
-				F7EF65E22B3B57FC00051D44 /* AccountsManager.swift */,
-			);
-			path = tasks;
 			sourceTree = "<group>";
 		};
 		F7EF65D62B3B571600051D44 /* lookups */ = {
@@ -259,27 +243,12 @@
 		F7EF65DD2B3B57AB00051D44 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				F7EF65D32B3B56D300051D44 /* BackgroundManager.swift */,
+				F7EF65E22B3B57FC00051D44 /* AccountsManager.swift */,
 				F765D0542A852911001D5116 /* ShareManager.swift */,
 				F78B9D742B0BA7EF00043327 /* PasswordManager.swift */,
 			);
 			path = managers;
-			sourceTree = "<group>";
-		};
-		F7EF65E42B3B581F00051D44 /* model */ = {
-			isa = PBXGroup;
-			children = (
-				F7EF65E52B3B582F00051D44 /* DogeAccount.swift */,
-			);
-			path = model;
-			sourceTree = "<group>";
-		};
-		F7EF65EA2B3B5C6000051D44 /* preferences */ = {
-			isa = PBXGroup;
-			children = (
-				F7EF65EB2B3B5C8B00051D44 /* PreferenceKeys.swift */,
-				F7EF65ED2B3B5CA700051D44 /* PreferenceManager.swift */,
-			);
-			path = preferences;
 			sourceTree = "<group>";
 		};
 		F7EF65F12B3B5D7000051D44 /* Extensions */ = {
@@ -293,15 +262,6 @@
 				F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */,
 			);
 			path = Extensions;
-			sourceTree = "<group>";
-		};
-		F7EF66002B3B5F1000051D44 /* helper */ = {
-			isa = PBXGroup;
-			children = (
-				F7EF66012B3B5F1700051D44 /* NetworkWatcher.swift */,
-				F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */,
-			);
-			path = helper;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -696,7 +656,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 94;
+				CURRENT_PROJECT_VERSION = 95;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -742,7 +702,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 94;
+				CURRENT_PROJECT_VERSION = 95;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_HARDENED_RUNTIME = YES;
