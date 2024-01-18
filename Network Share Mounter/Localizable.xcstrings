@@ -228,6 +228,88 @@
         }
       }
     },
+    "authui-krb-infotext" : {
+      "comment" : "informative test for kerberos auth window",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Unternehmen oder deine Hochschule nutzt ein Verfahren namens Kerberos für die Anmeldung bei Netzwerkdiensten. Um diese Art der Single Sign-On-Authentifizierung zu nutzen, musst du einmalig deinen Nutzernamen und dein Passwort eingeben. Diese werden in deinem persönlichen Schlüsselbund gespeichert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your company or university uses a method called Kerberos for logging into network services. To use this type of single sign-on authentication, you need to enter your username and password once. These will be stored in your personal keychain."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu empresa o universidad utiliza un método llamado Kerberos para iniciar sesión en servicios de red. Para utilizar este tipo de autenticación de inicio de sesión único, debes ingresar tu nombre de usuario y contraseña una vez. Estos se guardarán en tu llavero personal."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre entreprise ou votre université utilise une méthode appelée Kerberos pour se connecter aux services réseau. Pour utiliser ce type d'authentification unique, vous devez saisir votre nom d'utilisateur et votre mot de passe une fois. Ils seront enregistrés dans votre trousseau personnel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua azienda o università utilizza un metodo chiamato Kerberos per accedere ai servizi di rete. Per utilizzare questo tipo di autenticazione Single Sign-On, devi inserire il tuo nome utente e la password una volta. Questi verranno memorizzati nel tuo portachiavi personale."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw bedrijf of universiteit maakt gebruik van een methode genaamd Kerberos voor het inloggen op netwerkdiensten. Om deze vorm van single sign-on-authenticatie te gebruiken, moet je eenmalig je gebruikersnaam en wachtwoord invoeren. Deze worden opgeslagen in je persoonlijke sleutelhanger."
+          }
+        }
+      }
+    },
+    "authui-krb-title" : {
+      "comment" : "title of kerberos auth window",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On mit Kerberos"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On with Kerberos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio de sesión único con Kerberos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification unique avec Kerberos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione unica con Kerberos"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On met Kerberos"
+          }
+        }
+      }
+    },
     "authui-password-text" : {
       "comment" : "value shown as password",
       "localizations" : {
@@ -620,37 +702,77 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um ein Netzwerklaufwerk einzubinden, musst du dich beim Server authentifizieren.\nIn Unternehmen und Universitäten wird dies in der Regel über Microsoft Active Directory und Kerberos durchgeführt, was der bevorzugte Weg ist. In privaten Umgebungen erfolgt die Authentifizierung über Benutzernamen und Passwort.\n\nWenn du unsicher bist, verwende die Authentifizierung über Benutzernamen und Passwort oder frage deinen Administrator."
+            "value" : "Um ein Netzwerklaufwerk einzubinden, musst du dich beim Server authentifizieren. In Unternehmen und Universitäten erfolgt dies normalerweise über Microsoft Active Directory und Kerberos, was der bevorzugte Weg ist.    \nIn privaten Umgebungen wird die Authentifizierung hingegen über Benutzernamen und Passwort durchgeführt. Wenn du unsicher bist, verwende die Authentifizierung über Benutzernamen und Passwort oder frage deinen Administrator.    \n\nBeachte, dass diese Option nur in Umgebungen verfügbar ist, die eine Active Directory oder Kerberos Authentifizierung unterstützen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To connect a network drive, you need to authenticate yourself to the server.\nIn a company or university, this is often done through Microsoft Active Directory and Kerberos and is the preferred method. In a private setting, authentication is done using a username and password.\n\nIf in doubt, consult your administrator."
+            "value" : "To connect a network drive, you need to authenticate yourself with the server. In businesses and universities, this is typically done through Microsoft Active Directory and Kerberos, which is the preferred method.\n\nIn private settings, authentication is done using a username and password. If you are unsure, use the username and password authentication or consult your administrator.\n\nNote that this option is only available in environments that support Active Directory or Kerberos authentication."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para conectar una unidad de red, debes autenticarte en el servidor.\nEn una empresa o universidad, esto se hace a menudo a través de Microsoft Active Directory y Kerberos, y es el método preferido. En un entorno privado, la autenticación se realiza con un nombre de usuario y una contraseña.\n\nEn caso de duda, consulta a tu administrador."
+            "value" : "Para conectar una unidad de red, debes autenticarte con el servidor. En empresas y universidades, esto se hace normalmente a través de Microsoft Active Directory y Kerberos, que es el método preferido.\n\nEn entornos privados, la autenticación se realiza mediante un nombre de usuario y una contraseña. Si no estás seguro, utiliza la autenticación con nombre de usuario y contraseña o consulta a tu administrador.\n\nTen en cuenta que esta opción solo está disponible en entornos que admiten la autenticación de Active Directory o Kerberos."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour connecter un lecteur réseau, vous devez vous authentifier auprès du serveur.\nDans une entreprise ou une université, cela se fait souvent via Microsoft Active Directory et Kerberos et est la méthode préférée. Dans un environnement privé, l'authentification se fait avec un nom d'utilisateur et un mot de passe.\n\nEn cas de doute, consultez votre administrateur."
+            "value" : "Pour connecter un lecteur réseau, vous devez vous authentifier auprès du serveur. Dans les entreprises et les universités, cela se fait généralement via Microsoft Active Directory et Kerberos, qui est la méthode préférée.\n\nDans des paramètres privés, l'authentification se fait en utilisant un nom d'utilisateur et un mot de passe. Si vous n'êtes pas sûr, utilisez l'authentification par nom d'utilisateur et mot de passe ou consultez votre administrateur.\n\nNotez que cette option n'est disponible que dans des environnements prenant en charge l'authentification Active Directory ou Kerberos."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Per collegare un'unità di rete, devi autenticarti presso il server.\nIn un'azienda o università, ciò avviene spesso tramite Microsoft Active Directory e Kerberos ed è il metodo preferito. In un contesto privato, l'autenticazione avviene tramite nome utente e password.\n\nIn caso di dubbi, consulta l'amministratore"
+            "value" : "Per collegare un'unità di rete, è necessario autenticarsi presso il server. Nelle aziende e nelle università, questo avviene di solito tramite Microsoft Active Directory e Kerberos, che è il metodo preferito.\n\nIn ambienti privati, l'autenticazione avviene invece utilizzando un nome utente e una password. Se non sei sicuro, utilizza l'autenticazione con nome utente e password o chiedi al tuo amministratore.\n\nNota che questa opzione è disponibile solo in ambienti che supportano l'autenticazione di Active Directory o Kerberos."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Om een netwerkstation toe te voegen, moet je je authenticeren bij de server.\nIn een bedrijf of universiteit gebeurt dit vaak via Microsoft Active Directory en Kerberos, wat de voorkeursmethode is. In een privéomgeving gebeurt de authenticatie met een gebruikersnaam en wachtwoord.\n\nBij twijfel raadpleeg je beheerder."
+            "value" : "Om een netwerkstation te koppelen, moet je je authenticeren bij de server. In bedrijven en universiteiten gebeurt dit meestal via Microsoft Active Directory en Kerberos, wat de voorkeursmethode is.\n\nIn privé-instellingen wordt de authenticatie echter uitgevoerd met een gebruikersnaam en wachtwoord. Als je niet zeker bent, gebruik dan de authenticatie met gebruikersnaam en wachtwoord of raadpleeg je beheerder.\n\nLet op dat deze optie alleen beschikbaar is in omgevingen die Active Directory- of Kerberos-authenticatie ondersteunen."
+          }
+        }
+      }
+    },
+    "help-krb-auth-text" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Unternehmen und Universitäten erfolgt eine netzwerkweite Single Sign-On Authentifizierung über Microsoft Active Directory und Kerberos. Um diese nutzen zu können musst du deinen username und das Passwort eingeben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In companies and universities, network-wide Single Sign-On authentication is performed through Microsoft Active Directory and Kerberos. To use this, you need to enter your username and password."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas y universidades, la autenticación de Inicio de Sesión Único en toda la red se realiza a través de Microsoft Active Directory y Kerberos. Para utilizar esto, debes ingresar tu nombre de usuario y contraseña."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans les entreprises et les universités, l'authentification Single Sign-On sur l'ensemble du réseau est effectuée via Microsoft Active Directory et Kerberos. Pour l'utiliser, vous devez saisir votre nom d'utilisateur et votre mot de passe."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelle aziende e nelle università, l'autenticazione Single Sign-On su tutta la rete avviene tramite Microsoft Active Directory e Kerberos. Per utilizzarla, devi inserire il tuo nome utente e la password."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In bedrijven en universiteiten wordt netwerkbrede Single Sign-On-authenticatie uitgevoerd via Microsoft Active Directory en Kerberos. Om dit te gebruiken, moet je je gebruikersnaam en wachtwoord invoeren."
           }
         }
       }
@@ -990,6 +1112,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ongeldig koppelingspad."
+          }
+        }
+      }
+    },
+    "krb-auth-button" : {
+      "comment" : "Button text for kerberos authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On Authentifizierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On Authentication"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación de Inicio de Sesión Único"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification Single Sign-On"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione Single Sign-On"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On Authenticatie"
+          }
+        }
+      }
+    },
+    "missing-krb-auth-button" : {
+      "comment" : "Button text for missing kerberos authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehlende SSO Authentifizierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missing SSO Authentication"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación SSO faltante"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification SSO manquante"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione SSO mancante"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontbrekende SSO-authenticatie"
           }
         }
       }

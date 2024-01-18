@@ -20,6 +20,7 @@ extension Logger {
     static let networkMonitor = Logger(subsystem: subsystem, category: "networkMonitor")
     static let activityController = Logger(subsystem: subsystem, category: "activityController")
     static let networkShareViewController = Logger(subsystem: subsystem, category: "networkShareViewController")
+    static let KrbAuthViewController = Logger(subsystem: subsystem, category: "KrbAuthViewController")
     static let shareViewController = Logger(subsystem: subsystem, category: "shareViewController")
     static let kerberos = Logger(subsystem: subsystem, category: "kerberos")
     static let automaticSignIn = Logger(subsystem: subsystem, category: "automaticSignIn")

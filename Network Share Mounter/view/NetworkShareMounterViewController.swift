@@ -15,9 +15,10 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     // MARK: - help messages
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("help-show-managed-shares", comment: ""),
-                    NSLocalizedString("mount-status-info-text", comment: "")]
+                    NSLocalizedString("mount-status-info-text", comment: ""),
+                    NSLocalizedString("help-krb-auth-text", comment: "")]
 
-    let userDefaults = UserDefaults.standard
+    var prefs = PreferenceManager()
 
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     // prepare an array of type UserShare to store the defined shares while showing this view
@@ -39,11 +40,15 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
-
+        
+        // hide kerberos authenticate button if no krb domain is set
+        dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosDomain) ?? "").isEmpty
+        dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+        
         modifyShareButton.isEnabled = false
         removeShareButton.isEnabled = false
 
-        if userDefaults.bool(forKey: Settings.canChangeAutostart) == false {
+        if prefs.bool(for: .canChangeAutostart) == false {
             launchAtLoginRadioButton.isHidden = true
             horizontalLine.isHidden = true
         }
@@ -59,16 +64,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         } else {
             additionalSharesText.isHidden = false
         }
-//        let symbolConfig = NSImage.SymbolConfiguration(scale: .large)
-//
-//        if let symbolImage = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help") {
-//            let resizedImage = symbolImage.withSymbolConfiguration(symbolConfig)
-//            
-//            managedSharesHelp.image = resizedImage
-//            managedSharesHelp.imageScaling = .scaleProportionallyDown
-//        }
-//        managedSharesHelp.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
     }
+    
     override func viewWillAppear() {
         super.viewWillAppear()
         //
@@ -90,13 +87,21 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             modifyShareButton.title = NSLocalizedString("modify-share-button", comment: "Button text to modify share")
             networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
         }
+        for account in AccountsManager.shared.accounts {
+            if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || AccountsManager.shared.accounts.count == 1 {
+                // check if account has a keychain entry, if not, set existingKeychainExntry = false and exit if loop
+                if account.keychain == false {
+                    dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                    self.performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
+                    break
+                }
+            }
+        }
     }
 
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
     
     @IBOutlet weak var additionalSharesText: NSTextField!
-    
-    @IBOutlet weak var modefyShareButton: NSButton!
     
     @IBOutlet weak var appVersion: NSTextField!
     
@@ -109,6 +114,10 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBOutlet weak var toggleManagedSwitch: NSSwitch!
     
     @IBOutlet weak var managedSharesHelp: NSButton!
+    
+    @IBOutlet weak var dogeAuthenticateButton: NSButton!
+    
+    @IBOutlet weak var dogeAuthenticateHelp: NSButton!
     
     @IBAction func helpButtonClicked(_ sender: NSButton) {
         // swiftlint:disable force_cast

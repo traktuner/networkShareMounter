@@ -12,6 +12,7 @@ import Foundation
 struct DogeAccount: Codable, Equatable {
     var displayName: String
     var upn: String
+    var keychain: Bool
 }
 
 struct DogeAccounts: Codable {

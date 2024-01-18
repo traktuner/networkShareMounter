@@ -19,7 +19,7 @@
 		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7796E112AFBE5AB008F6A26 /* ActivityController.swift */; };
-		F78B9D752B0BA7EF00043327 /* PasswordManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* PasswordManager.swift */; };
+		F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* KeychainManager.swift */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F79B159F274E722100C322A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F79B159D274E722100C322A8 /* Main.storyboard */; };
@@ -79,7 +79,7 @@
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		F7796E112AFBE5AB008F6A26 /* ActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityController.swift; sourceTree = "<group>"; };
-		F78B9D742B0BA7EF00043327 /* PasswordManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordManager.swift; sourceTree = "<group>"; };
+		F78B9D742B0BA7EF00043327 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F79B159B274E722100C322A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -187,17 +187,17 @@
 		F79B1596274E722000C322A8 /* Network Share Mounter */ = {
 			isa = PBXGroup;
 			children = (
-				F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */,
 				F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */,
 				F739C418275525BC003A3CC5 /* DefaultValues.plist */,
+				F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */,
 				F79B1597274E722000C322A8 /* AppDelegate.swift */,
 				F78455422B4C52F000A8F507 /* preferences */,
 				F7EF65F12B3B5D7000051D44 /* Extensions */,
 				F7EF65D62B3B571600051D44 /* lookups */,
 				F7EF65DD2B3B57AB00051D44 /* managers */,
 				F7E727A82B03AA0D0036CF15 /* model */,
-				F7E727A72B03A9FB0036CF15 /* view */,
 				F70457EB2B307C8D00506DF4 /* helper */,
+				F7E727A72B03A9FB0036CF15 /* view */,
 				F79B159B274E722100C322A8 /* Assets.xcassets */,
 				F79B159D274E722100C322A8 /* Main.storyboard */,
 				F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */,
@@ -208,7 +208,6 @@
 		F7E727A72B03A9FB0036CF15 /* view */ = {
 			isa = PBXGroup;
 			children = (
-				F72B13E92B332987001BDEEA /* Menu.swift */,
 				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
 				F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */,
 				F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */,
@@ -227,6 +226,7 @@
 				F7A383EC2B065E1400CA70E2 /* UserShare.swift */,
 				F742ACF52861CB62009864DF /* AppStatistics.swift */,
 				F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */,
+				F72B13E92B332987001BDEEA /* Menu.swift */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -246,7 +246,7 @@
 				F7EF65D32B3B56D300051D44 /* BackgroundManager.swift */,
 				F7EF65E22B3B57FC00051D44 /* AccountsManager.swift */,
 				F765D0542A852911001D5116 /* ShareManager.swift */,
-				F78B9D742B0BA7EF00043327 /* PasswordManager.swift */,
+				F78B9D742B0BA7EF00043327 /* KeychainManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -443,7 +443,7 @@
 				F7EF65F52B3B5DDC00051D44 /* Data.swift in Sources */,
 				F7EF65DC2B3B575C00051D44 /* SRVRecord.swift in Sources */,
 				F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */,
-				F78B9D752B0BA7EF00043327 /* PasswordManager.swift in Sources */,
+				F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */,
 				F7EF65CE2B3B4BEE00051D44 /* Notification.swift in Sources */,
 				F7D371222B47F7BE00D54FF5 /* KrbAuthViewController.swift in Sources */,
 				F7EF65D22B3B56A600051D44 /* AutomaticSignIn.swift in Sources */,

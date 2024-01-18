@@ -177,6 +177,28 @@ enum PreferenceKeys: String, CaseIterable {
     case x509CA = "X509CA"
     case x509Name = "X509Name"
     
+    case unmountOnExit = "unmountOnExit"
+    case helpURL = "helpURL"
+    case canChangeAutostart = "canChangeAutostart"
+    case canQuit = "canQuit"
+    case autostart = "autostart"
+    case cleanupLocationDirectory = "cleanupLocationDirectory"
+    case UUID = "UUID"
+    case networkSharesKey = "networkShares"
+    case managedNetworkSharesKey = "managedNetworkShares"
+    case authType = "authType"
+    case networkShare = "networkShare"
+    case mountPoint = "mountPoint"
+    case username = "username"
+    case customSharesKey = "customNetworkShares"
+    case userNetworkShares = "userNetworkShares"
+    case location = "location"
+    case kerberosDomain = "kerberosDomain"
+    case keychainiCloudSync = "keychainiCloudSync"
+    case authenticationDialogImage = "authenticationDialogImage"
+    case keyChainService = "keyChainService"
+    case keyChainComment = "keyChainComment"
+    
     func printAllPrefs() {
         let defaults = UserDefaults.standard
         for key in PreferenceKeys.allCases {

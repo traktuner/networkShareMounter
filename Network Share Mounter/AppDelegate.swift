@@ -154,11 +154,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.monitor.cancel()
     }
     
-    func setAlertMenuIcon(to alert: Bool) {
-        guard let button = self.statusItem.button else { return }
-            button.image = NSImage(named: NSImage.Name(alert ? MenuImageName.alert.rawValue : MenuImageName.normal.rawValue))
-    }
-    
     ///
     /// provide a method to react to certain events
     @objc func handleErrorNotification(_ notification: NSNotification) {
@@ -233,16 +228,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         
         switch andStatus {
-        case .authenticationError:
-            Logger.app.debug("Constructing authentication problem menu.")
-            mounter.errorStatus = .authenticationError
-            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
+            case .authenticationError:
+                Logger.app.debug("Constructing authentication problem menu.")
+                mounter.errorStatus = .authenticationError
+                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
                                     action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
-            menu.addItem(NSMenuItem.separator())
+                menu.addItem(NSMenuItem.separator())
             
-        default:
-            mounter.errorStatus = .noError
-            Logger.app.debug("Constructing default menu.")
+            default:
+                mounter.errorStatus = .noError
+                Logger.app.debug("Constructing default menu.")
         }
         
         if userDefaults.string(forKey: Settings.helpURL)!.description.isValidURL {

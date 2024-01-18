@@ -55,7 +55,7 @@ enum KeychainError: Error {
     case errorWithStatus(status: OSStatus)
 }
 
-class PasswordManager: NSObject {
+class KeychainManager: NSObject {
     /// function to create a query to use with keychain
     /// - Parameter forShare: ``String`` containing the URL of a network share
     /// - Parameter withUsername: ``String`` contining the username to connect the network share

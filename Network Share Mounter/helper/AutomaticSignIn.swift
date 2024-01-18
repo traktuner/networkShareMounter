@@ -36,13 +36,18 @@ class AutomaticSignIn {
         let defaultPrinc = klist.defaultPrincipal
         self.workers.removeAll()
         
+        // sign in only for defaultPrinc-Account if singleUserMode == true or only one account exists, walk through alle accounts
+        // if singleUserMode == false and more than 1 account exists
         for account in AccountsManager.shared.accounts {
-            Task {
-                let worker = AutomaticSignInWorker(userName: account.upn)
-                await worker.checkUser()
-                self.workers.append(worker)
+            if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || AccountsManager.shared.accounts.count == 1 {
+                Task {
+                    let worker = AutomaticSignInWorker(account: account)
+                    await worker.checkUser()
+                    self.workers.append(worker)
+                }
             }
         }
+
         cliTask("kswitch -p \(defaultPrinc ?? "")")
     }
 }
@@ -50,15 +55,15 @@ class AutomaticSignIn {
 class AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     var prefs = PreferenceManager()
-    var userName: String
+    var account: DogeAccount
     var session: dogeADSession
     var resolver = SRVResolver()
     let domain: String
     
-    init(userName: String) {
-        self.userName = userName
-        domain = userName.userDomain() ?? ""
-        self.session = dogeADSession(domain: domain, user: userName.user())
+    init(account: DogeAccount) {
+        self.account = account
+        domain = account.upn.userDomain() ?? ""
+        self.session = dogeADSession(domain: domain, user: account.upn.user())
         self.session.setupSessionFromPrefs(prefs: prefs)
     }
     
@@ -72,7 +77,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
             switch i {
             case .success(let result):
                 if result.SRVRecords.count > 0 {
-                    if princs.contains(where: { $0.lowercased() == self.userName }) {
+                    if princs.contains(where: { $0.lowercased() == self.account.upn }) {
                         self.getUserInfo()
                     } else {
                         self.auth()
@@ -87,16 +92,19 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     }
     
     func auth() {
-        let keyUtil = PasswordManager()
+        let keyUtil = KeychainManager()
         
         do {
-            if let pass = try keyUtil.retrievePassword(forUsername: userName) {
+            if let pass = try keyUtil.retrievePassword(forUsername: account.upn) {
                 session.userPass = pass
                 session.delegate = self
                 session.authenticate()
+                self.account.keychain = true
             }
         } catch {
-            Logger.automaticSignIn.error("unable to find keychain item for user: \(self.userName, privacy: .public)")
+            self.account.keychain = false
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+            Logger.automaticSignIn.error("unable to find keychain item for user: \(self.account.upn, privacy: .public)")
         }
     }
     
@@ -107,22 +115,22 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     }
     
     func dogeADAuthenticationSucceded() {
-        Logger.automaticSignIn.info("Auth succeded for user: \(self.userName, privacy: .public)")
+        Logger.automaticSignIn.info("Auth succeded for user: \(self.account.upn, privacy: .public)")
         cliTask("kswitch -p \(self.session.userPrincipal )")
         session.userInfo()
     }
     
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
-        Logger.automaticSignIn.info("Auth failed for user: \(self.userName, privacy: .public), Error: \(description, privacy: .public)")
+        Logger.automaticSignIn.info("Auth failed for user: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         switch error {
         case .AuthenticationFailure, .PasswordExpired:
             Logger.automaticSignIn.info("Removing bad password from keychain")
-            let keyUtil = PasswordManager()
+            let keyUtil = KeychainManager()
             do {
-                try keyUtil.removeCredential(forUsername: self.userName)
+                try keyUtil.removeCredential(forUsername: self.account.upn)
                 Logger.automaticSignIn.info("Successfully removed keychain item")
             } catch {
-                Logger.automaticSignIn.info("Failed to remove keychain item for username \(self.userName)")
+                Logger.automaticSignIn.info("Failed to remove keychain item for username \(self.account.upn)")
             }
         default:
             break

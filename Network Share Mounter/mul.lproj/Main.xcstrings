@@ -799,6 +799,18 @@
         }
       }
     },
+    "6wl-yy-c0j.title" : {
+      "comment" : "Class = \"NSMenuItem\"; title = \"Item 3\"; ObjectID = \"6wl-yy-c0j\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Item 3"
+          }
+        }
+      }
+    },
     "7GY-iJ-pT2.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"password\"; ObjectID = \"7GY-iJ-pT2\";",
       "extractionState" : "extracted_with_value",
@@ -1645,6 +1657,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transformations"
+          }
+        }
+      }
+    },
+    "cB8-YR-KqE.title" : {
+      "comment" : "Class = \"NSMenuItem\"; title = \"Item 2\"; ObjectID = \"cB8-YR-KqE\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Item 2"
           }
         }
       }
@@ -3496,6 +3520,18 @@
         }
       }
     },
+    "kX0-tV-EXj.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"The world of fashion is a vibrant and ever-changing realm that captivates people from all walks of life. From haute couture runways to street style trends, fashion has the power to express individuality and make a statement. \\nexpress individuality and make a statement.  jkdsjhkds \"; ObjectID = \"kX0-tV-EXj\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The world of fashion is a vibrant and ever-changing realm that captivates people from all walks of life. From haute couture runways to street style trends, fashion has the power to express individuality and make a statement. \nexpress individuality and make a statement.  jkdsjhkds "
+          }
+        }
+      }
+    },
     "l6h-Ep-Kih.title" : {
       "comment" : "Class = \"NSButtonCell\"; title = \"Save\"; ObjectID = \"l6h-Ep-Kih\";",
       "localizations" : {
@@ -4524,6 +4560,18 @@
         }
       }
     },
+    "QXz-lu-Pb6.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Kerberos SSO Authentication\"; ObjectID = \"QXz-lu-Pb6\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Kerberos SSO Authentication"
+          }
+        }
+      }
+    },
     "R4o-n2-Eq4.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Zoom\"; ObjectID = \"R4o-n2-Eq4\";",
       "extractionState" : "extracted_with_value",
@@ -4855,6 +4903,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Toolbar"
+          }
+        }
+      }
+    },
+    "soC-7J-Msf.title" : {
+      "comment" : "Class = \"NSMenuItem\"; title = \"Item 1\"; ObjectID = \"soC-7J-Msf\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Item 1"
           }
         }
       }

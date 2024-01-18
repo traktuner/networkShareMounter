@@ -24,7 +24,7 @@ class ShareManager {
             // save password in keychain
             if let password = share.password {
                 if let username = share.username {
-                    let pwm = PasswordManager()
+                    let pwm = KeychainManager()
                     do {
                         try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPassword: password)
                     } catch {
@@ -41,7 +41,7 @@ class ShareManager {
         os_unfair_lock_lock(&sharesLock)
         // remove keychain entry for share
         if let username = _shares[index].username {
-            let pwm = PasswordManager()
+            let pwm = KeychainManager()
             do {
                 Logger.shareManager.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
                 try pwm.removeCredential(forShare: URL(string: self._shares[index].networkShare)!, withUsername: username)
@@ -77,7 +77,7 @@ class ShareManager {
         //
         // remove existing keychain entry first since it wouldn't be found with the new data
         if let username = _shares[index].username {
-            let pwm = PasswordManager()
+            let pwm = KeychainManager()
             do {
                 try pwm.removeCredential(forShare: URL(string: _shares[index].networkShare)!, withUsername: username)
             } catch {
@@ -87,7 +87,7 @@ class ShareManager {
         // save password in keychain
         if let password = updatedShare.password {
             if let username = updatedShare.username {
-                let pwm = PasswordManager()
+                let pwm = KeychainManager()
                 do {
                     try pwm.saveCredential(forShare: URL(string: updatedShare.networkShare)!, withUsername: username, andPassword: password)
                 } catch {
@@ -163,7 +163,7 @@ class ShareManager {
         var mountStatus = MountStatus.unmounted
         if shareAuthType == AuthType.pwd {
             do {
-                if let keychainPassword = try PasswordManager().retrievePassword(forShare: URL(string: shareRectified)!, withUsername: userName) {
+                if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareRectified)!, withUsername: userName) {
                     password = keychainPassword
                 }
             } catch {
@@ -206,7 +206,7 @@ class ShareManager {
         var mountStatus = MountStatus.unmounted
         if let username = shareElement[Settings.username] {
             do {
-                if let keychainPassword = try PasswordManager().retrievePassword(forShare: URL(string: shareUrlString)!, withUsername: username) {
+                if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareUrlString)!, withUsername: username) {
                     password = keychainPassword
                 }
             } catch {

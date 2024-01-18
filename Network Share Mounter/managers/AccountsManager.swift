@@ -38,7 +38,7 @@ class AccountsManager {
         let encoder = PropertyListEncoder.init()
         if let accountData = try? encoder.encode(DogeAccounts.init(accounts: accounts))  {
             prefs.set(for: .accounts, value: accountData)
-            prefs.sharedDefaults?.setValue(accountData, forKey: PreferenceKeys.accounts.rawValue)
+            prefs.userDefaults.setValue(accountData, forKey: PreferenceKeys.accounts.rawValue)
         }
         updateDelegates()
     }

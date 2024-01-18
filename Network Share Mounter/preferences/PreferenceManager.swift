@@ -11,7 +11,7 @@ import Foundation
 import dogeADAuth
 
 let kStateDomain = "de.fau.rrze.NetworkShareMounter.doge.state"
-let kSharedDefaultsName = "C8F68RFW4L.NetworkShareMounter.doge.shared"
+let kSharedDefaultsName = "de.fau.rrze.NetworkShareMounter"
 
 extension UserDefaults {
     @objc dynamic var Accounts: Data? {
@@ -23,7 +23,13 @@ class PreferenceManager {
     
     let defaults = UserDefaults.standard
     let stateDefaults = UserDefaults.init(suiteName: kStateDomain)
-    let sharedDefaults = UserDefaults(suiteName: kSharedDefaultsName)
+    let userDefaults = UserDefaults.standard
+    
+    init() {
+        if let defaultValues = readPropertyList() {
+            userDefaults.register(defaults: defaultValues)
+        }
+    }
     
     func array(for prefKey: PreferenceKeys) -> [Any]? {
         defaults.array(forKey: prefKey.rawValue)
@@ -104,5 +110,13 @@ class PreferenceManager {
             "UserLastChecked": Date()
         ]
         stateDefaults?.setValue(allUsers, forKey: PreferenceKeys.allUserInformation.rawValue)
+    }
+        
+    private func readPropertyList() -> [String: Any]? {
+        guard let plistPath = Bundle.main.path(forResource: "DefaultValues", ofType: "plist"),
+              let plistData = FileManager.default.contents(atPath: plistPath) else {
+            return nil
+        }
+        return try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
     }
 }

@@ -829,7 +829,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
-                                <rect key="frame" x="20" y="80" width="648" height="5"/>
+                                <rect key="frame" x="20" y="80" width="668" height="5"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </box>
                             <textField identifier="appVersion" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
@@ -864,7 +864,7 @@ The connection will be testet immediately and will be added only if the server i
                                     <fragment content="Additional network drives may be configured"/>
                                 </attributedString>
                                 <connections>
-                                    <action selector="helpButtonClicked:" target="XfG-lQ-9wD" id="NfI-Go-6qn"/>
+                                    <action selector="helpButtonClicked:" target="XfG-lQ-9wD" id="m3y-Wi-Kgo"/>
                                 </connections>
                             </button>
                             <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="NmF-bn-oWA">
@@ -910,14 +910,14 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="p5V-Db-bcH">
-                                <rect key="frame" x="615" y="47" width="75" height="32"/>
+                                <rect key="frame" x="420" y="49" width="275" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BLH-tI-fKy">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <segue destination="6r4-rb-dJs" kind="sheet" id="Prd-vl-gJZ"/>
+                                    <segue destination="6r4-rb-dJs" kind="sheet" identifier="KrbAuthViewSegue" id="Prd-vl-gJZ"/>
                                 </connections>
                             </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
@@ -929,6 +929,21 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <button tag="3" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Gq-fA-ElV">
+                                <rect key="frame" x="395" y="34" width="24" height="65"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" tag="1" imageScaling="proportionallyDown" inset="2" id="mci-k5-jsa">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <imageReference key="image" image="questionmark.circle" catalog="system" symbolScale="large"/>
+                                </buttonCell>
+                                <attributedString key="userComments">
+                                    <fragment content="Additional network drives may be configured"/>
+                                </attributedString>
+                                <connections>
+                                    <action selector="helpButtonClicked:" target="XfG-lQ-9wD" id="mJE-Ze-654"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
@@ -936,10 +951,11 @@ The connection will be testet immediately and will be added only if the server i
                         <outlet property="additionalSharesHelpButton" destination="EnA-eX-Gzp" id="uDQ-sS-lfA"/>
                         <outlet property="additionalSharesText" destination="sCe-DQ-9D5" id="HvS-Eh-zMs"/>
                         <outlet property="appVersion" destination="GYJ-8b-PG2" id="64i-KJ-MXy"/>
+                        <outlet property="dogeAuthenticateButton" destination="p5V-Db-bcH" id="aVV-rY-Hhn"/>
+                        <outlet property="dogeAuthenticateHelp" destination="5Gq-fA-ElV" id="d9D-Wl-bUj"/>
                         <outlet property="horizontalLine" destination="uWO-es-rt8" id="3JW-XC-Trg"/>
                         <outlet property="launchAtLoginRadioButton" destination="wTV-XD-Goa" id="CB2-bP-YlP"/>
                         <outlet property="managedSharesHelp" destination="EnA-eX-Gzp" id="uNc-tk-kiR"/>
-                        <outlet property="modefyShareButton" destination="uzk-qz-SRD" id="kxS-Wx-NaN"/>
                         <outlet property="modifyShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
                         <outlet property="networShareMounterExplanation" destination="J0j-se-pTf" id="A8p-Cz-gcY"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
@@ -958,18 +974,27 @@ The connection will be testet immediately and will be added only if the server i
                     </connections>
                 </arrayController>
             </objects>
-            <point key="canvasLocation" x="-57" y="304.5"/>
+            <point key="canvasLocation" x="-206" y="197"/>
         </scene>
         <!--Krb Auth View Controller-->
         <scene sceneID="d3p-sS-eRU">
             <objects>
                 <viewController id="6r4-rb-dJs" customClass="KrbAuthViewController" customModule="Network_Share_Mounter" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="p4W-fE-leL">
-                        <rect key="frame" x="0.0" y="0.0" width="520" height="155"/>
+                        <rect key="frame" x="0.0" y="0.0" width="599" height="261"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ube-T8-U78">
+                                <rect key="frame" x="97" y="223" width="484" height="26"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Kerberos SSO Authentication" id="QXz-lu-Pb6">
+                                    <font key="font" textStyle="title1" name=".SFNS-Regular"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wMc-Nf-mq7">
-                                <rect key="frame" x="106" y="111" width="139" height="16"/>
+                                <rect key="frame" x="125" y="189" width="139" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="IdM User Name" id="aLR-W4-Nsr">
                                     <font key="font" metaFont="system"/>
@@ -978,12 +1003,12 @@ The connection will be testet immediately and will be added only if the server i
                                 </textFieldCell>
                             </textField>
                             <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="FOX-uX-n7a">
-                                <rect key="frame" x="20" y="55" width="80" height="80"/>
+                                <rect key="frame" x="20" y="131" width="90" height="90"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="nsm_logo" id="Q1x-9Y-fAv"/>
                             </imageView>
                             <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fdl-dJ-Prk">
-                                <rect key="frame" x="251" y="108" width="245" height="21"/>
+                                <rect key="frame" x="281" y="186" width="298" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="dpz-oj-T4s">
                                     <font key="font" metaFont="system"/>
@@ -992,7 +1017,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BzW-i0-bsL">
-                                <rect key="frame" x="106" y="71" width="139" height="16"/>
+                                <rect key="frame" x="125" y="143" width="139" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="password" id="7GY-iJ-pT2">
                                     <font key="font" metaFont="system"/>
@@ -1001,7 +1026,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8Vv-en-BKS">
-                                <rect key="frame" x="244" y="13" width="120" height="32"/>
+                                <rect key="frame" x="327" y="13" width="120" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Wh9-zC-thW">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1011,8 +1036,61 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="cancelKlicked:" target="6r4-rb-dJs" id="P3P-mS-ZlD"/>
                                 </connections>
                             </button>
+                            <progressIndicator fixedFrame="YES" maxValue="100" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="tuu-EA-5cz">
+                                <rect key="frame" x="449" y="24" width="16" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            </progressIndicator>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hkh-AE-LKO">
+                                <rect key="frame" x="466" y="13" width="120" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Q2i-vC-PLt">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="authenticateKlicked:" target="6r4-rb-dJs" id="IR6-d3-1Np"/>
+                                </connections>
+                            </button>
+                            <secureTextField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="3SP-aS-pOn">
+                                <rect key="frame" x="281" y="140" width="298" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="6Ps-qN-euv">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <allowedInputSourceLocales>
+                                        <string>NSAllRomanInputSourcesLocaleIdentifier</string>
+                                    </allowedInputSourceLocales>
+                                </secureTextFieldCell>
+                            </secureTextField>
+                            <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="21Z-Um-buj">
+                                <rect key="frame" x="278" y="182" width="305" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="soC-7J-Msf" id="Du8-Ci-I7g">
+                                    <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="menu"/>
+                                    <menu key="menu" id="K43-nA-yPW">
+                                        <items>
+                                            <menuItem title="Item 1" state="on" id="soC-7J-Msf"/>
+                                            <menuItem title="Item 2" id="cB8-YR-KqE"/>
+                                            <menuItem title="Item 3" id="6wl-yy-c0j"/>
+                                        </items>
+                                    </menu>
+                                </popUpButtonCell>
+                            </popUpButton>
+                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xeC-jx-3ul">
+                                <rect key="frame" x="18" y="59" width="563" height="64"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" selectable="YES" alignment="justified" id="kX0-tV-EXj">
+                                    <font key="font" metaFont="system"/>
+                                    <string key="title">The world of fashion is a vibrant and ever-changing realm that captivates people from all walks of life. From haute couture runways to street style trends, fashion has the power to express individuality and make a statement. 
+express individuality and make a statement.  jkdsjhkds </string>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                             <button tag="1" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OfG-RR-odf">
-                                <rect key="frame" x="165" y="-2" width="20" height="65"/>
+                                <rect key="frame" x="281" y="12" width="20" height="37"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" tag="1" imageScaling="proportionallyDown" inset="2" id="rh8-cW-6rn">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1026,39 +1104,14 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="helpButtonClicked:" target="6r4-rb-dJs" id="yOh-VI-RzA"/>
                                 </connections>
                             </button>
-                            <progressIndicator fixedFrame="YES" maxValue="100" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="tuu-EA-5cz">
-                                <rect key="frame" x="365" y="22" width="16" height="16"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                            </progressIndicator>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hkh-AE-LKO">
-                                <rect key="frame" x="383" y="13" width="120" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Q2i-vC-PLt">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="authenticateKlicked:" target="6r4-rb-dJs" id="IR6-d3-1Np"/>
-                                </connections>
-                            </button>
-                            <secureTextField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="3SP-aS-pOn">
-                                <rect key="frame" x="251" y="68" width="245" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="6Ps-qN-euv">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <allowedInputSourceLocales>
-                                        <string>NSAllRomanInputSourcesLocaleIdentifier</string>
-                                    </allowedInputSourceLocales>
-                                </secureTextFieldCell>
-                            </secureTextField>
                         </subviews>
                     </view>
                     <connections>
+                        <outlet property="accountsList" destination="21Z-Um-buj" id="zwv-eX-zxn"/>
                         <outlet property="authenticateButtonText" destination="hkh-AE-LKO" id="yEf-C4-Vbn"/>
                         <outlet property="cancelButtonText" destination="8Vv-en-BKS" id="vfa-U3-EuG"/>
-                        <outlet property="loginText" destination="wMc-Nf-mq7" id="yyJ-mk-L5C"/>
+                        <outlet property="krbAuthViewInfoText" destination="xeC-jx-3ul" id="wqa-1i-ZVs"/>
+                        <outlet property="krbAuthViewTitle" destination="Ube-T8-U78" id="XTL-lr-LHG"/>
                         <outlet property="logo" destination="FOX-uX-n7a" id="vLA-a1-cTo"/>
                         <outlet property="password" destination="3SP-aS-pOn" id="jdf-M4-krx"/>
                         <outlet property="passwordText" destination="BzW-i0-bsL" id="Bhf-WC-xOf"/>
@@ -1069,7 +1122,7 @@ The connection will be testet immediately and will be added only if the server i
                 </viewController>
                 <customObject id="68q-To-Hpp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="41" y="670.5"/>
+            <point key="canvasLocation" x="1.5" y="723.5"/>
         </scene>
         <!--ShareView-->
         <scene sceneID="sYV-rz-oDl">

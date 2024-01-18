@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>useKeychain</key>
+	<true/>
+	<key>singleUserMode</key>
+	<true/>
 	<key>managedNetworkShares</key>
 	<array/>
 	<key>keyChainService</key>
@@ -13,7 +17,7 @@
 	<key>authenticationDialogImage</key>
 	<string>nsm_logo</string>
 	<key>kerberosDomain</key>
-	<string></string>
+	<string>fauad.fau.de</string>
 	<key>autostart</key>
 	<false/>
 	<key>canQuit</key>
