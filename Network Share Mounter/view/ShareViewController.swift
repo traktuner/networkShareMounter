@@ -12,7 +12,7 @@ import OSLog
 class ShareViewController: NSViewController {
     
     var callback: ((String?) -> Void)?
-    let userDefaults = UserDefaults.standard
+    var prefs = PreferenceManager()
     
     // Share struct
     struct ShareData {
@@ -75,7 +75,7 @@ class ShareViewController: NSViewController {
         authType = AuthType.pwd
         shareArray = appDelegate.mounter.shareManager.allShares
         shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
-        authTypeSwitch.isEnabled = !(userDefaults.string(forKey: Settings.kerberosDomain) ?? "").isEmpty
+        authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
         
         // check if NetworkShareMounter View has set selectedShareURL
         // if yes, prefill the data

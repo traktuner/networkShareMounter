@@ -144,13 +144,13 @@ class ShareManager {
     /// - Parameter forShare shareElement: Array of String dictionary `[String:String]`
     /// - Returns: optional `Share?` element
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
-        guard let shareUrlString = shareElement[Settings.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare] else {
             return nil
         }
         //
         // check if there is a mdm defined username. If so, replace possible occurencies of %USERNAME% with that
         var userName: String = ""
-        if let username = shareElement[Settings.username] {
+        if let username = shareElement[Defaults.username] {
             userName = username.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
             userName = NSString(string: userName).expandingTildeInPath
         }
@@ -158,7 +158,7 @@ class ShareManager {
         //
         // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
         let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-        let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
         var password: String?
         var mountStatus = MountStatus.unmounted
         if shareAuthType == AuthType.pwd {
@@ -178,7 +178,7 @@ class ShareManager {
                                          mountStatus: mountStatus,
                                          username: userName,
                                          password: password,
-                                         mountPoint: shareElement[Settings.mountPoint],
+                                         mountPoint: shareElement[Defaults.mountPoint],
                                          managed: true)
         return(newShare)
     }
@@ -199,12 +199,12 @@ class ShareManager {
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
     /// - Returns: optional `Share?` element
     func getUserShareConfigs(forShare shareElement: [String: String]) -> Share? {
-        guard let shareUrlString = shareElement[Settings.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare] else {
             return nil
         }
         var password: String?
         var mountStatus = MountStatus.unmounted
-        if let username = shareElement[Settings.username] {
+        if let username = shareElement[Defaults.username] {
             do {
                 if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareUrlString)!, withUsername: username) {
                     password = keychainPassword
@@ -215,8 +215,8 @@ class ShareManager {
                 password = nil
             }
         }
-        let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Settings.username], password: password, managed: false)
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Defaults.username], password: password, managed: false)
         return(newShare)
     }
     
@@ -224,7 +224,7 @@ class ShareManager {
         // read MDM shares
         var usedNewMDMprofile = false
         Logger.shareManager.debug("Checking possible changes in MDM profile")
-        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
+        if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             var newShares: [Share] = []
             for shareElement in sharesDict {
                 if var newShare = self.getMDMShareConfig(forShare: shareElement) {
@@ -267,7 +267,7 @@ class ShareManager {
         }
         if !usedNewMDMprofile {
             // the same as above with the legacy MDM profiles
-            if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String], !nwShares.isEmpty {
+            if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
                 var newShares: [Share] = []
                 for share in nwShares {
                     if var newShare = self.getLegacyShareConfig(forShare: share) {
@@ -319,7 +319,7 @@ class ShareManager {
         /// - then read user defined `Settings.customSharesKey`
         ///
         var usedNewMDMprofile = false
-        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
+        if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             for shareElement in sharesDict {
                 if let newShare = self.getMDMShareConfig(forShare: shareElement) {
                     usedNewMDMprofile = true
@@ -330,7 +330,7 @@ class ShareManager {
         /// alternatively try to get configured shares with now obsolete
         /// Network Share Mounter 2 definitions
         if !usedNewMDMprofile {
-            if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String], !nwShares.isEmpty {
+            if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
                 for share in nwShares {
                     if let newShare = self.getLegacyShareConfig(forShare: share) {
                         addShare(newShare)
@@ -339,7 +339,7 @@ class ShareManager {
             }
         }
         /// next look if there are some user-defined shares to import
-        if let privSharesDict = userDefaults.array(forKey: Settings.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
+        if let privSharesDict = userDefaults.array(forKey: Defaults.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
             for share in privSharesDict {
                 if let newShare = self.getUserShareConfigs(forShare: share) {
                     addShare(newShare)
@@ -347,7 +347,7 @@ class ShareManager {
             }
         }
         /// at last there may be legacy user defined share definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String], !nwShares.isEmpty {
+        else if let nwShares: [String] = userDefaults.array(forKey: Defaults.customSharesKey) as? [String], !nwShares.isEmpty {
             for share in nwShares {
                 addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
@@ -367,26 +367,26 @@ class ShareManager {
             if share.managed == false {
                 var shareConfig: [String: String] = [:]
                 
-                shareConfig[Settings.networkShare] = share.networkShare
+                shareConfig[Defaults.networkShare] = share.networkShare
                 
-                shareConfig[Settings.authType] = share.authType.rawValue
-                shareConfig[Settings.username] = share.username
+                shareConfig[Defaults.authType] = share.authType.rawValue
+                shareConfig[Defaults.username] = share.username
                 if let mountPoint = share.mountPoint {
-                    shareConfig[Settings.mountPoint] = mountPoint
+                    shareConfig[Defaults.mountPoint] = mountPoint
                 }
                 if let username = share.username {
-                    shareConfig[Settings.username] = username
+                    shareConfig[Defaults.username] = username
                 }
                 // shareConfig[Settings.location] = share.location
                 userDefaultsConfigs.append(shareConfig)
             }
         }
-        userDefaults.set(userDefaultsConfigs, forKey: Settings.userNetworkShares)
+        userDefaults.set(userDefaultsConfigs, forKey: Defaults.userNetworkShares)
         userDefaults.synchronize()
     }
     
     private func removeLegacyShareConfigs() {
-        userDefaults.removeObject(forKey: Settings.customSharesKey)
+        userDefaults.removeObject(forKey: Defaults.customSharesKey)
         userDefaults.synchronize()
     }
 

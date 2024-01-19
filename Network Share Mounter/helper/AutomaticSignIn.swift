@@ -76,7 +76,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.info("SRV Response for: _ldap._tcp.\(self.domain, privacy: .public)")
             switch i {
             case .success(let result):
-                if result.SRVRecords.count > 0 {
+                if !result.SRVRecords.isEmpty {
                     if princs.contains(where: { $0.lowercased() == self.account.upn }) {
                         self.getUserInfo()
                     } else {
@@ -93,9 +93,9 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     func auth() {
         let keyUtil = KeychainManager()
-        
         do {
-            if let pass = try keyUtil.retrievePassword(forUsername: account.upn) {
+            print(self.account.upn.lowercaseDomain())
+            if let pass = try keyUtil.retrievePassword(forUsername: self.account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
                 session.userPass = pass
                 session.delegate = self
                 session.authenticate()
@@ -104,7 +104,6 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         } catch {
             self.account.keychain = false
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
-            Logger.automaticSignIn.error("unable to find keychain item for user: \(self.account.upn, privacy: .public)")
         }
     }
     
