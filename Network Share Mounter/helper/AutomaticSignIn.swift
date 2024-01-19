@@ -76,7 +76,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.info("SRV Response for: _ldap._tcp.\(self.domain, privacy: .public)")
             switch i {
             case .success(let result):
-                if result.SRVRecords.count > 0 {
+                if !result.SRVRecords.isEmpty {
                     if princs.contains(where: { $0.lowercased() == self.account.upn }) {
                         self.getUserInfo()
                     } else {

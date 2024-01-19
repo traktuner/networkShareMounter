@@ -30,7 +30,11 @@ struct Migrator {
             if let pass = try pwm.retrievePassword(forUsername: userName, andService: FAU.keyChainServiceFAUIdM, accessGroup: Defaults.keyChainAccessGroup, iCloudSync: true) {
                 do {
                     userName.appendDomain(domain: realm.lowercased())
-                    try pwm.saveCredential(forUsername: userName, andPassword: pass, withService: Defaults.keyChainService, accessGroup: Defaults.keyChainAccessGroup, comment: "FAU IdM Kerberos Account for Network Share Mounter")
+                    try pwm.saveCredential(forUsername: userName, 
+                                           andPassword: pass,
+                                           withService: Defaults.keyChainService,
+                                           accessGroup: Defaults.keyChainAccessGroup,
+                                           comment: "FAU IdM Kerberos Account for Network Share Mounter")
                     Logger.FAU.debug("Prefix Assistant keychain entry migration for user \(userName, privacy: .public) done")
                     prefs.set(for: .keyChainPrefixManagerMigration, value: true)
                 } catch {
