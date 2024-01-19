@@ -21,6 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var backGroundManager = BackGroundManager()
     var prefs = PreferenceManager()
     var enableKerberos = false
+    var authDone = false
 
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
@@ -30,21 +31,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // define the activityController to et notifications from NSWorkspace
     var activityController: ActivityController?
     
-    //
-    // initalize class which will perform all the automounter tasks
-//    let mounter = Mounter.init()
-
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
         window.isReleasedWhenClosed = false
         
         // check if a kerberos domain/realm is set and is not empty
-        if let krbRealm = self.prefs.string(for: .kerberosRealm) {
-            if !krbRealm.isEmpty {
-                enableKerberos = true
+        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+            self.enableKerberos = true
+            // check for FAU and if user keychain migration was already done
+            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
+                let migrator = Migrator()
+                if let userName = prefs.string(for: .lastUser) {
+                    migrator.migrateKeychainEntry(forUsername: userName)
+                    Logger.automaticSignIn.debug("Starting FAU user migration...")
+                }
             }
         }
-        
         
         //
         // initialize statistics reporting struct
@@ -284,15 +285,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // make this window the key window receibing keyboard and other non-touch related events
         window.makeKey()
-    }
-
-    //
-    // method to read a file with a bunch of defaults instead of setting them in the source code
-    private func readPropertyList() -> [String: Any]? {
-        guard let plistPath = Bundle.main.path(forResource: "DefaultValues", ofType: "plist"),
-                    let plistData = FileManager.default.contents(atPath: plistPath) else {
-                return nil
-            }
-        return try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
     }
 }

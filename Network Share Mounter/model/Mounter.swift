@@ -41,13 +41,20 @@ class Mounter: ObservableObject {
     
     var errorStatus: MounterError = .noError
     
-    // TODO: this code should be cleaned up for new userDefaults values
     private var localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
-    var defaultMountPath: String = NSString(string: "~/\(Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!)").expandingTildeInPath
-    // TODO: should this be changed?
-//    var defaultMountPath = UserDefaults.standard.object(forKey: Settings.location) as? String ?? Settings.defaultMountPath
+    var defaultMountPath: String //= NSString(string: "~/\(Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!)").expandingTildeInPath
     
     init() {
+        // now create the directory where the shares will be mounted
+        // check if there is a definition where the shares will be mounted, otherwiese use the default
+        // set to ancient FAU default value
+        self.defaultMountPath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+        if let location = prefs.string(for: .location), !location.isEmpty {
+            self.defaultMountPath = NSString(string: prefs.string(for: .location)!).expandingTildeInPath
+        }
+        Logger.mounter.debug("defaultMountPath is \(self.defaultMountPath, privacy: .public)")
+        createMountFolder(atPath: self.defaultMountPath)
+        
         /// initialize the shareArray containing MDM and user defined shares
         shareManager.createShareArray()
 
@@ -72,15 +79,6 @@ class Mounter: ObservableObject {
             /// Couldn't perform mount operation, but this does not have to be a fault in non-AD/krb5 environments
             Logger.mounter.info("Couldn't add user's home directory to the list of shares to mount.")
         }
-        // now create the directory where the shares will be mounted
-        // check if there is a definition where the shares will be mounted, otherwiese use the default
-        if prefs.object(for: .location) as? String != nil {
-            self.defaultMountPath = NSString(string: prefs.string(for: .location)!).expandingTildeInPath
-        } else {
-            self.defaultMountPath = NSString(string: "~/\(Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!)").expandingTildeInPath
-        }
-        Logger.mounter.debug("defaultMountPath is \(self.defaultMountPath, privacy: .public)")
-        createMountFolder(atPath: self.defaultMountPath)
     }
     
     /// checks if there is already a share with the same network export. If not,

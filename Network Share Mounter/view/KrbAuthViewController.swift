@@ -64,7 +64,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
         krbAuthViewTitle.stringValue = NSLocalizedString("authui-krb-title", comment: "title of kerberos auth window")
         krbAuthViewInfoText.stringValue = NSLocalizedString("authui-krb-infotext", comment: "informative test for kerberos auth window")
         // if NSM is used in FAU environment use corporate images and labels
-        if prefs.string(for: .kerberosRealm)?.uppercased() == FAU.kerberosRealm {
+        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
             usernameText.stringValue = NSLocalizedString("authui-username-text-FAU", comment: "value shown as FAU username")
             passwordText.stringValue = NSLocalizedString("authui-password-text-FAU", comment: "value shown as FAU password")
             logo.image = NSImage(named: FAU.authenticationDialogImage)

@@ -93,15 +93,9 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     func auth() {
         let keyUtil = KeychainManager()
-        
-        if prefs.string(for: .kerberosRealm) == FAU.kerberosRealm {
-            let migrator = Migrator()
-            let userName = account.upn.removeDomain()
-            migrator.migrateKeychainEntry(forUsername: userName)
-        }
-        
         do {
-            if let pass = try keyUtil.retrievePassword(forUsername: account.upn) {
+            print(self.account.upn.lowercaseDomain())
+            if let pass = try keyUtil.retrievePassword(forUsername: self.account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
                 session.userPass = pass
                 session.delegate = self
                 session.authenticate()

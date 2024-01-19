@@ -64,7 +64,7 @@ enum PreferenceKeys: String, CaseIterable {
     case iconOffDark = "IconOffDark"
     case iconOn = "IconOn"
     case iconOnDark = "IconOnDark"
-    case kerberosRealm = "KerberosRealm"
+    case kerberosRealm = "kerberosRealm"
     case keychainItems = "KeychainItems"
     case keychainItemsInternet = "KeychainItemsInternet"
     case keychainItemsCreateSerial = "KeychainItemsCreateSerial"

@@ -12,11 +12,11 @@ import OSLog
 struct FAU {
     static let keyChainServiceFAUIdM = "FAU IdM account"
     static let keyChainComment = "FAU IdM credentials for Kerberos ticket management"
-    static let kerberosRealm = "FAUAD.FAU.DE"
+    static let kerberosRealm = "fauad.fau.de"  // this is intentiopnally set to lowercase
     static let authenticationDialogImage = "FAUMac_Logo_512"
 }
 
-class Migrator {
+struct Migrator {
     var prefs = PreferenceManager()
     
     /// retrieve keychain entry for a given userName, append kerberos realm and save into
@@ -25,12 +25,12 @@ class Migrator {
     /// - Parameter toRealm: ``realm`` kerberos realm appended to userName (defaults to FAU.kerberosRealm
     func migrateKeychainEntry(forUsername: String, toRealm realm: String = FAU.kerberosRealm) {
         let pwm = KeychainManager()
-        var userName = forUsername
+        var userName = forUsername.removeDomain()
         do {
-            if let pass = try pwm.retrievePassword(forUsername: userName, andService: Defaults.keyChainService, label: Defaults.keyChainService) {
+            if let pass = try pwm.retrievePassword(forUsername: userName, andService: FAU.keyChainServiceFAUIdM, accessGroup: Defaults.keyChainAccessGroup, iCloudSync: true) {
                 do {
-                    userName.appendDomain(domain: realm.uppercased())
-                    try pwm.saveCredential(forUsername: userName, andPassword: pass, accessGroup: Defaults.keyChainAccessGroup, comment: "FAU IdM Account for Network Share Mounter")
+                    userName.appendDomain(domain: realm.lowercased())
+                    try pwm.saveCredential(forUsername: userName, andPassword: pass, withService: Defaults.keyChainService, accessGroup: Defaults.keyChainAccessGroup, comment: "FAU IdM Kerberos Account for Network Share Mounter")
                     Logger.FAU.debug("Prefix Assistant keychain entry migration for user \(userName, privacy: .public) done")
                     prefs.set(for: .keyChainPrefixManagerMigration, value: true)
                 } catch {

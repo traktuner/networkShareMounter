@@ -14,6 +14,7 @@ struct Defaults {
     static let defaultsDomain = "de.fau.rrze.NetworkShareMounter"
     static let keyChainService = "Network Share Mounter account"
     static let keyChainLabel = "Network Share Mounter account"
+    static let keyChainLabelKerberos = "Network Share Mounter Kerberos account"
     static let keyChainAccessGroup = "C8F68RFW4L.de.fau.rrze.faucredentials"
     static let translation = [
         "en": "Networkshares",

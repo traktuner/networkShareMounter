@@ -19,15 +19,14 @@ extension UserDefaults {
     }
 }
 
-class PreferenceManager {
+struct PreferenceManager {
     
     let defaults = UserDefaults.standard
     let stateDefaults = UserDefaults.init(suiteName: kStateDomain)
-    let userDefaults = UserDefaults.standard
     
     init() {
         if let defaultValues = readPropertyList() {
-            userDefaults.register(defaults: defaultValues)
+            defaults.register(defaults: defaultValues)
         }
     }
     
