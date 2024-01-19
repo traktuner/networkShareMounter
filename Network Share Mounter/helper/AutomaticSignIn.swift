@@ -94,6 +94,12 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     func auth() {
         let keyUtil = KeychainManager()
         
+        if prefs.string(for: .kerberosRealm) == FAU.kerberosRealm {
+            let migrator = Migrator()
+            let userName = account.upn.removeDomain()
+            migrator.migrateKeychainEntry(forUsername: userName)
+        }
+        
         do {
             if let pass = try keyUtil.retrievePassword(forUsername: account.upn) {
                 session.userPass = pass
@@ -104,7 +110,6 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         } catch {
             self.account.keychain = false
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
-            Logger.automaticSignIn.error("unable to find keychain item for user: \(self.account.upn, privacy: .public)")
         }
     }
     

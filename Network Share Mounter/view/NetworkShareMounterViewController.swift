@@ -42,7 +42,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         tableView.delegate = self
         
         // hide kerberos authenticate button if no krb domain is set
-        dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosDomain) ?? "").isEmpty
+        dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
         dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
         
         modifyShareButton.isEnabled = false

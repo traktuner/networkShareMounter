@@ -15,7 +15,7 @@ let kSharedDefaultsName = "de.fau.rrze.NetworkShareMounter"
 
 extension UserDefaults {
     @objc dynamic var Accounts: Data? {
-        return data(forKey: Settings.Accounts)
+        return data(forKey: Defaults.Accounts)
     }
 }
 

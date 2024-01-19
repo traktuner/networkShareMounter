@@ -24,7 +24,6 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("authui-infotext", comment: "")]
     
-    let userDefaults = UserDefaults.standard
     let workQueue = DispatchQueue(label: "de.fau.networkShareMounter.kerberos", qos: .userInteractive, attributes:[], autoreleaseFrequency: .never, target: nil)
     
     var session: dogeADSession?
@@ -45,7 +44,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
     
     @IBAction func authenticateKlicked(_ sender: Any) {
         startOperations()
-        self.session = dogeADSession.init(domain: self.username.stringValue.userDomain() ?? userDefaults.string(forKey: Settings.kerberosDomain) ?? "", user: self.username.stringValue)
+        self.session = dogeADSession.init(domain: self.username.stringValue.userDomain() ?? prefs.string(for: .kerberosRealm) ?? "", user: self.username.stringValue)
         session?.setupSessionFromPrefs(prefs: prefs)
         session?.userPass = password.stringValue
         session?.delegate = self
@@ -65,7 +64,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
         krbAuthViewTitle.stringValue = NSLocalizedString("authui-krb-title", comment: "title of kerberos auth window")
         krbAuthViewInfoText.stringValue = NSLocalizedString("authui-krb-infotext", comment: "informative test for kerberos auth window")
         // if NSM is used in FAU environment use corporate images and labels
-        if userDefaults.string(forKey: Settings.kerberosDomain)?.lowercased() == FAU.kerberosDomain {
+        if prefs.string(for: .kerberosRealm)?.uppercased() == FAU.kerberosRealm {
             usernameText.stringValue = NSLocalizedString("authui-username-text-FAU", comment: "value shown as FAU username")
             passwordText.stringValue = NSLocalizedString("authui-password-text-FAU", comment: "value shown as FAU password")
             logo.image = NSImage(named: FAU.authenticationDialogImage)

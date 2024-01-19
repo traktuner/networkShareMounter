@@ -20,7 +20,7 @@ import Security
 /// kSecAttrServer -> the server URL/IP address part of the share
 /// kSecAttrPath -> the path part of the share
 /// kSecAttrProtocol -> the protocol part of the share (kSecAttrProtocolSMB, kSecAttrProtocolAFP, kSecAttrProtocolHTTPS, kSecAttrProtocolFTP)
-/// kSecAttrLabel -> the name of the keychain entry, shown as "Name:" in Schlüsselbundverwaltung
+/// kSecAttrLabel -> the name of the keychain entry, shown as "Name:" in Schlüsselbundverwaltung, can be used to filter for multiple keychain entries
 /// kSecUseDataProtectionKeychain -> kCFBooleanTrue - a key whose value indicates whether to treat macOS keychain items like iOS keychain items
 /// kSecAttrSynchronizable -> CFbool indicating whether the item synchronizes through iCloud.
 ///     (look at https://developer.apple.com/forums/thread/114456)
@@ -52,10 +52,13 @@ enum KeychainError: Error {
     case undefinedError
     case errorRemovingEntry
     case errorRetrievingPassword
+    case errorAccessingPassword
     case errorWithStatus(status: OSStatus)
 }
 
 class KeychainManager: NSObject {
+    var prefs = PreferenceManager()
+    
     /// function to create a query to use with keychain
     /// - Parameter forShare: ``String`` containing the URL of a network share
     /// - Parameter withUsername: ``String`` contining the username to connect the network share
@@ -73,7 +76,7 @@ class KeychainManager: NSObject {
                                     kSecAttrServer as String: host as Any,
                                     kSecAttrPath as String: path,
                                     kSecAttrLabel as String: host as Any,
-                                    kSecAttrSynchronizable as String: UserDefaults.standard.bool(forKey: Settings.keychainiCloudSync)
+                                    kSecAttrSynchronizable as String: prefs.bool(for: .keychainiCloudSync)
                                     ]
         switch urlScheme {
         case "https":
@@ -100,21 +103,25 @@ class KeychainManager: NSObject {
     }
     
     /// create a query to use with keychain
-    /// - Parameter label: ``String`` string containing keychain label name
     /// - Parameter withUsername: ``String`` contining the username to connect the network share
-    /// - Parameter andPassword: ``String`` containing the password for username
+    /// - Parameter service: ``String`` string containing keychain service name
     /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
+    /// - Parameter label: ``String`` string containing keychain label name
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
-    func makeQuery(label: String, username: String, accessGroup: String? = nil, comment: String? = nil) throws -> [String: Any]  {
-        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+    func makeQuery(username: String, service: String = Defaults.keyChainService, accessGroup: String? = nil, label: String? = nil, comment: String? = nil) throws -> [String: Any]  {
+        var query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrAccount as String: username,
-                                    kSecAttrLabel as String: label]
+                                    kSecAttrLabel as String: service]
         if let kcComment = comment {
             query[kSecAttrComment as String] = kcComment
         }
         if let kcAccessGroup = accessGroup {
             query[kSecAttrAccessGroup as String] = kcAccessGroup
         }
+        if let kSecAttrLabel = label {
+            query[kSecAttrLabel as String] = kSecAttrLabel
+        }
+
         return query
     }
     
@@ -125,9 +132,9 @@ class KeychainManager: NSObject {
     /// - Parameter withService: ``String?`` optional string containing keychain service name
     /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
-    func saveCredential(forShare share: URL, withUsername username: String, andPassword password: String, withService service: String? = nil, accessGroup: String? = nil, comment: String? = nil) throws {
+    func saveCredential(forShare share: URL, withUsername username: String, andPassword password: String, withLabel label: String? = Defaults.keyChainService, accessGroup: String? = Defaults.keyChainAccessGroup, comment: String? = nil) throws {
         do {
-            var query = try makeQuery(share: share, username: username, service: service, accessGroup: accessGroup, comment: comment)
+            var query = try makeQuery(share: share, username: username, accessGroup: accessGroup, comment: comment)
             query[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
             /// Delete existing entry (if applicable)
             SecItemDelete(query as CFDictionary)
@@ -144,11 +151,12 @@ class KeychainManager: NSObject {
     /// store a new keychain entry. An existing entry will be overwritten
     /// - Parameter forUsername: ``String`` contining the username to connect the network share
     /// - Parameter andPassword: ``String`` containing the password for username
+    /// - Parameter withService: ``String?`` containing the service for keychain entry, defaults to Defaults.keyChainService
     /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
-    func saveCredential(forUsername username: String, andPassword password: String, accessGroup: String? = nil, comment: String? = nil) throws {
+    func saveCredential(forUsername username: String, andPassword password: String, withService service: String = Defaults.keyChainService, accessGroup: String? = nil, comment: String? = nil) throws {
         do {
-            var query = try makeQuery(label: FAU.keyChainService, username: username, accessGroup: FAU.keyChainAccessGroup)
+            var query = try makeQuery(username: username, service: Defaults.keyChainService, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainLabel, comment: comment)
             query[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
             /// Delete existing entry (if applicable)
             SecItemDelete(query as CFDictionary)
@@ -179,7 +187,7 @@ class KeychainManager: NSObject {
             
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess else {
-                throw KeychainError.errorRemovingEntry
+                throw KeychainError.errorWithStatus(status: status)
             }
         } catch {
             throw KeychainError.errorRemovingEntry
@@ -187,22 +195,24 @@ class KeychainManager: NSObject {
     }
     
     /// delete a specific keychain entry defined by
-    /// - Parameter forhUsername: ``username`` login for share
-    func removeCredential(forUsername username: String) throws {
+    /// - Parameter forhUsername: ``String`` login for share
+    /// - Parameter andService: ``String`` keychain service
+    /// - Parameter label: ``String`` keychain label
+    func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, label: String = Defaults.keyChainLabel) throws {
         do {
-            let query = try makeQuery(label: FAU.keyChainService, username: username, accessGroup: FAU.keyChainAccessGroup)
+            let query = try makeQuery(username: username, service: service, label: label)
             
             // try to get the password for share and username. If none is returned, the
             // entry does not exist and there is no need to remove an entry -> return
             do {
-                _ = try retrievePassword(forUsername: username)
+                _ = try retrievePassword(forUsername: username,andService: service, label: label)
             } catch {
                 return
             }
             
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess else {
-                throw KeychainError.errorRemovingEntry
+                throw KeychainError.errorWithStatus(status: status)
             }
         } catch {
             throw KeychainError.errorRemovingEntry
@@ -210,8 +220,8 @@ class KeychainManager: NSObject {
     }
     
     /// retrieve a password from the keychain
-    /// - Parameter forShare: ``share`` name of the share
-    /// - Parameter withUsername: ``username`` login for share
+    /// - Parameter forShare: ``URL`` name of the share
+    /// - Parameter withUsername: ``String`` login for share
     func retrievePassword(forShare share: URL, withUsername username: String) throws -> String? {
         do {
             var query = try makeQuery(share: share, username: username)
@@ -221,7 +231,7 @@ class KeychainManager: NSObject {
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
             guard status == errSecSuccess else {
-                throw KeychainError.errorRetrievingPassword
+                throw KeychainError.errorWithStatus(status: status)
             }
             
             if let parsedData = ref as? Data {
@@ -234,17 +244,19 @@ class KeychainManager: NSObject {
     }
     
     /// retrieve a password from the keychain
-    /// - Parameter forUsername: ``username`` login for share
-    func retrievePassword(forUsername username: String) throws -> String? {
+    /// - Parameter forUsername: ``String`` username
+    /// - Parameter andService: ``String`` service, defaults to Defaults.keyChainService
+    /// - Parameter label: ``String`` label, defaults to Defaults.keyChainLabel
+    func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, label: String = Defaults.keyChainLabel) throws -> String? {
         do {
-            var query = try makeQuery(label: FAU.keyChainService, username: username, accessGroup: FAU.keyChainAccessGroup)
+            var query = try makeQuery(username: username, service: service, label: label)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
             guard status == errSecSuccess else {
-                throw KeychainError.errorRetrievingPassword
+                throw KeychainError.errorWithStatus(status: status)
             }
             
             if let parsedData = ref as? Data {

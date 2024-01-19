@@ -16,8 +16,8 @@
 	<false/>
 	<key>authenticationDialogImage</key>
 	<string>nsm_logo</string>
-	<key>kerberosDomain</key>
-	<string>fauad.fau.de</string>
+	<key>kerberosRealm</key>
+	<string>FAUAD.FAU.DE</string>
 	<key>autostart</key>
 	<false/>
 	<key>canQuit</key>

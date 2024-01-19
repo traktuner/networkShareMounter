@@ -24,6 +24,7 @@ enum AuthType: String {
 
 /// classe tro perform mount/unmount operations for network shares
 class Mounter: ObservableObject {
+    var prefs = PreferenceManager()
     /// @Published var shares: [Share] allows publishing changes to the shares array
 //    @Published var shares = [Share]()
 //    private var shareManager = ShareManager()
@@ -31,8 +32,6 @@ class Mounter: ObservableObject {
     
     /// convenience variable for `FileManager.default`
     private let fm = FileManager.default
-    /// convenience variable for `UserDefaults.standard`
-    private let userDefaults = UserDefaults.standard
     /// initalize class which will perform all the automounter tasks
     static let mounter = Mounter.init()
     /// define locks to protect `shares`-array from race conditions
@@ -43,8 +42,8 @@ class Mounter: ObservableObject {
     var errorStatus: MounterError = .noError
     
     // TODO: this code should be cleaned up for new userDefaults values
-    private var localizedFolder = Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!
-    var defaultMountPath: String = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
+    private var localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
+    var defaultMountPath: String = NSString(string: "~/\(Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!)").expandingTildeInPath
     // TODO: should this be changed?
 //    var defaultMountPath = UserDefaults.standard.object(forKey: Settings.location) as? String ?? Settings.defaultMountPath
     
@@ -75,10 +74,10 @@ class Mounter: ObservableObject {
         }
         // now create the directory where the shares will be mounted
         // check if there is a definition where the shares will be mounted, otherwiese use the default
-        if userDefaults.object(forKey: Settings.location) as? String != nil {
-            self.defaultMountPath = NSString(string: userDefaults.string(forKey: Settings.location)!).expandingTildeInPath
+        if prefs.object(for: .location) as? String != nil {
+            self.defaultMountPath = NSString(string: prefs.string(for: .location)!).expandingTildeInPath
         } else {
-            self.defaultMountPath = NSString(string: "~/\(Settings.translation[Locale.current.languageCode!] ?? Settings.translation["en"]!)").expandingTildeInPath
+            self.defaultMountPath = NSString(string: "~/\(Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!)").expandingTildeInPath
         }
         Logger.mounter.debug("defaultMountPath is \(self.defaultMountPath, privacy: .public)")
         createMountFolder(atPath: self.defaultMountPath)
@@ -203,7 +202,7 @@ class Mounter: ObservableObject {
                 if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                     //
                     // Clean up the directory containing the mounts only if defined in userdefaults
-                    if userDefaults.bool(forKey: Settings.cleanupLocationDirectory) == true {
+                    if prefs.bool(for: .cleanupLocationDirectory) == true {
                         //
                         // if the function has a parameter we want to handle files, not directories
                         if let unwrappedFilename = filename {
@@ -386,7 +385,7 @@ class Mounter: ObservableObject {
     /// prepare parent directory where the shares will be mounted
     func prepareMountPrerequisites() async {
         // iterate through all files defined in config file (e.g. .autodiskmounted, .DS_Store)
-        for toDelete in Settings.filesToDelete {
+        for toDelete in Defaults.filesToDelete {
             await deleteUnneededFiles(path: self.defaultMountPath, filename: toDelete)
         }
 
@@ -550,14 +549,14 @@ class Mounter: ObservableObject {
             if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted {
                 Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountPath, privacy: .public)")
                 updateShare(mountStatus: .queued, for: share)
-                let mountOptions = Settings.mountOptions
+                let mountOptions = Defaults.mountOptions
                 try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
                 // swiftlint:enable force_cast
                 let rc = NetFSMountURLSync(url as CFURL,
                                            NSURL(string: mountDirectory),
                                            share.username as CFString?,
                                            share.password as CFString?,
-                                           Settings.openOptions,
+                                           Defaults.openOptions,
                                            mountOptions,
                                            nil)
                 // swiftlint:disable force_cast
