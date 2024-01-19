@@ -20,9 +20,10 @@ import OSLog
 struct AppStatistics {
     var instanceUUID = "UNKNOWN"
     var appVersion = "UNKNOWN"
-    var reportURL = Settings.statisticsReportURL
+    var reportURL = Defaults.statisticsReportURL
     var bundleID = "UNKNOWN"
-    let userDefaults = UserDefaults.standard
+    var prefs = PreferenceManager()
+    
     
     init() {
         self.instanceUUID = getInstanceUUID()
@@ -33,11 +34,11 @@ struct AppStatistics {
     /// Generate or read a UUID unique for the installation
     /// - Returns: a string containig installation's UUID
     private func getInstanceUUID() -> String {
-        if let uuid = userDefaults.string(forKey: Settings.UUID) {
+        if let uuid = prefs.string(for: .UUID) {
             return(uuid)
         } else {
             let uuid = UUID().uuidString
-            userDefaults.set(uuid, forKey: Settings.UUID)
+            prefs.set(for: .UUID, value: uuid)
             return(uuid)
         }
     }
@@ -71,7 +72,7 @@ struct AppStatistics {
         Logger.appStatistics.debug("Debugging app, not reporting anything to statistics server ...")
 #else
         let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
-        guard let reportURL = URL(string: Settings.statisticsReportURL + reportData) else {
+        guard let reportURL = URL(string: Defaults.statisticsReportURL + reportData) else {
             return()
         }
         var request = URLRequest(url: reportURL)

@@ -16,7 +16,7 @@ public struct SRVResult {
     
     func sortByWeight() -> [String]? {
         
-        guard SRVRecords.count > 0 else { return nil}
+        guard !SRVRecords.isEmpty else { return nil}
         
         var data_set = SRVRecords
         var swap = true

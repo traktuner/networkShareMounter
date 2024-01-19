@@ -117,4 +117,22 @@ extension String {
     mutating func appendDomain(domain: String) {
         self = self.appending("@" + domain)
     }
+    
+    func lowercaseDomain() -> String {
+        if self.contains("@") {
+            let split = self.components(separatedBy: "@")
+            return split[0] + "@" + split[1].lowercased()
+        } else {
+            return self
+        }
+    }
+    
+    func uppercaseDomain() -> String {
+        if self.contains("@") {
+            let split = self.components(separatedBy: "@")
+            return split[0] + "@" + split[1].uppercased()
+        } else {
+            return self
+        }
+    }
 }

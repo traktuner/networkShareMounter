@@ -16,10 +16,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     var window = NSWindow()
-    let userDefaults = UserDefaults.standard
     var mountpath = ""
     var mounter = Mounter()
     var backGroundManager = BackGroundManager()
+    var prefs = PreferenceManager()
+    var enableKerberos = false
+    var authDone = false
 
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
@@ -29,21 +31,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // define the activityController to et notifications from NSWorkspace
     var activityController: ActivityController?
     
-    //
-    // initalize class which will perform all the automounter tasks
-//    let mounter = Mounter.init()
-
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
         window.isReleasedWhenClosed = false
-        //
-        // using "register" instead of "get" will set the values according to the plist read
-        // by "readPropertyList" if, and only if the respective  values are nil. Those values
-        // are not written back to UserDefaults.
-        // So if there are any values set by the user or MDM, those values will be used. If
-        // not, the values in the plist are used.
-        if let defaultValues = readPropertyList() {
-            userDefaults.register(defaults: defaultValues)
+        
+        // check if a kerberos domain/realm is set and is not empty
+        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+            self.enableKerberos = true
+            // check for FAU and if user keychain migration was already done
+            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
+                let migrator = Migrator()
+                if let userName = prefs.string(for: .lastUser) {
+                    migrator.migrateKeychainEntry(forUsername: userName)
+                    Logger.automaticSignIn.debug("Starting FAU user migration...")
+                }
+            }
         }
         
         //
@@ -55,13 +56,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         //
         // register App according to userDefaults as "start at login"
-        // LaunchAtLogin.isEnabled = userDefaults.bool(forKey: Settings.autostart)
-        // LaunchAtLogin.isEnabled = UserDefaults(suiteName: config.defaultsDomain)?.bool(forKey: Settings.autostart) ?? true
-        if userDefaults.bool(forKey: Settings.autostart) != false {
-            LaunchAtLogin.isEnabled = true
-        } else {
-            LaunchAtLogin.isEnabled = false
-        }
+        LaunchAtLogin.isEnabled = prefs.bool(for: .autostart)
 
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
@@ -76,7 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // start a timer to perform a mount every 5 minutes
         let timerInterval: Double = 300
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-            Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing operartions.")
+            Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing operartions:")
             let netConnection = Monitor.shared
             let status = netConnection.netOn
             Logger.app.info("Current Network Path is \(status, privacy: .public).")
@@ -84,7 +79,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // run authenticaction only if kerberos auth is enabled
                 // forcing unwrapping the optional is OK, since values are "registered"
                 // and set to empty string if not set
-                if !self.userDefaults.string(forKey: Settings.kerberosDomain)!.isEmpty {
+                if self.enableKerberos {
                     Logger.app.debug("... processing automatic sign in (if configured)")
                     await self.backGroundManager.processAutomaticSignIn()
                 }
@@ -103,7 +98,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 Task {
                     Logger.app.debug("Got network monitoring callback:")
                     // run authenticaction only if kerberos auth is enabled
-                    if !self.userDefaults.string(forKey: Settings.kerberosDomain)!.isEmpty {
+                    if self.enableKerberos {
                         Logger.app.debug("... processing automatic sign in (if configured)")
                         await self.backGroundManager.processAutomaticSignIn()
                     }
@@ -131,8 +126,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // finally authenticate and mount all defined shares...
         Task {
             // run authenticaction only if kerberos auth is enabled
-            if !self.userDefaults.string(forKey: Settings.kerberosDomain)!.isEmpty {
+            if self.enableKerberos {
+                Logger.app.debug("Found configured kerberos realm, processing automatic sign in (if configured)")
                 await self.backGroundManager.processAutomaticSignIn()
+            } else {
+                Logger.app.debug("No kerberos realm configured.")
             }
             await self.mounter.mountAllShares()
         }
@@ -144,7 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ aNotification: Notification) {
         //
         // unmount all shares before leaving
-        if userDefaults.bool(forKey: Settings.unmountOnExit) == true {
+        if prefs.bool(for: .unmountOnExit) == true {
             Task {
                 await self.mounter.unmountAllMountedShares()
             }
@@ -216,7 +214,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func openHelpURL(_ sender: Any?) {
-        guard let url = userDefaults.string(forKey: Settings.helpURL), let openURL = URL(string: url) else {
+        guard let url = prefs.string(for: .helpURL), let openURL = URL(string: url) else {
             return
         }
         NSWorkspace.shared.open(openURL)
@@ -240,7 +238,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 Logger.app.debug("Constructing default menu.")
         }
         
-        if userDefaults.string(forKey: Settings.helpURL)!.description.isValidURL {
+        if prefs.string(for: .helpURL)!.description.isValidURL {
             menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),
                                     action: #selector(AppDelegate.openHelpURL(_:)), keyEquivalent: ""))
         }
@@ -255,7 +253,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
                                 action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
-        if userDefaults.bool(forKey: Settings.canQuit) != false {
+        if prefs.bool(for: .canQuit) != false {
             menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
                                     action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
@@ -287,15 +285,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // make this window the key window receibing keyboard and other non-touch related events
         window.makeKey()
-    }
-
-    //
-    // method to read a file with a bunch of defaults instead of setting them in the source code
-    private func readPropertyList() -> [String: Any]? {
-        guard let plistPath = Bundle.main.path(forResource: "DefaultValues", ofType: "plist"),
-                    let plistData = FileManager.default.contents(atPath: plistPath) else {
-                return nil
-            }
-        return try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
     }
 }

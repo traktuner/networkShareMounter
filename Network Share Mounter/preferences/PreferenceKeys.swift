@@ -64,7 +64,7 @@ enum PreferenceKeys: String, CaseIterable {
     case iconOffDark = "IconOffDark"
     case iconOn = "IconOn"
     case iconOnDark = "IconOnDark"
-    case kerberosRealm = "KerberosRealm"
+    case kerberosRealm = "kerberosRealm"
     case keychainItems = "KeychainItems"
     case keychainItemsInternet = "KeychainItemsInternet"
     case keychainItemsCreateSerial = "KeychainItemsCreateSerial"
@@ -193,11 +193,12 @@ enum PreferenceKeys: String, CaseIterable {
     case customSharesKey = "customNetworkShares"
     case userNetworkShares = "userNetworkShares"
     case location = "location"
-    case kerberosDomain = "kerberosDomain"
     case keychainiCloudSync = "keychainiCloudSync"
     case authenticationDialogImage = "authenticationDialogImage"
     case keyChainService = "keyChainService"
+    case keyChainLabel = "keyChainLabel"
     case keyChainComment = "keyChainComment"
+    case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
     
     func printAllPrefs() {
         let defaults = UserDefaults.standard

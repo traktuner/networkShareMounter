@@ -148,7 +148,9 @@ public func getConsoleUser() -> String {
 public func getSerial() -> String {
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
     let serialNumberAsCFString = IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0)
+    // swiftlint:disable force_cast
     return serialNumberAsCFString?.takeUnretainedValue() as! String
+    // swiftlint:enable force_cast
 }
 
 // get hardware MAC addresss
