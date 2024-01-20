@@ -420,6 +420,10 @@ class Mounter: ObservableObject {
             } else {
                 // perform cleanup routines before mounting
 //                await prepareMountPrerequisites()
+                if userTriggered {
+                    cliTask("killall NetAuthSysAgent")
+                    Logger.mounter.debug("killall NetAuthSysAgent")
+                }
                 for share in self.shareManager.allShares {
                     Task {
                         do {
@@ -428,7 +432,9 @@ class Mounter: ObservableObject {
                             if userTriggered {
                                 updateShare(mountStatus: .unmounted, for: share)
                             }
-                            let actualMountpoint = try await mountShare(forShare: share, atPath: defaultMountPath)
+                            let actualMountpoint = try await mountShare(forShare: share,
+                                                                        atPath: defaultMountPath,
+                                                                        userTriggered: userTriggered)
                             updateShare(actualMountPoint: actualMountpoint, for: share)
                             updateShare(mountStatus: .mounted, for: share)
                         } catch MounterError.doesNotExist {
@@ -472,7 +478,7 @@ class Mounter: ObservableObject {
     }
     
     /// this function performs the mount of a given remote share on a local mountpoint
-    func mountShare(forShare share: Share, atPath mountPath: String) async throws -> String {
+    func mountShare(forShare share: Share, atPath mountPath: String, userTriggered: Bool = false) async throws -> String {
         // oddly there is some undocumented magic done by addingPercentEncoding when the CharacterSet
         // used as reference is an underlying NSCharacterSet class. It appears, it encodes even the ":"
         // at the very beginning of the URL ( smb:// vs. smb0X0P+0// ). As a result, the host() function
@@ -544,7 +550,7 @@ class Mounter: ObservableObject {
         // If there is, the share ist PROBABLY already mounted. We should double check this, but
         //
         if !isDirectoryFilesystemMount(atPath: mountDirectory) {
-            if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted {
+            if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted && userTriggered {
                 Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountPath, privacy: .public)")
                 updateShare(mountStatus: .queued, for: share)
                 let mountOptions = Defaults.mountOptions
