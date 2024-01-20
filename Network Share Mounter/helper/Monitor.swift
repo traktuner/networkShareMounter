@@ -11,6 +11,10 @@ import Network
 import OSLog
 import AppKit
 
+// variable is used to wait a few seconds to settle network connectivity
+var networkUpdatePending = false
+var networkUpdateTimer: Timer?
+
 enum Reachable: String {
     case yes, nope
 }
@@ -20,13 +24,11 @@ enum Connection: String {
 }
 
 class Monitor {
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "NetworkMonitor")
-    
     static public let shared = Monitor()
     let monitor: NWPathMonitor
     private let queue = DispatchQueue(label: "Monitor")
     var netOn: Bool = true
-    var connType: Connection = .wifi
+    var connType: Connection = .loopback
     
     init() {
         self.monitor = NWPathMonitor()
@@ -36,22 +38,33 @@ class Monitor {
 
 extension Monitor {
     func startMonitoring( callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void ) {
+        let networkSettleTime: Double = 3
         monitor.pathUpdateHandler = { path in
 
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
             self.netOn = path.status == .satisfied
             self.connType = self.checkConnectionTypeForPath(path)
-            self.logger.info("Network connection changed to \(self.connType.rawValue, privacy: .public).")
+            Logger.networkMonitor.info("Network connection changed to \(self.connType.rawValue, privacy: .public).")
 
             if path.status == .satisfied {
-                if path.usesInterfaceType(.wifi) {
-                    return callBack(.wifi, reachable)
-                } else if path.usesInterfaceType(.cellular) {
-                    return callBack(.cellular, reachable)
-                } else if path.usesInterfaceType(.wiredEthernet) {
-                    return callBack(.wiredEthernet, reachable)
-                } else {
-                    return callBack(.other, reachable)
+                // wait a few seconds to settle network before firing callbacks
+                if !networkUpdatePending {
+                    Logger.networkMonitor.debug("Waiting \(networkSettleTime, privacy: .public) seconds to settle network...")
+                    kNetworkUpdateTimer = Timer.init(timeInterval: networkSettleTime, repeats: false, block: {_ in
+                        kNetworkUpdatePending = false
+                        Logger.networkMonitor.debug("Firing network change callbacks")
+                        if path.usesInterfaceType(.wifi) {
+                            return callBack(.wifi, reachable)
+                        } else if path.usesInterfaceType(.cellular) {
+                            return callBack(.cellular, reachable)
+                        } else if path.usesInterfaceType(.wiredEthernet) {
+                            return callBack(.wiredEthernet, reachable)
+                        } else {
+                            return callBack(.other, reachable)
+                        }
+                    })
+                    RunLoop.main.add(kNetworkUpdateTimer!, forMode: RunLoop.Mode.default)
+                    kNetworkUpdatePending = true
                 }
             } else {
                 return callBack(.none, .nope)

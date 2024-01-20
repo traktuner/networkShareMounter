@@ -12,6 +12,7 @@ import OSLog
 class ShareViewController: NSViewController {
     
     var callback: ((String?) -> Void)?
+    var prefs = PreferenceManager()
     
     // Share struct
     struct ShareData {
@@ -63,7 +64,6 @@ class ShareViewController: NSViewController {
     // appDelegate is used to accesss variables in AppDelegate
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     // swiftlint:enable force_cast
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "ShareViewController")
     
     // MARK: - View Lifecycle
     
@@ -75,6 +75,7 @@ class ShareViewController: NSViewController {
         authType = AuthType.pwd
         shareArray = appDelegate.mounter.shareManager.allShares
         shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
+        authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
         
         // check if NetworkShareMounter View has set selectedShareURL
         // if yes, prefill the data
@@ -167,7 +168,7 @@ class ShareViewController: NSViewController {
 
             if shareArray.contains(where: { $0.networkShare == newShare.networkShare }) {
                 if let existingShare = appDelegate.mounter.getShare(forNetworkShare: newShare.networkShare) {
-                    self.logger.debug("Updating existing share \(networkShareText, privacy: .public).")
+                    Logger.shareViewController.debug("Updating existing share \(networkShareText, privacy: .public).")
                     if await updateExistingShare(existingShare: existingShare, newShare: newShare, networkShareText: networkShareText) {
                         return nil
                     }
@@ -179,7 +180,7 @@ class ShareViewController: NSViewController {
             }
         } else {
             // not valid share entered
-            self.logger.error("\(networkShareText, privacy: .public) is not a valid share, since it does not start with smb://, cifs://, afp:// or http://")
+            Logger.shareViewController.error("\(networkShareText, privacy: .public) is not a valid share, since it does not start with smb://, cifs://, afp:// or http://")
             showErrorDialog(error: MounterError.errorOnEncodingShareURL)
             progressIndicator.stopAnimation(self)
             progressIndicator.isHidden = true
@@ -197,7 +198,7 @@ class ShareViewController: NSViewController {
         self.appDelegate.mounter.unmountShare(for: existingShare)
         do {
             let returned = try await self.appDelegate.mounter.mountShare(forShare: newShare, atPath: self.appDelegate.mounter.defaultMountPath)
-            logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
+            Logger.shareViewController.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
             self.appDelegate.mounter.updateShare(for: newShare)
             self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["ClearError": MounterError.noError])
@@ -206,7 +207,7 @@ class ShareViewController: NSViewController {
             // share did not mount, reset it to the former state
             self.appDelegate.mounter.updateShare(for: existingShare)
             self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
-            logger.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
+            Logger.shareViewController.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
             showErrorDialog(error: error)
             progressIndicator.stopAnimation(self)
             progressIndicator.isHidden = true
@@ -222,7 +223,7 @@ class ShareViewController: NSViewController {
     private func addNewShare(newShare: Share, networkShareText: String) async -> Bool {
         do {
             let returned = try await self.appDelegate.mounter.mountShare(forShare: newShare, atPath: self.appDelegate.mounter.defaultMountPath)
-            logger.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
+            Logger.shareViewController.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
             self.appDelegate.mounter.addShare(newShare)
             self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
             return true
@@ -230,7 +231,7 @@ class ShareViewController: NSViewController {
             // share did not mount, remove it from the array of shares
             self.appDelegate.mounter.removeShare(for: newShare)
             self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
-            logger.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
+            Logger.shareViewController.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
             showErrorDialog(error: error)
             progressIndicator.stopAnimation(self)
             progressIndicator.isHidden = true
@@ -252,7 +253,7 @@ class ShareViewController: NSViewController {
         if let viewWindow = self.view.window {
             alert.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
                 if(modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn){
-                    self.logger.debug("User informed about error \(error, privacy: .public)")
+                    Logger.shareViewController.debug("User informed about error \(error, privacy: .public)")
                 }
             })
         }

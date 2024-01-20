@@ -20,10 +20,10 @@ import OSLog
 struct AppStatistics {
     var instanceUUID = "UNKNOWN"
     var appVersion = "UNKNOWN"
-    var reportURL = Settings.statisticsReportURL
+    var reportURL = Defaults.statisticsReportURL
     var bundleID = "UNKNOWN"
-    let userDefaults = UserDefaults.standard
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "AppStatistics")
+    var prefs = PreferenceManager()
+    
     
     init() {
         self.instanceUUID = getInstanceUUID()
@@ -34,11 +34,11 @@ struct AppStatistics {
     /// Generate or read a UUID unique for the installation
     /// - Returns: a string containig installation's UUID
     private func getInstanceUUID() -> String {
-        if let uuid = userDefaults.string(forKey: "UUID") {
+        if let uuid = prefs.string(for: .UUID) {
             return(uuid)
         } else {
             let uuid = UUID().uuidString
-            userDefaults.set(uuid, forKey: "UUID")
+            prefs.set(for: .UUID, value: uuid)
             return(uuid)
         }
     }
@@ -69,10 +69,10 @@ struct AppStatistics {
     /// - **bundleID**
     func reportAppInstallation() async -> Void {
 #if DEBUG
-        logger.debug("Debugging app, not reporting anything to statistics server ...")
+        Logger.appStatistics.debug("Debugging app, not reporting anything to statistics server ...")
 #else
         let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
-        guard let reportURL = URL(string: Settings.statisticsReportURL + reportData) else {
+        guard let reportURL = URL(string: Defaults.statisticsReportURL + reportData) else {
             return()
         }
         var request = URLRequest(url: reportURL)
@@ -81,15 +81,15 @@ struct AppStatistics {
         let session = URLSession(configuration: sessionConfiguration)
 
         do {
-            logger.debug("Trying to connect to statistics server ...")
+            Logger.appStatistics.debug("Trying to connect to statistics server ...")
             let (_, response) = try await session.data(for: request)
             // swiftlint:disable force_cast
             if (response as! HTTPURLResponse).statusCode == 200 {
-                logger.debug("Reported app statistics.")
+                Logger.appStatistics.debug("Reported app statistics.")
             }
             // swiftlint:enable force_cast
         } catch {
-            logger.notice("Connection to reporting server failed.")
+            Logger.appStatistics.debug("Connection to reporting server failed.")
         }
 #endif
         return()

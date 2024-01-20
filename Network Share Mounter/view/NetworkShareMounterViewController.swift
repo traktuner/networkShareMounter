@@ -15,9 +15,10 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     // MARK: - help messages
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("help-show-managed-shares", comment: ""),
-                    NSLocalizedString("mount-status-info-text", comment: "")]
+                    NSLocalizedString("mount-status-info-text", comment: ""),
+                    NSLocalizedString("help-krb-auth-text", comment: "")]
 
-    let userDefaults = UserDefaults.standard
+    var prefs = PreferenceManager()
 
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     // prepare an array of type UserShare to store the defined shares while showing this view
@@ -26,9 +27,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     // swiftlint:disable force_cast
     // appDelegate is used to accesss variables in AppDelegate
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
-    // swiftlint:enable force_cast
     
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "NSMViewController")
+    // swiftlint:enable force_cast
     
     // toggle to show user defined or managed shares
     var showManagedShares = false
@@ -40,11 +40,15 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
-
+        
+        // hide kerberos authenticate button if no krb domain is set
+        dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+        dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+        
         modifyShareButton.isEnabled = false
         removeShareButton.isEnabled = false
 
-        if userDefaults.bool(forKey: "canChangeAutostart") == false {
+        if prefs.bool(for: .canChangeAutostart) == false {
             launchAtLoginRadioButton.isHidden = true
             horizontalLine.isHidden = true
         }
@@ -60,16 +64,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         } else {
             additionalSharesText.isHidden = false
         }
-//        let symbolConfig = NSImage.SymbolConfiguration(scale: .large)
-//
-//        if let symbolImage = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help") {
-//            let resizedImage = symbolImage.withSymbolConfiguration(symbolConfig)
-//            
-//            managedSharesHelp.image = resizedImage
-//            managedSharesHelp.imageScaling = .scaleProportionallyDown
-//        }
-//        managedSharesHelp.image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Help")
     }
+    
     override func viewWillAppear() {
         super.viewWillAppear()
         //
@@ -91,13 +87,21 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             modifyShareButton.title = NSLocalizedString("modify-share-button", comment: "Button text to modify share")
             networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
         }
+        for account in AccountsManager.shared.accounts {
+            if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || AccountsManager.shared.accounts.count == 1 {
+                // check if account has a keychain entry, if not, set existingKeychainExntry = false and exit if loop
+                if account.keychain == false {
+                    dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                    self.performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
+                    break
+                }
+            }
+        }
     }
 
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
     
     @IBOutlet weak var additionalSharesText: NSTextField!
-    
-    @IBOutlet weak var modefyShareButton: NSButton!
     
     @IBOutlet weak var appVersion: NSTextField!
     
@@ -110,6 +114,10 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBOutlet weak var toggleManagedSwitch: NSSwitch!
     
     @IBOutlet weak var managedSharesHelp: NSButton!
+    
+    @IBOutlet weak var dogeAuthenticateButton: NSButton!
+    
+    @IBOutlet weak var dogeAuthenticateHelp: NSButton!
     
     @IBAction func helpButtonClicked(_ sender: NSButton) {
         // swiftlint:disable force_cast
@@ -208,9 +216,9 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         if row >= 0 {
             // if a share with the selected name is found, delete it
             if let selectedShare = appDelegate.mounter.getShare(forNetworkShare: usersNewShare.stringValue) {
-                self.logger.debug("unmounting share \(selectedShare.networkShare, privacy: .public)")
+                Logger.networkShareViewController.debug("unmounting share \(selectedShare.networkShare, privacy: .public)")
                 self.appDelegate.mounter.unmountShare(for: selectedShare)
-                self.logger.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
+                Logger.networkShareViewController.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
                 self.appDelegate.mounter.removeShare(for: selectedShare)
                 // update userDefaults
                 self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
@@ -313,20 +321,4 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
 
 extension NetworkShareMounterViewController: NSTableViewDelegate {
 
-}
-
-extension String {
-    /// Extension for ``String`` to check if the string itself is a valid URL
-    /// - Returns: true if the string is a valid URL
-    var isValidURL: Bool {
-        // swiftlint:disable force_try
-        let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-        // swiftlint:denable force_try
-        if let match = detector.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.utf16.count)) {
-            // it is a link, if the match covers the whole string
-            return match.range.length == self.utf16.count
-        } else {
-            return false
-        }
-    }
 }

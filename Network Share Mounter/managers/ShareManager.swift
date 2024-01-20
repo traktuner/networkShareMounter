@@ -11,7 +11,6 @@ import OSLog
 
 /// class `ShareManager` to manage the shares (array fo Share)
 class ShareManager {
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "ShareManager")
     private var sharesLock = os_unfair_lock()
     private var _shares: [Share] = []
     private let userDefaults = UserDefaults.standard
@@ -25,11 +24,11 @@ class ShareManager {
             // save password in keychain
             if let password = share.password {
                 if let username = share.username {
-                    let pwm = PasswordManager()
+                    let pwm = KeychainManager()
                     do {
-                        try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPpassword: password)
+                        try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPassword: password)
                     } catch {
-                        logger.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
+                        Logger.shareManager.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
                     }
                 }
             }
@@ -42,12 +41,12 @@ class ShareManager {
         os_unfair_lock_lock(&sharesLock)
         // remove keychain entry for share
         if let username = _shares[index].username {
-            let pwm = PasswordManager()
+            let pwm = KeychainManager()
             do {
-                logger.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
+                Logger.shareManager.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
                 try pwm.removeCredential(forShare: URL(string: self._shares[index].networkShare)!, withUsername: username)
             } catch {
-                logger.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
+                Logger.shareManager.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
             }
         }
         _shares.remove(at: index)
@@ -78,7 +77,7 @@ class ShareManager {
         //
         // remove existing keychain entry first since it wouldn't be found with the new data
         if let username = _shares[index].username {
-            let pwm = PasswordManager()
+            let pwm = KeychainManager()
             do {
                 try pwm.removeCredential(forShare: URL(string: _shares[index].networkShare)!, withUsername: username)
             } catch {
@@ -88,9 +87,9 @@ class ShareManager {
         // save password in keychain
         if let password = updatedShare.password {
             if let username = updatedShare.username {
-                let pwm = PasswordManager()
+                let pwm = KeychainManager()
                 do {
-                    try pwm.saveCredential(forShare: URL(string: updatedShare.networkShare)!, withUsername: username, andPpassword: password)
+                    try pwm.saveCredential(forShare: URL(string: updatedShare.networkShare)!, withUsername: username, andPassword: password)
                 } catch {
                 }
             }
@@ -145,13 +144,13 @@ class ShareManager {
     /// - Parameter forShare shareElement: Array of String dictionary `[String:String]`
     /// - Returns: optional `Share?` element
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
-        guard let shareUrlString = shareElement[Settings.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare] else {
             return nil
         }
         //
         // check if there is a mdm defined username. If so, replace possible occurencies of %USERNAME% with that
         var userName: String = ""
-        if let username = shareElement[Settings.username] {
+        if let username = shareElement[Defaults.username] {
             userName = username.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
             userName = NSString(string: userName).expandingTildeInPath
         }
@@ -159,16 +158,16 @@ class ShareManager {
         //
         // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
         let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-        let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
         var password: String?
         var mountStatus = MountStatus.unmounted
         if shareAuthType == AuthType.pwd {
             do {
-                if let keychainPassword = try PasswordManager().retrievePassword(forShare: URL(string: shareRectified)!, withUsername: userName) {
+                if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareRectified)!, withUsername: userName) {
                     password = keychainPassword
                 }
             } catch {
-                logger.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain")
+                Logger.shareManager.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain")
                 mountStatus = MountStatus.missingPassword
                 password = nil
             }
@@ -179,7 +178,7 @@ class ShareManager {
                                          mountStatus: mountStatus,
                                          username: userName,
                                          password: password,
-                                         mountPoint: shareElement[Settings.mountPoint],
+                                         mountPoint: shareElement[Defaults.mountPoint],
                                          managed: true)
         return(newShare)
     }
@@ -200,32 +199,32 @@ class ShareManager {
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
     /// - Returns: optional `Share?` element
     func getUserShareConfigs(forShare shareElement: [String: String]) -> Share? {
-        guard let shareUrlString = shareElement[Settings.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare] else {
             return nil
         }
         var password: String?
         var mountStatus = MountStatus.unmounted
-        if let username = shareElement[Settings.username] {
+        if let username = shareElement[Defaults.username] {
             do {
-                if let keychainPassword = try PasswordManager().retrievePassword(forShare: URL(string: shareUrlString)!, withUsername: username) {
+                if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareUrlString)!, withUsername: username) {
                     password = keychainPassword
                 }
             } catch {
-                logger.warning("Password for share \(shareUrlString, privacy: .public) not found in user's keychain")
+                Logger.shareManager.warning("Password for share \(shareUrlString, privacy: .public) not found in user's keychain")
                 mountStatus = MountStatus.missingPassword
                 password = nil
             }
         }
-        let shareAuthType = AuthType(rawValue: shareElement[Settings.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Settings.username], password: password, managed: false)
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Defaults.username], password: password, managed: false)
         return(newShare)
     }
     
     func updateShareArray() {
         // read MDM shares
         var usedNewMDMprofile = false
-        logger.debug("Checking possible changes in MDM profile")
-        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
+        Logger.shareManager.debug("Checking possible changes in MDM profile")
+        if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             var newShares: [Share] = []
             for shareElement in sharesDict {
                 if var newShare = self.getMDMShareConfig(forShare: shareElement) {
@@ -234,13 +233,13 @@ class ShareManager {
                     // addShare() would check if an element exists and skips it,
                     // but the new share definition could differ from the new one get from MDM
                     if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
-                        logger.debug("Adding new share \(newShare.networkShare, privacy: .public)")
+                        Logger.shareManager.debug("Adding new share \(newShare.networkShare, privacy: .public)")
                         addShare(newShare)
                     } else {
                         if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
                             // save some stati from actual share element and save them to new share
                             // read from MDM. Then overwrite the share with the new data
-                            logger.debug("Found existing share \(newShare.networkShare, privacy: .public), updating status.")
+                            Logger.shareManager.debug("Found existing share \(newShare.networkShare, privacy: .public), updating status.")
                             newShare.mountStatus = allShares[index].mountStatus
                             newShare.id = allShares[index].id
                             newShare.actualMountPoint  = allShares[index].actualMountPoint
@@ -260,7 +259,7 @@ class ShareManager {
             for remove in differing {
                 if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
                     if _shares[index].managed == true {
-                        logger.debug("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                        Logger.shareManager.debug("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
                         removeShare(at: index)
                     }
                 }
@@ -268,7 +267,7 @@ class ShareManager {
         }
         if !usedNewMDMprofile {
             // the same as above with the legacy MDM profiles
-            if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String], !nwShares.isEmpty {
+            if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
                 var newShares: [Share] = []
                 for share in nwShares {
                     if var newShare = self.getLegacyShareConfig(forShare: share) {
@@ -302,7 +301,7 @@ class ShareManager {
                 for remove in differing {
                     if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
                         if _shares[index].managed == true {
-                            logger.info("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                            Logger.shareManager.info("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
                             removeShare(at: index)
                         }
                     }
@@ -320,7 +319,7 @@ class ShareManager {
         /// - then read user defined `Settings.customSharesKey`
         ///
         var usedNewMDMprofile = false
-        if let sharesDict = userDefaults.array(forKey: Settings.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
+        if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             for shareElement in sharesDict {
                 if let newShare = self.getMDMShareConfig(forShare: shareElement) {
                     usedNewMDMprofile = true
@@ -331,7 +330,7 @@ class ShareManager {
         /// alternatively try to get configured shares with now obsolete
         /// Network Share Mounter 2 definitions
         if !usedNewMDMprofile {
-            if let nwShares: [String] = userDefaults.array(forKey: Settings.networkSharesKey) as? [String], !nwShares.isEmpty {
+            if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
                 for share in nwShares {
                     if let newShare = self.getLegacyShareConfig(forShare: share) {
                         addShare(newShare)
@@ -340,7 +339,7 @@ class ShareManager {
             }
         }
         /// next look if there are some user-defined shares to import
-        if let privSharesDict = userDefaults.array(forKey: Settings.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
+        if let privSharesDict = userDefaults.array(forKey: Defaults.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
             for share in privSharesDict {
                 if let newShare = self.getUserShareConfigs(forShare: share) {
                     addShare(newShare)
@@ -348,7 +347,7 @@ class ShareManager {
             }
         }
         /// at last there may be legacy user defined share definitions
-        else if let nwShares: [String] = userDefaults.array(forKey: Settings.customSharesKey) as? [String], !nwShares.isEmpty {
+        else if let nwShares: [String] = userDefaults.array(forKey: Defaults.customSharesKey) as? [String], !nwShares.isEmpty {
             for share in nwShares {
                 addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
@@ -368,26 +367,26 @@ class ShareManager {
             if share.managed == false {
                 var shareConfig: [String: String] = [:]
                 
-                shareConfig[Settings.networkShare] = share.networkShare
+                shareConfig[Defaults.networkShare] = share.networkShare
                 
-                shareConfig[Settings.authType] = share.authType.rawValue
-                shareConfig[Settings.username] = share.username
+                shareConfig[Defaults.authType] = share.authType.rawValue
+                shareConfig[Defaults.username] = share.username
                 if let mountPoint = share.mountPoint {
-                    shareConfig[Settings.mountPoint] = mountPoint
+                    shareConfig[Defaults.mountPoint] = mountPoint
                 }
                 if let username = share.username {
-                    shareConfig[Settings.username] = username
+                    shareConfig[Defaults.username] = username
                 }
                 // shareConfig[Settings.location] = share.location
                 userDefaultsConfigs.append(shareConfig)
             }
         }
-        userDefaults.set(userDefaultsConfigs, forKey: Settings.userNetworkShares)
+        userDefaults.set(userDefaultsConfigs, forKey: Defaults.userNetworkShares)
         userDefaults.synchronize()
     }
     
     private func removeLegacyShareConfigs() {
-        userDefaults.removeObject(forKey: Settings.customSharesKey)
+        userDefaults.removeObject(forKey: Defaults.customSharesKey)
         userDefaults.synchronize()
     }
 

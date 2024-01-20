@@ -16,12 +16,11 @@ import OSLog
 class ActivityController {
     
     var mounter: Mounter
-    let logger = Logger(subsystem: "NetworkShareMounter", category: "ActivityController")
     
     init(withMounter: Mounter) {
         mounter = withMounter
         startMonitoring(mounter: mounter)
-        logger.debug("ActivityController initialized")
+        Logger.activityController.debug("ActivityController initialized")
     }
     
     /// initialize observers to get notifications
@@ -40,7 +39,7 @@ class ActivityController {
     
     // call unmount shares on NSWorkspace notification
     @objc func unmountShares() {
-        logger.debug("unmountAllShares called by willSleepNotification")
+        Logger.activityController.debug("unmountAllShares called by willSleepNotification")
         Task {
             await self.mounter.unmountAllMountedShares()
         }
@@ -48,7 +47,7 @@ class ActivityController {
     
     // call mount shares on NSWorkspace notification
     @objc func mountShares() {
-        logger.debug("mountAllShares called by didWakeNotification")
+        Logger.activityController.debug("mountAllShares called by didWakeNotification")
         Task {
             await self.mounter.mountAllShares(userTriggered: true)
         }
