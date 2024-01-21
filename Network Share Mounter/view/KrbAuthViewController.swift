@@ -41,7 +41,6 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
     @IBOutlet weak var krbAuthViewTitle: NSTextField!
     @IBOutlet weak var krbAuthViewInfoText: NSTextField!
     
-    
     @IBAction func authenticateKlicked(_ sender: Any) {
         startOperations()
         self.session = dogeADSession.init(domain: self.username.stringValue.userDomain() ?? prefs.string(for: .kerberosRealm) ?? "", user: self.username.stringValue)
@@ -208,7 +207,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
         
         for account in AccountsManager.shared.accounts {
             if account.displayName == self.accountsList.selectedItem?.title.replacingOccurrences(of: " ◀︎", with: "") {
-                if account.keychain {
+                if let isInKeychain = account.hasKeychainEntry, isInKeychain {
                     let keyUtil = KeychainManager()
                     do {
                         try self.password.stringValue = keyUtil.retrievePassword(forUsername: account.upn.lowercased()) ?? ""
@@ -246,7 +245,7 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
                     }
                 }
             } else {
-                let newAccount = DogeAccount(displayName: principal, upn: principal, keychain: prefs.bool(for: .useKeychain))
+                let newAccount = DogeAccount(displayName: principal, upn: principal, hasKeychainEntry: prefs.bool(for: .useKeychain))
                 let pwm = KeychainManager()
                 Task {
                     do {

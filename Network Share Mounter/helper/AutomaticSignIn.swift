@@ -36,7 +36,7 @@ class AutomaticSignIn {
         let defaultPrinc = klist.defaultPrincipal
         self.workers.removeAll()
         
-        // sign in only for defaultPrinc-Account if singleUserMode == true or only one account exists, walk through alle accounts
+        // sign in only for defaultPrinc-Account if singleUserMode == true or only one account exists, walk through al accounts
         // if singleUserMode == false and more than 1 account exists
         for account in AccountsManager.shared.accounts {
             if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || AccountsManager.shared.accounts.count == 1 {
@@ -93,17 +93,28 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     func auth() {
         let keyUtil = KeychainManager()
+        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+            // check for FAU and if user keychain migration was already done
+            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
+                let migrator = Migrator()
+                if migrator.migrateKeychainEntry(forUsername: self.account.upn.removeDomain()) {
+                    self.account.hasKeychainEntry = true
+                    Logger.automaticSignIn.debug("FAU user migrated.")
+                } else {
+                    Logger.automaticSignIn.debug("FAU user migration failed.")
+                }
+            }
+        }
         do {
-            print(self.account.upn.lowercaseDomain())
             if let pass = try keyUtil.retrievePassword(forUsername: self.account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
+                self.account.hasKeychainEntry = true
                 session.userPass = pass
                 session.delegate = self
                 session.authenticate()
-                self.account.keychain = true
             }
         } catch {
-            self.account.keychain = false
-            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+            self.account.hasKeychainEntry = false
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
         }
     }
     

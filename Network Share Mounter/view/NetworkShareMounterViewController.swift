@@ -19,6 +19,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     NSLocalizedString("help-krb-auth-text", comment: "")]
 
     var prefs = PreferenceManager()
+    
+    var enableKerberos = false
 
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     // prepare an array of type UserShare to store the defined shares while showing this view
@@ -41,9 +43,9 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         super.viewDidLoad()
         tableView.delegate = self
         
-        // hide kerberos authenticate button if no krb domain is set
-        dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
-        dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+            self.enableKerberos = true
+        }
         
         modifyShareButton.isEnabled = false
         removeShareButton.isEnabled = false
@@ -68,6 +70,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     
     override func viewWillAppear() {
         super.viewWillAppear()
+        
+        // hide kerberos authenticate button if no krb domain is set
+        dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+        dogeAuthenticateHelp.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+        dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+            
         //
         // copy all mdm and user defined shares to a local array
         // if there is an authentication error show thos shares without password
@@ -87,13 +95,15 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             modifyShareButton.title = NSLocalizedString("modify-share-button", comment: "Button text to modify share")
             networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
         }
-        for account in AccountsManager.shared.accounts {
-            if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || AccountsManager.shared.accounts.count == 1 {
-                // check if account has a keychain entry, if not, set existingKeychainExntry = false and exit if loop
-                if account.keychain == false {
-                    dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                    self.performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
-                    break
+        if self.enableKerberos {
+            for account in AccountsManager.shared.accounts {
+                if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || AccountsManager.shared.accounts.count == 1 {
+                    // check if account has a keychain entry, if not, set existingKeychainExntry = false and exit if loop
+                    if let isInKeychain = account.hasKeychainEntry, !isInKeychain {
+                        dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                        self.performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
+                        break
+                    }
                 }
             }
         }

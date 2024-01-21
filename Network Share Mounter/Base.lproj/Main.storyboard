@@ -833,7 +833,7 @@ The connection will be testet immediately and will be added only if the server i
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </box>
                             <textField identifier="appVersion" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
-                                <rect key="frame" x="18" y="18" width="63" height="14"/>
+                                <rect key="frame" x="18" y="18" width="124" height="14"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="appVersion" id="GYJ-8b-PG2">
                                     <font key="font" metaFont="smallSystem"/>
@@ -974,7 +974,7 @@ The connection will be testet immediately and will be added only if the server i
                     </connections>
                 </arrayController>
             </objects>
-            <point key="canvasLocation" x="-206" y="197"/>
+            <point key="canvasLocation" x="-206" y="196.5"/>
         </scene>
         <!--Krb Auth View Controller-->
         <scene sceneID="d3p-sS-eRU">
@@ -1110,6 +1110,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                         <outlet property="accountsList" destination="21Z-Um-buj" id="zwv-eX-zxn"/>
                         <outlet property="authenticateButtonText" destination="hkh-AE-LKO" id="yEf-C4-Vbn"/>
                         <outlet property="cancelButtonText" destination="8Vv-en-BKS" id="vfa-U3-EuG"/>
+                        <outlet property="krbAuthHelpButton" destination="OfG-RR-odf" id="m0G-xT-QHP"/>
                         <outlet property="krbAuthViewInfoText" destination="xeC-jx-3ul" id="wqa-1i-ZVs"/>
                         <outlet property="krbAuthViewTitle" destination="Ube-T8-U78" id="XTL-lr-LHG"/>
                         <outlet property="logo" destination="FOX-uX-n7a" id="vLA-a1-cTo"/>
