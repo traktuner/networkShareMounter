@@ -33,6 +33,7 @@ enum MounterError: Error {
     case hostIsDown
     case userUnmounted
     case noError
+    case krbAuthenticationError
 }
 
 extension MounterError: LocalizedError {
@@ -152,6 +153,11 @@ extension MounterError: LocalizedError {
             return NSLocalizedString(
                 "no error occured",
                 comment: "no error occured"
+            )
+        case .krbAuthenticationError:
+            return NSLocalizedString(
+                "Kerberos authentication error",
+                comment: "Kerberos authentication error"
             )
         }
     }

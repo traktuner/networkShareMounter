@@ -42,6 +42,9 @@
         }
       }
     },
+    "⚠️ Kerberos SSO Authentication problem..." : {
+      "comment" : "Kerberos Authentication problem"
+    },
     "About Network Share Mounter" : {
       "comment" : "About Network Share Mounter",
       "localizations" : {
@@ -1115,6 +1118,9 @@
           }
         }
       }
+    },
+    "Kerberos authentication error" : {
+      "comment" : "Kerberos authentication error"
     },
     "krb-auth-button" : {
       "comment" : "Button text for kerberos authentication",

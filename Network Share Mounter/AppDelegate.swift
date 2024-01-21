@@ -38,13 +38,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             self.enableKerberos = true
             // check for FAU and if user keychain migration was already done
-            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator()
-                if let userName = prefs.string(for: .lastUser) {
-                    migrator.migrateKeychainEntry(forUsername: userName)
-                    Logger.automaticSignIn.debug("Starting FAU user migration...")
-                }
-            }
+//            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
+//                let migrator = Migrator()
+//                if let userName = prefs.string(for: .lastUser) {
+//                    if migrator.migrateKeychainEntry(forUsername: userName) {
+//                        self.account.keychain = true
+//                    }
+//                    Logger.automaticSignIn.debug("Starting FAU user migration...")
+//                }
+//            }
         }
         
         //
@@ -155,7 +157,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     ///
     /// provide a method to react to certain events
     @objc func handleErrorNotification(_ notification: NSNotification) {
-        if notification.userInfo?["AuthError"] is Error {
+        if notification.userInfo?["KrbAuthError"] is Error {
+            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+            DispatchQueue.main.async {
+                // Ändert die Farbe des Menuicons
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
+                    self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
+                }
+            }
+        } else if notification.userInfo?["AuthError"] is Error {
             // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
             DispatchQueue.main.async {
                 // Ändert die Farbe des Menuicons
@@ -226,6 +237,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         
         switch andStatus {
+            case .krbAuthenticationError:
+                Logger.app.debug("Constructing Kerberos authentication problem menu.")
+                mounter.errorStatus = .authenticationError
+                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
+                                action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+                menu.addItem(NSMenuItem.separator())
             case .authenticationError:
                 Logger.app.debug("Constructing authentication problem menu.")
                 mounter.errorStatus = .authenticationError
