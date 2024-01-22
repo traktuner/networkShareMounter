@@ -71,6 +71,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     override func viewWillAppear() {
         super.viewWillAppear()
         
+        //
         // hide kerberos authenticate button if no krb domain is set
         dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
         dogeAuthenticateHelp.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
@@ -86,7 +87,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             additionalSharesHelpButton.isHidden = true
             modifyShareButton.title = NSLocalizedString("authenticate-share-button", comment: "Button text to change authentication")
             networShareMounterExplanation.stringValue = NSLocalizedString("help-auth-error", comment: "Help text shown if some shares are not authenticated")
-        // elso fill the array with user defined shares
+        //
+        // else fill the array with user defined shares
         } else {
             refreshUserArray(type: .unmanaged)
             toggleManagedSwitch.isHidden = false
@@ -98,11 +100,15 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         if self.enableKerberos {
             for account in AccountsManager.shared.accounts {
                 if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || AccountsManager.shared.accounts.count == 1 {
-                    // check if account has a keychain entry, if not, set existingKeychainExntry = false and exit if loop
-                    if let isInKeychain = account.hasKeychainEntry, !isInKeychain {
-                        dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                        self.performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
-                        break
+                    let pwm = KeychainManager()
+                    do {
+                        if let _ = try pwm.retrievePassword(forUsername: account.upn.lowercased()) {
+                            break
+                        }
+                    } catch {
+                            dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                            performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
+                            break
                     }
                 }
             }

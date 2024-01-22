@@ -18,11 +18,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window = NSWindow()
     var mountpath = ""
     var mounter = Mounter()
-    var backGroundManager = BackGroundManager()
     var prefs = PreferenceManager()
     var enableKerberos = false
     var authDone = false
-
+    var automaticSignIn: AutomaticSignIn?
+    
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
 
@@ -37,16 +37,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // check if a kerberos domain/realm is set and is not empty
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             self.enableKerberos = true
-            // check for FAU and if user keychain migration was already done
-//            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
-//                let migrator = Migrator()
-//                if let userName = prefs.string(for: .lastUser) {
-//                    if migrator.migrateKeychainEntry(forUsername: userName) {
-//                        self.account.keychain = true
-//                    }
-//                    Logger.automaticSignIn.debug("Starting FAU user migration...")
-//                }
-//            }
         }
         
         //
@@ -83,7 +73,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // and set to empty string if not set
                 if self.enableKerberos {
                     Logger.app.debug("... processing automatic sign in (if configured)")
-                    await self.backGroundManager.processAutomaticSignIn()
+                    await self.automaticSignIn = AutomaticSignIn()
                 }
                 Logger.app.debug("... check for possible MDM profile changes")
                 // call updateShareArray() to reflect possible changes in MDM profile
@@ -102,7 +92,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // run authenticaction only if kerberos auth is enabled
                     if self.enableKerberos {
                         Logger.app.debug("... processing automatic sign in (if configured)")
-                        await self.backGroundManager.processAutomaticSignIn()
+                        await self.automaticSignIn = AutomaticSignIn()
                     }
                     Logger.app.debug("... check for possible MDM profile changes")
                     // call updateShareArray() to reflect possible changes in MDM profile
@@ -130,10 +120,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // run authenticaction only if kerberos auth is enabled
             if self.enableKerberos {
                 Logger.app.debug("Found configured kerberos realm, processing automatic sign in (if configured)")
-                await self.backGroundManager.processAutomaticSignIn()
+                await self.automaticSignIn = AutomaticSignIn()
             } else {
                 Logger.app.debug("No kerberos realm configured.")
             }
+            Logger.app.debug("Invoking startup mount task.")
             await self.mounter.mountAllShares()
         }
         

@@ -33,7 +33,6 @@
 		F7EF65CE2B3B4BEE00051D44 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CD2B3B4BEE00051D44 /* Notification.swift */; };
 		F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CF2B3B4DFC00051D44 /* Logger.swift */; };
 		F7EF65D22B3B56A600051D44 /* AutomaticSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65D12B3B56A600051D44 /* AutomaticSignIn.swift */; };
-		F7EF65D42B3B56D300051D44 /* BackgroundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65D32B3B56D300051D44 /* BackgroundManager.swift */; };
 		F7EF65DA2B3B574100051D44 /* SRVResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65D92B3B574100051D44 /* SRVResolver.swift */; };
 		F7EF65DC2B3B575C00051D44 /* SRVRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65DB2B3B575C00051D44 /* SRVRecord.swift */; };
 		F7EF65E32B3B57FC00051D44 /* AccountsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65E22B3B57FC00051D44 /* AccountsManager.swift */; };
@@ -98,7 +97,6 @@
 		F7EF65CD2B3B4BEE00051D44 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		F7EF65CF2B3B4DFC00051D44 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		F7EF65D12B3B56A600051D44 /* AutomaticSignIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticSignIn.swift; sourceTree = "<group>"; };
-		F7EF65D32B3B56D300051D44 /* BackgroundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundManager.swift; sourceTree = "<group>"; };
 		F7EF65D92B3B574100051D44 /* SRVResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SRVResolver.swift; sourceTree = "<group>"; };
 		F7EF65DB2B3B575C00051D44 /* SRVRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SRVRecord.swift; sourceTree = "<group>"; };
 		F7EF65E22B3B57FC00051D44 /* AccountsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsManager.swift; sourceTree = "<group>"; };
@@ -243,7 +241,6 @@
 		F7EF65DD2B3B57AB00051D44 /* managers */ = {
 			isa = PBXGroup;
 			children = (
-				F7EF65D32B3B56D300051D44 /* BackgroundManager.swift */,
 				F7EF65E22B3B57FC00051D44 /* AccountsManager.swift */,
 				F765D0542A852911001D5116 /* ShareManager.swift */,
 				F78B9D742B0BA7EF00043327 /* KeychainManager.swift */,
@@ -463,7 +460,6 @@
 				F7EF65F72B3B5DF500051D44 /* Date.swift in Sources */,
 				F7EF65DA2B3B574100051D44 /* SRVResolver.swift in Sources */,
 				F7EF65E32B3B57FC00051D44 /* AccountsManager.swift in Sources */,
-				F7EF65D42B3B56D300051D44 /* BackgroundManager.swift in Sources */,
 				F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */,
 				F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */,
 				F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */,
@@ -656,7 +652,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 101;
+				CURRENT_PROJECT_VERSION = 102;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -704,7 +700,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 101;
+				CURRENT_PROJECT_VERSION = 102;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;

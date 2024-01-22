@@ -23,6 +23,7 @@ var kNetworkUpdateTimer: Timer?
 class NetworkWatcher {
 
     var actions: Array<() -> Void>?
+    var automaticSignIn: AutomaticSignIn?
 
     let changed: SCDynamicStoreCallBack = { dynamicStore, _, _ in
 
@@ -34,9 +35,10 @@ class NetworkWatcher {
             kNetworkUpdateTimer = Timer.init(timeInterval: 3, repeats: false, block: {_ in
                 kNetworkUpdatePending = false
                 //NotificationQueue.default.enqueue(Notification(name: Notification.Name(rawValue: kNetworkUpdateNotification)), postingStyle: .now)
-                Task {
-                    await BackGroundManager.shared.processAutomaticSignIn()
-                }
+//                NotificationQueue.default.enqueue(Notification(name: Notification.Name(rawValue: kNetworkUpdateNotification)), postingStyle: .now)
+//                Task {
+//                    self.automaticSignIn = AutomaticSignIn()
+//                }
             })
 
             RunLoop.main.add(kNetworkUpdateTimer!, forMode: RunLoop.Mode.default)
