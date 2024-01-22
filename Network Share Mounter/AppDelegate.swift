@@ -175,6 +175,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self.constructMenu(withMounter: self.mounter)
                 }
             }
+        } else if notification.userInfo?["krbAuthenticated"] is Error {
+            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+            DispatchQueue.main.async {
+                // Ändert die Farbe des Menuicons
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                }
+            }
         } else if notification.userInfo?["FailError"] is Error {
             // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
             DispatchQueue.main.async {

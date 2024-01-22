@@ -127,6 +127,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     func dogeADAuthenticationSucceded() {
         Logger.automaticSignIn.info("Auth succeded for user: \(self.account.upn, privacy: .public)")
         cliTask("kswitch -p \(self.session.userPrincipal )")
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.authenticationError])
         session.userInfo()
     }
     
