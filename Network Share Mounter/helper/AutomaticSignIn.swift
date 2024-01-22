@@ -143,7 +143,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
             } catch {
                 Logger.automaticSignIn.info("Failed to remove keychain item for username \(self.account.upn)")
             }
-        case .AuthenticationFailure, .OffDomain:
+        case .OffDomain:
             Logger.automaticSignIn.info("Outside Kerberos realm network")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
         default:
