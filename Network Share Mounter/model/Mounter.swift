@@ -430,7 +430,7 @@ class Mounter: ObservableObject {
                             // if the mount was triggered by user, set mountStatus
                             // to .unmounted and therefore it will try to mount
                             if userTriggered {
-                                updateShare(mountStatus: .unmounted, for: share)
+                                updateShare(mountStatus: .undefined, for: share)
                             }
                             let actualMountpoint = try await mountShare(forShare: share,
                                                                         atPath: defaultMountPath,
@@ -550,7 +550,7 @@ class Mounter: ObservableObject {
         // If there is, the share ist PROBABLY already mounted. We should double check this, but
         //
         if !isDirectoryFilesystemMount(atPath: mountDirectory) {
-            if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted && userTriggered {
+            if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted || userTriggered {
                 Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountPath, privacy: .public)")
                 updateShare(mountStatus: .queued, for: share)
                 let mountOptions = Defaults.mountOptions
@@ -600,18 +600,20 @@ class Mounter: ObservableObject {
                     removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
                     throw MounterError.unknownReturnCode
                 }
-            } else if share.mountStatus == MountStatus.queued {
-                Logger.mounter.info("Share \(url, privacy: .public) is already queued for mounting.")
-                throw MounterError.mountIsQueued
-            } else if share.mountStatus == MountStatus.errorOnMount {
-                Logger.mounter.info("Share \(url, privacy: .public) not mounted, last time I tried I got a mount error.")
-                throw MounterError.otherError
-            } else if share.mountStatus == MountStatus.userUnmounted {
-                Logger.mounter.info("Share \(url, privacy: .public) user decied to unmount all shares, not mounting them.")
-                throw MounterError.userUnmounted
             } else {
-                Logger.mounter.info("Share \(url, privacy: .public) not mounted, I do not know why. It just happened.")
-                throw MounterError.otherError
+                if share.mountStatus == MountStatus.queued {
+                    Logger.mounter.info("Share \(url, privacy: .public) is already queued for mounting.")
+                    throw MounterError.mountIsQueued
+                } else if share.mountStatus == MountStatus.errorOnMount {
+                    Logger.mounter.info("Share \(url, privacy: .public) not mounted, last time I tried I got a mount error.")
+                    throw MounterError.otherError
+                } else if share.mountStatus == MountStatus.userUnmounted {
+                    Logger.mounter.info("Share \(url, privacy: .public) user decied to unmount all shares, not mounting them.")
+                    throw MounterError.userUnmounted
+                } else {
+                    Logger.mounter.info("Share \(url, privacy: .public) not mounted, I do not know why. It just happened.")
+                    throw MounterError.otherError
+                }
             }
         } else {
             Logger.mounter.info("✅ \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
