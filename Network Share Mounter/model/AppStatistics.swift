@@ -3,7 +3,7 @@
 //  Network Share Mounter
 //
 //  Created by Gregor Longariva on 21.06.22.
-//  Copyright © 2022 Regionales Rechenzentrum Erlangen. All rights reserved.
+//  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
 import Foundation

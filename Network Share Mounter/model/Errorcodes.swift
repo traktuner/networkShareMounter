@@ -3,7 +3,7 @@
 //  Network Share Mounter
 //
 //  Created by Longariva, Gregor (RRZE) on 19.12.23.
-//  Copyright © 2023 Regionales Rechenzentrum Erlangen. All rights reserved.
+//  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
 import Foundation
@@ -34,6 +34,8 @@ enum MounterError: Error {
     case userUnmounted
     case noError
     case krbAuthenticationError
+    case offDomain
+    case krbAuthSuccessful
 }
 
 extension MounterError: LocalizedError {
@@ -158,6 +160,16 @@ extension MounterError: LocalizedError {
             return NSLocalizedString(
                 "Kerberos authentication error",
                 comment: "Kerberos authentication error"
+            )
+        case .offDomain:
+            return NSLocalizedString(
+                "outside kerberos domain",
+                comment: "outside kerberos domain"
+            )
+        case .krbAuthSuccessful:
+            return NSLocalizedString(
+                "Kerberos authentication successful",
+                comment: "Kerberos authentication successful"
             )
         }
     }

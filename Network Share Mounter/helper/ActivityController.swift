@@ -3,7 +3,7 @@
 //  Network Share Mounter
 //
 //  Created by Longariva, Gregor (RRZE) on 08.11.23.
-//  Copyright © 2023 Regionales Rechenzentrum Erlangen. All rights reserved.
+//  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
 import Foundation
@@ -16,6 +16,7 @@ import OSLog
 class ActivityController {
     
     var mounter: Mounter
+    var automaticSignIn: AutomaticSignIn?
     
     init(withMounter: Mounter) {
         mounter = withMounter
@@ -35,6 +36,9 @@ class ActivityController {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(unmountShares), name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.didWakeNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
+        
+        // get notification for "CCAPICCacheChangedNotification" (as defined in kcm.h) changes
+        DistributedNotificationCenter.default.addObserver(self, selector: #selector(processAutomaticSignIn), name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name, object: nil)
     }
     
     // call unmount shares on NSWorkspace notification
@@ -51,5 +55,10 @@ class ActivityController {
         Task {
             await self.mounter.mountAllShares(userTriggered: true)
         }
+    }
+    
+    // call automatic sign in on notification
+    @objc func processAutomaticSignIn() async {
+            await self.automaticSignIn = AutomaticSignIn()
     }
 }

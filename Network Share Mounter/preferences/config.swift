@@ -4,7 +4,7 @@
 //
 //  Created by Kett, Oliver on 20.03.17.
 //  bugfixing and enhancements by FAUmac Team
-//  Copyright © 2017 RRZE. All rights reserved.
+//  Copyright © 2024 RRZE. All rights reserved.
 //
 
 import NetFS

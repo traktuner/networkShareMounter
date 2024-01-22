@@ -186,10 +186,11 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
         // if there is only one account, hide popup list
         self.accountsList.isHidden = true
         self.username.isHidden = false
-        if let lastUser = prefs.string(for: .lastUser), prefs.bool(for: .useKeychain) {
+        if let lastUser = prefs.string(for: .lastUser) {//}, prefs.bool(for: .useKeychain) {
             let keyUtil = KeychainManager()
             do {
                 try self.password.stringValue = keyUtil.retrievePassword(forUsername: lastUser.lowercased()) ?? ""
+                self.username.stringValue = lastUser.lowercased()
             } catch {
                 Logger.KrbAuthViewController.debug("Unable to get user's password")
             }

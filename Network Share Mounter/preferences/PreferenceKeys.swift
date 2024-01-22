@@ -4,7 +4,7 @@
 //
 //  Created by Longariva, Gregor (RRZE) on 15.12.23.
 //  Copyright © 2020 Orchard & Grove, Inc. All rights reserved.
-//  Copyright © 2023 RRZE. All rights reserved.
+//  Copyright © 2024 RRZE. All rights reserved.
 //
 
 import Foundation
@@ -199,6 +199,7 @@ enum PreferenceKeys: String, CaseIterable {
     case keyChainLabel = "keyChainLabel"
     case keyChainComment = "keyChainComment"
     case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
+    case useNewDefaultLocation = "useNewDefaultLocation"
     
     func printAllPrefs() {
         let defaults = UserDefaults.standard

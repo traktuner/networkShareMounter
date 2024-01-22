@@ -73,7 +73,6 @@ lane :commonTasks do
         "Network Share Mounter/lookups/SRVResolver.swift",
         "Network Share Mounter/lookups/SRVRecord.swift",
         "Network Share Mounter/managers/KeychainManager.swift",
-        "Network Share Mounter/managers/BackgroundManager.swift",
         "Network Share Mounter/managers/ShareManager.swift",
         "Network Share Mounter/managers/AccountsManager.swift",
         "Network Share Mounter/Extensions/Date.swift",

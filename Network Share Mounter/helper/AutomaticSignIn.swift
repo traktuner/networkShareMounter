@@ -4,7 +4,7 @@
 //
 //  Created by Longariva, Gregor (RRZE) on 15.12.23.
 //  Copyright © 2020 Orchard & Grove, Inc. All rights reserved.
-//  Copyright © 2023 RRZE. All rights reserved.
+//  Copyright © 2024 RRZE. All rights reserved.
 //
 
 import Foundation
@@ -26,11 +26,11 @@ class AutomaticSignIn {
 //    var dogeAccounts = [DogeAccount]()
     var workers = [AutomaticSignInWorker]()
     
-    init() {
-        signInAllAccounts()
+    init() async {
+        await signInAllAccounts()
     }
     
-    private func signInAllAccounts() {
+    private func signInAllAccounts() async {
         let klist = KlistUtil()
         let princs = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal
@@ -127,6 +127,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     func dogeADAuthenticationSucceded() {
         Logger.automaticSignIn.info("Auth succeded for user: \(self.account.upn, privacy: .public)")
         cliTask("kswitch -p \(self.session.userPrincipal )")
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
         session.userInfo()
     }
     
@@ -142,6 +143,9 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
             } catch {
                 Logger.automaticSignIn.info("Failed to remove keychain item for username \(self.account.upn)")
             }
+        case .AuthenticationFailure, .OffDomain:
+            Logger.automaticSignIn.info("Outside Kerberos realm network")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
         default:
             break
         }

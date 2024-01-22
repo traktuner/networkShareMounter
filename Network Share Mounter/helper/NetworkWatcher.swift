@@ -4,7 +4,7 @@
 //
 //  Created by Longariva, Gregor (RRZE) on 15.12.23.
 //  Copyright © 2019 Joel Rennich. All rights reserved.
-//  Copyright © 2023 RRZE. All rights reserved.
+//  Copyright © 2024 RRZE. All rights reserved.
 //
 
 import Foundation
@@ -23,6 +23,7 @@ var kNetworkUpdateTimer: Timer?
 class NetworkWatcher {
 
     var actions: Array<() -> Void>?
+    var automaticSignIn: AutomaticSignIn?
 
     let changed: SCDynamicStoreCallBack = { dynamicStore, _, _ in
 
@@ -34,9 +35,10 @@ class NetworkWatcher {
             kNetworkUpdateTimer = Timer.init(timeInterval: 3, repeats: false, block: {_ in
                 kNetworkUpdatePending = false
                 //NotificationQueue.default.enqueue(Notification(name: Notification.Name(rawValue: kNetworkUpdateNotification)), postingStyle: .now)
-                Task {
-                    await BackGroundManager.shared.processAutomaticSignIn()
-                }
+//                NotificationQueue.default.enqueue(Notification(name: Notification.Name(rawValue: kNetworkUpdateNotification)), postingStyle: .now)
+//                Task {
+//                    self.automaticSignIn = AutomaticSignIn()
+//                }
             })
 
             RunLoop.main.add(kNetworkUpdateTimer!, forMode: RunLoop.Mode.default)
