@@ -26,11 +26,11 @@ class AutomaticSignIn {
 //    var dogeAccounts = [DogeAccount]()
     var workers = [AutomaticSignInWorker]()
     
-    init() {
-        signInAllAccounts()
+    init() async {
+        await signInAllAccounts()
     }
     
-    private func signInAllAccounts() {
+    private func signInAllAccounts() async {
         let klist = KlistUtil()
         let princs = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal
