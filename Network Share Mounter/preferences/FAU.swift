@@ -37,7 +37,7 @@ struct Migrator {
                                            comment: "FAU IdM Kerberos Account for Network Share Mounter")
                     Logger.FAU.debug("Prefix Assistant keychain entry migration for user \(userName, privacy: .public) done")
                     prefs.set(for: .keyChainPrefixManagerMigration, value: true)
-                    NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["ClearError": MounterError.authenticationError])
+                    NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["ClearError": MounterError.noError])
                     return true
                 } catch {
                     Logger.FAU.error("Could not save Prefix Assistant migrated keychain entry for user: \(userName, privacy: .public)")

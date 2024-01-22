@@ -43,7 +43,39 @@
       }
     },
     "⚠️ Kerberos SSO Authentication problem..." : {
-      "comment" : "Kerberos Authentication problem"
+      "comment" : "Kerberos Authentication problem",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problem bei der Kerberos SSO-Authentifizierung..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema de autenticación SSO Kerberos..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problème d'authentification SSO Kerberos..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema di autenticazione SSO Kerberos..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Probleem met Kerberos SSO-authenticatie..."
+          }
+        }
+      }
     },
     "About Network Share Mounter" : {
       "comment" : "About Network Share Mounter",
@@ -1120,7 +1152,74 @@
       }
     },
     "Kerberos authentication error" : {
-      "comment" : "Kerberos authentication error"
+      "comment" : "Kerberos authentication error",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos Authentifizierungsfehler"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error de autenticación Kerberos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur d'authentification Kerbers"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore di autenticazione Kerberos"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos authenticatiefout"
+          }
+        }
+      }
+    },
+    "Kerberos authentication successful" : {
+      "comment" : "Kerberos authentication successful",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos Authentifizierung erfolgreich"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación Kerberos exitosa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification Kerberos réussie"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione Kerberos riuscita"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Succesvolle Kerberos-authenticatie"
+          }
+        }
+      }
     },
     "krb-auth-button" : {
       "comment" : "Button text for kerberos authentication",
@@ -1159,6 +1258,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Single Sign-On Authenticatie"
+          }
+        }
+      }
+    },
+    "krb-offdomain-button" : {
+      "comment" : "Button text for kerberos authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos SSO nicht verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos SSO not available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación SSO Kerberos no disponible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification SSO Kerberos non disponible"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione SSO Kerberos non disponibile"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos SSO niet beschikbaar"
           }
         }
       }
@@ -1534,6 +1674,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Error desconocido."
+          }
+        }
+      }
+    },
+    "outside kerberos domain" : {
+      "comment" : "outside kerberos domain",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Außerhalb des Kerberos-Domäne"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside Kerberos domain"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuera del dominio Kerberos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors du domaine Kerberos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuori dal dominio Kerberos"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buiten het Kerberos-domein"
           }
         }
       }

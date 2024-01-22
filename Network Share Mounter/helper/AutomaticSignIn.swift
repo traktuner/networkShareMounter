@@ -127,7 +127,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     func dogeADAuthenticationSucceded() {
         Logger.automaticSignIn.info("Auth succeded for user: \(self.account.upn, privacy: .public)")
         cliTask("kswitch -p \(self.session.userPrincipal )")
-        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.authenticationError])
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
         session.userInfo()
     }
     
@@ -143,6 +143,9 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
             } catch {
                 Logger.automaticSignIn.info("Failed to remove keychain item for username \(self.account.upn)")
             }
+        case .AuthenticationFailure, .OffDomain:
+            Logger.automaticSignIn.info("Outside Kerberos realm network")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
         default:
             break
         }

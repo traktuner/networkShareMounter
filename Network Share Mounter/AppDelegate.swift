@@ -152,7 +152,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
             DispatchQueue.main.async {
                 // Ändert die Farbe des Menuicons
-                if let button = self.statusItem.button {
+                if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
                     self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
                 }
@@ -179,7 +179,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
             DispatchQueue.main.async {
                 // Ändert die Farbe des Menuicons
-                if let button = self.statusItem.button {
+                if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
                 }
             }
@@ -189,6 +189,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
+                }
+            }
+        } else if notification.userInfo?["krbOffDomain"] is Error {
+            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+            DispatchQueue.main.async {
+                // Ändert die Farbe des Menuicons
+                if let button = self.statusItem.button, self.enableKerberos {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
                 }
             }
         }

@@ -43,6 +43,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         super.viewDidLoad()
         tableView.delegate = self
         
+        NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
+        
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             self.enableKerberos = true
         }
@@ -329,6 +331,33 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                                                      managed: definedShare.managed,
                                                      mountStatus: definedShare.mountStatus.rawValue,
                                                      mountSymbol: mountSymbol))
+                }
+            }
+        }
+    }
+    ///
+    /// provide a method to react to certain events
+    @objc func handleErrorNotification(_ notification: NSNotification) {
+        if notification.userInfo?["krbOffDomain"] is Error {
+            DispatchQueue.main.async {
+                self.dogeAuthenticateButton.isEnabled = false
+                self.dogeAuthenticateHelp.isEnabled = false
+                self.dogeAuthenticateButton.title = NSLocalizedString("krb-offdomain-button", comment: "Button text for kerberos authentication")
+            }
+        } else if notification.userInfo?["KrbAuthError"] is Error {
+            DispatchQueue.main.async {
+                if self.enableKerberos {
+                    self.dogeAuthenticateButton.isEnabled = true
+                    self.dogeAuthenticateHelp.isEnabled = true
+                    self.dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                }
+            }
+        } else if notification.userInfo?["krbAuthenticated"] is Error {
+            DispatchQueue.main.async {
+                if self.enableKerberos {
+                    self.dogeAuthenticateButton.isEnabled = true
+                    self.dogeAuthenticateHelp.isEnabled = true
+                    self.dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
                 }
             }
         }
