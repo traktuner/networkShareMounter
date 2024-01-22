@@ -199,6 +199,7 @@ enum PreferenceKeys: String, CaseIterable {
     case keyChainLabel = "keyChainLabel"
     case keyChainComment = "keyChainComment"
     case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
+    case useNewDefaultLocation = "useNewDefaultLocation"
     
     func printAllPrefs() {
         let defaults = UserDefaults.standard

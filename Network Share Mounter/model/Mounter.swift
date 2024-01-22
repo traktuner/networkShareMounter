@@ -42,13 +42,18 @@ class Mounter: ObservableObject {
     var errorStatus: MounterError = .noError
     
     private var localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
-    var defaultMountPath: String //= NSString(string: "~/\(Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!)").expandingTildeInPath
+    var defaultMountPath: String = Defaults.defaultMountPath
     
     init() {
-        // now create the directory where the shares will be mounted
-        // check if there is a definition where the shares will be mounted, otherwiese use the default
-        // set to ancient FAU default value
-        self.defaultMountPath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+        // define and create the directory where the shares will be mounted:
+        // prepared for future release: use Defaults.defaultMountPath (aka /Volumes) as default for location
+        if prefs.bool(for: .useNewDefaultLocation) {
+            self.defaultMountPath = Defaults.defaultMountPath
+        } else {
+            // user actual/Legay default location
+            self.defaultMountPath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+        }
+        // set default mount location to profile-defined value
         if let location = prefs.string(for: .location), !location.isEmpty {
             self.defaultMountPath = NSString(string: prefs.string(for: .location)!).expandingTildeInPath
         }
