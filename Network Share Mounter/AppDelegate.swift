@@ -37,16 +37,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // check if a kerberos domain/realm is set and is not empty
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             self.enableKerberos = true
-            // check for FAU and if user keychain migration was already done
-//            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
-//                let migrator = Migrator()
-//                if let userName = prefs.string(for: .lastUser) {
-//                    if migrator.migrateKeychainEntry(forUsername: userName) {
-//                        self.account.keychain = true
-//                    }
-//                    Logger.automaticSignIn.debug("Starting FAU user migration...")
-//                }
-//            }
         }
         
         //
@@ -134,6 +124,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             } else {
                 Logger.app.debug("No kerberos realm configured.")
             }
+            Logger.app.debug("Invoking startup mount task.")
             await self.mounter.mountAllShares()
         }
         
