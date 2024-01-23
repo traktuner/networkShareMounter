@@ -251,11 +251,12 @@ class ShareViewController: NSViewController {
         alert.alertStyle = NSAlert.Style.warning
 
         if let viewWindow = self.view.window {
-            alert.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
-                if(modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn){
-                    Logger.shareViewController.debug("User informed about error \(error, privacy: .public)")
-                }
-            })
+            self.view.window?.close()
+//            alert.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
+//                if(modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn){
+//                    Logger.shareViewController.debug("User informed about error \(error, privacy: .public)")
+//                }
+//            })
         }
     }
     
@@ -301,7 +302,7 @@ class ShareViewController: NSViewController {
     @IBAction private func cancelButtonTapped(_ sender: NSButton) {
         
         callback?("cancel")
-        dismiss(nil)
+        self.dismiss(nil)
     }
     
     // MARK: - Private Methods

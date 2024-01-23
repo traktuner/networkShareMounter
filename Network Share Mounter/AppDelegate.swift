@@ -134,15 +134,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ aNotification: Notification) {
         //
-        // unmount all shares before leaving
-        if prefs.bool(for: .unmountOnExit) == true {
-            Task {
-                await self.mounter.unmountAllMountedShares()
-            }
-        }
-        //
         // end network monitoring
         monitor.monitor.cancel()
+        //
+        // unmount all shares before leaving
+        if prefs.bool(for: .unmountOnExit) == true {
+            let group = DispatchGroup()
+            group.enter()
+            Task {
+                Logger.app.debug("Exiting app, unmounting shares...")
+                await self.mounter.unmountAllMountedShares()
+                Logger.app.debug("Done. Bye!")
+                group.leave()
+            }
+            group.wait()
+        }
     }
     
     ///
@@ -307,7 +313,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // bringt the window to front
         window.orderFrontRegardless()
         //
-        // make this window the key window receibing keyboard and other non-touch related events
+        // make this window the key window receiving keyboard and other non-touch related events
         window.makeKey()
     }
 }
