@@ -818,7 +818,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Netzwerklaufwerke (smb/cifs) hinzufügen und verbinden.\nDie Erreichbarkeit wird sofort getestet. Wenn die Verbindung erfolgreich ist, wird der Server und der Freigabepfad hinzugefügt.\n\nVerwende hierzu die Form: smb://server.name/pfad/"
+            "value" : "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Windows (SMB), AFP oder WebDAV-Netzwerkfreigabe hinzufügen und verbinden. \n\nDrücke das '+'-Symbol, um eine neue Netzwerkfreigabe hinzuzufügen. Wenn du eine Freigabe dauerhaft entfernen möchtest, wähle diese aus und klicke auf das '-'-Symbol.\""
           }
         },
         "en" : {
@@ -900,7 +900,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In Firmen oder Universitäten wird die Einstellung für Netzwerklaufwerke oft über das Gerätemanagement (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. \n\nDu kannst diese vorgegebenen Laufwerke nicht löschen oder verändern."
+            "value" : "In Firmen oder Universitäten wird die Einstellung für Netzwerklaufwerke in der Regel über ein Gerätemanagement (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. \n\nDu kannst diese vorgegebenen Laufwerke weder löschen noch verändern."
           }
         },
         "en" : {
@@ -1309,7 +1309,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fehlende SSO Authentifizierung"
+            "value" : "Fehlende SSO-Authentifizierung"
           }
         },
         "en" : {
@@ -1461,7 +1461,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 eingebunden\n⚪️ nicht eingebunden / nicht erreichbar\n🟠 fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange"
+            "value" : "🟢 Eingebunden\n⚪️ Nicht eingebunden / Nicht erreichbar\n🟠 Fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange"
           }
         },
         "en" : {
@@ -1684,7 +1684,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Außerhalb des Kerberos-Domäne"
+            "value" : "Außerhalb der Kerberos-Domäne"
           }
         },
         "en" : {
@@ -1977,7 +1977,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du kannst jede Windows (smb/cifs), afp oder WebDAV-Netzwerkfreigabe einbinden, solange du den Servernamen und den Freigabepfad kennst.\nGib die Freigabe als smb://server.name/export/path ein.\nDie Verbindung wird sofort getestet und nur hinzugefügt, wenn der Server erreichbar und die Freigabe verfügbar ist."
+            "value" : "Du kannst Windows (SMB), AFP oder WebDAV-Netzwerkfreigabe einbinden, solange du den Servernamen und den Freigabepfad kennst.\n\nVerwende hierzu die Form: smb://servername.tld/pfad\n\nDie Verbindung wird sofort getestet und nur hinzugefügt, wenn der Server erreichbar und die Freigabe verfügbar ist."
           }
         },
         "en" : {
