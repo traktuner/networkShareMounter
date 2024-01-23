@@ -133,21 +133,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        //
         // end network monitoring
         monitor.monitor.cancel()
         //
         // unmount all shares before leaving
         if prefs.bool(for: .unmountOnExit) == true {
-            let group = DispatchGroup()
-            group.enter()
-            Task {
-                Logger.app.debug("Exiting app, unmounting shares...")
-                await self.mounter.unmountAllMountedShares()
-                Logger.app.debug("Done. Bye!")
-                group.leave()
-            }
-            group.wait()
+            Logger.app.debug("Exiting app, unmounting shares...")
+            unmountShares(self)
+            // OK, I know, this is ugly, but a little sleep on app exit does not harm ;-)
+            sleep(3)
         }
     }
     

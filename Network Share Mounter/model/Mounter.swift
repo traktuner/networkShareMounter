@@ -344,6 +344,7 @@ class Mounter: ObservableObject {
     /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
     /// - Parameter userTriggered: boolean to define if unmount was triggered by user, defaults to false
     func unmountAllMountedShares(userTriggered: Bool = false) async {
+        print("Hallo")
         for share in shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
                 Task {
