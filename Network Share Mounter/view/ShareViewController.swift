@@ -249,15 +249,18 @@ class ShareViewController: NSViewController {
         alert.informativeText = NSLocalizedString("Please check the data entered", comment: "Please check the data entered")
         alert.addButton(withTitle: "OK")
         alert.alertStyle = NSAlert.Style.warning
+        // TODO: Unfortunately, two modal views on top of each other don't work as hoped. If I close the alert, the view underneath
+        //  is also closed. I have to take a look at it
+        alert.runModal()
 
-        if let viewWindow = self.view.window {
-            self.view.window?.close()
+//        if let viewWindow = self.view.window {
+//            self.view.window?.close()
 //            alert.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
 //                if(modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn){
 //                    Logger.shareViewController.debug("User informed about error \(error, privacy: .public)")
 //                }
 //            })
-        }
+//        }
     }
     
     
