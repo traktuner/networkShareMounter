@@ -170,42 +170,42 @@
       }
     },
     "2H5-ga-rE8.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"Additional shares\"; ObjectID = \"2H5-ga-rE8\";",
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Managed shares\"; ObjectID = \"2H5-ga-rE8\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zusätzliche Freigaben"
+            "state" : "needs_review",
+            "value" : "Verwaltete Freigaben"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Additional shares"
+            "value" : "Managed shares"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Comparticiones adicionales"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Partages supplémentaires"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Condivisioni aggiuntive"
           }
         },
         "nl" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Extra gedeelde mappen"
           }
         }
