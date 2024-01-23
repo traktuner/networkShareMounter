@@ -68,6 +68,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         } else {
             additionalSharesText.isHidden = false
         }
+        
+        additionalSharesText.stringValue = NSLocalizedString("managed-shares-text", comment: "Label for additional/managed shares")
     }
     
     override func viewWillAppear() {
