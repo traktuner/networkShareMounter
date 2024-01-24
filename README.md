@@ -95,7 +95,7 @@ With version 3, logging has been significantly improved. You can use either the 
 
 ## ✉️ Contact
 
-For ideas, enhancements, or bug reports, please reach out to us through the [service desk address](mailto:rrze-gitlab+faumac-networksharemounter-506-issue-@fau.de).    
+For ideas, enhancements, or bug reports, please contact us through the following address: [rrze-nsm-app@fau.de](mailto:rrze-nsm-app@fau.de).    
 For general questions, you can contact the team at [rrze-mac@fau.de](mailto:rrze-mac@fau.de) directly.
 
 `Developed with ❤️ by your FAUmac team`
