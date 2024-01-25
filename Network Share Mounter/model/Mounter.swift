@@ -538,6 +538,7 @@ class Mounter: ObservableObject {
         }
         
         var mountDirectory = mountPath
+        // check if there is a share-specific mountpoint
         if let mountPoint = share.mountPoint {
             mountDirectory += "/" + mountPoint
         } else {
@@ -552,8 +553,14 @@ class Mounter: ObservableObject {
             }
         }
         
+        // I am not sure if removing the "$" for SMB hidden shares is really necessary, but in a Unix/shell basef environment
+        // using directories without special characters is much safer.
+        // BTW: the share itself will still be shown as SHARE$ while the mountpath is under a shell-safe directory without the "$"
+        if mountDirectory.hasSuffix("$") {
+            mountDirectory = String(mountDirectory.dropLast())
+        }
+        
         // check if there's already a directory of type filesystemMount named like the share.
-        // If there is, the share ist PROBABLY already mounted. We should double check this, but
         //
         if !isDirectoryFilesystemMount(atPath: mountDirectory) {
             if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted || userTriggered {
@@ -601,8 +608,12 @@ class Mounter: ObservableObject {
                     Logger.mounter.info("❌ \(url, privacy: .public): share does not exist")
                     removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
                     throw MounterError.shareDoesNotExist
+                case -1073741275:
+                    Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc.description, privacy: .public)")
+                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                    throw MounterError.shareDoesNotExist
                 default:
-                    Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc)")
+                    Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public)")
                     removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
                     throw MounterError.unknownReturnCode
                 }
