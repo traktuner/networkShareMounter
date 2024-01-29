@@ -235,32 +235,33 @@ class Mounter: ObservableObject {
                     //
                     // compare list of shares with mount
                     for share in self.shareManager.allShares {
-                        let shareDirName = URL(string: share.networkShare)!
-                        //
-                        // get the last component of the share, since this is the name of the mount-directory
-                        if let shareMountDir = shareDirName.pathComponents.last {
+                        if let shareDirName = URL(string: share.networkShare) {
                             //
-                            // ignore if the mount is correct (both shareDir and mountedDir have the same name)
-                            if filePath != shareMountDir {
+                            // get the last component of the share, since this is the name of the mount-directory
+                            if let shareMountDir = shareDirName.pathComponents.last {
                                 //
-                                // rudimentary check for XXX-1, XXX-2, ... mountdirs
-                                // sure, this could be done better (e.g. regex mathcing), but I don't think it's worth thinking about
-                                for count in 1...30 {
-                                    if filePath.contains(shareMountDir + "-\(count)") {
-                                        Logger.mounter.info("Duplicate mount of \(share.networkShare, privacy: .public): it is already mounted as \(path.appendingPathComponent(filePath), privacy: .public). Trying to unmount...")
-                                        await unmountShare(atPath: path.appendingPathComponent(filePath)) { [self] result in
-                                            switch result {
-                                            case .success:
-                                                Logger.mounter.info("Successfully unmounted \(path.appendingPathComponent(filePath), privacy: .public).")
-                                            case .failure(let error):
-                                                // error on unmount
-                                                switch error {
-                                                case .invalidMountPath:
-                                                    Logger.mounter.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): invalid mount path")
-                                                case .unmountFailed:
-                                                    Logger.mounter.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unmount failed")
-                                                default:
-                                                    Logger.mounter.info("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unknown error")
+                                // ignore if the mount is correct (both shareDir and mountedDir have the same name)
+                                if filePath != shareMountDir {
+                                    //
+                                    // rudimentary check for XXX-1, XXX-2, ... mountdirs
+                                    // sure, this could be done better (e.g. regex mathcing), but I don't think it's worth thinking about
+                                    for count in 1...30 {
+                                        if filePath.contains(shareMountDir + "-\(count)") {
+                                            Logger.mounter.info("Duplicate mount of \(share.networkShare, privacy: .public): it is already mounted as \(path.appendingPathComponent(filePath), privacy: .public). Trying to unmount...")
+                                            await unmountShare(atPath: path.appendingPathComponent(filePath)) { [self] result in
+                                                switch result {
+                                                case .success:
+                                                    Logger.mounter.info("Successfully unmounted \(path.appendingPathComponent(filePath), privacy: .public).")
+                                                case .failure(let error):
+                                                    // error on unmount
+                                                    switch error {
+                                                    case .invalidMountPath:
+                                                        Logger.mounter.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): invalid mount path")
+                                                    case .unmountFailed:
+                                                        Logger.mounter.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unmount failed")
+                                                    default:
+                                                        Logger.mounter.info("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unknown error")
+                                                    }
                                                 }
                                             }
                                         }
@@ -397,17 +398,17 @@ class Mounter: ObservableObject {
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
         
         // TODO: check if ths is not too dangerous
-        for share in shareManager.allShares {
-            // check if there is a specific mountpoint for the share. If yes, get the
-            // parent directory. This is the path where the mountpoint itself is located
-            if let path = share.mountPoint {
-                let url = URL(fileURLWithPath: path)
-                // remove the last component (aka mointpoint) to get the containing
-                // parent directory
-                let parentDirectory = url.deletingLastPathComponent().path
-                await deleteUnneededFiles(path: parentDirectory, filename: nil)
-            }
-        }
+//        for share in shareManager.allShares {
+//            // check if there is a specific mountpoint for the share. If yes, get the
+//            // parent directory. This is the path where the mountpoint itself is located
+//            if let path = share.mountPoint {
+//                let url = URL(fileURLWithPath: path)
+//                // remove the last component (aka mointpoint) to get the containing
+//                // parent directory
+//                let parentDirectory = url.deletingLastPathComponent().path
+//                await deleteUnneededFiles(path: parentDirectory, filename: nil)
+//            }
+//        }
         // look for unneded files at the defaultMountPath
 //        await deleteUnneededFiles(path: self.defaultMountPath, filename: nil)
     }
