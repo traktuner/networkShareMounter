@@ -282,7 +282,7 @@ class Mounter: ObservableObject {
     func unmountShare(atPath path: String, completion: @escaping (Result<Void, MounterError>) -> Void) async {
         // check if path is really a filesystem mount
         if isDirectoryFilesystemMount(atPath: path) {
-            Logger.mounter.info("Trying to unmount share at path \(path, privacy: .public).")
+            Logger.mounter.info("Trying to unmount share at path \(path, privacy: .public)")
             
             let url = URL(fileURLWithPath: path)
             do {
@@ -344,7 +344,6 @@ class Mounter: ObservableObject {
     /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
     /// - Parameter userTriggered: boolean to define if unmount was triggered by user, defaults to false
     func unmountAllMountedShares(userTriggered: Bool = false) async {
-        print("Hallo")
         for share in shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
                 Task {
@@ -410,7 +409,7 @@ class Mounter: ObservableObject {
             }
         }
         // look for unneded files at the defaultMountPath
-        await deleteUnneededFiles(path: defaultMountPath, filename: nil)
+//        await deleteUnneededFiles(path: self.defaultMountPath, filename: nil)
     }
     
     /// performs mount operation for all shares
@@ -497,17 +496,6 @@ class Mounter: ObservableObject {
             Logger.mounter.warning("❌ could not finde share for \(share.networkShare, privacy: .public)")
             throw MounterError.errorOnEncodingShareURL
         }
-        let csCopy = CharacterSet(bitmapRepresentation: CharacterSet.urlPathAllowed.bitmapRepresentation)
-        guard let encodedShare = url.absoluteString.addingPercentEncoding(withAllowedCharacters: csCopy) else {
-            Logger.mounter.warning("❌ could not encode share for \(share.networkShare, privacy: .public)")
-            updateShare(mountStatus: .errorOnMount, for: share)
-            throw MounterError.errorOnEncodingShareURL
-        }
-        guard let url = NSURL(string: encodedShare) else {
-            Logger.mounter.warning("❌ could not encode share for \(share.networkShare, privacy: .public)")
-            updateShare(mountStatus: .errorOnMount, for: share)
-            throw MounterError.invalidMountURL
-        }
         guard let host = url.host else {
             Logger.mounter.warning("❌ could not determine hostname for \(share.networkShare, privacy: .public)")
             updateShare(mountStatus: .errorOnMount, for: share)
@@ -530,9 +518,9 @@ class Mounter: ObservableObject {
         
         //
         // check if there is already filesystem-mount named like the share
-        let dir = URL(fileURLWithPath: encodedShare)
+        let dir = URL(fileURLWithPath: share.networkShare)
         guard dir.pathComponents.last != nil else {
-            Logger.mounter.warning("❌ could not determine mount dir component of share \(encodedShare, privacy: .public)")
+            Logger.mounter.warning("❌ could not determine mount dir component of share \(share.networkShare, privacy: .public)")
             updateShare(mountStatus: .errorOnMount, for: share)
             throw MounterError.errorCheckingMountDir
         }
@@ -585,6 +573,10 @@ class Mounter: ObservableObject {
                     Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
                     removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
                     throw MounterError.doesNotExist
+                case 13:
+                    Logger.mounter.info("❌ \(url, privacy: .public): permission denied")
+                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                    throw MounterError.permissionDenied
                 case 17:
                     Logger.mounter.info("✅ \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
                     return mountDirectory
