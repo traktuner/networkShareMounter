@@ -16,7 +16,7 @@ class ShareViewController: NSViewController {
     
     // Share struct
     struct ShareData {
-        var networkShare: URL
+        var networkShare: String
         var authType: AuthType
         var username: String?
         var password: String?
@@ -128,14 +128,10 @@ class ShareViewController: NSViewController {
     @IBAction private func saveButtonTapped(_ sender: NSButton) {
         Task { @MainActor in
             let networkShareText = self.networkShareTextField.stringValue
-            guard let networkShareURL = URL(string: networkShareText) else {
-                // TODO: Handle invalid input
-                return
-            }
             let username = usernameTextField.stringValue
             let password = passwordTextField.stringValue
             
-            let shareData = ShareData(networkShare: networkShareURL, authType: authType, username: username, password: password, managed: isManaged)
+            let shareData = ShareData(networkShare: self.networkShareTextField.stringValue, authType: authType, username: username, password: password, managed: isManaged)
             
             let shareURL = networkShareText.replacingOccurrences(of: " ", with: "_")
             if shareURL.isValidURL {
@@ -315,7 +311,7 @@ class ShareViewController: NSViewController {
             return
         }
         
-        networkShareTextField.stringValue = shareData.networkShare.absoluteString
+        networkShareTextField.stringValue = URL(string: shareData.networkShare)!.absoluteString
         authTypeSwitch.state = NSControl.StateValue.off
         usernameTextField.stringValue = shareData.username ?? ""
         passwordTextField.stringValue = shareData.password ?? ""
