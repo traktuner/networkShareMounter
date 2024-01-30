@@ -105,7 +105,13 @@ class Mounter: ObservableObject {
     /// Update a share object at a specific index and update the shares array
     func updateShare(for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
-            shareManager.updateShare(at: index, withUpdatedShare: share)
+            do {
+                try shareManager.updateShare(at: index, withUpdatedShare: share)
+            } catch ShareError.invalidIndex(let index) {
+                Logger.shareManager.error("Could not update share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+            } catch {
+                Logger.shareManager.error("Could not update share \(share.networkShare, privacy: .public), unknown error.")
+            }
         }
     }
     
@@ -121,10 +127,15 @@ class Mounter: ObservableObject {
     /// update mountStatus for a share element
     /// - Parameter mountStatus: new MountStatus
     /// - Parameter for: share to be updated
-    // TODO: EXEC BAD ADRESS on network loss (can't recreate the problem at the moment?)
     func updateShare(mountStatus: MountStatus, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
-            shareManager.updateMountStatus(at: index, to: mountStatus)
+            do {
+                try shareManager.updateMountStatus(at: index, to: mountStatus)
+            } catch ShareError.invalidIndex(let index) {
+                Logger.shareManager.error("Could not update mount status for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+            } catch {
+                Logger.shareManager.error("Could not update mount status for share \(share.networkShare, privacy: .public), unknown error.")
+            }
         }
     }
     
@@ -133,7 +144,13 @@ class Mounter: ObservableObject {
     /// - Parameter for: share to be updated
     func updateShare(actualMountPoint: String?, for share: Share) {
         if let index = shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
-            shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
+            do {
+                try shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
+            } catch ShareError.invalidIndex(let index) {
+                Logger.shareManager.error("Could not update actual mount point for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+            } catch {
+                Logger.shareManager.error("Could not update actual mount point for  share \(share.networkShare, privacy: .public), unknown error.")
+            }
         }
     }
    
@@ -187,8 +204,11 @@ class Mounter: ObservableObject {
         //
         // Get the data
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
-        Logger.mounter.info("Deleting directory \(atPath, privacy: .public): \(output ?? "done", privacy: .public)")
+        if let output = String(data: data, encoding: String.Encoding.utf8) {
+            Logger.mounter.info("Deleting directory \(atPath, privacy: .public): \(output.isEmpty ? "done" : output, privacy: .public)")
+        } else {
+            Logger.mounter.info("Unknown status deleting directory \(atPath, privacy: .public)")
+        }
     }
     
     /// function to delete obstructing files in mountDir Subdirectories
@@ -398,17 +418,17 @@ class Mounter: ObservableObject {
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
         
         // TODO: check if ths is not too dangerous
-//        for share in shareManager.allShares {
-//            // check if there is a specific mountpoint for the share. If yes, get the
-//            // parent directory. This is the path where the mountpoint itself is located
-//            if let path = share.mountPoint {
-//                let url = URL(fileURLWithPath: path)
-//                // remove the last component (aka mointpoint) to get the containing
-//                // parent directory
-//                let parentDirectory = url.deletingLastPathComponent().path
-//                await deleteUnneededFiles(path: parentDirectory, filename: nil)
-//            }
-//        }
+        for share in shareManager.allShares {
+            // check if there is a specific mountpoint for the share. If yes, get the
+            // parent directory. This is the path where the mountpoint itself is located
+            if let path = share.mountPoint {
+                let url = URL(fileURLWithPath: path)
+                // remove the last component (aka mointpoint) to get the containing
+                // parent directory
+                let parentDirectory = url.deletingLastPathComponent().path
+                await deleteUnneededFiles(path: parentDirectory, filename: nil)
+            }
+        }
         // look for unneded files at the defaultMountPath
 //        await deleteUnneededFiles(path: self.defaultMountPath, filename: nil)
     }
@@ -533,12 +553,15 @@ class Mounter: ObservableObject {
         } else {
             // check if the share URL has a path component. If not
             // use servername as mount directory
-            if (url.lastPathComponent ?? "") == "" {
+            let lastPathComponent = url.lastPathComponent
+            if lastPathComponent.isEmpty {
                 // use share's server name as mount directory
-                mountDirectory += "/" + (url.host ?? "mnt")
+                if let host = url.host {
+                    mountDirectory += "/" + host
+                }
             } else {
                 // use the export path of the share as mount directory
-                mountDirectory += "/" + (url.lastPathComponent ?? "mnt")
+                mountDirectory += "/" + lastPathComponent
             }
         }
         

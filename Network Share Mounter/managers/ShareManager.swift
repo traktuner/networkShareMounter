@@ -9,6 +9,10 @@
 import Foundation
 import OSLog
 
+enum ShareError: Error {
+    case invalidIndex(Int)
+}
+
 /// class `ShareManager` to manage the shares (array fo Share)
 class ShareManager {
     private var sharesLock = os_unfair_lock()
@@ -68,11 +72,11 @@ class ShareManager {
     }
     
     /// Update a share at a specific index
-    func updateShare(at index: Int, withUpdatedShare updatedShare: Share) {
+    func updateShare(at index: Int, withUpdatedShare updatedShare: Share) throws {
         os_unfair_lock_lock(&sharesLock)
         guard index >= 0 && index < _shares.count else {
             os_unfair_lock_unlock(&sharesLock)
-            return
+            throw ShareError.invalidIndex(index)
         }
         //
         // remove existing keychain entry first since it wouldn't be found with the new data
@@ -102,12 +106,12 @@ class ShareManager {
     /// - Parameters:
     ///   - index: The index of the share to update
     ///   - newMountStatus: The new mount status to set
-    func updateMountStatus(at index: Int, to newMountStatus: MountStatus) {
+    func updateMountStatus(at index: Int, to newMountStatus: MountStatus) throws {
         os_unfair_lock_lock(&sharesLock)
         defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
-            return
+            throw ShareError.invalidIndex(index)
         }
         _shares[index].updateMountStatus(to: newMountStatus)
     }
@@ -116,12 +120,12 @@ class ShareManager {
     /// - Parameters:
     ///   - index: The index of the share to update
     ///   - mountPoint: The mount point where the share should be mounted
-    func updateMountPoint(at index: Int, to mountPoint: String?) {
+    func updateMountPoint(at index: Int, to mountPoint: String?) throws {
         os_unfair_lock_lock(&sharesLock)
         defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
-            return
+            throw ShareError.invalidIndex(index)
         }
         _shares[index].updateMountPoint(to: mountPoint)
     }
@@ -130,12 +134,12 @@ class ShareManager {
     /// - Parameters:
     ///   - index: The index of the share to update
     ///   - actualMountPoint: The mount point where the share is mounted
-    func updateActualMountPoint(at index: Int, to actualMountPoint: String?) {
+    func updateActualMountPoint(at index: Int, to actualMountPoint: String?) throws {
         os_unfair_lock_lock(&sharesLock)
         defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
-            return
+            throw ShareError.invalidIndex(index)
         }
         _shares[index].updateActualMountPoint(to: actualMountPoint)
     }
@@ -243,7 +247,13 @@ class ShareManager {
                             newShare.mountStatus = allShares[index].mountStatus
                             newShare.id = allShares[index].id
                             newShare.actualMountPoint  = allShares[index].actualMountPoint
-                            updateShare(at: index, withUpdatedShare: newShare)
+                            do {
+                                try updateShare(at: index, withUpdatedShare: newShare)
+                            } catch ShareError.invalidIndex(let index) {
+                                Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                            } catch {
+                                Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), unknown error.")
+                            }
                         }
                     }
                     newShares.append(newShare)
@@ -285,7 +295,13 @@ class ShareManager {
                                 newShare.mountStatus = allShares[index].mountStatus
                                 newShare.id = allShares[index].id
                                 newShare.actualMountPoint  = allShares[index].actualMountPoint
-                                updateShare(at: index, withUpdatedShare: newShare)
+                                do {
+                                    try updateShare(at: index, withUpdatedShare: newShare)
+                                } catch ShareError.invalidIndex(let index) {
+                                    Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                                } catch {
+                                    Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), unknown error.")
+                                }
                                 newShares.append(newShare)
                             }
                         }
