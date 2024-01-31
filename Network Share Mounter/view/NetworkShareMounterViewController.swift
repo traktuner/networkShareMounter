@@ -282,7 +282,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             if let selectedShare = appDelegate.mounter.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                     // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
                     // new share will be added
-                    shareViewController.shareData = ShareViewController.ShareData(networkShare: URL(string: selectedShare.networkShare)!, 
+                    shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare, 
                                                                                   authType: selectedShare.authType,
                                                                                   username: selectedShare.username,
                                                                                   password: selectedShare.password,

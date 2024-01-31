@@ -36,6 +36,7 @@ enum MounterError: Error {
     case krbAuthenticationError
     case offDomain
     case krbAuthSuccessful
+    case permissionDenied
 }
 
 extension MounterError: LocalizedError {
@@ -170,6 +171,11 @@ extension MounterError: LocalizedError {
             return NSLocalizedString(
                 "Kerberos authentication successful",
                 comment: "Kerberos authentication successful"
+            )
+        case .permissionDenied:
+            return NSLocalizedString(
+                "Permission denied",
+                comment: "Permission denied"
             )
         }
     }
