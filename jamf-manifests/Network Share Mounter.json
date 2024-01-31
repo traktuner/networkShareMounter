@@ -1,159 +1,165 @@
 {
-      "$schema": "http://json-schema.org/schema#",
-      "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
-      "description": "Jamf Manifest for Network Share Mounter v3",
-      "__version": "2.0",
-      "__feedback": "rrze-mac@fau.de",
-      "type": "object",
-      "options": {
-          "remove_empty_properties": true
-      },
-      "links": [{
-              "rel": "More information",
-              "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
-          }
-      ],
-      "properties": {
-          "managedNetworkShares": {
-              "title": "Managed network shares",
-              "description": "Array with managed network shares.",
-              "type": "array",
-              "items": {
-                  "title": "Share",
-                  "type": "object",
-                  "options": {
-                      "remove_empty_properties": true
-                  },
-                  "properties": {
-                      "networkShare": {
-                      "type": "string",
-                      "description": "Example: smb://filer.your.domain.tld/share. Note: %USERNAME% will be replaced with the current user's login name.",
-                      "pattern": "^(smb|afp|https):\/\/\\S*.+$",
-                      "default": " ",
-                      "title": "Server and share"
-                      },
-                      "authType":{
-                          "title": "Authentication type",
-                          "type": "string",
-                          "description": "Authentication type for the share, it can be either through Kerberos (krb) or using a username/password (auth). Default: Kerberos.",
-                          "default": "krb",
-                          "options": {
-                              "enum_titles": [
-                                  "Kerberos",
-                                  "Password"
-                              ]
-                          },
-                          "enum": [
-                              "krb",
-                              "password"
-                          ]
-                      },
-                      "username": {
-                          "title": "Username (Optional)",
-                          "description": "Optional: Predefine a username for authentication using username/password",
-                          "type": "string"
-                      },
-                      "mountPoint": {
-                          "title": "Mount point name (Optional)",
-                          "description": "Change the mount point name for the network share. Leave blank for the default value (recommended)",
-                          "type": "string",
-                          "options": {
-                              "infoText": "If not set, the share name will be used."
-                          }
-                      }
-                  }
-              }
-          },
-          "location": {
-              "title": "Mount path",
-              "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended)",
-              "links": [{
-                  "rel": "More information",
-                  "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
-                  }
-              ],
-              "type": "string",
-              "default": ""
-          },
-          "cleanupLocationDirectory": {
-              "title": "Clean up obstructing files and directories",
-              "links": [{
-                  "rel": "More information",
-                  "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
-                  }
-              ],
-              "description": "If set to true, the mount location will be cleaned up from obstructing files and directories. Please read the wiki before enabling this option and use it with caution!",
-              "type": "boolean",
-              "default": false
-          },
-          "autostart": {
-              "title": "Enable autostart",
-              "description": "If set to true, the app will be launched on user-login",
-              "type": "boolean",
-              "default": false
-          },
-          "canQuit": {
-              "title": "Show Exit",
-              "description": "Show exit button in the menu bar",
-              "type": "boolean",
-              "default": true
-          },
-          "canChangeAutostart": {
-              "title": "Allow autostart changes",
-              "description": "Allow users to change the autostart settings",
-              "type": "boolean",
-              "default": true
-          },
-          "unmountOnExit": {
-              "title": "Unmount shares on exit",
-              "description": "Unmount shares if the app get closed",
-              "type": "boolean",
-              "default": true
-          },
-          "helpURL": {
-              "title": "Help URL",
-              "description": "Configure a website link to help users interact with the application.",
-              "pattern": "^http[s]?:\\/\\/\\S*$",
-              "type": "string",
-              "default": ""
-          },
-          "kerberosRealm": {
-              "title": "Kerberos Realm",
-              "description": "Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled",
-              "type": "string",
-              "default": ""
-          },
-          "keychainiCloudSync": {
-              "title": "Keychain iCloud sync",
-              "description": "Enable iCloud sync for Network Share Mounter keychain entries if the user's iCloud keychain is available.",
-              "type": "boolean",
-              "default": false
-          },
-          "keyChainService": {
-              "title": "Keychain Service",
-              "description": "Human readable service name of keychain item entry",
-              "type": "string",
-              "default": "Network Share Mounter"
-          },
-          "keyChainComment": {
-              "title": "Keychain comment",
-              "description": "User visible comment for keychain item entry",
-              "type": "string",
-              "default": "Generated and used by Network Share Mounter"
-          },
-          "networkShares": {
-              "title": "Network shares (Deprecated)",
-              "description": "⚠️ Deprecated with version 3. Value will be removed in a future version of the Network Share Mounter.",
-              "links": [{
-                  "rel": "More information",
-                  "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
-              }],
-              "type": "array",
-              "items": {
-                  "type": "string",
-                  "pattern": "^smb:\/\/\\S*.+$",
-                  "title": "Share"
-              }
-          }
-      }
-  }
+    "$schema": "http://json-schema.org/schema#",
+    "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
+    "description": "Jamf Manifest for Network Share Mounter v3",
+    "__version": "2.0",
+    "__feedback": "rrze-mac@fau.de",
+    "type": "object",
+    "options": {
+        "remove_empty_properties": true
+    },
+    "links": [{
+            "rel": "More information",
+            "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
+        }
+    ],
+    "properties": {
+        "managedNetworkShares": {
+            "title": "Managed network shares",
+            "description": "Array with managed network shares.",
+            "type": "array",
+            "items": {
+                "title": "Share",
+                "type": "object",
+                "options": {
+                    "remove_empty_properties": true
+                },
+                "properties": {
+                    "networkShare": {
+                    "type": "string",
+                    "description": "Example: smb://filer.your.domain.tld/share. Note: %USERNAME% will be replaced with the current user's login name.",
+                    "pattern": "^(smb|afp|https):\/\/\\S*.+$",
+                    "default": " ",
+                    "title": "Server and share"
+                    },
+                    "authType":{
+                        "title": "Authentication type",
+                        "type": "string",
+                        "description": "Authentication type for the share, it can be either through Kerberos (krb) or using a username/password (auth). Default: Kerberos.",
+                        "default": "krb",
+                        "options": {
+                            "enum_titles": [
+                                "Kerberos",
+                                "Password"
+                            ]
+                        },
+                        "enum": [
+                            "krb",
+                            "password"
+                        ]
+                    },
+                    "username": {
+                        "title": "Username (Optional)",
+                        "description": "Optional: Predefine a username for authentication using username/password",
+                        "type": "string"
+                    },
+                    "mountPoint": {
+                        "title": "Mount point name (Optional)",
+                        "description": "Change the mount point name for the network share. Leave blank for the default value (recommended)",
+                        "type": "string",
+                        "options": {
+                            "infoText": "If not set, the share name will be used."
+                        }
+                    }
+                }
+            }
+        },
+        "useNewDefaultLocation": {
+            "title": "Use the new default mount location",
+            "description": "With version 3 the old default mount path (~/Netzlaufwerke/) is deprecated. New default is (/Volumes). This key allows administrators to adopt this default value ahead of the official release. This option is provided to ease the transition for administrators.",
+            "type": "boolean",
+            "default": false
+        },
+        "location": {
+            "title": "Mount path",
+            "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended)",
+            "links": [{
+                "rel": "More information",
+                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
+                }
+            ],
+            "type": "string",
+            "default": ""
+        },
+        "cleanupLocationDirectory": {
+            "title": "Clean up obstructing files and directories",
+            "links": [{
+                "rel": "More information",
+                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
+                }
+            ],
+            "description": "If set to true, the mount location will be cleaned up from obstructing files and directories. Please read the wiki before enabling this option and use it with caution!",
+            "type": "boolean",
+            "default": false
+        },
+        "autostart": {
+            "title": "Enable autostart",
+            "description": "If set to true, the app will be launched on user-login",
+            "type": "boolean",
+            "default": false
+        },
+        "canQuit": {
+            "title": "Show Exit",
+            "description": "Show exit button in the menu bar",
+            "type": "boolean",
+            "default": true
+        },
+        "canChangeAutostart": {
+            "title": "Allow autostart changes",
+            "description": "Allow users to change the autostart settings",
+            "type": "boolean",
+            "default": true
+        },
+        "unmountOnExit": {
+            "title": "Unmount shares on exit",
+            "description": "Unmount shares if the app get closed",
+            "type": "boolean",
+            "default": true
+        },
+        "helpURL": {
+            "title": "Help URL",
+            "description": "Configure a website link to help users interact with the application.",
+            "pattern": "^http[s]?:\\/\\/\\S*$",
+            "type": "string",
+            "default": ""
+        },
+        "kerberosRealm": {
+            "title": "Kerberos Realm",
+            "description": "Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled",
+            "type": "string",
+            "default": ""
+        },
+        "keychainiCloudSync": {
+            "title": "Keychain iCloud sync",
+            "description": "Enable iCloud sync for Network Share Mounter keychain entries if the user's iCloud keychain is available.",
+            "type": "boolean",
+            "default": false
+        },
+        "keyChainService": {
+            "title": "Keychain Service",
+            "description": "Human readable service name of keychain item entry",
+            "type": "string",
+            "default": "Network Share Mounter"
+        },
+        "keyChainComment": {
+            "title": "Keychain comment",
+            "description": "User visible comment for keychain item entry",
+            "type": "string",
+            "default": "Generated and used by Network Share Mounter"
+        },
+        "networkShares": {
+            "title": "Network shares (Deprecated)",
+            "description": "⚠️ Deprecated with version 3. Value will be removed in a future version of the Network Share Mounter.",
+            "links": [{
+                "rel": "More information",
+                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
+            }],
+            "type": "array",
+            "items": {
+                "type": "string",
+                "pattern": "^smb:\/\/\\S*.+$",
+                "title": "Share"
+            }
+        }
+    }
+}
