@@ -30,9 +30,9 @@ If the current user has the attribute `SMBHome` defined via LDAP or Active Direc
 
 ### Configuration preferences
 
-For an easier configuration of all the preference keys without creating or modifying a custom Configuration Profile in XML format we provieded a JSON Manifest Schema for Jamf Pro. [Download the manifest file](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/dev/jamf-manifests/Network%20Share%20Mounter.json). We also added a manifest to the [iMazing Profile Edior](https://imazing.com/profile-editor). 
+For an easier configuration of all the preference keys without creating or modifying a custom configuration profile in XML format we have provided a [JSON Manifest Schema for Jamf Pro (Download)](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/dev/jamf-manifests/Network%20Share%20Mounter.json) and a manifest for the [iMazing Profile Editor](https://imazing.com/profile-editor). 
 
- The defaults domain is `de.fau.rrze.NetworkShareMounter`. Available payload values: 
+ The defaults domain is `de.fau.rrze.NetworkShareMounter`. Available keys: 
 
 | Key                 | Type  | Description            | Default value | Aviable with version | Required? | Example |
 | :------------------ | :---- | :---------------------|:-------------------------------------- | --------------------------------- | ------- | ---- |
@@ -57,13 +57,13 @@ If another directory is used to mount the network drives (like `location` = `/Vo
 
 ## 📚 FAQ
 ##### **1) Jamf recon stuck with configured Network Share Mounter app**  
-This is probably due the innventory collection configuration "Include home directory sizes" in Jamf (Pro). Both Network Share Mounter versions, v2 and legacy, mounting the shares in the users home (i.g. `~/Network shares`). If the option is now enabled, Jamf will also try to collect the size of the network share mounter mounts and the process get stuck.
+This is probably due the inventory collection configuration "Include home directory sizes" in Jamf Pro. Both Network Share Mounter versions, v2 and legacy, mounting the shares in the users home (i.g. `~/Network shares`). If the option is now enabled, Jamf Pro will also try to collect the size of the network share mounter mounts and the process gets stuck.
 
-To resolve this behaviour, go to **Settings > Computer Management - Management Framework > Inventory Collection** and disable the option **Include home directory sizes** or change the default mount path. 
+To resolve this behaviour, go to **Settings > Computer Management - Management Framework > Inventory Collection** and disable the option "**Include home directory sizes**" in Jamf Pro or modify the Network Share Mounter default mount path. 
 
 ##### 2) Autostart 
 
-There are several possibilities to accomplish the autostart at login. For example the Apple way, as it is also defined in the Apple App Store guideline. **But the app *has* to be started at least one time**.  
+There are several methods to accomplish the autostart at login. For example, the Apple way, as it is also defined in the Apple App Store guideline. **But the app *has* to be started at least once**.  
 If you're using a MDM solution like *Jamf Pro* you can create a policy to start the Network Share Mounter _once per user and computer_. If done, your MDM trigger the first run. After that, the app will open on every log-in. Example: 
 
 - Policy: `Autostart Network Share Mounter`
