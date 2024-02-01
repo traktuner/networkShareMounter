@@ -36,13 +36,13 @@ For an easier configuration of all the preference keys without creating or modif
 
 | Key                 | Type  | Description            | Default value | Aviable with version | Required? | Example |
 | :------------------ | :---- | :---------------------|:-------------------------------------- | --------------------------------- | ------- | ---- |
-| `managedNetworkShares` | Array of dict | Array with all network shares. <br />You can configure the authentication type and mount for each share: <br /><br />**networkShare**: Server and share name (SMB, AFP, HTTPS)<br /><br />**authType**: *Authentication type for the share, it can be either through Kerberos (krb) or password (password):* <br /><br />**username**: *Predefine a username for authentication using username/password*<br /><br />**mountPoint**: *Change the mount point name for the network share. Leave blank for the default value (recommended)*<br /><br />*Note: `%USERNAME%` will be replaced with the login name of the current user*. | - | ≥ 3.0.0 | - |managedNetworkShares = {<br/>  {<br/>  networkShare = "smb://filer.your.domain/share",<br/>  authType = "krb"<br/>  },<br/>  {<br/>  networkShare = "smb://home.your.domain/%USERNAME%",<br/>  authType = "krb"<br/>  },<br/>  {<br/>  networkShare = "smb://filer3.your.domain/share2",<br/>  authType = "password",<br/>  username =  "%USERNAME%"<br/>  }|
+| `managedNetworkShares` | Array of dict | Array with all network shares. <br />You can configure the authentication type and mount for each share: <br /><br />**networkShare**: Server and share name (SMB, AFP, HTTPS)<br /><br />**authType**: *Authentication type for the share, it can be either through Kerberos (krb) or password (password):* <br />**username**: *Predefine a username for authentication using username/password*<br /><br />**mountPoint**: *Change the mount point name for the network share. <br />[Only applicable when location is not /Volumes](#5-why-is-it-not-possible-to-change-the-mount-point-name-when-using-volumes-for-the-mount-location)!  <br />Leave blank for the default value (recommended)*<br /><br />----<br />*Note: `%USERNAME%` will be replaced with the login name of the current user*. | - | ≥ 3.0.0 | - |managedNetworkShares = {<br/>  {<br/>  networkShare = "smb://filer.your.domain/share",<br/>  authType = "krb"<br/>  },<br/>  {<br/>  networkShare = "smb://home.your.domain/%USERNAME%",<br/>  authType = "krb"<br/>  },<br/>  {<br/>  networkShare = "smb://filer3.your.domain/share2",<br/>  authType = "password",<br/>  username =  "%USERNAME%"<br/>  }|
 | `networkShares`            | Array   | Array with all (SMB) network shares.    <br />Note: `%USERNAME%` will be replaced with the login name of the current user.<br /><br>**⚠️ Deprecated with version 3**. <br />*Still available for v3 adaption* | -             | < 3.1.0         | -         | `smb://filer.your.domain/share`<br />`smb://homefiler.your.domain/%USERNAME%` |
 | `autostart` | Boolean | If true, the app will be launched upon user login. | false | ≥ 2.0.0 | optional ||
 | `canQuit` | Boolean | If true, the user can exit the app in the menu bar. | true | ≥ 2.0.0 | optional ||
 | `canChangeAutostart` | Boolean | If set to false, the user can not change the autostart option. | true | ≥ 2.0.0 | optional ||
 | `unmountOnExit` | Boolean | If set to false, the shares will be mounted after quitting the app. | true | ≥ 2.0.0 | optional ||
-| `location` | String | Path where network shares will be mounted. <br />Leave blank for the default value *(highly recommended)* | - | ≥ 2.1.0 | optional | `/Volumes` |
+| `location` | String | Path where network shares will be mounted. <br />Make sure, that the user has read and write access to the mount location if the location is not `/Volumes`.<br />Leave blank for the default value *(highly recommended)* | - | ≥ 2.1.0 | optional | `/Volumes` |
 | `useNewDefaultLocation` | Boolean | Use the new default mount location (`/Volumes`)<br /><br />**⚠️ With version 3 the old default mount path (~/Netzlaufwerke/) is deprecated.** | false | 3.0.0 | optional |  |
 | `cleanupLocationDirectory` | Boolean | 1) Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag.    <br /><br />2) Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag.    <br /><br />3) If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array.   <br />*(The previous setting where too dangerous)* | false | ≥ 2.1.0 | - | `false` |
 | `kerberosRealm` | String | Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled | - | ≥ 3.0.0 | optional | EXAMPLE.REALM.COM |
@@ -50,8 +50,11 @@ For an easier configuration of all the preference keys without creating or modif
 
 #### ⚠️ Important note for the `location`,  `cleanupLocationDirectory` and `useNewDefaultLocation` values
 
-If the value `location` left empty (or undefined), the directory (`~/Netzlaufwerk`) will be created as a subdirectory of the user's home where the network shares will be mounted. Since this directory always contains only mounted network shares, there is a routine to clean up this directory and deletes unnecessary files and directories.    
-If another directory is used to mount the network drives (like `location` = `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false` !
+If the value `location` left empty (or undefined), the directory (`~/Netzlaufwerk`) will be created as a subdirectory of the user's home where the network shares will be mounted. Since this directory always contains only mounted network shares, there is a routine to clean up this directory and deletes unnecessary files and directories.
+
+If another directory is used to mount the network drives (like `location` = `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false` ! 
+
+Make sure that the user has both read and write access permissions to the mount location if you are not using predefined locations such as `~/Netzlaufwerk`,`~/Network shares` in the user's home, or the `/Volumes` location [where the OS handle the mount process](#5-why-is-it-not-possible-to-change-the-mount-point-name-when-using-volumes-for-the-mount-location).
 
 **Also, in a feature release, the new default location will be set to `/Volumes`**. The `useNewDefaultLocation` parameter allows users to adopt this default value ahead of the official release. This option is provided to ease the transition for administrators.
 
@@ -86,6 +89,10 @@ With macOS Ventura, Apple has added a feature to show apps which are starting an
 With version 3, logging has been significantly improved. You can use either the Konsole.app or the terminal with the following command to log the app:
 
 ``log stream --predicate "subsystem == 'de.fau.rrze.NetworkShareMounter'" --level debug``
+
+##### **5) Why is it not possible to change the mount point name when using /Volumes for the mount location?**
+
+When mounting shares in `/Volumes`, the OS handles the mount process entirely and doesn't allow changing the mount point name programmatically. So, it's not possible to change the name. If the key mountPoint is configured, it will be disregarded when using `/Volumes` as the mount location.
 
 ## 🚀 Planned features and releases
 

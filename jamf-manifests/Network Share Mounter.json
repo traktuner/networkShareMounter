@@ -55,7 +55,7 @@
                     },
                     "mountPoint": {
                         "title": "Mount point name (Optional)",
-                        "description": "Change the mount point name for the network share. Leave blank for the default value (recommended)",
+                        "description": "Change the mount point name for the network share. Only applicable when location is not `/Volumes`. Leave blank for the default value (recommended)",
                         "type": "string",
                         "options": {
                             "infoText": "If not set, the share name will be used."
