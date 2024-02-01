@@ -123,7 +123,7 @@ lane :build do
   end
 end
 
-lane :test do
+lane :testbuild do
   begin
     desc "incerement Xcodes build number"
     increment_build_number(

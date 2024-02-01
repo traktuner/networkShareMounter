@@ -29,6 +29,11 @@ struct Defaults {
         kNetFSSoftMountKey: true,
         kNetFSMountAtMountDirKey: true
         ] as! CFMutableDictionary
+    static let mountOptionsForSystemMountDir = [
+        kNetFSAllowSubMountsKey: true,
+        kNetFSSoftMountKey: true,
+        kNetFSMountAtMountDirKey: false
+        ] as! CFMutableDictionary
     // swiftlint:enable force_cast
     static let filesToDelete = [
         ".DS_Store",
