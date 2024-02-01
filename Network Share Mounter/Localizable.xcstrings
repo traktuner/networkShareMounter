@@ -1,0 +1,2341 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "⚠️ Authentication problem..." : {
+      "comment" : "Authentication problem",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authentifizierungsproblem..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authentication problem..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema de autenticación..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problème d'authentification..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema di autenticazione..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Authenticatieprobleem..."
+          }
+        }
+      }
+    },
+    "⚠️ Kerberos SSO Authentication problem..." : {
+      "comment" : "Kerberos Authentication problem",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problem bei der Kerberos SSO-Authentifizierung..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema de autenticación SSO Kerberos..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problème d'authentification SSO Kerberos..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Problema di autenticazione SSO Kerberos..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Probleem met Kerberos SSO-authenticatie..."
+          }
+        }
+      }
+    },
+    "About Network Share Mounter" : {
+      "comment" : "About Network Share Mounter",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Über Network Share Mounter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sobre Network Share Mounter"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À propos de Network Share Mounter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informazioni Network Share Mounter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over Network Share Mounter"
+          }
+        }
+      }
+    },
+    "authenticate-share-button" : {
+      "comment" : "Button text to change authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe authentifizieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticar compartición"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifier le partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autentica condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel authenticeren"
+          }
+        }
+      }
+    },
+    "Authentication error" : {
+      "comment" : "Authentication error",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifizierungsfehler"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error de autenticación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur d'authentification"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore di autenticazione."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authenticatiefout"
+          }
+        }
+      }
+    },
+    "authui-button-text" : {
+      "comment" : "text on authenticate button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accedi"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aanmelden"
+          }
+        }
+      }
+    },
+    "authui-infotext" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Unternehmen oder Universitäten wird oft eine zentrale Authentifizierung über Kerberos-Tickets verwendet, um auf Netzwerkfreigaben oder andere Ressourcen zuzugreifen.\nDies funktioniert ähnlich wie ein Eintrittsticket für einen Freizeitpark: Du erhältst einmalig eine Eintrittskarte und kannst damit die Fahrgeschäfte besuchen, indem du das Ticket vorzeigst.\n\nDiese App funktioniert ähnlich - nach der Anmeldung erhältst du ein virtuelles Ticket, mit dem sich dein Mac im Netzwerk identifiziert. Das Ticket hat eine begrenzte Gültigkeitsdauer, daher erfolgt die Authentifizierung regelmäßig.\nDie App speichert deinen Benutzernamen und dein Passwort sicher in deinem persönlichen Schlüsselbund und erledigt die Authentifizierung im Hintergrund. \nBeachte, dass Tickets normalerweise nur im Firmen- oder Universitätsnetzwerk ausgestellt werden. Wenn sich dein Mac im Netzwerk befindet, werden automatisch neue Tickets ausgestellt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In companies or universities, central authentication via Kerberos tickets is often used to access network shares or other resources. \nThis works similar to an entry ticket for an amusement park: you receive a one-time entry ticket and can use it to access the rides by presenting the ticket. \n\nThis app functions similarly - after login, you receive a virtual ticket that identifies your Mac on the network. The ticket has a limited validity period, so authentication occurs regularly. The app securely stores your username and password in your personal keychain and handles authentication in the background. Note that tickets are usually issued only in the company or university network. \nWhen your Mac is on the network, new tickets are automatically issued."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas o universidades, la autenticación central mediante tickets Kerberos se suele utilizar para acceder a recursos compartidos de red u otros recursos. \nEsto funciona de manera similar a un boleto de entrada a un parque de diversiones: recibe un boleto de entrada único y puede usarlo para visitar las atracciones mostrando el boleto. \n\nEsta aplicación funciona de manera similar: después de registrarse, recibe un boleto virtual /ticket) que su Mac utiliza para identificarse en la red. El billete tiene un período de validez limitado, por lo que la autenticación se realiza periódicamente. La aplicación almacena de forma segura su nombre de usuario y contraseña en su llavero personal y maneja la autenticación en segundo plano. \nTenga en cuenta que los billetes normalmente sólo se emiten en la red de la empresa o de la universidad. Cuando su Mac está en la red, se emiten nuevos boletos automáticamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans les entreprises ou les universités, l'authentification centralisée via des tickets Kerberos est souvent utilisée pour accéder aux partages réseau ou à d'autres ressources. \nCela fonctionne de la même manière qu'un ticket d'entrée dans un parc d'attractions : vous recevez un ticket d'entrée unique et pouvez l'utiliser pour visiter les manèges en présentant le ticket. \n\nCette application fonctionne de la même manière : après votre inscription, vous recevez un ticket virtuel que votre Mac utilise pour s'identifier sur le réseau. Le ticket a une durée de validité limitée, l'authentification a donc lieu régulièrement. L'application stocke en toute sécurité votre nom d'utilisateur et votre mot de passe dans votre trousseau personnel et gère l'authentification en arrière-plan. \nA noter que les billets sont généralement émis uniquement sur le réseau de l'entreprise ou de l'université. Lorsque votre Mac est sur le réseau, de nouveaux tickets sont automatiquement émis."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelle aziende o nelle università, spesso si utilizza l'autenticazione centralizzata tramite ticket Kerberos per accedere a condivisioni di rete o ad altre risorse. \nQuesto funziona in modo simile a un biglietto d'ingresso per un parco divertimenti: ricevi un biglietto d'ingresso monouso e puoi usarlo per accedere alle attrazioni mostrando il biglietto. \n\nQuesta app funziona in modo simile: dopo aver effettuato l'accesso, ricevi un ticket virtuale che identifica il tuo Mac sulla rete. Il ticket ha una durata limitata, quindi l'autenticazione avviene regolarmente. L'app memorizza in modo sicuro il tuo nome utente e la tua password nel tuo portachiavi personale e gestisce l'autenticazione in background. \nNota che i ticket vengono di solito emessi solo all'interno della rete aziendale o universitaria. Quando il tuo Mac è sulla rete, vengono emessi automaticamente nuovi tikcet."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In bedrijven of universiteiten wordt centrale authenticatie via Kerberos-tickets vaak gebruikt om toegang te krijgen tot netwerkshares of andere bronnen. \nDit werkt hetzelfde als een toegangsbewijs voor een attractiepark: u ontvangt een eenmalig toegangsbewijs en kunt hiermee op vertoon van het kaartje de attracties bezoeken. \n\nDeze app werkt op dezelfde manier: na registratie ontvang je een virtueel ticket dat je Mac gebruikt om zichzelf op het netwerk te identificeren. Het ticket heeft een beperkte geldigheidsduur, waardoor authenticatie regelmatig plaatsvindt. De app slaat uw gebruikersnaam en wachtwoord veilig op in uw persoonlijke sleutelhanger en verzorgt de authenticatie op de achtergrond. Houd er rekening mee dat tickets meestal alleen via het bedrijfs- of universiteitsnetwerk worden uitgegeven. \nWanneer uw Mac verbinding heeft met het netwerk, worden er automatisch nieuwe tickets uitgegeven."
+          }
+        }
+      }
+    },
+    "authui-krb-infotext" : {
+      "comment" : "informative test for kerberos auth window",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Unternehmen oder deine Hochschule nutzt ein Verfahren namens Kerberos für die Anmeldung bei Netzwerkdiensten. Um diese Art der Single Sign-On-Authentifizierung zu nutzen, musst du einmalig deinen Nutzernamen und dein Passwort eingeben. Diese werden in deinem persönlichen Schlüsselbund gespeichert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your company or university uses a method called Kerberos for logging into network services. To use this type of single sign-on authentication, you need to enter your username and password once. These will be stored in your personal keychain."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu empresa o universidad utiliza un método llamado Kerberos para iniciar sesión en servicios de red. Para utilizar este tipo de autenticación de inicio de sesión único, debes ingresar tu nombre de usuario y contraseña una vez. Estos se guardarán en tu llavero personal."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre entreprise ou votre université utilise une méthode appelée Kerberos pour se connecter aux services réseau. Pour utiliser ce type d'authentification unique, vous devez saisir votre nom d'utilisateur et votre mot de passe une fois. Ils seront enregistrés dans votre trousseau personnel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua azienda o università utilizza un metodo chiamato Kerberos per accedere ai servizi di rete. Per utilizzare questo tipo di autenticazione Single Sign-On, devi inserire il tuo nome utente e la password una volta. Questi verranno memorizzati nel tuo portachiavi personale."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw bedrijf of universiteit maakt gebruik van een methode genaamd Kerberos voor het inloggen op netwerkdiensten. Om deze vorm van single sign-on-authenticatie te gebruiken, moet je eenmalig je gebruikersnaam en wachtwoord invoeren. Deze worden opgeslagen in je persoonlijke sleutelhanger."
+          }
+        }
+      }
+    },
+    "authui-krb-title" : {
+      "comment" : "title of kerberos auth window",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On mit Kerberos"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On with Kerberos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio de sesión único con Kerberos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification unique avec Kerberos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione unica con Kerberos"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On met Kerberos"
+          }
+        }
+      }
+    },
+    "authui-password-text" : {
+      "comment" : "value shown as password",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraseña"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot de passe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoord"
+          }
+        }
+      }
+    },
+    "authui-password-text-FAU" : {
+      "comment" : "value shown as FAU password",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Passwort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraseña IdM"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot de passe IdM"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password IdM"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Wachtwoord"
+          }
+        }
+      }
+    },
+    "authui-username-text" : {
+      "comment" : "value shown as username",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzername"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Username"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de usuario"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom d'utilisateur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome utente"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikersnaam"
+          }
+        }
+      }
+    },
+    "authui-username-text-FAU" : {
+      "comment" : "value shown as FAU username",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Kennung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM User name"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de usuario IdM"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom d'utilisateur IdM"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome utente IdM"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IdM-Gebruikersnaam"
+          }
+        }
+      }
+    },
+    "cancel" : {
+      "comment" : "cancel",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulla"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuleren"
+          }
+        }
+      }
+    },
+    "Cannot encode server URL" : {
+      "comment" : "Cannot encode server URL",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Server-URL kann nicht codiert werden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede codificar la URL del servidor"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'encoder l'URL du serveur."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile codificare l'URL del server."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan server-URL niet coderen."
+          }
+        }
+      }
+    },
+    "Cannot unmount share" : {
+      "comment" : "Cannot unmount share",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe kann nicht abgemeldet werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede desmontar la compartición."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de démonter le partage."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile smontare la condivisione."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan gedeelde map niet afkoppelen."
+          }
+        }
+      }
+    },
+    "Does not exist" : {
+      "comment" : "Does not exist",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Existiert nicht."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " No existe."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "N'existe pas."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non esiste."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestaat niet."
+          }
+        }
+      }
+    },
+    "Error creating mount directory" : {
+      "comment" : "Error creating mount directory",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Erstellen des Freigabe-Verzeichnisses."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al crear el directorio de montaje."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur lors de la création du répertoire de montage."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore durante la creazione della directory di montaggio."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fout bij het maken van het koppelingsdirectory."
+          }
+        }
+      }
+    },
+    "help-auth-error" : {
+      "comment" : "Help text shown if some shares are not authenticated",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich habe ein Problem mit der Authentifizierung der oben genannten Netzwerklaufwerke festgestellt. Bitte überprüfe, ob deine Anmeldedaten korrekt sind, um die Freigaben zu verbinden.\n\nIn Unternehmen oder Universitäten wird die Einrichtung von Netzlaufwerken oft über Mobile Device Management (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. Je nach Authentifizierung musst du einmalig deinen Benutzernamen und dein Passwort eingeben. Klicke dazu bitte auf eine Freigabe und dann auf \"Freigabe bearbeiten.\""
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I have identified an issue with the authentication of the network drives mentioned above. Please check if your login credentials are correct to connect to the shares.\n\nIn companies or universities, the setup of network drives is often managed through Mobile Device Management (MDM). This means that your administrator automatically connects certain drives to your Mac. Depending on the authentication, you may need to enter your username and password once. To do this, please click on a share and then on \"Edit Share.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He identificado un problema con la autenticación de las unidades de red mencionadas anteriormente. Por favor, verifica si tus credenciales de inicio de sesión son correctas para conectarte a las comparticiones.\n\nEn empresas o universidades, la configuración de las unidades de red suele gestionarse mediante la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. Dependiendo de la autenticación, es posible que debas ingresar tu nombre de usuario y contraseña una vez. Para hacerlo, haz clic en una compartición y luego en \"Editar compartición.\""
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "J'ai identifié un problème avec l'authentification des lecteurs réseau mentionnés ci-dessus. Veuillez vérifier si vos identifiants de connexion sont corrects pour vous connecter aux partages.\n\nDans les entreprises ou les universités, la configuration des lecteurs réseau est souvent gérée via la gestion des appareils mobiles (MDM). Cela signifie que votre administrateur connecte automatiquement certains lecteurs à votre Mac. Selon l'authentification, vous devrez peut-être entrer votre nom d'utilisateur et votre mot de passe une fois. Pour ce faire, veuillez cliquer sur un partage, puis sur \"Modifier le partage.\""
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ho riscontrato un problema con l'autenticazione delle unità di rete menzionate sopra. Controlla se le tue credenziali di accesso sono corrette per connetterti alle condivisioni.\n\nNelle aziende o nelle università, la configurazione delle unità di rete è spesso gestita tramite Mobile Device Management (MDM). Ciò significa che il tuo amministratore collega automaticamente determinate unità al tuo Mac. In base all'autenticazione, potresti dover inserire una sola volta il tuo nome utente e la tua password. Per farlo, fai clic su una condivisione e poi su \"Modifica condivisione.\""
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ik heb een probleem geconstateerd met de authenticatie van de hierboven genoemde netwerkstations. Controleer of je aanmeldingsgegevens correct zijn om verbinding te maken met de gedeelde mappen.\n\nIn bedrijven of universiteiten wordt de configuratie van netwerkstations vaak beheerd via Mobile Device Management (MDM). Dit betekent dat je beheerder automatisch bepaalde stations met je Mac verbindt. Afhankelijk van de authenticatie moet je eenmalig je gebruikersnaam en wachtwoord invoeren. Klik hiervoor op een gedeelde map en vervolgens op \"Delen bewerken.\""
+          }
+        }
+      }
+    },
+    "help-authType" : {
+      "comment" : "Helptext for authType",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um ein Netzwerklaufwerk einzubinden, musst du dich beim Server authentifizieren. In Unternehmen und Universitäten erfolgt dies normalerweise über Microsoft Active Directory und Kerberos, was der bevorzugte Weg ist.    \nIn privaten Umgebungen wird die Authentifizierung hingegen über Benutzernamen und Passwort durchgeführt. Wenn du unsicher bist, verwende die Authentifizierung über Benutzernamen und Passwort oder frage deinen Administrator.    \n\nBeachte, dass diese Option nur in Umgebungen verfügbar ist, die eine Active Directory oder Kerberos Authentifizierung unterstützen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To connect a network drive, you need to authenticate yourself with the server. In businesses and universities, this is typically done through Microsoft Active Directory and Kerberos, which is the preferred method.\n\nIn private settings, authentication is done using a username and password. If you are unsure, use the username and password authentication or consult your administrator.\n\nNote that this option is only available in environments that support Active Directory or Kerberos authentication."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para conectar una unidad de red, debes autenticarte con el servidor. En empresas y universidades, esto se hace normalmente a través de Microsoft Active Directory y Kerberos, que es el método preferido.\n\nEn entornos privados, la autenticación se realiza mediante un nombre de usuario y una contraseña. Si no estás seguro, utiliza la autenticación con nombre de usuario y contraseña o consulta a tu administrador.\n\nTen en cuenta que esta opción solo está disponible en entornos que admiten la autenticación de Active Directory o Kerberos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour connecter un lecteur réseau, vous devez vous authentifier auprès du serveur. Dans les entreprises et les universités, cela se fait généralement via Microsoft Active Directory et Kerberos, qui est la méthode préférée.\n\nDans des paramètres privés, l'authentification se fait en utilisant un nom d'utilisateur et un mot de passe. Si vous n'êtes pas sûr, utilisez l'authentification par nom d'utilisateur et mot de passe ou consultez votre administrateur.\n\nNotez que cette option n'est disponible que dans des environnements prenant en charge l'authentification Active Directory ou Kerberos."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per collegare un'unità di rete, è necessario autenticarsi presso il server. Nelle aziende e nelle università, questo avviene di solito tramite Microsoft Active Directory e Kerberos, che è il metodo preferito.\n\nIn ambienti privati, l'autenticazione avviene invece utilizzando un nome utente e una password. Se non sei sicuro, utilizza l'autenticazione con nome utente e password o chiedi al tuo amministratore.\n\nNota che questa opzione è disponibile solo in ambienti che supportano l'autenticazione di Active Directory o Kerberos."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om een netwerkstation te koppelen, moet je je authenticeren bij de server. In bedrijven en universiteiten gebeurt dit meestal via Microsoft Active Directory en Kerberos, wat de voorkeursmethode is.\n\nIn privé-instellingen wordt de authenticatie echter uitgevoerd met een gebruikersnaam en wachtwoord. Als je niet zeker bent, gebruik dan de authenticatie met gebruikersnaam en wachtwoord of raadpleeg je beheerder.\n\nLet op dat deze optie alleen beschikbaar is in omgevingen die Active Directory- of Kerberos-authenticatie ondersteunen."
+          }
+        }
+      }
+    },
+    "help-krb-auth-text" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Unternehmen und Universitäten erfolgt eine netzwerkweite Single Sign-On Authentifizierung über Microsoft Active Directory und Kerberos. Um diese nutzen zu können musst du deinen username und das Passwort eingeben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In companies and universities, network-wide Single Sign-On authentication is performed through Microsoft Active Directory and Kerberos. To use this, you need to enter your username and password."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas y universidades, la autenticación de Inicio de Sesión Único en toda la red se realiza a través de Microsoft Active Directory y Kerberos. Para utilizar esto, debes ingresar tu nombre de usuario y contraseña."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans les entreprises et les universités, l'authentification Single Sign-On sur l'ensemble du réseau est effectuée via Microsoft Active Directory et Kerberos. Pour l'utiliser, vous devez saisir votre nom d'utilisateur et votre mot de passe."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelle aziende e nelle università, l'autenticazione Single Sign-On su tutta la rete avviene tramite Microsoft Active Directory e Kerberos. Per utilizzarla, devi inserire il tuo nome utente e la password."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In bedrijven en universiteiten wordt netwerkbrede Single Sign-On-authenticatie uitgevoerd via Microsoft Active Directory en Kerberos. Om dit te gebruiken, moet je je gebruikersnaam en wachtwoord invoeren."
+          }
+        }
+      }
+    },
+    "help-new-share" : {
+      "comment" : "Help text with some infos about adding new shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du den Servernamen und den Freigabepfad kennst, kannst du Windows (SMB), AFP oder WebDAV-Netzwerkfreigabe hinzufügen und verbinden. \n\nDrücke das '+'-Symbol, um eine neue Netzwerkfreigabe hinzuzufügen. Wenn du eine Freigabe dauerhaft entfernen möchtest, wähle diese aus und klicke auf das '-'-Symbol.\""
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can add and mount any Windows (smb/cifs) network share as long as you know the server name and export path. \nThe connection will be tested immediately and the share will be connected if the server resp. share is reachable. \n\nEnter the share as: smb://server.name/export/path"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puede agregar y montar cualquier recurso share de red de Windows (smb/cifs) siempre que conozca el nombre del servidor y la ruta de exportación. \nLa conexión se probará inmediatamente y el recurso compartido se conectará si el servidor resp. share es accesible. \n\nIngrese el recurso compartido como: smb://server.name/export/path"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous pouvez ajouter et monter n'importe quelle partage réseau Windows (smb/cifs) tant que vous connaissez le nom du serveur et le chemin d'exportation. \nLa connexion sera testée immédiatement et le partage sera connecté si le serveur ou le partage est accessible.\n\nEntrez le partage comme suit : smb://nom.du.serveur/chemin/d'exportation"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puoi aggiungere e montare qualsiasi condivisione di rete di Windows (smb/cifs) purché tu conosca il nome del server e il percorso di esportazione.\nLa connessione verrà testata immediatamente e la condivisione verrà collegata se il server rispettivo o la condivisione sono raggiungibili.\n\nInserisci la condivisione come: smb://server.nome/percorso/esportazione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt elke Windows (smb/cifs) netwerkshare toevoegen en mounten zolang je de servernaam en het exportpad kent. \nDe verbinding wordt onmiddellijk getest en de share wordt verbonden als de server resp. share bereikbaar is. \n\nVoer de share naam in als: smb://server.name/export/path"
+          }
+        }
+      }
+    },
+    "help-password" : {
+      "comment" : "Helptext for password",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Passwort mit dem du dich am Netzwerklaufwer anmeldest."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The password with which you log in to the network drive."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La contraseña con la que inicias sesión en la unidad de red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mot de passe avec lequel vous vous connectez au lecteur réseau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La password con cui accedi all'unità di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het wachtwoord waarmee je inlogt op het netwerkstation."
+          }
+        }
+      }
+    },
+    "help-show-managed-shares" : {
+      "comment" : "Helptext for show managed shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Firmen oder Universitäten wird die Einstellung für Netzwerklaufwerke in der Regel über ein Gerätemanagement (MDM) verwaltet. Das bedeutet, dass dein Administrator bestimmte Laufwerke automatisch mit deinem Mac verbindet. \n\nDu kannst diese vorgegebenen Laufwerke weder löschen noch verändern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In companies or universities, the setting for network drives is often managed through Mobile Device Management (MDM). This means that your administrator automatically connects certain drives to your Mac. \n\nYou cannot delete or modify these predefined drives."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas o universidades, la configuración de las unidades de red se gestiona a menudo a través de la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. \n\nNo puedes eliminar ni modificar estas unidades predefinidas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans les entreprises ou les universités, le paramétrage des lecteurs réseau est souvent géré via la gestion des appareils mobiles (MDM). Cela signifie que votre administrateur connecte automatiquement certains lecteurs à votre Mac. \n\nVous ne pouvez pas supprimer ou modifier ces lecteurs prédéfinis."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nelle aziende o nelle università, l'impostazione per le unità di rete è spesso gestita tramite Mobile Device Management (MDM). Ciò significa che il tuo amministratore collega automaticamente determinate unità al tuo Mac. \n\nNon puoi eliminare o modificare queste unità predefinite."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En empresas o universidades, la configuración de las unidades de red se gestiona a menudo a través de la Gestión de Dispositivos Móviles (MDM). Esto significa que tu administrador conecta automáticamente ciertas unidades a tu Mac. \n\nNo puedes eliminar ni modificar estas unidades predefinidas."
+          }
+        }
+      }
+    },
+    "help-username" : {
+      "comment" : "Helptext for username",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Nutzername mit dem du dich am Netzwerklaufwerk anmeldest."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The username with which you log in to the network drive."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El nombre de usuario con el que inicias sesión en la unidad de red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nom d'utilisateur avec lequel vous vous connectez au lecteur réseau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il nome utente con cui accedi all'unità di rete."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De gebruikersnaam waarmee je inlogt op het netwerkstation."
+          }
+        }
+      }
+    },
+    "Host is down" : {
+      "comment" : "Host is down",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Host ist nicht erreichbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El host está inactivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'hôte est hors ligne."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Host non raggiungibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Host is niet bereikbaar."
+          }
+        }
+      }
+    },
+    "Hostname error or no route to host" : {
+      "comment" : "Hostname error or no route to host",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hostname-Fehler oder keine Route zum Host."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error de nombre de host o sin ruta al host."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur de nom d'hôte ou aucune route vers l'hôte."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore del nome host o nessuna route per l'host."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hostnaamfout of geen route naar host."
+          }
+        }
+      }
+    },
+    "Hostname is invalid" : {
+      "comment" : "Hostname is invalid",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Hostname ist ungültig."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El nombre de host no es válido."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nom d'hôte est invalide."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il nome host non è valido."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hostnaam is ongeldig."
+          }
+        }
+      }
+    },
+    "Invalid mount options" : {
+      "comment" : "Invalid mount options",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungültige Einhängeoptionen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opciones de montaje no válidas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options de montage invalides."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opzioni di montaggio non valide."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ongeldige koppelopties."
+          }
+        }
+      }
+    },
+    "Invalid mount path" : {
+      "comment" : "Invalid mount path",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungültiger Einhängepfad."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruta de montaje no válida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin de montage invalide."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Percorso di montaggio non valido."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ongeldig koppelingspad."
+          }
+        }
+      }
+    },
+    "Kerberos authentication error" : {
+      "comment" : "Kerberos authentication error",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos Authentifizierungsfehler"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error de autenticación Kerberos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur d'authentification Kerbers"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore di autenticazione Kerberos"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos authenticatiefout"
+          }
+        }
+      }
+    },
+    "Kerberos authentication successful" : {
+      "comment" : "Kerberos authentication successful",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos Authentifizierung erfolgreich"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación Kerberos exitosa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification Kerberos réussie"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione Kerberos riuscita"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Succesvolle Kerberos-authenticatie"
+          }
+        }
+      }
+    },
+    "krb-auth-button" : {
+      "comment" : "Button text for kerberos authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On Authentifizierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On Authentication"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación de Inicio de Sesión Único"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification Single Sign-On"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione Single Sign-On"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single Sign-On Authenticatie"
+          }
+        }
+      }
+    },
+    "krb-offdomain-button" : {
+      "comment" : "Button text for kerberos authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos SSO nicht verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos SSO not available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación SSO Kerberos no disponible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification SSO Kerberos non disponible"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione SSO Kerberos non disponibile"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos SSO niet beschikbaar"
+          }
+        }
+      }
+    },
+    "managed-shares-text" : {
+      "comment" : "Label for additional/managed shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwaltete Freigaben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Managed shares"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparticiones adicionales"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partages supplémentaires"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condivisioni aggiuntive"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extra gedeelde mappen"
+          }
+        }
+      }
+    },
+    "missing-krb-auth-button" : {
+      "comment" : "Button text for missing kerberos authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehlende SSO-Authentifizierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missing SSO Authentication"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación SSO faltante"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification SSO manquante"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione SSO mancante"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontbrekende SSO-authenticatie"
+          }
+        }
+      }
+    },
+    "modify-share-button" : {
+      "comment" : "Button text to modify share",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe bearbeiten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar la liberación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier un partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifica condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delen bewerken"
+          }
+        }
+      }
+    },
+    "Mount queued" : {
+      "comment" : "Mount queued",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einhängen in Warteschlange."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montaje en cola."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montage en file d'attente."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montaggio in coda."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppelen in wachtrij."
+          }
+        }
+      }
+    },
+    "Mount shares" : {
+      "comment" : "Mount shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde Freigaben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar fracciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monter les partages"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connetti condivisioni"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkverbinding maken"
+          }
+        }
+      }
+    },
+    "mount-status-info-text" : {
+      "comment" : "short info to mount status icons",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 Eingebunden\n⚪️ Nicht eingebunden / Nicht erreichbar\n🟠 Fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 mounted\n⚪️ not mounted / not reachable\n🟠 missing credentials\n🟣 mount queued"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 montado\n⚪️ no montado / no accesible\n🟠 credenciales faltantes\n🟣 montaje en cola"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 monté\n⚪️ non monté / non accessible\n🟠 identifiants manquants\n🟣 montage en file d'attente"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 montato\n⚪️ non montato / non raggiungibile\n🟠 credenziali mancanti\n🟣 montaggio in coda"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🟢 gekoppeld\n⚪️ niet gekoppeld / niet bereikbaar\n🟠 ontbrekende referenties\n🟣 koppeling in de wachtrij"
+          }
+        }
+      }
+    },
+    "Mountpoint is inacessible" : {
+      "comment" : "Mountpoint is inacessible",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Einhängepunkt ist nicht zugänglich."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El punto de montaje no es accesible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le point de montage est inaccessible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il punto di montaggio non è accessibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppelpunt is ontoegankelijk."
+          }
+        }
+      }
+    },
+    "Network connectivity cannot be tested" : {
+      "comment" : "Network connectivity cannot be tested",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Netzwerkverbindung kann nicht getestet werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede probar la conectividad de red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La connectivité réseau ne peut pas être testée."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile testare la connettività di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkconnectiviteit kan niet worden getest."
+          }
+        }
+      }
+    },
+    "Network Share Mounter" : {
+      "comment" : "Info",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter"
+          }
+        }
+      }
+    },
+    "no error occured" : {
+      "comment" : "no error occured",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es ist kein Fehler aufgetreten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha producido ningún error."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune erreur ne s'est produite."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun errore è avvenuto."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Er is geen fout opgetreden."
+          }
+        }
+      }
+    },
+    "Other error" : {
+      "comment" : "Other error",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannter Fehler."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error desconocido."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur inconnue."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore sconosciuto."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error desconocido."
+          }
+        }
+      }
+    },
+    "outside kerberos domain" : {
+      "comment" : "outside kerberos domain",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Außerhalb der Kerberos-Domäne"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside Kerberos domain"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuera del dominio Kerberos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors du domaine Kerberos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuori dal dominio Kerberos"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buiten het Kerberos-domein"
+          }
+        }
+      }
+    },
+    "Permission denied" : {
+      "comment" : "Permission denied"
+    },
+    "Please check the data entered" : {
+      "comment" : "Please check the data entered",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte überprüfe die eingegebenen Daten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please check the data entered"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor, verifique los datos ingresados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veuillez vérifier les données saisies."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per favore, controlla i dati inseriti."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controleer de ingevoerde gegevens alstublieft."
+          }
+        }
+      }
+    },
+    "Preferences" : {
+      "comment" : "Preferences",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuraciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préférences"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferenze"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorkeuren"
+          }
+        }
+      }
+    },
+    "Preferences ..." : {
+      "comment" : "Preferences",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen ..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferencias ..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préférences ..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferenze ..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorkeuren ..."
+          }
+        }
+      }
+    },
+    "Quit Network Share Mounter" : {
+      "comment" : "Quit Network Share Mounter",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter beenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar Network Share Mounter"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitter Network Share Mounter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esci Network Share Mounter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sluit Network Share Mounter"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "comment" : "Save data",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salva"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opslaan"
+          }
+        }
+      }
+    },
+    "Share does not exist" : {
+      "comment" : "Share does not exist",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe existiert nicht."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La compartición no existe."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La partage n'existe pas."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La condivisione non esiste."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gedeelde map bestaat niet."
+          }
+        }
+      }
+    },
+    "Share is already mounted" : {
+      "comment" : "Share is already mounted",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe ist bereits eingebunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La compartición ya está montada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le partage est déjà monté."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La condivisione è già montata."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gedeelde map is al gekoppeld."
+          }
+        }
+      }
+    },
+    "ShareView-Text" : {
+      "comment" : "Default text to show on ShareView window",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kannst Windows (SMB), AFP oder WebDAV-Netzwerkfreigabe einbinden, solange du den Servernamen und den Freigabepfad kennst.\n\nVerwende hierzu die Form: smb://servername.tld/pfad\n\nDie Verbindung wird sofort getestet und nur hinzugefügt, wenn der Server erreichbar und die Freigabe verfügbar ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can mount any Windows (smb/cifs), afp or WebDAV network share as long as you know the server name and the export path. \nEnter the share as    smb://server.name/export/path\nThe connection will be testet immediately and will be added only if the server is reachable and the share is available."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puedes montar cualquier recurso compartido de red de Windows (smb/cifs), afp o WebDAV siempre y cuando conozcas el nombre del servidor y la ruta de exportación.\nIngresa el recurso compartido como smb://nombre.del.servidor/ruta/de/exportación.\nLa conexión se probará de inmediato y se agregará solo si el servidor es accesible y el recurso compartido está disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous pouvez monter n'importe quelle partage réseau Windows (smb/cifs), afp ou WebDAV tant que vous connaissez le nom du serveur et le chemin d'exportation.\nEntrez la partage comme smb://server.name/export/path.\nLa connexion sera testée immédiatement et ne sera ajoutée que si le serveur est accessible et la partage est disponible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puoi montare qualsiasi condivisione di rete Windows (smb/cifs), afp o WebDAV purché tu conosca il nome del server e il percorso di esportazione.\nInserisci la condivisione come smb://server.name/export/path.\nLa connessione verrà testata immediatamente e verrà aggiunta solo se il server è raggiungibile e la condivisione è disponibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt elke Windows (smb/cifs), afp of WebDAV netwerkshare koppelen zolang je de servernaam en het exportpad kent.\nVoer de share in als smb://server.name/export/path.\nDe verbinding wordt onmiddellijk getest en wordt alleen toegevoegd als de server bereikbaar is en de share beschikbaar is."
+          }
+        }
+      }
+    },
+    "Show mounted shares" : {
+      "comment" : "Show mounted shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeige eingebundene Freigaben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar fracciones installadas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les partages montés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra condivisioni montate"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laat netwerkverbindingen zien"
+          }
+        }
+      }
+    },
+    "Sorry, no help available" : {
+      "comment" : "this should not happen",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entschuldigung, keine Hilfe verfügbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo siento, no hay ayuda disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désolé, aucune aide disponible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiacente, nessun aiuto disponibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorry, geen hulp beschikbaar."
+          }
+        }
+      }
+    },
+    "Target host is not reachable" : {
+      "comment" : "Target host is not reachable",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zielhost ist nicht erreichbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El host de destino no es accesible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'hôte cible n'est pas accessible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'host di destinazione non è raggiungibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doelhost is niet bereikbaar."
+          }
+        }
+      }
+    },
+    "The path to the network share is invalid" : {
+      "comment" : "The path to the network share is invalid",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Pfad zur Netzwerkfreigabe ist ungültig."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La ruta de la compartición de red no es válida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le chemin vers le partage réseau n'est pas valide."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il percorso della condivisione di rete non è valido."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het pad naar het netwerkstation is ongeldig."
+          }
+        }
+      }
+    },
+    "Timeout on reaching host" : {
+      "comment" : "Timeout on reaching host",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitüberschreitung beim Erreichen des Hosts."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo de espera al intentar alcanzar el host."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Délai d'attente lors de l'atteinte de l'hôte."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timeout nel raggiungere l'host."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time-out bij het bereiken van de host."
+          }
+        }
+      }
+    },
+    "Unknown return code, sorry" : {
+      "comment" : "Unknown return code, sorry",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannter Rückgabecode, tut mir leid"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código de retorno desconocido, lo siento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code de retour inconnu, désolé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codice di ritorno sconosciuto."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onbekende retourcode, sorry."
+          }
+        }
+      }
+    },
+    "Unmount shares" : {
+      "comment" : "Unmount shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trenne Freigaben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desinstalar fracciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démonter les partages"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnetta condivisioni"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinding verbreken"
+          }
+        }
+      }
+    },
+    "User-mounted share" : {
+      "comment" : "CoUser-mounted sharemment",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User-mounted share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User-mounted share"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User-mounted share"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User-mounted share"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User-mounted share"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

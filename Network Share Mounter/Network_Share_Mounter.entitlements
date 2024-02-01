@@ -4,5 +4,9 @@
 <dict>
 	<key>com.apple.developer.associated-domains.mdm-managed</key>
 	<true/>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)de.fau.rrze.faucredentials</string>
+	</array>
 </dict>
 </plist>

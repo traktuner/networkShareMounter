@@ -66,11 +66,41 @@ lane :commonTasks do
     output_file: "swiftlint.result.json", # The path of the output file (optional)
     config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
     files: [                                # List of files to process (optional)
+        "Network Share Mounter/preferences/config.swift",
+        "Network Share Mounter/preferences/PreferenceKeys.swift",
+        "Network Share Mounter/preferences/PreferenceManager.swift",
+        "Network Share Mounter/preferences/FAU.swift",
+        "Network Share Mounter/lookups/SRVResolver.swift",
+        "Network Share Mounter/lookups/SRVRecord.swift",
+        "Network Share Mounter/managers/KeychainManager.swift",
+        "Network Share Mounter/managers/ShareManager.swift",
+        "Network Share Mounter/managers/AccountsManager.swift",
+        "Network Share Mounter/Extensions/Date.swift",
+        "Network Share Mounter/Extensions/Data.swift",
+        "Network Share Mounter/Extensions/Notification.swift",
+        "Network Share Mounter/Extensions/URL.swift",
+        "Network Share Mounter/Extensions/String.swift",
+        "Network Share Mounter/Extensions/SetupSession.swift",
+        "Network Share Mounter/model/UserShare.swift",
+        "Network Share Mounter/model/Errorcodes.swift",
+        "Network Share Mounter/model/DisplayShareTypes.swift",
+        "Network Share Mounter/model/Mounter.swift",
+        "Network Share Mounter/model/AppStatistics.swift",
+        "Network Share Mounter/model/Share.swift",
+        "Network Share Mounter/model/Menu.swift",
+        "Network Share Mounter/model/DogeAccount.swift",
+        "Network Share Mounter/view/KrbAuthViewController.swift",
+        "Network Share Mounter/view/NetworkShareMounterViewController.swift",
+        "Network Share Mounter/view/ShareViewController.swift",
+        "Network Share Mounter/view/HelpPopoverView.swift",
         "Network Share Mounter/AppDelegate.swift",
-        "Network Share Mounter/Monitor.swift",
-        "Network Share Mounter/Mounter.swift",
-        "Network Share Mounter/NetworkShareMounterViewController.swift",
-        "Network Share Mounter/config.swift"
+        "Network Share Mounter/helper/Logger.swift",
+        "Network Share Mounter/helper/Monitor.swift",
+        "Network Share Mounter/helper/AutomaticSignIn.swift",
+        "Network Share Mounter/helper/ActivityController.swift",
+        "Network Share Mounter/helper/NSTaskWrapper.swift",
+        "Network Share Mounter/helper/NetworkWatcher.swift",
+        "Network Share Mounter/AppDelegate.swift"
     ],
     raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
     ignore_exit_status: false    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
@@ -93,7 +123,7 @@ lane :build do
   end
 end
 
-lane :test do
+lane :testbuild do
   begin
     desc "incerement Xcodes build number"
     increment_build_number(
@@ -105,11 +135,47 @@ lane :test do
     dmg(
       path: "build/Network Share Mounter.app",
       output_path: "build/NetworkShareMounterTest-#{appversion}.dmg",
-      volume_name: "NetworkShareMounter-Test"
+      volume_name: "NetworkShareMounter-Test",
+      size: 6
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
     output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--version", "#{appversion}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterTest-#{appversion}.pkg")
+  rescue => exception
+    on_error(exception)
+  end
+end
+
+lane :alpha do
+  begin
+    desc "incerement Xcodes build number"
+    increment_build_number(
+      xcodeproj: "networkShareMounter.xcodeproj"
+    )
+    build
+    appversion = getappversion
+    desc "Create DMG image"
+    dmg(
+      path: "build/Network\ Share\ Mounter.app",
+      output_path: "build/NetworkShareMounterAlpha-#{appversion}.dmg",
+      volume_name: "NetworkShareMounter-Alpha",
+      size: 6
+    )
+    desc "creating .pkg file"
+    signing_id = ENV["SIGNING_ID"]
+    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--version", "#{appversion}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterAlpha-#{appversion}.pkg")
+    desc "Notarize dmg"
+    notarize(
+      package: "build/NetworkShareMounterAlpha-#{appversion}.dmg", 
+      bundle_id: "de.fau.rrze.NetworkShareMounter", 
+      username: "rrze-apple-entwickler@fau.de"
+    )
+    desc "Notarize pkg"
+    notarize(
+      package: "build/NetworkShareMounterAlpha-#{appversion}.pkg", 
+      bundle_id: "de.fau.rrze.NetworkShareMounter", 
+      username: "rrze-apple-entwickler@fau.de"
+    )
   rescue => exception
     on_error(exception)
   end
@@ -127,7 +193,8 @@ lane :beta do
     dmg(
       path: "build/Network\ Share\ Mounter.app",
       output_path: "build/NetworkShareMounterBeta-#{appversion}.dmg",
-      volume_name: "NetworkShareMounter-Beta"
+      volume_name: "NetworkShareMounter-Beta",
+      size: 6
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
@@ -161,7 +228,8 @@ lane :release do
     dmg(
       path: "build/Network Share Mounter.app",
       output_path: "build/NetworkShareMounter-#{appversion}.dmg",
-      volume_name: "NetworkShareMounter"
+      volume_name: "NetworkShareMounter",
+      size: 6
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
