@@ -216,8 +216,9 @@ class KeychainManager: NSObject {
             // try to get the password for share and username. If none is returned, the
             // entry does not exist and there is no need to remove an entry -> return
             do {
-                _ = try retrievePassword(forUsername: username, andService: service, accessGroup: accessGroup,
-                                         iCloudSync: iCloudSync)
+                _ = try retrievePassword(forUsername: username, 
+                                         andService: service,
+                                         accessGroup: accessGroup)
             } catch {
                 return
             }
@@ -261,12 +262,8 @@ class KeychainManager: NSObject {
     /// - Parameter andService: ``String`` service, defaults to Defaults.keyChainService
     /// - Parameter accessGroup: ``String`` accessGroup, defaults to Defaults.keyChainAccessGroup
     /// - Parameter iCLoudSync: ``Bool?`` if account is iCLoud synced
-    func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil, iCloudSync: Bool? = nil) throws -> String? {
+    func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
-            var doiCloudSync = prefs.bool(for: .keychainiCloudSync)
-            if let doSync = iCloudSync {
-                doiCloudSync = doSync
-            }
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne

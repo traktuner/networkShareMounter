@@ -31,7 +31,7 @@ class AutomaticSignIn {
     
     private func signInAllAccounts() async {
         let klist = KlistUtil()
-        let princs = klist.klist().map({ $0.principal })
+        _ = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal
         self.workers.removeAll()
         
