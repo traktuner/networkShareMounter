@@ -317,7 +317,9 @@ class KeychainManager: NSObject {
                 return []
             }
             
+            // swiftlint:disable force_cast
             let array = ref as! CFArray
+            // swiftlint:enable force_cast
             let dict: [[String: Any]] = array.toSwiftArray()
             let pairs = dict.compactMap { $0.accountPasswordPair }
             return pairs
