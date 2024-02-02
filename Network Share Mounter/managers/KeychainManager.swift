@@ -216,8 +216,9 @@ class KeychainManager: NSObject {
             // try to get the password for share and username. If none is returned, the
             // entry does not exist and there is no need to remove an entry -> return
             do {
-                _ = try retrievePassword(forUsername: username, andService: service, accessGroup: accessGroup,
-                                         iCloudSync: iCloudSync)
+                _ = try retrievePassword(forUsername: username, 
+                                         andService: service,
+                                         accessGroup: accessGroup)
             } catch {
                 return
             }
@@ -239,6 +240,7 @@ class KeychainManager: NSObject {
             var query = try makeQuery(share: share, username: username)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
+            query[kSecMatchLimit as String] = kSecAttrSynchronizableAny
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
@@ -260,16 +262,12 @@ class KeychainManager: NSObject {
     /// - Parameter andService: ``String`` service, defaults to Defaults.keyChainService
     /// - Parameter accessGroup: ``String`` accessGroup, defaults to Defaults.keyChainAccessGroup
     /// - Parameter iCLoudSync: ``Bool?`` if account is iCLoud synced
-    func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil, iCloudSync: Bool? = nil) throws -> String? {
+    func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
-            var doiCloudSync = prefs.bool(for: .keychainiCloudSync)
-            if let doSync = iCloudSync {
-                doiCloudSync = doSync
-            }
-            var query = try makeQuery(username: username, service: service, accessGroup: accessGroup, iCloudSync: doiCloudSync)
-            let accessGroup: String?  = Defaults.keyChainAccessGroup
+            var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
+            query[kSecMatchLimit as String] = kSecAttrSynchronizableAny
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
@@ -285,4 +283,69 @@ class KeychainManager: NSObject {
         }
         return nil
     }
+    
+    /// retrieve entries from the keychain
+    /// - Parameter forService: ``String`` service
+    /// - Parameter accessGroup: ``String`` accessGroup, defaults to Defaults.keyChainAccessGroup
+    /// Returns: array of [username: String, password: String]
+    ///
+    func retrieveAllEntries(forService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws -> [(username: String, password: String)] {
+        do {
+            let query: [String: Any?] = [kSecClass as String: kSecClassGenericPassword,
+                                         kSecAttrService as String: service,
+                                         kSecAttrAccessGroup as String: accessGroup,
+                                         // return data, not only if there was found something
+                                         kSecReturnData as String: kCFBooleanTrue!,
+                                         // return all found entries
+                                         kSecMatchLimit as String: kSecMatchLimitAll,
+                                         // return all attributes
+                                         kSecReturnAttributes as String: kCFBooleanTrue,
+                                         // ignore if entry is synchornizable with iCloud
+                                         kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+            ]
+            var ref: AnyObject? = nil
+            
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            
+            // throw error of something went wrong
+            guard status == errSecItemNotFound || status == errSecSuccess else {
+                throw KeychainError.errorWithStatus(status: status)
+            }
+            
+            // return empty array if no matching entries where found
+            guard status != errSecItemNotFound else {
+                return []
+            }
+            
+            // swiftlint:disable force_cast
+            let array = ref as! CFArray
+            // swiftlint:enable force_cast
+            let dict: [[String: Any]] = array.toSwiftArray()
+            let pairs = dict.compactMap { $0.accountPasswordPair }
+            return pairs
+        }
+    }
+}
+
+
+// MARK: - Helper extensions to extract data from CFArray and Dictionaries
+extension CFArray {
+  func toSwiftArray<T>() -> [T] {
+    let array = Array<AnyObject>(_immutableCocoaArray: self)
+    return array.compactMap { $0 as? T }
+  }
+}
+
+// MARK: - Helper extenstion to retrieve username - password pair form dictionary
+extension Dictionary where Key == String, Value == Any {
+  var accountPasswordPair: (username: String, password: String)? {
+
+    guard
+      let username = self[kSecAttrAccount as String] as? String,
+      let password = self[kSecValueData as String] as? Data
+      else {
+        return nil
+    }
+    return (username, String(data: password, encoding: .utf8) ?? "")
+  }
 }

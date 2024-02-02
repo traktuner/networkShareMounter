@@ -23,7 +23,6 @@ public struct Doge_SessionUserObject {
 class AutomaticSignIn {
     
     var prefs = PreferenceManager()
-//    var dogeAccounts = [DogeAccount]()
     var workers = [AutomaticSignInWorker]()
     
     init() async {
@@ -32,7 +31,7 @@ class AutomaticSignIn {
     
     private func signInAllAccounts() async {
         let klist = KlistUtil()
-        let princs = klist.klist().map({ $0.principal })
+        _ = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal
         self.workers.removeAll()
         
@@ -93,18 +92,6 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     func auth() {
         let keyUtil = KeychainManager()
-        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
-            // check for FAU and if user keychain migration was already done
-            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator()
-                if migrator.migrateKeychainEntry(forUsername: self.account.upn.removeDomain()) {
-                    self.account.hasKeychainEntry = true
-                    Logger.automaticSignIn.debug("FAU user migrated.")
-                } else {
-                    Logger.automaticSignIn.debug("FAU user migration failed.")
-                }
-            }
-        }
         do {
             if let pass = try keyUtil.retrievePassword(forUsername: self.account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
                 self.account.hasKeychainEntry = true

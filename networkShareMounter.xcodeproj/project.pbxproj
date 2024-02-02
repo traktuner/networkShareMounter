@@ -333,7 +333,7 @@
 					authType,
 				);
 				LastSwiftUpdateCheck = 1320;
-				LastUpgradeCheck = 1510;
+				LastUpgradeCheck = 1520;
 				ORGANIZATIONNAME = "Regionales Rechenzentrum Erlangen";
 				TargetAttributes = {
 					F79B1594274E722000C322A8 = {
@@ -411,6 +411,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		F7BAC10E274FBCB000B5BFF4 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -649,10 +650,11 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = "Network Share Mounter/Network_Share_Mounter.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 123;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -670,13 +672,13 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Network Share Mounter";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match Direct de.fau.rrze.NetworkShareMounter macos";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Network Share Mounter";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -697,10 +699,11 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = "Network Share Mounter/Network_Share_Mounter.entitlements";
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 123;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -718,12 +721,12 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Network Share Mounter";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match Direct de.fau.rrze.NetworkShareMounter macos";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Network Share Mounter";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -742,7 +745,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 123;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -774,7 +777,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 123;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -800,9 +803,9 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 123;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -832,9 +835,9 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 123;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
