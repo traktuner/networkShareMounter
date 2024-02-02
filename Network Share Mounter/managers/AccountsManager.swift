@@ -22,6 +22,13 @@ class AccountsManager {
     static let shared = AccountsManager()
     
     init() {
+        // perform some FAU tasks
+        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
+            if !prefs.bool(for: .keyChainPrefixManagerMigration) {
+                let migrator = Migrator(accountsManager: self)
+                migrator.migrate()
+            }
+        }
         loadAccounts()
     }
     
