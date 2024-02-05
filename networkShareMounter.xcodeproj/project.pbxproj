@@ -12,6 +12,8 @@
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
+		F747F8642B6F814A00AC0772 /* AuthType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747F8632B6F814A00AC0772 /* AuthType.swift */; };
+		F747F8662B6F81D400AC0772 /* MountStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747F8652B6F81D400AC0772 /* MountStatus.swift */; };
 		F75836ED2B320E68005B8F9D /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F75836EC2B320E68005B8F9D /* dogeADAuth */; };
 		F765D0552A852911001D5116 /* ShareManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F765D0542A852911001D5116 /* ShareManager.swift */; };
 		F765D0572A852935001D5116 /* Share.swift in Sources */ = {isa = PBXBuildFile; fileRef = F765D0562A852935001D5116 /* Share.swift */; };
@@ -72,6 +74,8 @@
 		F72B13E92B332987001BDEEA /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
 		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
+		F747F8632B6F814A00AC0772 /* AuthType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthType.swift; sourceTree = "<group>"; };
+		F747F8652B6F81D400AC0772 /* MountStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountStatus.swift; sourceTree = "<group>"; };
 		F765D0542A852911001D5116 /* ShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareManager.swift; sourceTree = "<group>"; };
 		F765D0562A852935001D5116 /* Share.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Share.swift; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
@@ -217,6 +221,8 @@
 		F7E727A82B03AA0D0036CF15 /* model */ = {
 			isa = PBXGroup;
 			children = (
+				F747F8652B6F81D400AC0772 /* MountStatus.swift */,
+				F747F8632B6F814A00AC0772 /* AuthType.swift */,
 				F7EF65E52B3B582F00051D44 /* DogeAccount.swift */,
 				F77107B8274EC76200556B20 /* Mounter.swift */,
 				F70457EC2B31A62E00506DF4 /* Errorcodes.swift */,
@@ -444,6 +450,7 @@
 				F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */,
 				F7EF65CE2B3B4BEE00051D44 /* Notification.swift in Sources */,
 				F7D371222B47F7BE00D54FF5 /* KrbAuthViewController.swift in Sources */,
+				F747F8642B6F814A00AC0772 /* AuthType.swift in Sources */,
 				F7EF65D22B3B56A600051D44 /* AutomaticSignIn.swift in Sources */,
 				F7EF65F92B3B5E0800051D44 /* URL.swift in Sources */,
 				F7EF65EC2B3B5C8B00051D44 /* PreferenceKeys.swift in Sources */,
@@ -468,6 +475,7 @@
 				F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */,
 				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,
 				F7EF65F32B3B5DBB00051D44 /* String.swift in Sources */,
+				F747F8662B6F81D400AC0772 /* MountStatus.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

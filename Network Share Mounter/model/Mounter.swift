@@ -13,15 +13,6 @@ import OpenDirectory
 import AppKit
 import OSLog
 
-
-/// defines authentication type to mount a share
-/// - Parameter krb: kerberos authentication
-/// - Parameter pwd: username/password authentication
-enum AuthType: String {
-    case krb = "krb"
-    case pwd = "pwd"
-}
-
 /// classe tro perform mount/unmount operations for network shares
 class Mounter: ObservableObject {
     var prefs = PreferenceManager()
@@ -586,6 +577,7 @@ class Mounter: ObservableObject {
                 updateShare(mountStatus: .queued, for: share)
 //                let mountOptions = (mountPath == "/Volumes") ? Defaults.mountOptionsForVolumes : Defaults.mountOptions
                 var mountOptions = Defaults.mountOptions
+                var openOptions = Defaults.openOptions
                 var realMountPoint = mountDirectory
                 if mountPath == "/Volumes" {
                     mountOptions = Defaults.mountOptionsForSystemMountDir
@@ -593,12 +585,15 @@ class Mounter: ObservableObject {
                 } else {
                     try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
                 }
+                if share.authType == .guest {
+                    openOptions = Defaults.openOptionsGuest
+                }
                 // swiftlint:enable force_cast
                 let rc = NetFSMountURLSync(url as CFURL,
                                            NSURL(string: realMountPoint),
                                            share.username as CFString?,
                                            share.password as CFString?,
-                                           Defaults.openOptions,
+                                           openOptions,
                                            mountOptions,
                                            nil)
                 // swiftlint:disable force_cast

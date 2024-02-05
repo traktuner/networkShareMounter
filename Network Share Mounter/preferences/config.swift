@@ -24,6 +24,10 @@ struct Defaults {
     static let openOptions = [
         kNAUIOptionKey: kNAUIOptionNoUI
         ] as! CFMutableDictionary
+    static let openOptionsGuest = [
+        kNAUIOptionKey: kNAUIOptionNoUI,
+        kNetFSUseGuestKey: true
+        ] as! CFMutableDictionary
     static let mountOptions = [
         kNetFSAllowSubMountsKey: true,
         kNetFSSoftMountKey: true,
