@@ -10,7 +10,7 @@ import Foundation
 
 ///
 /// enum containig type of shares to display in the tableView
-/// managed: share is managed, whether krb or pwd
+/// managed: share is managed, whether krb, guest or pwd
 /// unmanaged: share is unmanage, whether krb or pwd
 /// pwd: share is password authenticated, whether managed or unmanaged
 /// krb: share is kerbeors authenticated, whether managed or unmanaged
@@ -21,6 +21,7 @@ enum DisplayShareTypes: String {
     case unmanaged = "unmanaged"
     case pwd = "pwd"
     case krb = "krb"
+    case guest = "guest"
     case managedAndPwd = "managedPwd"
     case managedOrPwd = "managedOrPwd"
     case missingPassword = "missingPassword"

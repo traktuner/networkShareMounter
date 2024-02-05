@@ -311,6 +311,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     shouldAppend = definedShare.authType == .krb
                 case .pwd:
                     shouldAppend = definedShare.authType == .pwd
+                case .guest:
+                    shouldAppend = definedShare.authType == .guest
                 case .managedOrPwd:
                     shouldAppend = definedShare.authType == .pwd || definedShare.managed
                 case .managedAndPwd:
