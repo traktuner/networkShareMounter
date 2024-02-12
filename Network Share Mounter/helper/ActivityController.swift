@@ -17,6 +17,7 @@ class ActivityController {
     
     var mounter: Mounter
     var automaticSignIn: AutomaticSignIn?
+    var prefs = PreferenceManager()
     
     init(withMounter: Mounter) {
         mounter = withMounter
@@ -36,6 +37,8 @@ class ActivityController {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(unmountShares), name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.didWakeNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(timeGoesBySoSlowly), name: Defaults.nsmTriggerNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(unmountShares), name: Defaults.nsmUnmountTriggerNotification, object: nil)
         
         // get notification for "CCAPICCacheChangedNotification" (as defined in kcm.h) changes
         DistributedNotificationCenter.default.addObserver(self, selector: #selector(processAutomaticSignIn), name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name, object: nil)
@@ -58,7 +61,28 @@ class ActivityController {
     }
     
     // call automatic sign in on notification
-    @objc func processAutomaticSignIn() async {
-            await self.automaticSignIn = AutomaticSignIn()
+    @objc func processAutomaticSignIn() {
+        Task {
+            self.automaticSignIn = AutomaticSignIn()
+        }
+    }
+    
+    @objc func timeGoesBySoSlowly() {
+        Logger.activityController.debug("time passed notification called by Timer:")
+        // run authenticaction only if kerberos auth is enabled
+        // forcing unwrapping the optional is OK, since values are "registered"
+        // and set to empty string if not set
+        // check if a kerberos domain/realm is set and is not empty
+        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+            Logger.activityController.debug("-> Kerberos Realm configured, processing automatic AutomaticSignIn")
+            self.processAutomaticSignIn()
+        }
+        Logger.activityController.debug("-> Check for possible MDM profile changes")
+        // call updateShareArray() to reflect possible changes in MDM profile
+        self.mounter.shareManager.updateShareArray()
+        Logger.activityController.debug("-> Finally call mountAllShares.")
+        Task {
+            await self.mounter.mountAllShares()
+        }
     }
 }
