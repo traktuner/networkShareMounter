@@ -25,11 +25,11 @@ class AutomaticSignIn {
     var prefs = PreferenceManager()
     var workers = [AutomaticSignInWorker]()
     
-    init() async {
-        await signInAllAccounts()
+    init() {
+        signInAllAccounts()
     }
     
-    private func signInAllAccounts() async {
+    private func signInAllAccounts() {
         let klist = KlistUtil()
         _ = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal
@@ -39,11 +39,9 @@ class AutomaticSignIn {
         // if singleUserMode == false and more than 1 account exists
         for account in AccountsManager.shared.accounts {
             if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || AccountsManager.shared.accounts.count == 1 {
-                Task {
-                    let worker = AutomaticSignInWorker(account: account)
-                    await worker.checkUser()
-                    self.workers.append(worker)
-                }
+                let worker = AutomaticSignInWorker(account: account)
+                worker.checkUser()
+                self.workers.append(worker)
             }
         }
 
@@ -66,7 +64,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         self.session.setupSessionFromPrefs(prefs: prefs)
     }
     
-    func checkUser() async {
+    func checkUser() {
         
         let klist = KlistUtil()
         let princs = klist.klist().map({ $0.principal })
