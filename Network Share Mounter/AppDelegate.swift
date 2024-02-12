@@ -59,77 +59,50 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         constructMenu(withMounter: mounter)
         NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
         
+        // fire up the activityController to get system/NSWorkspace notifications
+        activityController = ActivityController.init(withMounter: mounter)
+        
         //
         // start a timer to perform a mount every 5 minutes
-        let timerInterval: Double = 300
+        let timerInterval: Double = Defaults.triggerTimer
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
             Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing operartions:")
-            let netConnection = Monitor.shared
-            let status = netConnection.netOn
-            Logger.app.info("Current Network Path is \(status, privacy: .public).")
-            Task {
-                // run authenticaction only if kerberos auth is enabled
-                // forcing unwrapping the optional is OK, since values are "registered"
-                // and set to empty string if not set
-                if self.enableKerberos {
-                    Logger.app.debug("... processing automatic sign in (if configured)")
-                    await self.automaticSignIn = AutomaticSignIn()
-                }
-                Logger.app.debug("... check for possible MDM profile changes")
-                // call updateShareArray() to reflect possible changes in MDM profile
-                self.mounter.shareManager.updateShareArray()
-                Logger.app.debug("... mounting shares.")
-                await self.mounter.mountAllShares()
-            }
+            // NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
+            NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
         })
         
         //
         // start monitoring network connectivity and perform mount/unmount on network changes
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
-                Task {
-                    Logger.app.debug("Got network monitoring callback:")
-                    // run authenticaction only if kerberos auth is enabled
-                    if self.enableKerberos {
-                        Logger.app.debug("... processing automatic sign in (if configured)")
-                        await self.automaticSignIn = AutomaticSignIn()
-                    }
-                    Logger.app.debug("... check for possible MDM profile changes")
-                    // call updateShareArray() to reflect possible changes in MDM profile
-                    self.mounter.shareManager.updateShareArray()
-                    Logger.app.debug("... mounting shares.")
-                    await self.mounter.mountAllShares(userTriggered: true)
-                }
+                NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
             } else {
                 Task {
                     // since the mount status after a network change is unknown it will be set
                     // to unknown so it can be tested and maybe remounted if the network connects again
-                    await self.mounter.setAllMountStatus(to: MountStatus.undefined)
                     Logger.app.debug("Got network monitoring callback, unmount shares.")
+                    await self.mounter.setAllMountStatus(to: MountStatus.undefined)
                     // trying to unmount all shares
+                    NotificationCenter.default.post(name: Defaults.nsmUnmountTriggerNotification, object: nil)
                     await self.mounter.unmountAllMountedShares()
-                    // call updateShareArray() to reflect possible changes in MDM profile
-                    self.mounter.shareManager.updateShareArray()
                 }
             }
         }
 
         //
         // finally authenticate and mount all defined shares...
-        Task {
-            // run authenticaction only if kerberos auth is enabled
-            if self.enableKerberos {
-                Logger.app.debug("Found configured kerberos realm, processing automatic sign in (if configured)")
-                await self.automaticSignIn = AutomaticSignIn()
-            } else {
-                Logger.app.debug("No kerberos realm configured.")
-            }
-            Logger.app.debug("Invoking startup mount task.")
-            await self.mounter.mountAllShares()
-        }
-        
-        // ...and fire up the activityController to get system/NSWorkspace notifications
-        activityController = ActivityController.init(withMounter: mounter)
+        NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
+//        Task {
+//            // run authenticaction only if kerberos auth is enabled
+//            if self.enableKerberos {
+//                Logger.app.debug("Found configured kerberos realm, processing automatic sign in (if configured)")
+//                await self.automaticSignIn = AutomaticSignIn()
+//            } else {
+//                Logger.app.debug("No kerberos realm configured.")
+//            }
+//            Logger.app.debug("Invoking startup mount task.")
+//            await self.mounter.mountAllShares()
+//        }
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
