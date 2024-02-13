@@ -67,7 +67,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let timerInterval: Double = Defaults.triggerTimer
         self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
             Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing operartions:")
-            // NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
             NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
         })
         
@@ -92,17 +91,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //
         // finally authenticate and mount all defined shares...
         NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
-//        Task {
-//            // run authenticaction only if kerberos auth is enabled
-//            if self.enableKerberos {
-//                Logger.app.debug("Found configured kerberos realm, processing automatic sign in (if configured)")
-//                await self.automaticSignIn = AutomaticSignIn()
-//            } else {
-//                Logger.app.debug("No kerberos realm configured.")
-//            }
-//            Logger.app.debug("Invoking startup mount task.")
-//            await self.mounter.mountAllShares()
-//        }
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -192,9 +180,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func mountManually(_ sender: Any?) {
         Logger.app.debug("User triggered mount all shares")
-        Task {
-            await self.mounter.mountAllShares(userTriggered: true)
-        }
+        NotificationCenter.default.post(name: Defaults.nsmMountManuallyTriggerNotification, object: nil)
     }
     
     @objc func unmountShares(_ sender: Any?) {

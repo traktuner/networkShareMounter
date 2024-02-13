@@ -39,6 +39,7 @@ class ActivityController {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(timeGoesBySoSlowly), name: Defaults.nsmTriggerNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(unmountShares), name: Defaults.nsmUnmountTriggerNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(userTrigger), name: Defaults.nsmMountManuallyTriggerNotification, object: nil)
         
         // get notification for "CCAPICCacheChangedNotification" (as defined in kcm.h) changes
         DistributedNotificationCenter.default.addObserver(self, selector: #selector(processAutomaticSignIn), name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name, object: nil)
@@ -64,6 +65,19 @@ class ActivityController {
     @objc func processAutomaticSignIn() {
         Task {
             self.automaticSignIn = AutomaticSignIn()
+        }
+    }
+    
+    // call mount shares with manually parameter and, if configured, renew kerberos tickets
+    @objc func userTrigger() {
+        Logger.activityController.debug("authenticate/renew kerberos tickets called by nsmMountManuallyTriggerNotification")
+        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+            Logger.activityController.debug("-> Kerberos Realm configured, processing automatic AutomaticSignIn")
+            self.processAutomaticSignIn()
+        }
+        Logger.activityController.debug("mountAllShares called by nsmMountManuallyTriggerNotification")
+        Task {
+            await self.mounter.mountAllShares(userTriggered: true)
         }
     }
     
