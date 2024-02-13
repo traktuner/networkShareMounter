@@ -20,6 +20,11 @@ struct Defaults {
         "en": "Networkshares",
         "de": "Netzlaufwerke"
         ]
+    // number of seconds bevor triggering actions
+    static let triggerTimer: Double = 300
+    static let nsmTriggerNotification = Notification.Name("nsmTriggerNotification")
+    static let nsmUnmountTriggerNotification = Notification.Name("nsmUnmountTriggerNotification")
+    static let nsmMountManuallyTriggerNotification = Notification.Name("nsmMountManuallyTriggerNotification")
     // swiftlint:disable force_cast
     static let openOptions = [
         kNAUIOptionKey: kNAUIOptionNoUI
