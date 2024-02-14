@@ -583,7 +583,13 @@ class Mounter: ObservableObject {
                     mountOptions = Defaults.mountOptionsForSystemMountDir
                     realMountPoint = mountPath
                 } else {
+                    // create the directory as mountpoint
                     try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
+                    // Hide the mount directory as long as the mount has occurred
+                    //        (or if failed, the directory will be removed later)
+                    // apparently there is no way t oset the `hidden` attribute via FileManager `setAttributes`
+                    // https://developer.apple.com/documentation/foundation/filemanager/1413667-setattributes
+                    cliTask("/usr/bin/chflags hidden \(mountDirectory)")
                 }
                 if share.authType == .guest {
                     openOptions = Defaults.openOptionsGuest
@@ -600,6 +606,8 @@ class Mounter: ObservableObject {
                 switch rc {
                 case 0:
                     Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
+                    // unhide the directory for the fresh mounted share
+                    cliTask("/usr/bin/chflags nohidden \(mountDirectory)")
                     return mountDirectory
                 case 2:
                     Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
