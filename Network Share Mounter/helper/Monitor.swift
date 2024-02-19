@@ -38,7 +38,7 @@ class Monitor {
 
 extension Monitor {
     func startMonitoring( callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void ) {
-        let networkSettleTime: Double = 3
+        let networkSettleTime: Double = 4
         monitor.pathUpdateHandler = { path in
 
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
