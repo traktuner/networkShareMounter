@@ -259,6 +259,7 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
                 AccountsManager.shared.addAccount(account: newAccount)
             }
         }
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
     }
     
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {

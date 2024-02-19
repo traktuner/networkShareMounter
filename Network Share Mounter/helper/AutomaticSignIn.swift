@@ -44,8 +44,9 @@ class AutomaticSignIn {
                 self.workers.append(worker)
             }
         }
-
-        cliTask("kswitch -p \(defaultPrinc ?? "")")
+        if let defPrinc = defaultPrinc {
+            cliTask("kswitch -p \(defaultPrinc ?? "")")
+        }
     }
 }
 
@@ -76,9 +77,8 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
                 if !result.SRVRecords.isEmpty {
                     if princs.contains(where: { $0.lowercased() == self.account.upn }) {
                         self.getUserInfo()
-                    } else {
-                        self.auth()
                     }
+//                    self.auth()
                 } else {
                     Logger.automaticSignIn.info("No RSV records found.")
                 }
@@ -86,6 +86,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
                 Logger.automaticSignIn.error("No DNS results for domain \(self.domain, privacy: .public), unable to automatically login. Error: \(error, privacy: .public)")
             }
         })
+        self.auth()
     }
     
     func auth() {
@@ -120,6 +121,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         Logger.automaticSignIn.info("Auth failed for user: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         switch error {
         case .AuthenticationFailure, .PasswordExpired:
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
             Logger.automaticSignIn.info("Removing bad password from keychain")
             let keyUtil = KeychainManager()
             do {
