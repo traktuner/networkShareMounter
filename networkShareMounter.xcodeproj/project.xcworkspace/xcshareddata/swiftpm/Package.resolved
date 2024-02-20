@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://gitlab.rrze.fau.de/faumac/dogeadauth",
       "state" : {
-        "revision" : "b1cdb322eda108aec72141998959e9ac28744bca",
-        "version" : "1.0.0"
+        "revision" : "11e36ee90764f84f1e7aea560fc41211145ed348",
+        "version" : "1.0.1"
       }
     },
     {

@@ -37,6 +37,7 @@ enum MounterError: Error {
     case offDomain
     case krbAuthSuccessful
     case permissionDenied
+    case obstructingDirectory
 }
 
 extension MounterError: LocalizedError {
@@ -176,6 +177,11 @@ extension MounterError: LocalizedError {
             return NSLocalizedString(
                 "Permission denied",
                 comment: "Permission denied"
+            )
+        case .obstructingDirectory:
+            return NSLocalizedString(
+                "Can nout mount share because of obstructing directory",
+                comment: "Can nout mount share because of obstructing directory"
             )
         }
     }

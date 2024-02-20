@@ -302,6 +302,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                                 (definedShare.mountStatus == .queued) ? "🟣" :
                                 (definedShare.mountStatus == .invalidCredentials) ? "🟠" :
                                 (definedShare.mountStatus == .errorOnMount) ? "🔴":
+                                (definedShare.mountStatus == .obstructingDirectory) ? "❗" :
                                 "⚪️"
             let shouldAppend: Bool
             switch type {

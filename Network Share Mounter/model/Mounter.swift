@@ -16,9 +16,6 @@ import OSLog
 /// classe tro perform mount/unmount operations for network shares
 class Mounter: ObservableObject {
     var prefs = PreferenceManager()
-    /// @Published var shares: [Share] allows publishing changes to the shares array
-//    @Published var shares = [Share]()
-//    private var shareManager = ShareManager()
     @Published var shareManager = ShareManager()
     
     /// convenience variable for `FileManager.default`
@@ -162,31 +159,12 @@ class Mounter: ObservableObject {
         }
     }
     
-    /// Check if a given directory is a mount point for a (remote) file system
-    /// - Parameter atPath: A string containig the path to check
-    /// - Returns: A boolean set to true if the given directory path is a mountpoint
-    func isDirectoryFilesystemMount(atPath: String) -> Bool {
-        do {
-            let systemAttributes = try FileManager.default.attributesOfItem(atPath: atPath)
-            if let fileSystemFileNumber = systemAttributes[.systemFileNumber] as? NSNumber {
-                //
-                // if fileSystemFileNumber is 2 -> filesystem mount
-                if fileSystemFileNumber == 2 {
-                    return true
-                }
-            }
-        } catch {
-            return false
-        }
-        return false
-    }
-    
     /// function to delete a directory via system shell `rmdir`
     /// - Paramater atPath: full path of the directory
     func removeDirectory(atPath: String) {
         // do not remove directories located at /Volumes
         if atPath.hasPrefix("/Volumes") {
-            Logger.mounter.debug("No directories located at /Volumes will be removed (called for \(atPath, privacy: .public))")
+            Logger.mounter.debug("No directories located /Volumes can be removed (called for \(atPath, privacy: .public))")
         } else {
             let task = Process()
             task.launchPath = "/bin/rmdir"
@@ -218,14 +196,14 @@ class Mounter: ObservableObject {
                 //
                 // check if directory is a (remote) filesystem mount
                 // if directory is a regular directory go on
-                if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
+                if !fm.isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                     //
                     // Clean up the directory containing the mounts only if defined in userdefaults
                     if prefs.bool(for: .cleanupLocationDirectory) == true {
                         //
                         // if the function has a parameter we want to handle files, not directories
                         if let unwrappedFilename = filename {
-                            if !isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
+                            if !fm.isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                                 let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
                                 if fm.fileExists(atPath: deleteFile) {
                                     Logger.mounter.info("Deleting obstructing file \(deleteFile, privacy: .public)")
@@ -298,7 +276,7 @@ class Mounter: ObservableObject {
     /// - Parameter atPath: path where the share is mounted
     func unmountShare(atPath path: String, completion: @escaping (Result<Void, MounterError>) -> Void) async {
         // check if path is really a filesystem mount
-        if isDirectoryFilesystemMount(atPath: path) || path.hasPrefix("/Volumes") {
+        if fm.isDirectoryFilesystemMount(atPath: path) || path.hasPrefix("/Volumes") {
             Logger.mounter.info("Trying to unmount share at path \(path, privacy: .public)")
             
             let url = URL(fileURLWithPath: path)
@@ -480,6 +458,8 @@ class Mounter: ObservableObject {
                             updateShare(mountStatus: .queued, for: share)
                         } catch MounterError.userUnmounted {
                             updateShare(mountStatus: .userUnmounted, for: share)
+                        } catch MounterError.obstructingDirectory {
+                            updateShare(mountStatus: .obstructingDirectory, for: share)
                         } catch {
                             updateShare(mountStatus: .unreachable, for: share)
                         }
@@ -569,104 +549,112 @@ class Mounter: ObservableObject {
             mountDirectory = String(mountDirectory.dropLast())
         }
         
-        // check if there's already a directory of type filesystemMount named like the share.
-        //
-        if !isDirectoryFilesystemMount(atPath: mountDirectory) {
-            if share.mountStatus != MountStatus.queued && share.mountStatus != MountStatus.errorOnMount && share.mountStatus != MountStatus.userUnmounted || userTriggered {
-                Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
-                updateShare(mountStatus: .queued, for: share)
-//                let mountOptions = (mountPath == "/Volumes") ? Defaults.mountOptionsForVolumes : Defaults.mountOptions
-                var mountOptions = Defaults.mountOptions
-                var openOptions = Defaults.openOptions
-                var realMountPoint = mountDirectory
-                if mountPath == "/Volumes" {
-                    mountOptions = Defaults.mountOptionsForSystemMountDir
-                    realMountPoint = mountPath
-                } else {
-                    // create the directory as mountpoint
-                    try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
-                    // Hide the mount directory as long as the mount has occurred
-                    //        (or if failed, the directory will be removed later)
-                    // apparently there is no way t oset the `hidden` attribute via FileManager `setAttributes`
-                    // https://developer.apple.com/documentation/foundation/filemanager/1413667-setattributes
-                    cliTask("/usr/bin/chflags hidden \(mountDirectory)")
-                }
-                if share.authType == .guest {
-                    openOptions = Defaults.openOptionsGuest
-                }
-                // swiftlint:enable force_cast
-                let rc = NetFSMountURLSync(url as CFURL,
-                                           NSURL(string: realMountPoint),
-                                           share.username as CFString?,
-                                           share.password as CFString?,
-                                           openOptions,
-                                           mountOptions,
-                                           nil)
-                // swiftlint:disable force_cast
-                switch rc {
-                case 0:
-                    Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
-                    // unhide the directory for the fresh mounted share
-                    cliTask("/usr/bin/chflags nohidden \(mountDirectory)")
-                    return mountDirectory
-                case 2:
-                    Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.doesNotExist
-                case 13:
-                    Logger.mounter.info("❌ \(url, privacy: .public): permission denied")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.permissionDenied
-                case 17:
-                    Logger.mounter.info("✅ \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
-                    return mountDirectory
-                case 60:
-                    Logger.mounter.info("❌ \(url, privacy: .public): timeout reaching host")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.timedOutHost
-                case 64:
-                    Logger.mounter.info("❌ \(url, privacy: .public): host is down")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.hostIsDown
-                case 65:
-                    Logger.mounter.info("❌ \(url, privacy: .public): no route to host")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.noRouteToHost
-                case 80:
-                    Logger.mounter.info("❌ \(url, privacy: .public): authentication error")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.authenticationError
-                case -6003:
-                    Logger.mounter.info("❌ \(url, privacy: .public): share does not exist")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.shareDoesNotExist
-                case -1073741275:
-                    Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc.description, privacy: .public)")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.shareDoesNotExist
-                default:
-                    Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public)")
-                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
-                    throw MounterError.unknownReturnCode
-                }
+        // first check if there is already a directory
+        if fm.isDirectory(atPath: mountDirectory) {
+            // then if the driectory is a mount point
+            if fm.isDirectoryFilesystemMount(atPath: mountDirectory) {
+                Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
+                return mountDirectory
             } else {
-                if share.mountStatus == MountStatus.queued {
-                    Logger.mounter.info("Share \(url, privacy: .public) is already queued for mounting.")
-                    throw MounterError.mountIsQueued
-                } else if share.mountStatus == MountStatus.errorOnMount {
-                    Logger.mounter.info("Share \(url, privacy: .public) not mounted, last time I tried I got a mount error.")
-                    throw MounterError.otherError
-                } else if share.mountStatus == MountStatus.userUnmounted {
-                    Logger.mounter.info("Share \(url, privacy: .public) user decied to unmount all shares, not mounting them.")
-                    throw MounterError.userUnmounted
+                if self.defaultMountPath == "/Volumes" {
+                    Logger.mounter.info("❗ Obstructing directory at \(mountDirectory, privacy: .public): can not mount share \(url, privacy: .public)")
+                    throw MounterError.obstructingDirectory
                 } else {
-                    Logger.mounter.info("Share \(url, privacy: .public) not mounted, I do not know why. It just happened.")
-                    throw MounterError.otherError
+                    removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
                 }
             }
+        }
+        if share.mountStatus != MountStatus.queued || share.mountStatus != MountStatus.errorOnMount || share.mountStatus != MountStatus.userUnmounted || userTriggered {
+            Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
+            updateShare(mountStatus: .queued, for: share)
+            //                let mountOptions = (mountPath == "/Volumes") ? Defaults.mountOptionsForVolumes : Defaults.mountOptions
+            var mountOptions = Defaults.mountOptions
+            var openOptions = Defaults.openOptions
+            var realMountPoint = mountDirectory
+            if mountPath == "/Volumes" {
+                mountOptions = Defaults.mountOptionsForSystemMountDir
+                realMountPoint = mountPath
+            } else {
+                // create the directory as mountpoint
+                try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
+                // Hide the mount directory as long as the mount has occurred
+                //        (or if failed, the directory will be removed later)
+                // apparently there is no way t oset the `hidden` attribute via FileManager `setAttributes`
+                // https://developer.apple.com/documentation/foundation/filemanager/1413667-setattributes
+                cliTask("/usr/bin/chflags hidden \(mountDirectory)")
+            }
+            if share.authType == .guest {
+                openOptions = Defaults.openOptionsGuest
+            }
+            // swiftlint:enable force_cast
+            let rc = NetFSMountURLSync(url as CFURL,
+                                       NSURL(string: realMountPoint),
+                                       share.username as CFString?,
+                                       share.password as CFString?,
+                                       openOptions,
+                                       mountOptions,
+                                       nil)
+            // swiftlint:disable force_cast
+            switch rc {
+            case 0:
+                Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
+                // unhide the directory for the fresh mounted share
+                cliTask("/usr/bin/chflags nohidden \(mountDirectory)")
+                return mountDirectory
+            case 2:
+                Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.doesNotExist
+            case 13:
+                Logger.mounter.info("❌ \(url, privacy: .public): permission denied")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.permissionDenied
+            case 17:
+                Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
+                return mountDirectory
+            case 60:
+                Logger.mounter.info("🚫 \(url, privacy: .public): timeout reaching host")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.timedOutHost
+            case 64:
+                Logger.mounter.info("🚫 \(url, privacy: .public): host is down")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.hostIsDown
+            case 65:
+                Logger.mounter.info("🚫 \(url, privacy: .public): no route to host")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.noRouteToHost
+            case 80:
+                Logger.mounter.info("❌ \(url, privacy: .public): authentication error")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.authenticationError
+            case -6003:
+                Logger.mounter.info("❌ \(url, privacy: .public): share does not exist")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.shareDoesNotExist
+            case -1073741275:
+                Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc.description, privacy: .public)")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.shareDoesNotExist
+            default:
+                Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public)")
+                removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+                throw MounterError.unknownReturnCode
+            }
         } else {
-            Logger.mounter.info("✅ \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
-            return mountDirectory
+            if share.mountStatus == MountStatus.queued {
+                Logger.mounter.info("⌛ Share \(url, privacy: .public) is already queued for mounting.")
+                throw MounterError.mountIsQueued
+            } else if share.mountStatus == MountStatus.errorOnMount {
+                Logger.mounter.info("⚠️ Share \(url, privacy: .public): not mounted, last time I tried I got a mount error.")
+                throw MounterError.otherError
+            } else if share.mountStatus == MountStatus.userUnmounted {
+                Logger.mounter.info("🖐️ Share \(url, privacy: .public): user decied to unmount all shares, not mounting them.")
+                throw MounterError.userUnmounted
+            } else {
+                Logger.mounter.info("🤷 Share \(url, privacy: .public): not mounted, I do not know why. It just happened.")
+                throw MounterError.otherError
+            }
         }
     }
 }

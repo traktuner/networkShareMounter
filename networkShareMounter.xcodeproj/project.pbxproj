@@ -30,6 +30,7 @@
 		F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */; };
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 		F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */; };
+		F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D146D72B84CB7600BFD8F5 /* FileManager.swift */; };
 		F7D371222B47F7BE00D54FF5 /* KrbAuthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D371212B47F7BE00D54FF5 /* KrbAuthViewController.swift */; };
 		F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */; };
 		F7EF65CE2B3B4BEE00051D44 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CD2B3B4BEE00051D44 /* Notification.swift */; };
@@ -96,6 +97,7 @@
 		F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpPopoverView.swift; sourceTree = "<group>"; };
 		F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F7CF6E652B1DFB6400643574 /* mul */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = mul; path = mul.lproj/Main.xcstrings; sourceTree = "<group>"; };
+		F7D146D72B84CB7600BFD8F5 /* FileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager.swift; sourceTree = "<group>"; };
 		F7D371212B47F7BE00D54FF5 /* KrbAuthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KrbAuthViewController.swift; sourceTree = "<group>"; };
 		F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "Network Share Mounter/view/ShareViewController.swift"; sourceTree = SOURCE_ROOT; };
 		F7EF65CD2B3B4BEE00051D44 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
@@ -258,6 +260,7 @@
 			isa = PBXGroup;
 			children = (
 				F7EF65CD2B3B4BEE00051D44 /* Notification.swift */,
+				F7D146D72B84CB7600BFD8F5 /* FileManager.swift */,
 				F7EF65F22B3B5DBB00051D44 /* String.swift */,
 				F7EF65F42B3B5DDC00051D44 /* Data.swift */,
 				F7EF65F62B3B5DF500051D44 /* Date.swift */,
@@ -459,6 +462,7 @@
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
 				F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */,
 				F7EF65E62B3B582F00051D44 /* DogeAccount.swift in Sources */,
+				F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
 				F72B13EA2B332987001BDEEA /* Menu.swift in Sources */,
@@ -662,7 +666,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 128;
+				CURRENT_PROJECT_VERSION = 129;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -711,7 +715,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 128;
+				CURRENT_PROJECT_VERSION = 129;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
