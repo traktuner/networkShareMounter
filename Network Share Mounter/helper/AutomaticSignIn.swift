@@ -23,16 +23,15 @@ public struct Doge_SessionUserObject {
 class AutomaticSignIn {
     
     var prefs = PreferenceManager()
-//    var dogeAccounts = [DogeAccount]()
     var workers = [AutomaticSignInWorker]()
     
-    init() async {
-        await signInAllAccounts()
+    init() {
+        signInAllAccounts()
     }
     
-    private func signInAllAccounts() async {
+    private func signInAllAccounts() {
         let klist = KlistUtil()
-        let princs = klist.klist().map({ $0.principal })
+        _ = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal
         self.workers.removeAll()
         
@@ -40,15 +39,14 @@ class AutomaticSignIn {
         // if singleUserMode == false and more than 1 account exists
         for account in AccountsManager.shared.accounts {
             if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || AccountsManager.shared.accounts.count == 1 {
-                Task {
-                    let worker = AutomaticSignInWorker(account: account)
-                    await worker.checkUser()
-                    self.workers.append(worker)
-                }
+                let worker = AutomaticSignInWorker(account: account)
+                worker.checkUser()
+                self.workers.append(worker)
             }
         }
-
-        cliTask("kswitch -p \(defaultPrinc ?? "")")
+        if let defPrinc = defaultPrinc {
+            cliTask("kswitch -p \(defaultPrinc ?? "")")
+        }
     }
 }
 
@@ -67,7 +65,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         self.session.setupSessionFromPrefs(prefs: prefs)
     }
     
-    func checkUser() async {
+    func checkUser() {
         
         let klist = KlistUtil()
         let princs = klist.klist().map({ $0.principal })
@@ -79,9 +77,8 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
                 if !result.SRVRecords.isEmpty {
                     if princs.contains(where: { $0.lowercased() == self.account.upn }) {
                         self.getUserInfo()
-                    } else {
-                        self.auth()
                     }
+//                    self.auth()
                 } else {
                     Logger.automaticSignIn.info("No RSV records found.")
                 }
@@ -89,22 +86,11 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
                 Logger.automaticSignIn.error("No DNS results for domain \(self.domain, privacy: .public), unable to automatically login. Error: \(error, privacy: .public)")
             }
         })
+        self.auth()
     }
     
     func auth() {
         let keyUtil = KeychainManager()
-        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
-            // check for FAU and if user keychain migration was already done
-            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased(), !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator()
-                if migrator.migrateKeychainEntry(forUsername: self.account.upn.removeDomain()) {
-                    self.account.hasKeychainEntry = true
-                    Logger.automaticSignIn.debug("FAU user migrated.")
-                } else {
-                    Logger.automaticSignIn.debug("FAU user migration failed.")
-                }
-            }
-        }
         do {
             if let pass = try keyUtil.retrievePassword(forUsername: self.account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
                 self.account.hasKeychainEntry = true
@@ -135,6 +121,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         Logger.automaticSignIn.info("Auth failed for user: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         switch error {
         case .AuthenticationFailure, .PasswordExpired:
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
             Logger.automaticSignIn.info("Removing bad password from keychain")
             let keyUtil = KeychainManager()
             do {

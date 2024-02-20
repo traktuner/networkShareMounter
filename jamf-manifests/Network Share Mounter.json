@@ -40,12 +40,14 @@
                         "options": {
                             "enum_titles": [
                                 "Kerberos",
-                                "Password"
+                                "Password",
+                                "Guest"
                             ]
                         },
                         "enum": [
                             "krb",
-                            "password"
+                            "password",
+                            "guest"
                         ]
                     },
                     "username": {

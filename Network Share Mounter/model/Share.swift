@@ -8,26 +8,6 @@
 
 import Foundation
 
-/// defines mount states of a share
-/// - Parameter unmounted: share is not mounted
-/// - Parameter mounted: mounted share
-/// - Parameter queued: queued for mounting
-/// - Parameter toBeMounted: share should be mounted
-/// - Parameter errorOnMount: failed to mount a shared
-/// - Parameter undefined: share is in an undefined state, e.g. after a network change notification an needs to be checked
-enum MountStatus: String {
-    case unmounted = "unmounted"
-    case mounted = "mounted"
-    case queued = "queued"
-    case toBeMounted = "toBeMounted"
-    case errorOnMount = "errorOnMount"
-    case unreachable = "unreachable"
-    case undefined = "undefined"
-    case userUnmounted = "userUnmounted"
-    case missingPassword = "missingPassword"
-    case invalidCredentials = "invalidCredentials"
-}
-
 /// describes the different properties and states of a share
 /// - Parameter networkShare: ``URL`` containing the exporting server and share
 /// - Parameter authType: ``authTyoe`` defines if the mount uses kerberos or username/password for authentication
