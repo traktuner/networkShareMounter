@@ -1537,37 +1537,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 Eingebunden\n⚪️ Nicht eingebunden / Nicht erreichbar\n🟠 Fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange\n❗ Nicht eingebunden aufgrund eines blockierenden lokalen Verzeichnisses"
+            "value" : "🟢 Eingebunden\n⚪️ Nicht eingebunden / Nicht erreichbar\n🟠 Fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange\n❗ Nicht eingebunden: blockierendes lokales Verzeichnis"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 mounted\n⚪️ not mounted / not reachable\n🟠 missing credentials\n🟣 mount queued\n❗ not mounted due to obstucting local directory"
+            "value" : "🟢 mounted\n⚪️ not mounted / not reachable\n🟠 missing credentials\n🟣 mount queued\n❗ not mounted: obstructing local directory"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 montado\n⚪️ no montado / no accesible\n🟠 credenciales faltantes\n🟣 montaje en cola\n❗ no montado debido a un directorio local que obstruye"
+            "value" : "🟢 montado\n⚪️ no montado / no accesible\n🟠 credenciales faltantes\n🟣 montaje en cola\n❗ no montado: directorio local que obstruye"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 monté\n⚪️ non monté / non accessible\n🟠 identifiants manquants\n🟣 montage en file d'attente\n❗ non monté en raison d'un répertoire local obstruant"
+            "value" : "🟢 monté\n⚪️ non monté / non accessible\n🟠 identifiants manquants\n🟣 montage en file d'attente\n❗ non monté : répertoire local obstruant"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 montato\n⚪️ non montato / non raggiungibile\n🟠 credenziali mancanti\n🟣 montaggio in coda\n❗ non montato a causa di una directory locale ostacolante"
+            "value" : "🟢 montato\n⚪️ non montato / non raggiungibile\n🟠 credenziali mancanti\n🟣 montaggio in coda\n❗ non montato: directory locale ostruttiva"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 gekoppeld\n⚪️ niet gekoppeld / niet bereikbaar\n🟠 ontbrekende referenties\n🟣 koppeling in de wachtrij\n❗ niet gekoppeld vanwege een belemmerende lokale map"
+            "value" : "🟢 gekoppeld\n⚪️ niet gekoppeld / niet bereikbaar\n🟠 ontbrekende referenties\n🟣 koppeling in de wachtrij\n❗ niet gekoppeld: belemmerende lokale map"
           }
         }
       }
