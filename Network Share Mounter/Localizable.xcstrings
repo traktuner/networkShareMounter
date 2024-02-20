@@ -509,6 +509,41 @@
         }
       }
     },
+    "Can nout mount share because of obstructing directory" : {
+      "comment" : "Can nout mount share because of obstructing directory",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kann Freigabe nicht einbinden, da ein blockierendes Verzeichnis vorhanden ist"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " No se puede montar el recurso compartido debido a un directorio obstruyente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de monter la partage en raison d'un répertoire obstruant"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile montare la condivisione a causa di una directory ostacolante"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan de gedeelde map niet koppelen vanwege een belemmerende directory"
+          }
+        }
+      }
+    },
     "cancel" : {
       "comment" : "cancel",
       "localizations" : {
@@ -1502,37 +1537,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 Eingebunden\n⚪️ Nicht eingebunden / Nicht erreichbar\n🟠 Fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange"
+            "value" : "🟢 Eingebunden\n⚪️ Nicht eingebunden / Nicht erreichbar\n🟠 Fehlende Anmeldedaten\n🟣 Einbinden in Warteschlange\n❗ Nicht eingebunden aufgrund eines blockierenden lokalen Verzeichnisses"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 mounted\n⚪️ not mounted / not reachable\n🟠 missing credentials\n🟣 mount queued"
+            "value" : "🟢 mounted\n⚪️ not mounted / not reachable\n🟠 missing credentials\n🟣 mount queued\n❗ not mounted due to obstucting local directory"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 montado\n⚪️ no montado / no accesible\n🟠 credenciales faltantes\n🟣 montaje en cola"
+            "value" : "🟢 montado\n⚪️ no montado / no accesible\n🟠 credenciales faltantes\n🟣 montaje en cola\n❗ no montado debido a un directorio local que obstruye"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 monté\n⚪️ non monté / non accessible\n🟠 identifiants manquants\n🟣 montage en file d'attente"
+            "value" : "🟢 monté\n⚪️ non monté / non accessible\n🟠 identifiants manquants\n🟣 montage en file d'attente\n❗ non monté en raison d'un répertoire local obstruant"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 montato\n⚪️ non montato / non raggiungibile\n🟠 credenziali mancanti\n🟣 montaggio in coda"
+            "value" : "🟢 montato\n⚪️ non montato / non raggiungibile\n🟠 credenziali mancanti\n🟣 montaggio in coda\n❗ non montato a causa di una directory locale ostacolante"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🟢 gekoppeld\n⚪️ niet gekoppeld / niet bereikbaar\n🟠 ontbrekende referenties\n🟣 koppeling in de wachtrij"
+            "value" : "🟢 gekoppeld\n⚪️ niet gekoppeld / niet bereikbaar\n🟠 ontbrekende referenties\n🟣 koppeling in de wachtrij\n❗ niet gekoppeld vanwege een belemmerende lokale map"
           }
         }
       }
@@ -1761,7 +1796,39 @@
       }
     },
     "Permission denied" : {
-      "comment" : "Permission denied"
+      "comment" : "Permission denied",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zugriff verweigert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permiso denegado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission refusée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permesso negato"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toestemming geweigerd"
+          }
+        }
+      }
     },
     "Please check the data entered" : {
       "comment" : "Please check the data entered",

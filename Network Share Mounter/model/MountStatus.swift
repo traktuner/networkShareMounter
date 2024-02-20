@@ -24,4 +24,5 @@ enum MountStatus: String {
     case userUnmounted = "userUnmounted"
     case missingPassword = "missingPassword"
     case invalidCredentials = "invalidCredentials"
+    case obstructingDirectory = "obstructingDirectory"
 }
