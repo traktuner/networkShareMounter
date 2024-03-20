@@ -564,7 +564,11 @@ class Mounter: ObservableObject {
                 }
             }
         }
-        if share.mountStatus != MountStatus.queued || share.mountStatus != MountStatus.errorOnMount || share.mountStatus != MountStatus.userUnmounted || share.mountStatus != MountStatus.unreachable || userTriggered {
+        if userTriggered || (
+            share.mountStatus != MountStatus.queued &&
+            share.mountStatus != MountStatus.errorOnMount &&
+            share.mountStatus != MountStatus.userUnmounted &&
+            share.mountStatus != MountStatus.unreachable ) {
             Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
             updateShare(mountStatus: .queued, for: share)
             //                let mountOptions = (mountPath == "/Volumes") ? Defaults.mountOptionsForVolumes : Defaults.mountOptions
@@ -651,6 +655,9 @@ class Mounter: ObservableObject {
             } else if share.mountStatus == MountStatus.userUnmounted {
                 Logger.mounter.info("🖐️ Share \(url, privacy: .public): user decied to unmount all shares, not mounting them.")
                 throw MounterError.userUnmounted
+            } else if share.mountStatus == MountStatus.unreachable {
+                    Logger.mounter.info("⚠️ Share \(url, privacy: .public): not mounted, last time I tried server was not reachable.")
+                    throw MounterError.targetNotReachable
             } else {
                 Logger.mounter.info("🤷 Share \(url, privacy: .public): not mounted, I do not know why. It just happened.")
                 throw MounterError.otherError
