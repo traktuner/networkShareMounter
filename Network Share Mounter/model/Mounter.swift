@@ -564,7 +564,7 @@ class Mounter: ObservableObject {
                 }
             }
         }
-        if share.mountStatus != MountStatus.queued || share.mountStatus != MountStatus.errorOnMount || share.mountStatus != MountStatus.userUnmounted || userTriggered {
+        if share.mountStatus != MountStatus.queued || share.mountStatus != MountStatus.errorOnMount || share.mountStatus != MountStatus.userUnmounted || share.mountStatus != MountStatus.unreachable || userTriggered {
             Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
             updateShare(mountStatus: .queued, for: share)
             //                let mountOptions = (mountPath == "/Volumes") ? Defaults.mountOptionsForVolumes : Defaults.mountOptions
