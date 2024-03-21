@@ -44,15 +44,15 @@ extension Monitor {
             let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
             self.netOn = path.status == .satisfied
             self.connType = self.checkConnectionTypeForPath(path)
-            Logger.networkMonitor.info("Network connection changed to \(self.connType.rawValue, privacy: .public).")
-
+            Logger.networkMonitor.info("🔌 Got Network connection change trigger from \(self.connType.rawValue, privacy: .public) to \(self.checkConnectionTypeForPath(path).rawValue, privacy: .public)..")
+            
             if path.status == .satisfied {
                 // wait a few seconds to settle network before firing callbacks
                 if !networkUpdatePending {
-                    Logger.networkMonitor.debug("Waiting \(networkSettleTime, privacy: .public) seconds to settle network...")
+                    Logger.networkMonitor.debug(" ▶︎ Waiting \(Int(networkSettleTime), privacy: .public) seconds to settle network...")
                     kNetworkUpdateTimer = Timer.init(timeInterval: networkSettleTime, repeats: false, block: {_ in
                         kNetworkUpdatePending = false
-                        Logger.networkMonitor.debug("Firing network change callbacks")
+                        Logger.networkMonitor.debug(" ▶︎ Firing network change callbacks")
                         if path.usesInterfaceType(.wifi) {
                             return callBack(.wifi, reachable)
                         } else if path.usesInterfaceType(.cellular) {

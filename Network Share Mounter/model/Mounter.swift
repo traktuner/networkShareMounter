@@ -656,7 +656,7 @@ class Mounter: ObservableObject {
                 Logger.mounter.info("🖐️ Share \(url, privacy: .public): user decied to unmount all shares, not mounting them.")
                 throw MounterError.userUnmounted
             } else if share.mountStatus == MountStatus.unreachable {
-                    Logger.mounter.info("⚠️ Share \(url, privacy: .public): not mounted, last time I tried server was not reachable.")
+                    Logger.mounter.info("⚠️ Share \(url, privacy: .public): ignored by mount, last time I tried server was not reachable.")
                     throw MounterError.targetNotReachable
             } else {
                 Logger.mounter.info("🤷 Share \(url, privacy: .public): not mounted, I do not know why. It just happened.")
