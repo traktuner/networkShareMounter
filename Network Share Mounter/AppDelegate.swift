@@ -26,7 +26,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
 
-    var timer = Timer()
+    var mountTimer = Timer()
+    var authTimer = Timer()
     
     // define the activityController to et notifications from NSWorkspace
     var activityController: ActivityController?
@@ -62,19 +63,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // fire up the activityController to get system/NSWorkspace notifications
         activityController = ActivityController.init(withMounter: mounter)
         
-        //
-        // start a timer to perform a mount every 5 minutes
-        let timerInterval: Double = Defaults.triggerTimer
-        self.timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true, block: { _ in
-            Logger.app.info("Passed \(timerInterval, privacy: .public) seconds, performing operartions:")
-            NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
+        // set a timer to perform a mount every n seconds
+        self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
+            Logger.app.info("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
+            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+        })
+        // set a timer to perform authentication every n seconds
+        self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
+            Logger.app.info("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
+            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
         })
         
         //
         // start monitoring network connectivity and perform mount/unmount on network changes
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
-                NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
+                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
             } else {
                 Task {
                     // since the mount status after a network change is unknown it will be set
@@ -90,7 +94,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         //
         // finally authenticate and mount all defined shares...
-        NotificationCenter.default.post(name: Defaults.nsmTriggerNotification, object: nil)
+        NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
