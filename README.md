@@ -43,20 +43,19 @@ For an easier configuration of all the preference keys without creating or modif
 | `canChangeAutostart` | Boolean | If set to false, the user can not change the autostart option. | true | ≥ 2.0.0 | optional ||
 | `unmountOnExit` | Boolean | If set to false, the shares will be mounted after quitting the app. | true | ≥ 2.0.0 | optional ||
 | `location` | String | Path where network shares will be mounted. <br />Make sure, that the user has read and write access to the mount location if the location is not `/Volumes`.<br />Leave blank for the default value *(highly recommended)* | - | ≥ 2.1.0 | optional | `/Volumes` |
-| `useNewDefaultLocation` | Boolean | Use the new default mount location (`/Volumes`)<br /><br />**⚠️ With version 3 the old default mount path (~/Netzlaufwerke/) is deprecated.** | false | 3.0.0 | optional |  |
 | `cleanupLocationDirectory` | Boolean | 1) Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag.    <br /><br />2) Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag.    <br /><br />3) If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array.   <br />*(The previous setting where too dangerous)* | false | ≥ 2.1.0 | - | `false` |
 | `kerberosRealm` | String | Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled | - | ≥ 3.0.0 | optional | EXAMPLE.REALM.COM |
 | `helpURL` | String | Configure a website link to help users interact with the application. | - | ≥ 2.0.0 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
 
-#### ⚠️ Important note for the `location`,  `cleanupLocationDirectory` and `useNewDefaultLocation` values
+#### ⚠️ Important note for the `location` and `cleanupLocationDirectory` values
 
 If the value `location` left empty (or undefined), the directory (`~/Netzlaufwerk`) will be created as a subdirectory of the user's home where the network shares will be mounted. Since this directory always contains only mounted network shares, there is a routine to clean up this directory and deletes unnecessary files and directories.
 
 If another directory is used to mount the network drives (like `location` = `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false` ! 
 
-Make sure that the user has both read and write access permissions to the mount location if you are not using predefined locations such as `~/Netzlaufwerk`,`~/Network shares` in the user's home, or the `/Volumes` location [where the OS handle the mount process](#5-why-is-it-not-possible-to-change-the-mount-point-name-when-using-volumes-for-the-mount-location).
+Make sure that the user has both read and write access permissions to the mount location if you are not using predefined locations such as `~/Netzlaufwerk`,`~/Network shares` in the user's home, or the `/Volumes` location [where the OS have to handle the mount process](#5-why-is-it-not-possible-to-change-the-mount-point-name-when-using-volumes-for-the-mount-location).
 
-**Also, in a feature release, the new default location will be set to `/Volumes`**. The `useNewDefaultLocation` parameter allows users to adopt this default value ahead of the official release. This option is provided to ease the transition for administrators.
+_*Previously we announced to change the default location (`useNewDefaultLocation`) to `/Volumes`. This will not be realized beacuse of issues with the mount process handled by the OS itself. The default mount path will be in the home directory._
 
 ## 📚 FAQ
 ##### **1) Jamf recon stuck with configured Network Share Mounter app**  
@@ -97,7 +96,7 @@ When mounting shares in `/Volumes`, the OS handles the mount process entirely an
 ## 🚀 Planned features and releases
 
 * Kerberos/AD handling for user authentication like Apple Enterprise Connect, Jamf Connect or NoMAD *(Beta in v3.0, Release ETA Summer 2024, v3.1)*
-* Change default mount location to `/Volumes` *(ETA Summer 2024, v3.1)*
+* ~Change default mount location to `/Volumes~ *(cancelled)*
 * Remove the legacy  `networkShares`  value *(ETA Summer 2024, v3.1)*
 
 ## ✉️ Contact
