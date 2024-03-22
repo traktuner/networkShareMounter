@@ -17,7 +17,9 @@ class ActivityController {
     
     var mounter: Mounter
     var prefs = PreferenceManager()
+    // swiftlint:disable force_cast
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    // swiftlint:enable force_cast
     
     init(withMounter: Mounter) {
         mounter = withMounter
