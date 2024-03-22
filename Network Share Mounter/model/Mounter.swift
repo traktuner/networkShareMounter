@@ -70,7 +70,7 @@ class Mounter: ObservableObject {
             // swiftlint:enable force_cast
         } catch {
             /// Couldn't perform mount operation, but this does not have to be a fault in non-AD/krb5 environments
-            Logger.mounter.info("Couldn't add user's home directory to the list of shares to mount.")
+            Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
         }
     }
     
@@ -96,9 +96,9 @@ class Mounter: ObservableObject {
             do {
                 try shareManager.updateShare(at: index, withUpdatedShare: share)
             } catch ShareError.invalidIndex(let index) {
-                Logger.shareManager.error("Could not update share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                Logger.shareManager.error("❌ Could not update share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
             } catch {
-                Logger.shareManager.error("Could not update share \(share.networkShare, privacy: .public), unknown error.")
+                Logger.shareManager.error("❌ Could not update share \(share.networkShare, privacy: .public), unknown error.")
             }
         }
     }
@@ -120,9 +120,9 @@ class Mounter: ObservableObject {
             do {
                 try shareManager.updateMountStatus(at: index, to: mountStatus)
             } catch ShareError.invalidIndex(let index) {
-                Logger.shareManager.error("Could not update mount status for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
             } catch {
-                Logger.shareManager.error("Could not update mount status for share \(share.networkShare, privacy: .public), unknown error.")
+                Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), unknown error.")
             }
         }
     }
@@ -135,9 +135,9 @@ class Mounter: ObservableObject {
             do {
                 try shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
             } catch ShareError.invalidIndex(let index) {
-                Logger.shareManager.error("Could not update actual mount point for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                Logger.shareManager.error("❌ Could not update actual mount point for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
             } catch {
-                Logger.shareManager.error("Could not update actual mount point for  share \(share.networkShare, privacy: .public), unknown error.")
+                Logger.shareManager.error("❌ Could not update actual mount point for  share \(share.networkShare, privacy: .public), unknown error.")
             }
         }
     }
@@ -153,7 +153,7 @@ class Mounter: ObservableObject {
                 Logger.mounter.info("Base network mount directory \(mountPath, privacy: .public): created")
             }
         } catch {
-            Logger.mounter.error("Error creating mount folder: \(mountPath, privacy: .public):")
+            Logger.mounter.error("❌ Error creating mount folder: \(mountPath, privacy: .public):")
             Logger.mounter.error("\(error.localizedDescription)")
             exit(2)
         }
@@ -178,9 +178,9 @@ class Mounter: ObservableObject {
             // Get the data
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             if let output = String(data: data, encoding: String.Encoding.utf8) {
-                Logger.mounter.info("Deleting directory \(atPath, privacy: .public): \(output.isEmpty ? "done" : output, privacy: .public)")
+                Logger.mounter.info("⌫ Deleting directory \(atPath, privacy: .public): \(output.isEmpty ? "done" : output, privacy: .public)")
             } else {
-                Logger.mounter.info("Unknown status deleting directory \(atPath, privacy: .public)")
+                Logger.mounter.info("❔ Unknown status deleting directory \(atPath, privacy: .public)")
             }
         }
     }
@@ -206,11 +206,11 @@ class Mounter: ObservableObject {
                             if !fm.isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
                                 let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
                                 if fm.fileExists(atPath: deleteFile) {
-                                    Logger.mounter.info("Deleting obstructing file \(deleteFile, privacy: .public)")
+                                    Logger.mounter.info("⌫  Deleting obstructing file \(deleteFile, privacy: .public)")
                                     try fm.removeItem(atPath: deleteFile)
                                 }
                             } else {
-                                Logger.mounter.info("Found file system mount at \(path.appendingPathComponent(filePath), privacy: .public). Not deleting it")
+                                Logger.mounter.info("🔍 Found file system mount at \(path.appendingPathComponent(filePath), privacy: .public). Not deleting it")
                             }
                         } else {
                             //
@@ -241,20 +241,20 @@ class Mounter: ObservableObject {
                                     // sure, this could be done better (e.g. regex mathcing), but I don't think it's worth thinking about
                                     for count in 1...30 {
                                         if filePath.contains(shareMountDir + "-\(count)") {
-                                            Logger.mounter.info("Duplicate mount of \(share.networkShare, privacy: .public): it is already mounted as \(path.appendingPathComponent(filePath), privacy: .public). Trying to unmount...")
+                                            Logger.mounter.info("👯 Duplicate mount of \(share.networkShare, privacy: .public): it is already mounted as \(path.appendingPathComponent(filePath), privacy: .public). Trying to unmount...")
                                             await unmountShare(atPath: path.appendingPathComponent(filePath)) { [self] result in
                                                 switch result {
                                                     case .success:
-                                                        Logger.mounter.info("Successfully unmounted \(path.appendingPathComponent(filePath), privacy: .public).")
+                                                        Logger.mounter.info("💪 Successfully unmounted \(path.appendingPathComponent(filePath), privacy: .public).")
                                                     case .failure(let error):
                                                         // error on unmount
                                                         switch error {
                                                             case .invalidMountPath:
-                                                                Logger.mounter.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): invalid mount path")
+                                                                Logger.mounter.warning("⚠️ Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): invalid mount path")
                                                             case .unmountFailed:
-                                                                Logger.mounter.warning("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unmount failed")
+                                                                Logger.mounter.warning("⚠️ Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unmount failed")
                                                             default:
-                                                                Logger.mounter.info("Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unknown error")
+                                                                Logger.mounter.info("⚠️ Could not unmount \(path.appendingPathComponent(filePath), privacy: .public): unknown error")
                                                     }
                                                 }
                                             }
@@ -267,7 +267,7 @@ class Mounter: ObservableObject {
                 }
             }
         } catch let error as NSError {
-            Logger.mounter.error("Could not list directory at \(path, privacy: .public): \(error.debugDescription, privacy: .public)")
+            Logger.mounter.error("⚠️ Could not list directory at \(path, privacy: .public): \(error.debugDescription, privacy: .public)")
         }
     }
     
@@ -301,7 +301,7 @@ class Mounter: ObservableObject {
                 await unmountShare(atPath: mountpoint) { [self] result in
                     switch result {
                     case .success:
-                        Logger.mounter.info("Successfully unmounted \(mountpoint, privacy: .public).")
+                        Logger.mounter.info("💪 Successfully unmounted \(mountpoint, privacy: .public).")
                         // share status update
                         if userTriggered {
                             // if unmount was triggered by the user, set mountStatus in share to userUnmounted
@@ -316,15 +316,15 @@ class Mounter: ObservableObject {
                         // error on unmount
                         switch error {
                         case .invalidMountPath:
-                            Logger.mounter.warning("Could not unmount \(mountpoint, privacy: .public): invalid mount path")
+                            Logger.mounter.warning("⚠️ Could not unmount \(mountpoint, privacy: .public): invalid mount path")
                             updateShare(mountStatus: .undefined, for: share)
                             updateShare(actualMountPoint: nil, for: share)
                         case .unmountFailed:
-                            Logger.mounter.warning("Could not unmount \(mountpoint, privacy: .public): unmount failed")
+                            Logger.mounter.warning("⚠️ Could not unmount \(mountpoint, privacy: .public): unmount failed")
                             updateShare(mountStatus: .undefined, for: share)
                             updateShare(actualMountPoint: nil, for: share)
                         default:
-                            Logger.mounter.info("Could not unmount \(mountpoint, privacy: .public): unknown error")
+                            Logger.mounter.info("⚠️ Could not unmount \(mountpoint, privacy: .public): unknown error")
                             updateShare(mountStatus: .undefined, for: share)
                             updateShare(actualMountPoint: nil, for: share)
                         }
@@ -345,7 +345,7 @@ class Mounter: ObservableObject {
                     await unmountShare(atPath: mountpoint) { [self] result in
                         switch result {
                         case .success:
-                            Logger.mounter.info("Successfully unmounted \(mountpoint, privacy: .public).")
+                            Logger.mounter.info("💪 Successfully unmounted \(mountpoint, privacy: .public).")
                             // share status update
                             if userTriggered {
                                 // if unmount was triggered by the user, set mountStatus in share to userUnmounted
@@ -360,15 +360,15 @@ class Mounter: ObservableObject {
                             // error on unmount
                             switch error {
                                 case .invalidMountPath:
-                                    Logger.mounter.warning("Could not unmount \(mountpoint, privacy: .public): invalid mount path")
+                                    Logger.mounter.warning("⚠️ Could not unmount \(mountpoint, privacy: .public): invalid mount path")
                                     updateShare(mountStatus: .undefined, for: share)
                                     updateShare(actualMountPoint: nil, for: share)
                                 case .unmountFailed:
-                                    Logger.mounter.warning("Could not unmount \(mountpoint, privacy: .public): unmount failed")
+                                    Logger.mounter.warning("⚠️ Could not unmount \(mountpoint, privacy: .public): unmount failed")
                                     updateShare(mountStatus: .undefined, for: share)
                                     updateShare(actualMountPoint: nil, for: share)
                                 default:
-                                    Logger.mounter.info("Could not unmount \(mountpoint, privacy: .public): unknown error")
+                                    Logger.mounter.info("⚠️ Could not unmount \(mountpoint, privacy: .public): unknown error")
                                     updateShare(mountStatus: .undefined, for: share)
                                     updateShare(actualMountPoint: nil, for: share)
                             }
@@ -467,7 +467,7 @@ class Mounter: ObservableObject {
                 }
             }
         } else {
-            Logger.mounter.warning("No network connection available, connection type is \(netConnection.connType.rawValue, privacy: .public)")
+            Logger.mounter.warning("⚠️ No network connection available, connection type is \(netConnection.connType.rawValue, privacy: .public)")
         }
     }
     
@@ -490,11 +490,11 @@ class Mounter: ObservableObject {
         // see https://stackoverflow.com/questions/44754996/is-addingpercentencoding-broken-in-xcode-9
         //
         guard let url = URL(string: share.networkShare) else {
-            Logger.mounter.warning("❌ could not finde share for \(share.networkShare, privacy: .public)")
+            Logger.mounter.error("❌ could not finde share for \(share.networkShare, privacy: .public)")
             throw MounterError.errorOnEncodingShareURL
         }
         guard let host = url.host else {
-            Logger.mounter.warning("❌ could not determine hostname for \(share.networkShare, privacy: .public)")
+            Logger.mounter.error("❌ could not determine hostname for \(share.networkShare, privacy: .public)")
             updateShare(mountStatus: .errorOnMount, for: share)
             throw MounterError.invalidHost
         }
@@ -553,7 +553,7 @@ class Mounter: ObservableObject {
         if fm.isDirectory(atPath: mountDirectory) {
             // then if the driectory is a mount point
             if fm.isDirectoryFilesystemMount(atPath: mountDirectory) {
-                Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
+                Logger.mounter.info("ℹ️  \(url, privacy: .public): seems to be already mounted on \(mountDirectory, privacy: .public)")
                 return mountDirectory
             } else {
                 if self.defaultMountPath == "/Volumes" {
@@ -569,7 +569,7 @@ class Mounter: ObservableObject {
             share.mountStatus != MountStatus.errorOnMount &&
             share.mountStatus != MountStatus.userUnmounted &&
             share.mountStatus != MountStatus.unreachable ) {
-            Logger.mounter.debug("Called mount of \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
+            Logger.mounter.debug("🤙 Called mount of \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
             updateShare(mountStatus: .queued, for: share)
             //                let mountOptions = (mountPath == "/Volumes") ? Defaults.mountOptionsForVolumes : Defaults.mountOptions
             var mountOptions = Defaults.mountOptions

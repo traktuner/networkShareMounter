@@ -26,6 +26,7 @@ struct Defaults {
     static let nsmTimeTriggerNotification = Notification.Name("nsmTimeTriggerNotification")
     static let nsmAuthTriggerNotification = Notification.Name("nsmAuthTriggerNotification")
     static let nsmMountTriggerNotification = Notification.Name("nsmMountTriggerNotification")
+    static let nsmNetworkChangeTriggerNotification = Notification.Name("nsmNetworkChangeTriggerNotification")
     static let nsmUnmountTriggerNotification = Notification.Name("nsmUnmountTriggerNotification")
     static let nsmMountManuallyTriggerNotification = Notification.Name("nsmMountManuallyTriggerNotification")
     // swiftlint:disable force_cast

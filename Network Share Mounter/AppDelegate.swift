@@ -78,7 +78,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // start monitoring network connectivity and perform mount/unmount on network changes
         monitor.startMonitoring { connection, reachable in
             if reachable.rawValue == "yes" {
-                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+                NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
             } else {
                 Task {
                     // since the mount status after a network change is unknown it will be set
@@ -208,13 +208,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         switch andStatus {
             case .krbAuthenticationError:
-                Logger.app.debug("Constructing Kerberos authentication problem menu.")
+                Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
                 mounter.errorStatus = .authenticationError
                 menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
                                 action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
                 menu.addItem(NSMenuItem.separator())
             case .authenticationError:
-                Logger.app.debug("Constructing authentication problem menu.")
+                Logger.app.debug("🏗️ Constructing authentication problem menu.")
                 mounter.errorStatus = .authenticationError
                 menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
                                     action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
@@ -222,7 +222,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             default:
                 mounter.errorStatus = .noError
-                Logger.app.debug("Constructing default menu.")
+                Logger.app.debug("🏗️ Constructing default menu.")
         }
         
         if prefs.string(for: .helpURL)!.description.isValidURL {

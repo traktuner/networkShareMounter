@@ -45,7 +45,7 @@ class AutomaticSignIn {
             }
         }
         if let defPrinc = defaultPrinc {
-            cliTask("kswitch -p \(defaultPrinc ?? "")")
+            cliTask("kswitch -p \(defPrinc)")
         }
     }
 }
