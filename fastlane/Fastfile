@@ -99,7 +99,6 @@ lane :commonTasks do
         "Network Share Mounter/helper/AutomaticSignIn.swift",
         "Network Share Mounter/helper/ActivityController.swift",
         "Network Share Mounter/helper/NSTaskWrapper.swift",
-        "Network Share Mounter/helper/NetworkWatcher.swift",
         "Network Share Mounter/AppDelegate.swift"
     ],
     raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
