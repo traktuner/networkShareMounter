@@ -48,7 +48,6 @@
 		F7EF65F72B3B5DF500051D44 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65F62B3B5DF500051D44 /* Date.swift */; };
 		F7EF65F92B3B5E0800051D44 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65F82B3B5E0800051D44 /* URL.swift */; };
 		F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */; };
-		F7EF66022B3B5F1700051D44 /* NetworkWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66012B3B5F1700051D44 /* NetworkWatcher.swift */; };
 		F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */; };
 /* End PBXBuildFile section */
 
@@ -115,7 +114,6 @@
 		F7EF65F62B3B5DF500051D44 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
 		F7EF65F82B3B5E0800051D44 /* URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupSession.swift; sourceTree = "<group>"; };
-		F7EF66012B3B5F1700051D44 /* NetworkWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWatcher.swift; sourceTree = "<group>"; };
 		F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSTaskWrapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -170,7 +168,6 @@
 				F77107B6274EC51600556B20 /* Monitor.swift */,
 				F7796E112AFBE5AB008F6A26 /* ActivityController.swift */,
 				F7EF65CF2B3B4DFC00051D44 /* Logger.swift */,
-				F7EF66012B3B5F1700051D44 /* NetworkWatcher.swift */,
 				F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */,
 				F7EF65D12B3B56A600051D44 /* AutomaticSignIn.swift */,
 			);
@@ -466,7 +463,6 @@
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
 				F72B13EA2B332987001BDEEA /* Menu.swift in Sources */,
-				F7EF66022B3B5F1700051D44 /* NetworkWatcher.swift in Sources */,
 				F70457ED2B31A62E00506DF4 /* Errorcodes.swift in Sources */,
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
 				F7EF65F72B3B5DF500051D44 /* Date.swift in Sources */,

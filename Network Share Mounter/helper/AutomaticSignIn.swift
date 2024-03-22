@@ -21,15 +21,15 @@ public struct Doge_SessionUserObject {
 }
 
 class AutomaticSignIn {
+    static let shared = AutomaticSignIn()
     
     var prefs = PreferenceManager()
 //    var workers = [AutomaticSignInWorker]()
     
     init() {
-        signInAllAccounts()
     }
     
-    private func signInAllAccounts() {
+    func signInAllAccounts() {
         let klist = KlistUtil()
         _ = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal

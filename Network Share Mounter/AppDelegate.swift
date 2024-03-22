@@ -21,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var prefs = PreferenceManager()
     var enableKerberos = false
     var authDone = false
-    var automaticSignIn: AutomaticSignIn?
+    var automaticSignIn = AutomaticSignIn.shared
     
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
