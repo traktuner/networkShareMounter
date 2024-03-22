@@ -50,8 +50,8 @@ extension Monitor {
                 // wait a few seconds to settle network before firing callbacks
                 if !networkUpdatePending {
                     Logger.networkMonitor.debug(" ▶︎ Waiting \(Int(networkSettleTime), privacy: .public) seconds to settle network...")
-                    kNetworkUpdateTimer = Timer.init(timeInterval: networkSettleTime, repeats: false, block: {_ in
-                        kNetworkUpdatePending = false
+                    networkUpdateTimer = Timer.init(timeInterval: networkSettleTime, repeats: false, block: {_ in
+                        networkUpdatePending = false
                         Logger.networkMonitor.debug(" ▶︎ Firing network change callbacks")
                         if path.usesInterfaceType(.wifi) {
                             return callBack(.wifi, reachable)
@@ -63,8 +63,8 @@ extension Monitor {
                             return callBack(.other, reachable)
                         }
                     })
-                    RunLoop.main.add(kNetworkUpdateTimer!, forMode: RunLoop.Mode.default)
-                    kNetworkUpdatePending = true
+                    RunLoop.main.add(networkUpdateTimer!, forMode: RunLoop.Mode.default)
+                    networkUpdatePending = true
                 }
             } else {
                 return callBack(.none, .nope)
