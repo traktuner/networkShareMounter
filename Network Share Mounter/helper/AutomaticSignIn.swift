@@ -21,19 +21,19 @@ public struct Doge_SessionUserObject {
 }
 
 class AutomaticSignIn {
+    static let shared = AutomaticSignIn()
     
     var prefs = PreferenceManager()
-    var workers = [AutomaticSignInWorker]()
+//    var workers = [AutomaticSignInWorker]()
     
     init() {
-        signInAllAccounts()
     }
     
-    private func signInAllAccounts() {
+    func signInAllAccounts() {
         let klist = KlistUtil()
         _ = klist.klist().map({ $0.principal })
         let defaultPrinc = klist.defaultPrincipal
-        self.workers.removeAll()
+//        self.workers.removeAll()
         
         // sign in only for defaultPrinc-Account if singleUserMode == true or only one account exists, walk through al accounts
         // if singleUserMode == false and more than 1 account exists
@@ -41,11 +41,11 @@ class AutomaticSignIn {
             if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || AccountsManager.shared.accounts.count == 1 {
                 let worker = AutomaticSignInWorker(account: account)
                 worker.checkUser()
-                self.workers.append(worker)
+//                self.workers.append(worker)
             }
         }
         if let defPrinc = defaultPrinc {
-            cliTask("kswitch -p \(defaultPrinc ?? "")")
+            cliTask("kswitch -p \(defPrinc)")
         }
     }
 }
