@@ -159,6 +159,18 @@ class Mounter: ObservableObject {
         }
     }
     
+    /// function to restart Finder to presumed bug in macOS
+    func restartFinder() {
+        let task = Process()
+        task.launchPath = "/usr/bin/killall"
+        task.arguments = ["Finder"]
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        //
+        // Launch the task
+        task.launch()
+    }
+    
     /// function to delete a directory via system shell `rmdir`
     /// - Paramater atPath: full path of the directory
     func removeDirectory(atPath: String) {

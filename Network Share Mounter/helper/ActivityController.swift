@@ -24,7 +24,7 @@ class ActivityController {
     init(withMounter: Mounter) {
         mounter = withMounter
         startMonitoring(mounter: mounter)
-        Logger.activityController.debug("🎯 ActivityController initialized")
+        Logger.activityController.debug("🎯 ActivityController initialized.")
     }
     
     /// initialize observers to get notifications
@@ -41,7 +41,7 @@ class ActivityController {
         // trigger if user logs out or shuts down macOS
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(unmountShares), name: NSWorkspace.willPowerOffNotification, object: nil)
         // trigger if Mac wakes up from sleep
-        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.didWakeNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(wakeupFromSleep), name: NSWorkspace.didWakeNotification, object: nil)
         // trigger if user session becomes active
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(mountShares), name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
         // time trigger to reauthenticate
@@ -63,15 +63,26 @@ class ActivityController {
     
     // call unmount shares on NSWorkspace notification
     @objc func unmountShares() {
-        Logger.activityController.debug(" ▶︎ unmountAllShares called by willSleepNotification")
+        Logger.activityController.debug(" ▶︎ unmountAllShares called by willSleepNotification.")
         Task {
             await self.mounter.unmountAllMountedShares()
         }
     }
     
+    // functions called after wake up
+    @objc func wakeupFromSleep() {
+        Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
+        Task {
+            // await self.mounter.mountAllShares(userTriggered: true)
+            await self.mounter.mountAllShares()
+            Logger.activityController.debug(" 🐛 Restart Finder to bypass a presumed bug in macOS.")
+            self.mounter.restartFinder()
+        }
+    }
+    
     // call mount shares on NSWorkspace notification
     @objc func mountShares() {
-        Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification")
+        Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
         Task {
             // await self.mounter.mountAllShares(userTriggered: true)
             await self.mounter.mountAllShares()
@@ -86,7 +97,7 @@ class ActivityController {
         // check if a kerberos domain/realm is set and is not empty
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             Task {
-                Logger.activityController.debug(" ▶︎ kerberos realm configured, processing AutomaticSignIn")
+                Logger.activityController.debug(" ▶︎ kerberos realm configured, processing AutomaticSignIn.")
                 appDelegate.automaticSignIn.signInAllAccounts()
             }
         }
@@ -97,7 +108,7 @@ class ActivityController {
         // renew tickets
         self.processAutomaticSignIn()
         // mount shares
-        Logger.activityController.debug(" ▶︎ mountAllShares with user-trigger called")
+        Logger.activityController.debug(" ▶︎ mountAllShares with user-trigger called.")
         Task {
             await self.mounter.mountAllShares(userTriggered: true)
         }
@@ -113,8 +124,8 @@ class ActivityController {
     /// Those who run seem to have all the fun
     /// I'm caught up, I don't know what to do
     @objc func timeGoesBySoSlowly() {
-        Logger.activityController.debug("⏰ Time goes by so slowly: got timer notification")
-        Logger.activityController.debug(" ▶︎ ...check for possible MDM profile changes")
+        Logger.activityController.debug("⏰ Time goes by so slowly: got timer notification.")
+        Logger.activityController.debug(" ▶︎ ...check for possible MDM profile changes.")
         // call updateShareArray() to reflect possible changes in MDM profile?
         self.mounter.shareManager.updateShareArray()
         Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
