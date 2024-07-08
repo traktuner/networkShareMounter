@@ -254,7 +254,7 @@ class Mounter: ObservableObject {
                                     for count in 1...30 {
                                         if filePath.contains(shareMountDir + "-\(count)") {
                                             Logger.mounter.info("👯 Duplicate mount of \(share.networkShare, privacy: .public): it is already mounted as \(path.appendingPathComponent(filePath), privacy: .public). Trying to unmount...")
-                                            await unmountShare(atPath: path.appendingPathComponent(filePath)) { [self] result in
+                                            await unmountShare(atPath: path.appendingPathComponent(filePath)) { result in
                                                 switch result {
                                                     case .success:
                                                         Logger.mounter.info("💪 Successfully unmounted \(path.appendingPathComponent(filePath), privacy: .public).")

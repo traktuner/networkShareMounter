@@ -73,6 +73,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Logger.app.info("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
         })
+
+        // initialize account manager
+        initializeAccountsManager()
         
         //
         // start monitoring network connectivity and perform mount/unmount on network changes
@@ -273,4 +276,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // make this window the key window receiving keyboard and other non-touch related events
         window.makeKey()
     }
+    
+    private func initializeAccountsManager() {
+            Task {
+                await AccountsManager.shared.initialize()
+                // Weitere Schritte nach der Initialisierung ...
+            }
+        }
 }

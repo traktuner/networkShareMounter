@@ -37,6 +37,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     
     let popover = NSPopover()
     
+    let accountsManager = AccountsManager.shared
 
     // MARK: - initialize view
     override func viewDidLoad() {
@@ -74,45 +75,48 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     
     override func viewWillAppear() {
         super.viewWillAppear()
-        
-        //
-        // hide kerberos authenticate button if no krb domain is set
-        dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
-        dogeAuthenticateHelp.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
-        dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+        Task {
+            //
+            // hide kerberos authenticate button if no krb domain is set
+            dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+            dogeAuthenticateHelp.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+            dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
             
-        //
-        // copy all mdm and user defined shares to a local array
-        // if there is an authentication error show thos shares without password
-        if appDelegate.mounter.errorStatus == .authenticationError {
-            refreshUserArray(type: .missingPassword)
-            toggleManagedSwitch.isHidden = true
-            additionalSharesText.isHidden = true
-            additionalSharesHelpButton.isHidden = true
-            modifyShareButton.title = NSLocalizedString("authenticate-share-button", comment: "Button text to change authentication")
-            networShareMounterExplanation.stringValue = NSLocalizedString("help-auth-error", comment: "Help text shown if some shares are not authenticated")
-        //
-        // else fill the array with user defined shares
-        } else {
-            refreshUserArray(type: .unmanaged)
-            toggleManagedSwitch.isHidden = false
-            additionalSharesText.isHidden = false
-            additionalSharesHelpButton.isHidden = false
-            modifyShareButton.title = NSLocalizedString("modify-share-button", comment: "Button text to modify share")
-            networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
-        }
-        if self.enableKerberos {
-            for account in AccountsManager.shared.accounts {
-                if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || AccountsManager.shared.accounts.count == 1 {
-                    let pwm = KeychainManager()
-                    do {
-                        if let _ = try pwm.retrievePassword(forUsername: account.upn.lowercased()) {
-                            break
-                        }
-                    } catch {
+            //
+            // copy all mdm and user defined shares to a local array
+            // if there is an authentication error show thos shares without password
+            if appDelegate.mounter.errorStatus == .authenticationError {
+                refreshUserArray(type: .missingPassword)
+                toggleManagedSwitch.isHidden = true
+                additionalSharesText.isHidden = true
+                additionalSharesHelpButton.isHidden = true
+                modifyShareButton.title = NSLocalizedString("authenticate-share-button", comment: "Button text to change authentication")
+                networShareMounterExplanation.stringValue = NSLocalizedString("help-auth-error", comment: "Help text shown if some shares are not authenticated")
+                //
+                // else fill the array with user defined shares
+            } else {
+                refreshUserArray(type: .unmanaged)
+                toggleManagedSwitch.isHidden = false
+                additionalSharesText.isHidden = false
+                additionalSharesHelpButton.isHidden = false
+                modifyShareButton.title = NSLocalizedString("modify-share-button", comment: "Button text to modify share")
+                networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
+            }
+            if self.enableKerberos {
+                let accounts = await accountsManager.accounts
+                let accountsCount = accounts.count
+                for account in await accountsManager.accounts {
+                    if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || accountsCount == 1 {
+                        let pwm = KeychainManager()
+                        do {
+                            if let _ = try pwm.retrievePassword(forUsername: account.upn.lowercased()) {
+                                break
+                            }
+                        } catch {
                             dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
                             performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
                             break
+                        }
                     }
                 }
             }
@@ -282,7 +286,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             if let selectedShare = appDelegate.mounter.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                     // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
                     // new share will be added
-                    shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare, 
+                    shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
                                                                                   authType: selectedShare.authType,
                                                                                   username: selectedShare.username,
                                                                                   password: selectedShare.password,

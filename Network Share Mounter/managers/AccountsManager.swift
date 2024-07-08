@@ -13,23 +13,30 @@ protocol AccountUpdate {
     func updateAccounts(accounts: [DogeAccount])
 }
 
-class AccountsManager {
-    
+actor AccountsManager {
     var prefs = PreferenceManager()
     var accounts = [DogeAccount]()
     var delegates = [AccountUpdate]()
     
     static let shared = AccountsManager()
     
-    init() {
+    private var isInitialized = false
+    
+    private init() {}
+    
+    func initialize() async {
+        guard !isInitialized else { return }
+        
         // perform some FAU tasks
         if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
             if !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator(accountsManager: self)
-                migrator.migrate()
+                let migrator = Migrator()
+                await migrator.migrate()
             }
         }
         loadAccounts()
+        
+        isInitialized = true
     }
     
     private func loadAccounts() {
@@ -88,5 +95,11 @@ class AccountsManager {
         for delegate in delegates {
             delegate.updateAccounts(accounts: accounts)
         }
+    }
+}
+
+extension AccountsManager {
+    func addDelegate(delegate: AccountUpdate) {
+        delegates.append(delegate)
     }
 }

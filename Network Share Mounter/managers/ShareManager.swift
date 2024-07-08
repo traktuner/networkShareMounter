@@ -177,7 +177,7 @@ class ShareManager {
             }
         }
         
-        let newShare = Share.createShare(networkShare: shareRectified, 
+        let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
                                          mountStatus: mountStatus,
                                          username: userName,

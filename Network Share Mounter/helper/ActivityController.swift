@@ -98,7 +98,7 @@ class ActivityController {
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             Task {
                 Logger.activityController.debug(" ▶︎ kerberos realm configured, processing AutomaticSignIn.")
-                appDelegate.automaticSignIn.signInAllAccounts()
+                await appDelegate.automaticSignIn.signInAllAccounts()
             }
         }
     }
