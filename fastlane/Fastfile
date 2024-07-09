@@ -120,8 +120,6 @@ lane :commonTasks do
   gym(
     scheme: "networkShareMounter",
     output_directory: "build/",
-    # export_method: "developer-id",
-    # export_options: "./ExportOptions.plist",
     export_method: "developer-id",
     installer_cert_name: "Universitaet Erlangen-Nuernberg RRZE (C8F68RFW4L)"
   )
