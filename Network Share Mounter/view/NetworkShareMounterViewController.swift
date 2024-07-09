@@ -64,7 +64,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
         appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
         
-        if  appDelegate.mounter.shareManager.allShares.isEmpty {
+        if appDelegate.mounter!.shareManager.allShares.isEmpty {
             additionalSharesText.isHidden = true
         } else {
             additionalSharesText.isHidden = false
@@ -85,7 +85,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             //
             // copy all mdm and user defined shares to a local array
             // if there is an authentication error show thos shares without password
-            if appDelegate.mounter.errorStatus == .authenticationError {
+            if appDelegate.mounter!.errorStatus == .authenticationError {
                 refreshUserArray(type: .missingPassword)
                 toggleManagedSwitch.isHidden = true
                 additionalSharesText.isHidden = true
@@ -239,16 +239,18 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         // this if is probably not needed, but I feel safer with it ;-)
         if row >= 0 {
             // if a share with the selected name is found, delete it
-            if let selectedShare = appDelegate.mounter.getShare(forNetworkShare: usersNewShare.stringValue) {
-                Logger.networkShareViewController.debug("unmounting share \(selectedShare.networkShare, privacy: .public)")
-                self.appDelegate.mounter.unmountShare(for: selectedShare)
-                Logger.networkShareViewController.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
-                self.appDelegate.mounter.removeShare(for: selectedShare)
-                // update userDefaults
-                self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
-                // remove share from local userShares array bound to tableView
-                self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
-                usersNewShare.stringValue=""
+            Task {
+                if let selectedShare = await appDelegate.mounter!.getShare(forNetworkShare: usersNewShare.stringValue) {
+                    Logger.networkShareViewController.debug("unmounting share \(selectedShare.networkShare, privacy: .public)")
+                    await self.appDelegate.mounter!.unmountShare(for: selectedShare)
+                    Logger.networkShareViewController.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
+                    await self.appDelegate.mounter!.removeShare(for: selectedShare)
+                    // update userDefaults
+                    await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
+                    // remove share from local userShares array bound to tableView
+                    self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
+                    usersNewShare.stringValue=""
+                }
             }
         }
     }
@@ -273,7 +275,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             // callback action for data coming from shareViewController
             shareViewController.callback = { result in
                 if result != "cancel" {
-                    if self.appDelegate.mounter.errorStatus == .authenticationError {
+                    if self.appDelegate.mounter!.errorStatus == .authenticationError {
                         self.refreshUserArray(type: .missingPassword)
                     } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
                         self.refreshUserArray(type: .unmanaged)
@@ -283,7 +285,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     self.tableView.reloadData()
                 }
             }
-            if let selectedShare = appDelegate.mounter.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
+            if let selectedShare = appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                     // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
                     // new share will be added
                     shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
@@ -300,7 +302,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     ///private function to check if a networkShare should added to the list of displayed shares
     ///- Parameter type: enum of various types of shares to check for
     private func refreshUserArray(type: DisplayShareTypes) {
-        self.appDelegate.mounter.shareManager.allShares.forEach { definedShare in
+        self.appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
             // set mount symbol
             var mountSymbol =   (definedShare.mountStatus == .mounted) ? "🟢" :
                                 (definedShare.mountStatus == .queued) ? "🟣" :

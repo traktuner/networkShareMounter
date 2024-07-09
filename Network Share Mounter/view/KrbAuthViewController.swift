@@ -41,13 +41,12 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
     
     @IBAction func authenticateKlicked(_ sender: Any) {
         startOperations()
-        self.session = dogeADSession(domain: self.username.stringValue.userDomain() ?? prefs.string(for: .kerberosRealm) ?? "", user: self.username.stringValue)
-        session?.setupSessionFromPrefs(prefs: prefs)
-        session?.userPass = password.stringValue
-        session?.delegate = self
-        
         Task {
-            await session?.authenticate()
+            session = dogeADSession(domain: username.stringValue.userDomain() ?? prefs.string(for: .kerberosRealm) ?? "", user: username.stringValue)
+            session?.setupSessionFromPrefs(prefs: prefs)
+            session?.userPass = password.stringValue
+            session?.delegate = self
+            await session?.authenticate(authTestOnly: false)
         }
     }
     
@@ -165,36 +164,32 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
         
         // populate popup list if there is more than one account
         if await accountsManager.accounts.count > 1 && !prefs.bool(for: .singleUserMode) {
-            Task {
-                accountsList.removeAllItems()
-                for account in await accountsManager.accounts {
-                    if tickets.contains(where: { $0.principal.lowercased() == account.upn.lowercased() }) {
-                        accountsList.addItem(withTitle: account.displayName + " ◀︎")
-                    } else {
-                        accountsList.addItem(withTitle: account.displayName)
-                    }
+            accountsList.removeAllItems()
+            for account in await accountsManager.accounts {
+                if tickets.contains(where: { $0.principal.lowercased() == account.upn.lowercased() }) {
+                    accountsList.addItem(withTitle: account.displayName + " ◀︎")
+                } else {
+                    accountsList.addItem(withTitle: account.displayName)
                 }
-                accountsList.addItem(withTitle: "Other...")
-                username.isHidden = true
-                accountsList.isHidden = false
-                accountsList.isEnabled = true
-                await popUpChange()
             }
+            accountsList.addItem(withTitle: "Other...")
+            username.isHidden = true
+            accountsList.isHidden = false
+            accountsList.isEnabled = true
+            await popUpChange()
             return
         }
         
         // if there is only one account, hide popup list
-        await MainActor.run {
-            accountsList.isHidden = true
-            username.isHidden = false
-            if let lastUser = prefs.string(for: .lastUser) {
-                let keyUtil = KeychainManager()
-                do {
-                    try password.stringValue = keyUtil.retrievePassword(forUsername: lastUser.lowercased()) ?? ""
-                    username.stringValue = lastUser.lowercased()
-                } catch {
-                    Logger.KrbAuthViewController.debug("Unable to get user's password")
-                }
+        accountsList.isHidden = true
+        username.isHidden = false
+        if let lastUser = prefs.string(for: .lastUser) {
+            let keyUtil = KeychainManager()
+            do {
+                try password.stringValue = keyUtil.retrievePassword(forUsername: lastUser.lowercased()) ?? ""
+                username.stringValue = lastUser.lowercased()
+            } catch {
+                Logger.KrbAuthViewController.debug("Unable to get user's password")
             }
         }
     }
@@ -230,11 +225,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
 extension KrbAuthViewController: dogeADUserSessionDelegate {
     func dogeADAuthenticationSucceded() async {
         Logger.authUI.debug("Auth succeded")
-        do {
-            _ = try await cliTask("kswitch -p \(self.session?.userPrincipal ?? "")")
-        } catch {
-            Logger.authUI.error("cliTask kswitch -p error: \(error.localizedDescription)")
-        }
+        _ = await cliTask("kswitch -p \(self.session?.userPrincipal ?? "")")
         
         await session?.userInfo()
         
@@ -264,6 +255,11 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
     
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {
         Logger.authUI.info("Error: \(description, privacy: .public)")
+        
+        if error == .UnAuthenticated {
+            stopOperations()
+            return
+        }
         
         for account in await accountsManager.accounts {
             if account.upn.lowercased() == session?.userPrincipal.lowercased() {

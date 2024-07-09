@@ -14,7 +14,7 @@ enum ShareError: Error {
 }
 
 /// class `ShareManager` to manage the shares (array fo Share)
-class ShareManager {
+actor ShareManager {
     private var sharesLock = os_unfair_lock()
     private var _shares: [Share] = []
     private let userDefaults = UserDefaults.standard

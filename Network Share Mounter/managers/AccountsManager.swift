@@ -43,7 +43,17 @@ actor AccountsManager {
         let decoder = PropertyListDecoder.init()
         if let accountsData = prefs.data(for: .accounts),
            let accountsList = try? decoder.decode(DogeAccounts.self, from: accountsData) {
-            accounts = accountsList.accounts
+            var uniqueAccounts = [DogeAccount]()
+            var processedUPNs = Set<String>()
+
+            for account in accountsList.accounts {
+                let lowercasedUPN = account.upn.lowercased()
+                if !lowercasedUPN.starts(with: "@") && !processedUPNs.contains(lowercasedUPN) {
+                    uniqueAccounts.append(account)
+                    processedUPNs.insert(lowercasedUPN)
+                }
+            }
+            accounts = uniqueAccounts
         }
         updateDelegates()
     }

@@ -20,7 +20,7 @@ public struct Doge_SessionUserObject {
     var userInfo: ADUserRecord?
 }
 
-class AutomaticSignIn {
+actor AutomaticSignIn {
     static let shared = AutomaticSignIn()
     
     var prefs = PreferenceManager()
@@ -50,7 +50,7 @@ class AutomaticSignIn {
     }
 }
 
-class AutomaticSignInWorker: dogeADUserSessionDelegate {
+actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     var prefs = PreferenceManager()
     var account: DogeAccount
