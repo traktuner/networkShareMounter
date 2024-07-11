@@ -10,18 +10,18 @@ import Cocoa
 import LaunchAtLogin
 import OSLog
 
-class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
-
+class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource, NSPopoverDelegate {
+    
     // MARK: - help messages
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("help-show-managed-shares", comment: ""),
                     NSLocalizedString("mount-status-info-text", comment: ""),
                     NSLocalizedString("help-krb-auth-text", comment: "")]
-
+    
     var prefs = PreferenceManager()
     
     var enableKerberos = false
-
+    
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     // prepare an array of type UserShare to store the defined shares while showing this view
     @objc dynamic var userShares: [UserShare] = []
@@ -38,7 +38,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     let popover = NSPopover()
     
     let accountsManager = AccountsManager.shared
-
+    
     // MARK: - initialize view
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -52,12 +52,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
         
         modifyShareButton.isEnabled = false
         removeShareButton.isEnabled = false
-
+        
         if prefs.bool(for: .canChangeAutostart) == false {
             launchAtLoginRadioButton.isHidden = true
             horizontalLine.isHidden = true
         }
-    
+        
         //
         // get build and version number of the app
         let applicationVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"]!
@@ -84,7 +84,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             
             //
             // copy all mdm and user defined shares to a local array
-            // if there is an authentication error show thos shares without password
+            // if there is an authentication error show those shares without password
             if appDelegate.mounter!.errorStatus == .authenticationError {
                 refreshUserArray(type: .missingPassword)
                 toggleManagedSwitch.isHidden = true
@@ -122,7 +122,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             }
         }
     }
-
+    
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
     
     @IBOutlet weak var additionalSharesText: NSTextField!
@@ -130,10 +130,8 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBOutlet weak var appVersion: NSTextField!
     
     @IBOutlet weak var usersNewShare: NSTextField!
-
+    
     @IBOutlet weak var modifyShareButton: NSButton!
-
-    @IBOutlet var shareArrayController: NSArrayController!
     
     @IBOutlet weak var toggleManagedSwitch: NSSwitch!
     
@@ -174,6 +172,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             usersNewShare.stringValue=""
             refreshUserArray(type: .managed)
         }
+        tableView.reloadData()
     }
     
     /// function to prepare to hand over the object for the user-selected tableview column (aka share URL)
@@ -192,10 +191,12 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     @IBOutlet weak var horizontalLine: NSBox!
     
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
-
+    
     @IBOutlet weak var tableView: NSTableView!
-
+    
     @IBOutlet weak var removeShareButton: NSButton!
+    
+
     
     @IBAction func tableViewClicked(_ sender: NSTabView) {
         if tableView.clickedRow >= 0 {
@@ -231,6 +232,7 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             removeShareButton.isEnabled = false
             modifyShareButton.isEnabled = false
         }
+        tableView.reloadData()
     }
     /// IBAction function called if removeShare button is pressed.
     /// This will remove the share in the selected row in tableView
@@ -246,20 +248,21 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     Logger.networkShareViewController.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
                     await self.appDelegate.mounter!.removeShare(for: selectedShare)
                     // update userDefaults
-                    await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
+                    self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
                     // remove share from local userShares array bound to tableView
                     self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
                     usersNewShare.stringValue=""
                 }
             }
         }
+        tableView.reloadData()
     }
     
     // MARK: Storyboard instantiation
     static func newInstance() -> NetworkShareMounterViewController {
         let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
         let identifier = NSStoryboard.SceneIdentifier("NetworkShareMounterViewController")
-
+        
         guard let viewcontroller = storyboard.instantiateController(withIdentifier: identifier) as? NetworkShareMounterViewController else {
             fatalError("Unable to instantiate ViewController in Main.storyboard")
         }
@@ -286,14 +289,14 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                 }
             }
             if let selectedShare = appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
-                    // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
-                    // new share will be added
-                    shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
-                                                                                  authType: selectedShare.authType,
-                                                                                  username: selectedShare.username,
-                                                                                  password: selectedShare.password,
-                                                                                  managed: selectedShare.managed)
-                    shareViewController.selectedShareURL = usersNewShare.stringValue
+                // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
+                // new share will be added
+                shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
+                                                                              authType: selectedShare.authType,
+                                                                              username: selectedShare.username,
+                                                                              password: selectedShare.password,
+                                                                              managed: selectedShare.managed)
+                shareViewController.selectedShareURL = usersNewShare.stringValue
             }
         }
     }
@@ -302,14 +305,22 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
     ///private function to check if a networkShare should added to the list of displayed shares
     ///- Parameter type: enum of various types of shares to check for
     private func refreshUserArray(type: DisplayShareTypes) {
-        self.appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
+        appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
             // set mount symbol
-            var mountSymbol =   (definedShare.mountStatus == .mounted) ? "🟢" :
-                                (definedShare.mountStatus == .queued) ? "🟣" :
-                                (definedShare.mountStatus == .invalidCredentials) ? "🟠" :
-                                (definedShare.mountStatus == .errorOnMount) ? "🔴":
-                                (definedShare.mountStatus == .obstructingDirectory) ? "❗" :
-                                "⚪️"
+            var mountSymbol =   (definedShare.mountStatus == .mounted) ? "externaldrive.fill.badge.checkmark" :
+                                (definedShare.mountStatus == .queued) ? "externaldrive.fill.badge.plus" :
+                                (definedShare.mountStatus == .invalidCredentials) ? "externaldrive.fill.badge.person.crop" :
+                                (definedShare.mountStatus == .errorOnMount) ? "externaldrive.fill.badge.xmark":
+                                (definedShare.mountStatus == .obstructingDirectory) ? "externaldrive.fill.trianglebadge.exclamationmark" :
+                                (definedShare.mountStatus == .unreachable) ? "externaldrive.fill.badge.questionmark" :
+                                "externaldrive.badge.minus"
+            var mountColor =    (definedShare.mountStatus == .mounted) ? NSColor.green :
+                                (definedShare.mountStatus == .queued) ? NSColor.orange :
+                                (definedShare.mountStatus == .invalidCredentials) ? NSColor.red :
+                                (definedShare.mountStatus == .errorOnMount) ? NSColor.red :
+                                (definedShare.mountStatus == .obstructingDirectory) ? NSColor.purple :
+                                (definedShare.mountStatus == .unreachable) ? nil :
+                                NSColor.darkGray
             let shouldAppend: Bool
             switch type {
                 case .managed:
@@ -328,23 +339,25 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
                     shouldAppend = !definedShare.managed
                 case .missingPassword:
                     shouldAppend = definedShare.authType == .pwd && (definedShare.password == "" || definedShare.password == nil)
-                    mountSymbol = "🟠"
+                    mountSymbol = "externaldrive.trianglebadge.exclamationmark"
             }
-
+            
             if shouldAppend {
                 // check and skip if share is already in userShares
-                if !self.userShares.contains(where: { $0.networkShare == definedShare.networkShare }) {
-                    self.userShares.append(UserShare(networkShare: definedShare.networkShare,
-                                                     authType: definedShare.authType.rawValue,
-                                                     username: definedShare.username,
-                                                     password: definedShare.password,
-                                                     mountPoint: definedShare.mountPoint,
-                                                     managed: definedShare.managed,
-                                                     mountStatus: definedShare.mountStatus.rawValue,
-                                                     mountSymbol: mountSymbol))
+                if !userShares.contains(where: { $0.networkShare == definedShare.networkShare }) {
+                    userShares.append(UserShare(networkShare: definedShare.networkShare,
+                                                    authType: definedShare.authType.rawValue,
+                                                    username: definedShare.username,
+                                                    password: definedShare.password,
+                                                    mountPoint: definedShare.mountPoint,
+                                                    managed: definedShare.managed,
+                                                    mountStatus: definedShare.mountStatus.rawValue,
+                                                    mountSymbol: mountSymbol,
+                                                    symbolColor: mountColor))
                 }
             }
         }
+        tableView.reloadData()
     }
     ///
     /// provide a method to react to certain events
@@ -373,8 +386,46 @@ class NetworkShareMounterViewController: NSViewController, NSPopoverDelegate {
             }
         }
     }
-}
-
-extension NetworkShareMounterViewController: NSTableViewDelegate {
-
+    
+    
+    func numberOfRows(in tableView: NSTableView) -> Int {
+        return userShares.count
+    }
+    
+    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        let userShare = userShares[row]
+        
+        if tableColumn?.identifier == NSUserInterfaceItemIdentifier("NetworkShareColumn") {
+            let cellIdentifier = NSUserInterfaceItemIdentifier("NetworkShareCell")
+            guard let cell = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? NSTableCellView else {
+                return nil
+            }
+            cell.textField?.stringValue = userShare.networkShare
+            return cell
+        } else if tableColumn?.identifier == NSUserInterfaceItemIdentifier("MountSymbolColumn") {
+            let cellIdentifier = NSUserInterfaceItemIdentifier("MountSymbolCell")
+            guard let cell = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? NSTableCellView else {
+                return nil
+            }
+            if let imageView = cell.imageView {
+                if let symbolImage = NSImage(systemSymbolName: userShare.mountSymbol, accessibilityDescription: nil) {
+                    if let color = userShare.symbolColor {
+                        // changing color for SF Symbols is available on macOS >= 12
+                        if #available(macOS 12.0, *) {
+                            var config = NSImage.SymbolConfiguration(hierarchicalColor: color)
+                            imageView.image = symbolImage.withSymbolConfiguration(config)
+                        } else {
+                            imageView.image = symbolImage
+                        }
+                    } else {
+                        imageView.image = symbolImage
+                    }
+                } else {
+                    imageView.image = nil
+                }
+            }
+            return cell
+        }
+        return nil
+    }
 }

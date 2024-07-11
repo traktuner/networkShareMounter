@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import AppKit
 
 class UserShare: NSObject {
     @objc dynamic var networkShare: String
@@ -17,8 +18,9 @@ class UserShare: NSObject {
     @objc dynamic var managed: Bool
     @objc dynamic var mountStatus: String
     @objc dynamic var mountSymbol: String
+    @objc dynamic var symbolColor: NSColor?
     
-    init(networkShare: String, authType: String, username: String?, password: String?, mountPoint: String?, managed: Bool, mountStatus: String, mountSymbol: String) {
+    init(networkShare: String, authType: String, username: String?, password: String?, mountPoint: String?, managed: Bool, mountStatus: String, mountSymbol: String, symbolColor: NSColor? = nil) {
         self.networkShare = networkShare
         self.authType = authType
         self.username = username
@@ -27,5 +29,6 @@ class UserShare: NSObject {
         self.managed = managed
         self.mountStatus = mountStatus
         self.mountSymbol = mountSymbol
+        self.symbolColor = symbolColor
     }
 }
