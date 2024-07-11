@@ -6043,7 +6043,7 @@
     },
     "Ydh-sn-YZQ.headerCell.title" : {
       "comment" : "Class = \"NSTableColumn\"; headerCell.title = \"Share\"; ObjectID = \"Ydh-sn-YZQ\";",
-      "extractionState" : "extracted_with_value",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

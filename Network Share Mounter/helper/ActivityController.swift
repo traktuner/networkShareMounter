@@ -128,12 +128,12 @@ class ActivityController {
     /// No time to hesitate
     /// Those who run seem to have all the fun
     /// I'm caught up, I don't know what to do
-    @objc func timeGoesBySoSlowly() async {
+    @objc func timeGoesBySoSlowly() {
         if let mounter = appDelegate.mounter {
             Logger.activityController.debug("⏰ Time goes by so slowly: got timer notification.")
             Logger.activityController.debug(" ▶︎ ...check for possible MDM profile changes.")
             // call updateShareArray() to reflect possible changes in MDM profile?
-            await mounter.shareManager.updateShareArray()
+            mounter.shareManager.updateShareArray()
             Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
             Task {
                 await mounter.mountAllShares()

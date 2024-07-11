@@ -43,13 +43,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
+        window.contentViewController = NetworkShareMounterViewController.newInstance()
         Task {
-            window.contentViewController = NetworkShareMounterViewController.newInstance()
             await initializeApp()
         }
         //
         // finally authenticate and mount all defined shares...
-        NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+//        if let mounter {
+//            activityController = ActivityController.init()
+//            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+//        }
     }
     
     private func initializeApp() async {
@@ -109,6 +112,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             }
+            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
         }
     }
 
