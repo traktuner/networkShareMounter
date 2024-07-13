@@ -32,6 +32,8 @@
 		F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */; };
 		F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D146D72B84CB7600BFD8F5 /* FileManager.swift */; };
 		F7D371222B47F7BE00D54FF5 /* KrbAuthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D371212B47F7BE00D54FF5 /* KrbAuthViewController.swift */; };
+		F7D9404E2C41842700028F9A /* HelpPopoverShareStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D9404D2C41842700028F9A /* HelpPopoverShareStatusView.swift */; };
+		F7D940502C418B9300028F9A /* MountStatusDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D9404F2C418B9300028F9A /* MountStatusDescription.swift */; };
 		F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7E2AF6E2C3061020063960F /* dogeADAuth */; };
 		F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */; };
 		F7EF65CE2B3B4BEE00051D44 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CD2B3B4BEE00051D44 /* Notification.swift */; };
@@ -99,6 +101,8 @@
 		F7CF6E652B1DFB6400643574 /* mul */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = mul; path = mul.lproj/Main.xcstrings; sourceTree = "<group>"; };
 		F7D146D72B84CB7600BFD8F5 /* FileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager.swift; sourceTree = "<group>"; };
 		F7D371212B47F7BE00D54FF5 /* KrbAuthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KrbAuthViewController.swift; sourceTree = "<group>"; };
+		F7D9404D2C41842700028F9A /* HelpPopoverShareStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpPopoverShareStatusView.swift; sourceTree = "<group>"; };
+		F7D9404F2C418B9300028F9A /* MountStatusDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountStatusDescription.swift; sourceTree = "<group>"; };
 		F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "Network Share Mounter/view/ShareViewController.swift"; sourceTree = SOURCE_ROOT; };
 		F7EF65CD2B3B4BEE00051D44 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		F7EF65CF2B3B4DFC00051D44 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
@@ -180,6 +184,7 @@
 			isa = PBXGroup;
 			children = (
 				F77107BA274EC7D200556B20 /* config.swift */,
+				F7D9404F2C418B9300028F9A /* MountStatusDescription.swift */,
 				F7EF65EF2B3B5CCD00051D44 /* FAU.swift */,
 				F7EF65EB2B3B5C8B00051D44 /* PreferenceKeys.swift */,
 				F7EF65ED2B3B5CA700051D44 /* PreferenceManager.swift */,
@@ -214,6 +219,7 @@
 				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
 				F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */,
 				F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */,
+				F7D9404D2C41842700028F9A /* HelpPopoverShareStatusView.swift */,
 				F7D371212B47F7BE00D54FF5 /* KrbAuthViewController.swift */,
 			);
 			path = view;
@@ -456,6 +462,7 @@
 				F747F8642B6F814A00AC0772 /* AuthType.swift in Sources */,
 				F7EF65D22B3B56A600051D44 /* AutomaticSignIn.swift in Sources */,
 				F7EF65F92B3B5E0800051D44 /* URL.swift in Sources */,
+				F7D9404E2C41842700028F9A /* HelpPopoverShareStatusView.swift in Sources */,
 				F7EF65EC2B3B5C8B00051D44 /* PreferenceKeys.swift in Sources */,
 				F7EF65EE2B3B5CA700051D44 /* PreferenceManager.swift in Sources */,
 				F7EF65F02B3B5CCD00051D44 /* FAU.swift in Sources */,
@@ -472,6 +479,7 @@
 				F7EF65DA2B3B574100051D44 /* SRVResolver.swift in Sources */,
 				F7EF65E32B3B57FC00051D44 /* AccountsManager.swift in Sources */,
 				F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */,
+				F7D940502C418B9300028F9A /* MountStatusDescription.swift in Sources */,
 				F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */,
 				F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */,
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
@@ -665,7 +673,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 164;
+				CURRENT_PROJECT_VERSION = 168;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -715,7 +723,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 164;
+				CURRENT_PROJECT_VERSION = 168;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;

@@ -9,6 +9,7 @@
 
 import NetFS
 import Foundation
+import Cocoa
 
 struct Defaults {
     static let defaultsDomain = "de.fau.rrze.NetworkShareMounter"

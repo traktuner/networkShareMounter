@@ -307,20 +307,20 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     private func refreshUserArray(type: DisplayShareTypes) {
         appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
             // set mount symbol
-            var mountSymbol =   (definedShare.mountStatus == .mounted) ? "externaldrive.fill.badge.checkmark" :
-                                (definedShare.mountStatus == .queued) ? "externaldrive.fill.badge.plus" :
-                                (definedShare.mountStatus == .invalidCredentials) ? "externaldrive.fill.badge.person.crop" :
-                                (definedShare.mountStatus == .errorOnMount) ? "externaldrive.fill.badge.xmark":
-                                (definedShare.mountStatus == .obstructingDirectory) ? "externaldrive.fill.trianglebadge.exclamationmark" :
-                                (definedShare.mountStatus == .unreachable) ? "externaldrive.fill.badge.questionmark" :
-                                "externaldrive.badge.minus"
-            var mountColor =    (definedShare.mountStatus == .mounted) ? NSColor.green :
-                                (definedShare.mountStatus == .queued) ? NSColor.orange :
-                                (definedShare.mountStatus == .invalidCredentials) ? NSColor.red :
-                                (definedShare.mountStatus == .errorOnMount) ? NSColor.red :
-                                (definedShare.mountStatus == .obstructingDirectory) ? NSColor.purple :
-                                (definedShare.mountStatus == .unreachable) ? nil :
-                                NSColor.darkGray
+            var mountSymbol =   (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.symbolName :
+                                (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.symbolName :
+                                (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.symbolName :
+                                (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.symbolName :
+                                (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.symbolName :
+                                (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.symbolName :
+                                MountStatusDescription.unknown.symbolName
+            var mountColor =    (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.color :
+                                (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.color :
+                                (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.color :
+                                (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.color :
+                                (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.color :
+                                (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.color :
+                                MountStatusDescription.unknown.color
             let shouldAppend: Bool
             switch type {
                 case .managed:
@@ -339,7 +339,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     shouldAppend = !definedShare.managed
                 case .missingPassword:
                     shouldAppend = definedShare.authType == .pwd && (definedShare.password == "" || definedShare.password == nil)
-                    mountSymbol = "externaldrive.trianglebadge.exclamationmark"
+                    mountSymbol = MountStatusDescription.invalidCredentials.symbolName
             }
             
             if shouldAppend {
