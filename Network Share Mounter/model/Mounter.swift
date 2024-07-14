@@ -243,7 +243,7 @@ class Mounter: ObservableObject {
                     // Now let's check if there is some SHARE-1, SHARE-2, ... mount and unmount it
                     //
                     // compare list of shares with mount
-                    for share in await self.shareManager.allShares {
+                    for share in self.shareManager.allShares {
                         if let shareDirName = URL(string: share.networkShare) {
                             //
                             // get the last component of the share, since this is the name of the mount-directory
@@ -350,7 +350,7 @@ class Mounter: ObservableObject {
     /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
     /// - Parameter userTriggered: boolean to define if unmount was triggered by user, defaults to false
     func unmountAllMountedShares(userTriggered: Bool = false) async {
-        for share in await shareManager.allShares {
+        for share in shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
                 let result = await unmountShare(atPath: mountpoint)
                 switch result {
@@ -385,6 +385,8 @@ class Mounter: ObservableObject {
                 }
             }
         }
+        // is ths really needed?
+        restartFinder()
         await prepareMountPrerequisites()
     }
     
@@ -400,7 +402,7 @@ class Mounter: ObservableObject {
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
         
         // TODO: check if ths is not too dangerous
-        for share in await shareManager.allShares {
+        for share in shareManager.allShares {
             // check if there is a specific mountpoint for the share. If yes, get the
             // parent directory. This is the path where the mountpoint itself is located
             if let path = share.mountPoint {
@@ -423,52 +425,64 @@ class Mounter: ObservableObject {
         let netConnection = Monitor.shared
         
         if netConnection.netOn {
-            if await self.shareManager.allShares.isEmpty {
+            if self.shareManager.allShares.isEmpty {
                 Logger.mounter.info("No shares configured.")
             } else {
                 // perform cleanup routines before mounting
-//                await prepareMountPrerequisites()
+                //                await prepareMountPrerequisites()
                 if userTriggered {
                     cliTask("killall NetAuthSysAgent")
                     Logger.mounter.debug("killall NetAuthSysAgent")
                 }
-                for share in await self.shareManager.allShares {
-                    do {
-                        // if the mount was triggered by user, set mountStatus
-                        // to .unmounted and therefore it will try to mount
-                        if userTriggered {
-                            await updateShare(mountStatus: .undefined, for: share)
+                var mountTasks: [Task<Void, Never>] = []
+                for share in self.shareManager.allShares {
+                    let mountTask = Task {
+                        do {
+                            // if the mount was triggered by user, set mountStatus
+                            // to .unmounted and therefore it will try to mount
+                            // no matter what the status of the share is.
+                            if userTriggered {
+                                await updateShare(mountStatus: .undefined, for: share)
+                            }
+                            let actualMountpoint = try await mountShare(forShare: share,
+                                                                        atPath: defaultMountPath,
+                                                                        userTriggered: userTriggered)
+                            await updateShare(actualMountPoint: actualMountpoint, for: share)
+                            await updateShare(mountStatus: .mounted, for: share)
+                        } catch MounterError.doesNotExist {
+                            await updateShare(mountStatus: .errorOnMount, for: share)
+                        } catch MounterError.timedOutHost {
+                            await updateShare(mountStatus: .unreachable, for: share)
+                        } catch MounterError.hostIsDown {
+                            await updateShare(mountStatus: .unreachable, for: share)
+                        } catch MounterError.noRouteToHost {
+                            await updateShare(mountStatus: .unreachable, for: share)
+                        } catch MounterError.authenticationError {
+                            // set error status if authentication error occured and auth type is not Kerberos
+                            if share.authType != .krb {
+                                errorStatus = .authenticationError
+                                NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+                            }
+                            await updateShare(mountStatus: .invalidCredentials, for: share)
+                        } catch MounterError.shareDoesNotExist {
+                            await updateShare(mountStatus: .errorOnMount, for: share)
+                        } catch MounterError.mountIsQueued {
+                            await updateShare(mountStatus: .queued, for: share)
+                        } catch MounterError.userUnmounted {
+                            await updateShare(mountStatus: .userUnmounted, for: share)
+                        } catch MounterError.obstructingDirectory {
+                            await updateShare(mountStatus: .obstructingDirectory, for: share)
+                        } catch {
+                            await updateShare(mountStatus: .unreachable, for: share)
                         }
-                        let actualMountpoint = try await mountShare(forShare: share,
-                                                                    atPath: defaultMountPath,
-                                                                    userTriggered: userTriggered)
-                        await updateShare(actualMountPoint: actualMountpoint, for: share)
-                        await updateShare(mountStatus: .mounted, for: share)
-                    } catch MounterError.doesNotExist {
-                        await updateShare(mountStatus: .errorOnMount, for: share)
-                    } catch MounterError.timedOutHost {
-                        await updateShare(mountStatus: .unreachable, for: share)
-                    } catch MounterError.hostIsDown {
-                        await updateShare(mountStatus: .unreachable, for: share)
-                    } catch MounterError.noRouteToHost {
-                        await updateShare(mountStatus: .unreachable, for: share)
-                    } catch MounterError.authenticationError {
-                        // set error status if authentication error occured and auth type is not Kerberos
-                        if share.authType != .krb {
-                            errorStatus = .authenticationError
-                            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+                    }
+                    mountTasks.append(mountTask)
+                }
+                await withTaskGroup(of: Void.self) { group in
+                    for task in mountTasks {
+                        group.addTask {
+                            await task.value
                         }
-                        await updateShare(mountStatus: .invalidCredentials, for: share)
-                    } catch MounterError.shareDoesNotExist {
-                        await updateShare(mountStatus: .errorOnMount, for: share)
-                    } catch MounterError.mountIsQueued {
-                        await updateShare(mountStatus: .queued, for: share)
-                    } catch MounterError.userUnmounted {
-                        await updateShare(mountStatus: .userUnmounted, for: share)
-                    } catch MounterError.obstructingDirectory {
-                        await updateShare(mountStatus: .obstructingDirectory, for: share)
-                    } catch {
-                        await updateShare(mountStatus: .unreachable, for: share)
                     }
                 }
             }
@@ -480,7 +494,7 @@ class Mounter: ObservableObject {
     /// set mountStatus for all shares
     /// - Parameter to status: mount status of type MountStatus
     func setAllMountStatus(to status: MountStatus) async {
-        for share in await shareManager.allShares {
+        for share in shareManager.allShares {
             await updateShare(mountStatus: status, for: share)
         }
     }

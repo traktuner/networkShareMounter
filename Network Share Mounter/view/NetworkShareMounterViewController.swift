@@ -202,13 +202,13 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         if tableView.clickedRow >= 0 {
             if tableView.clickedColumn == 0 {
                 // swiftlint:disable force_cast
-                let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
+                let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController")) as! HelpPopoverShareStatusViewController
                 // swiftlint:enable force_cast
                 let popover = NSPopover()
-                popover.contentViewController = helpPopoverViewController
-                helpPopoverViewController.helpText = helpText[(sender as AnyObject).tag]
+                popover.contentViewController = HelpPopoverShareStatusViewController
+//                helpPopoverViewController.helpText = helpText[(sender as AnyObject).tag]
                 popover.animates = true
-                popover.behavior = NSPopover.Behavior.transient
+                popover.behavior = .transient
                 let rowRect = tableView.rect(ofRow: tableView.clickedRow)
                 popover.show(relativeTo: rowRect, of: sender, preferredEdge: NSRectEdge.maxY)
             } else {
@@ -314,7 +314,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                                 (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.symbolName :
                                 (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.symbolName :
                                 MountStatusDescription.unknown.symbolName
-            var mountColor =    (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.color :
+            let mountColor =    (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.color :
                                 (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.color :
                                 (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.color :
                                 (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.color :
@@ -412,7 +412,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     if let color = userShare.symbolColor {
                         // changing color for SF Symbols is available on macOS >= 12
                         if #available(macOS 12.0, *) {
-                            var config = NSImage.SymbolConfiguration(hierarchicalColor: color)
+                            let config = NSImage.SymbolConfiguration(hierarchicalColor: color)
                             imageView.image = symbolImage.withSymbolConfiguration(config)
                         } else {
                             imageView.image = symbolImage

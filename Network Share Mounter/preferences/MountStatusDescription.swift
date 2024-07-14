@@ -9,7 +9,7 @@
 import Foundation
 import Cocoa
 
-enum MountStatusDescription: String {
+enum MountStatusDescription: String, CaseIterable {
     case mounted = "mounted"
     case queued = "queued"
     case invalidCredentials = "invalidCredentials"
@@ -31,13 +31,13 @@ enum MountStatusDescription: String {
         case .invalidCredentials:
             return "externaldrive.fill.badge.person.crop"
         case .errorOnMount:
-            return "externaldrive.fill.badge.xmarkks"
+            return "externaldrive.fill.badge.xmark"
         case .obstructingDirectory:
             return "externaldrive.fill.trianglebadge.exclamationmark"
         case .unreachable:
-            return "externaldrive.fill.badge.questionmarkk"
+            return "externaldrive.fill.badge.minus"
         case .unknown:
-            return "externaldrive.badge.minus"
+            return "externaldrive.badge.questionmark"
         }
     }
     
@@ -59,4 +59,23 @@ enum MountStatusDescription: String {
             return .darkGray
         }
     }
+//    
+//    var description: String {
+//        switch self {
+//        case .mounted:
+//            return "externaldrive.fill.badge.checkmark"
+//        case .queued:
+//            return "externaldrive.fill.badge.plus"
+//        case .invalidCredentials:
+//            return "externaldrive.fill.badge.person.crop"
+//        case .errorOnMount:
+//            return "externaldrive.fill.badge.xmarkks"
+//        case .obstructingDirectory:
+//            return "externaldrive.fill.trianglebadge.exclamationmark"
+//        case .unreachable:
+//            return "externaldrive.fill.badge.questionmarkk"
+//        case .unknown:
+//            return "externaldrive.badge.minus"
+//        }
+//    }
 }

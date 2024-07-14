@@ -1,18 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "0xe-3l-gae.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"queued\"; ObjectID = \"0xe-3l-gae\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "queued"
-          }
-        }
-      }
-    },
     "1b7-l0-nxx.title" : {
       "comment" : "Class = \"NSMenu\"; title = \"Find\"; ObjectID = \"1b7-l0-nxx\";",
       "extractionState" : "extracted_with_value",
@@ -1141,18 +1129,6 @@
         }
       }
     },
-    "APE-ra-QA4.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"obstructingDirectory\"; ObjectID = \"APE-ra-QA4\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "obstructingDirectory"
-          }
-        }
-      }
-    },
     "aTl-1u-JFS.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Print…\"; ObjectID = \"aTl-1u-JFS\";",
       "extractionState" : "extracted_with_value",
@@ -1739,18 +1715,6 @@
         }
       }
     },
-    "cgL-KU-oPW.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"mounted\"; ObjectID = \"cgL-KU-oPW\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "mounted"
-          }
-        }
-      }
-    },
     "cMp-HE-rms.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"Table View Cell\"; ObjectID = \"cMp-HE-rms\";",
       "extractionState" : "stale",
@@ -1961,18 +1925,6 @@
         }
       }
     },
-    "dJg-nM-k7n.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"unreachable\"; ObjectID = \"dJg-nM-k7n\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "unreachable"
-          }
-        }
-      }
-    },
     "dMs-cI-mzQ.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"File\"; ObjectID = \"dMs-cI-mzQ\";",
       "extractionState" : "extracted_with_value",
@@ -2141,18 +2093,6 @@
         }
       }
     },
-    "eaK-ha-cYD.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"unknown\"; ObjectID = \"eaK-ha-cYD\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "unknown"
-          }
-        }
-      }
-    },
     "eVA-NB-rDE.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"Active Directory / Kerberos authentication\"; ObjectID = \"eVA-NB-rDE\";",
       "extractionState" : "extracted_with_value",
@@ -2317,18 +2257,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Substitutions"
-          }
-        }
-      }
-    },
-    "fkA-Fj-cKx.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"errorOnMount\"; ObjectID = \"fkA-Fj-cKx\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "errorOnMount"
           }
         }
       }
@@ -4004,18 +3932,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "\tDefault"
-          }
-        }
-      }
-    },
-    "noX-Y2-fPa.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"invalidCredentials\"; ObjectID = \"noX-Y2-fPa\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "invalidCredentials"
           }
         }
       }

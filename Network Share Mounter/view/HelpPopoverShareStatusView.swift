@@ -9,45 +9,79 @@
 import Foundation
 import Cocoa
 
-class HelpPopoverShareStatusView: NSViewController {
-    var helpItems: [(symbolName: String, symbolColor: NSColor, description: String)] = []
+class HelpPopoverShareStatusViewController: NSViewController {
+    let helpItems = MountStatusDescription.allCases.map { status in
+        (status.symbolName, status.color, status.localizedDescription)
+    }
     
+
     @IBOutlet weak var stackView: NSStackView!
-    
-    @IBOutlet weak var mountedText: NSTextField!
-    @IBOutlet weak var queuedText: NSTextField!
-    @IBOutlet weak var invalidCredentialsText: NSTextField!
-    @IBOutlet weak var errorOnMountText: NSTextField!
-    @IBOutlet weak var obstructingDirectoryText: NSTextField!
-    @IBOutlet weak var unreachableText: NSTextField!
-    @IBOutlet weak var unknownText: NSTextField!
-    
-    @IBOutlet weak var mountedImage: NSImageView!
-    @IBOutlet weak var queuedImage: NSImageView!
-    @IBOutlet weak var invaliudCredentialsImage: NSImageView!
-    @IBOutlet weak var errorOnMountImage: NSImageView!
-    @IBOutlet weak var obstructingDirectoryImage: NSImageView!
-    @IBOutlet weak var unreachableImage: NSImageView!
-    @IBOutlet weak var unknownImage: NSImageView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        setupHelpItems()
+        setupHelpItems()
+        stackView.spacing = 8
+        stackView.alignment = .leading
     }
     
-//    private func setupHelpItems() {
-//        for item in helpItems {
-//            if let helpItemView = loadHelpItemView() {
-//                helpItemView.configure(symbolName: item.symbolName, symbolColor: item.symbolColor, description: item.description)
-//                stackView.addArrangedSubview(helpItemView)
-//            }
-//        }
-//    }
+    private func setupHelpItems() {
+        let _: [()] = MountStatusDescription.allCases.map { item in
+            let helpItemView = HelpItemView(symbolName: item.symbolName, symbolColor: item.color, description: item.localizedDescription)
+            stackView.addArrangedSubview(helpItemView)
+        }
+    }
+}
+
+class HelpItemView: NSView {
+    private let symbolImageView = NSImageView()
+    private let descriptionLabel = NSTextField(labelWithString: "")
     
-//    private func loadHelpItemView() -> HelpItemView? {
-//        var topLevelObjects: NSArray? = nil
-//        let nib = NSNib(nibNamed: "HelpItemView", bundle: nil)
-//        nib?.instantiate(withOwner: self, topLevelObjects: &topLevelObjects)
-//        return topLevelObjects?.first(where: { $0 is HelpItemView }) as? HelpItemView
-//    }
+    init(symbolName: String, symbolColor: NSColor?, description: String) {
+        super.init(frame: .zero)
+        
+        if let symbolImage = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) {
+            if let color = symbolColor {
+                // changing color for SF Symbols is available on macOS >= 12
+                if #available(macOS 12.0, *) {
+                    let config = NSImage.SymbolConfiguration(hierarchicalColor: color)
+                    symbolImageView.image = symbolImage.withSymbolConfiguration(config)
+                } else {
+                    symbolImageView.image = symbolImage
+                }
+            } else {
+                symbolImageView.image = symbolImage
+            }
+        } else {
+            symbolImageView.image = nil
+        }
+        symbolImageView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(symbolImageView)
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .paragraphStyle: paragraphStyle
+        ]
+        
+        let attributedDescription = NSAttributedString(string: description, attributes: attributes)
+        descriptionLabel.attributedStringValue = attributedDescription
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(descriptionLabel)
+        
+        NSLayoutConstraint.activate([
+            symbolImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            symbolImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            symbolImageView.widthAnchor.constraint(equalToConstant: 24),
+            symbolImageView.heightAnchor.constraint(equalToConstant: 24),
+            
+            descriptionLabel.leadingAnchor.constraint(equalTo: symbolImageView.trailingAnchor, constant: 8),
+            descriptionLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            descriptionLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            descriptionLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
+        ])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
