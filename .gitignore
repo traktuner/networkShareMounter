@@ -83,3 +83,4 @@ ZVG78J8USL.cer
 *.cer
 .env.default
 Package.resolved
+/swiftlint.result

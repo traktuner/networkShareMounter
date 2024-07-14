@@ -13,21 +13,19 @@ import dogeADAuth
 
 class KrbAuthViewController: NSViewController, AccountUpdate {
     func updateAccounts(accounts: [DogeAccount]) {
-        RunLoop.main.perform {
-            self.buildAccountsMenu()
+        Task { @MainActor in
+            await buildAccountsMenu()
         }
     }
-    
-    
     
     // MARK: - help messages
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("authui-infotext", comment: "")]
     
-    let workQueue = DispatchQueue(label: "de.fau.networkShareMounter.kerberos", qos: .userInteractive, attributes:[], autoreleaseFrequency: .never, target: nil)
-    
     var session: dogeADSession?
     var prefs = PreferenceManager()
+    
+    let accountsManager = AccountsManager.shared
     
     @IBOutlet weak var logo: NSImageView!
     @IBOutlet weak var usernameText: NSTextField!
@@ -43,13 +41,12 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
     
     @IBAction func authenticateKlicked(_ sender: Any) {
         startOperations()
-        self.session = dogeADSession.init(domain: self.username.stringValue.userDomain() ?? prefs.string(for: .kerberosRealm) ?? "", user: self.username.stringValue)
-        session?.setupSessionFromPrefs(prefs: prefs)
-        session?.userPass = password.stringValue
-        session?.delegate = self
-//        workQueue.async {
         Task {
-            self.session?.authenticate()
+            session = dogeADSession(domain: username.stringValue.userDomain() ?? prefs.string(for: .kerberosRealm) ?? "", user: username.stringValue)
+            session?.setupSessionFromPrefs(prefs: prefs)
+            session?.userPass = password.stringValue
+            session?.delegate = self
+            await session?.authenticate(authTestOnly: false)
         }
     }
     
@@ -60,27 +57,28 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
     // MARK: - initialize view
     override func viewDidLoad() {
         super.viewDidLoad()
-        krbAuthViewTitle.stringValue = NSLocalizedString("authui-krb-title", comment: "title of kerberos auth window")
-        krbAuthViewInfoText.stringValue = NSLocalizedString("authui-krb-infotext", comment: "informative test for kerberos auth window")
-        // if NSM is used in FAU environment use corporate images and labels
-        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
-            usernameText.stringValue = NSLocalizedString("authui-username-text-FAU", comment: "value shown as FAU username")
-            passwordText.stringValue = NSLocalizedString("authui-password-text-FAU", comment: "value shown as FAU password")
-            logo.image = NSImage(named: FAU.authenticationDialogImage)
-        } else {
-            usernameText.stringValue = NSLocalizedString("authui-username-text", comment: "value shown as username")
-            passwordText.stringValue = NSLocalizedString("authui-password-text", comment: "value shown as password")
-            // force unwrap is ok since authenticationDialogImage is a registered default in AppDelegate
-            logo.image = NSImage(named: prefs.string(for: .authenticationDialogImage)!)
+        Task {
+            krbAuthViewTitle.stringValue = NSLocalizedString("authui-krb-title", comment: "title of kerberos auth window")
+            krbAuthViewInfoText.stringValue = NSLocalizedString("authui-krb-infotext", comment: "informative test for kerberos auth window")
+            // if NSM is used in FAU environment use corporate images and labels
+            if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
+                usernameText.stringValue = NSLocalizedString("authui-username-text-FAU", comment: "value shown as FAU username")
+                passwordText.stringValue = NSLocalizedString("authui-password-text-FAU", comment: "value shown as FAU password")
+                logo.image = NSImage(named: FAU.authenticationDialogImage)
+            } else {
+                usernameText.stringValue = NSLocalizedString("authui-username-text", comment: "value shown as username")
+                passwordText.stringValue = NSLocalizedString("authui-password-text", comment: "value shown as password")
+                // force unwrap is ok since authenticationDialogImage is a registered default in AppDelegate
+                logo.image = NSImage(named: prefs.string(for: .authenticationDialogImage)!)
+            }
+            authenticateButtonText.title = NSLocalizedString("authui-button-text", comment: "text on authenticate button")
+            cancelButtonText.title = NSLocalizedString("cancel", comment: "cancel")
+            self.spinner.isHidden = true
+            
+            await buildAccountsMenu()
+            accountsList.action = #selector(popUpChange)
+            await accountsManager.addDelegate(delegate: self)
         }
-        authenticateButtonText.title = NSLocalizedString("authui-button-text", comment: "text on authenticate button")
-        cancelButtonText.title = NSLocalizedString("cancel", comment: "cancel")
-        self.spinner.isHidden = true
-        
-        buildAccountsMenu()
-        accountsList.action = #selector(popUpChange)
-        AccountsManager.shared.delegates.append(self)
-        
     }
     
     @IBAction func helpButtonClicked(_ sender: NSButton) {
@@ -91,38 +89,38 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
         popover.contentViewController = helpPopoverViewController
         helpPopoverViewController.helpText = helpText[sender.tag]
         popover.animates = true
-        popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: NSRectEdge.minY)
-        popover.behavior = NSPopover.Behavior.transient
+        popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: .minY)
+        popover.behavior = .transient
     }
     
     /// start some UI operations like spinner animation, buttons are not clickable
     /// text fields are not editable and so on
     fileprivate func startOperations() {
-        RunLoop.main.perform {
-            self.spinner.isHidden = false
-            self.spinner.startAnimation(nil)
-            self.authenticateButtonText.isEnabled = false
-            self.cancelButtonText.isEnabled = false
-            self.username.isEditable = false
-            self.password.isEditable = false
+        Task { @MainActor in
+            spinner.isHidden = false
+            spinner.startAnimation(nil)
+            authenticateButtonText.isEnabled = false
+            cancelButtonText.isEnabled = false
+            username.isEditable = false
+            password.isEditable = false
         }
     }
     
     /// stop some UI operations like spinner animation, buttons are clickable
     /// text fields are editable and so on
     fileprivate func stopOperations() {
-        RunLoop.main.perform {
-            self.spinner.isHidden = true
-            self.spinner.stopAnimation(nil)
-            self.authenticateButtonText.isEnabled = true
-            self.cancelButtonText.isEnabled = true
-            self.username.isEditable = true
-            self.password.isEditable = true
+        Task { @MainActor in
+            spinner.isHidden = true
+            spinner.stopAnimation(nil)
+            authenticateButtonText.isEnabled = true
+            cancelButtonText.isEnabled = true
+            username.isEditable = true
+            password.isEditable = true
         }
     }
     
     private func showAlert(message: String) {
-        RunLoop.main.perform {
+        Task { @MainActor in
             let alert = NSAlert()
             
             var text = message
@@ -135,9 +133,9 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
                 text = "Your PIN is incorrect"
             }
             switch message {
-            case "Preauthentication failed" :
+            case "Preauthentication failed":
                 text = "Incorrect username or password."
-            case "Password has expired" :
+            case "Password has expired":
                 text = "Password has expired."
             default:
                 break
@@ -150,68 +148,67 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
     }
     
     func windowWillClose(_ notification: Notification) {
-        self.stopOperations()
-        self.session = nil
+        stopOperations()
+        session = nil
     }
     
     private func closeWindow() {
-        RunLoop.main.perform {
-            self.dismiss(nil)
+        Task { @MainActor in
+            dismiss(nil)
         }
     }
     
-    private func buildAccountsMenu() {
-        
+    private func buildAccountsMenu() async {
         let klist = KlistUtil()
-        let tickets = klist.klist()
+        let tickets = await klist.klist()
         
         // populate popup list if there is more than one account
-        if AccountsManager.shared.accounts.count > 1 && !prefs.bool(for: .singleUserMode) {
-            self.accountsList.removeAllItems()
-            for account in AccountsManager.shared.accounts {
-                if tickets.contains(where: { $0.principal.lowercased() == account.upn.lowercased()}) {
-                    self.accountsList.addItem(withTitle: account.displayName + " ◀︎")
+        if await accountsManager.accounts.count > 1 && !prefs.bool(for: .singleUserMode) {
+            accountsList.removeAllItems()
+            for account in await accountsManager.accounts {
+                if tickets.contains(where: { $0.principal.lowercased() == account.upn.lowercased() }) {
+                    accountsList.addItem(withTitle: account.displayName + " ◀︎")
                 } else {
-                    self.accountsList.addItem(withTitle: account.displayName)
+                    accountsList.addItem(withTitle: account.displayName)
                 }
             }
-            self.accountsList.addItem(withTitle: "Other...")
-            self.username.isHidden = true
-            self.accountsList.isHidden = false
-            self.accountsList.isEnabled = true
-            popUpChange()
+            accountsList.addItem(withTitle: "Other...")
+            username.isHidden = true
+            accountsList.isHidden = false
+            accountsList.isEnabled = true
+            await popUpChange()
             return
         }
         
         // if there is only one account, hide popup list
-        self.accountsList.isHidden = true
-        self.username.isHidden = false
-        if let lastUser = prefs.string(for: .lastUser) {//}, prefs.bool(for: .useKeychain) {
+        accountsList.isHidden = true
+        username.isHidden = false
+        if let lastUser = prefs.string(for: .lastUser) {
             let keyUtil = KeychainManager()
             do {
-                try self.password.stringValue = keyUtil.retrievePassword(forUsername: lastUser.lowercased()) ?? ""
-                self.username.stringValue = lastUser.lowercased()
+                try password.stringValue = keyUtil.retrievePassword(forUsername: lastUser.lowercased()) ?? ""
+                username.stringValue = lastUser.lowercased()
             } catch {
                 Logger.KrbAuthViewController.debug("Unable to get user's password")
             }
         }
     }
     
-    @objc func popUpChange() {
-        if self.accountsList.selectedItem?.title == "Other..." {
-            RunLoop.main.perform {
-                self.accountsList.isHidden = true
-                self.username.isHidden = false
-                self.username.becomeFirstResponder()
+    @objc func popUpChange() async {
+        if accountsList.selectedItem?.title == "Other..." {
+            Task { @MainActor in
+                accountsList.isHidden = true
+                username.isHidden = false
+                username.becomeFirstResponder()
             }
         }
         
-        for account in AccountsManager.shared.accounts {
-            if account.displayName == self.accountsList.selectedItem?.title.replacingOccurrences(of: " ◀︎", with: "") {
+        for account in await accountsManager.accounts {
+            if account.displayName == accountsList.selectedItem?.title.replacingOccurrences(of: " ◀︎", with: "") {
                 if let isInKeychain = account.hasKeychainEntry, isInKeychain {
                     let keyUtil = KeychainManager()
                     do {
-                        try self.password.stringValue = keyUtil.retrievePassword(forUsername: account.upn.lowercased()) ?? ""
+                        try password.stringValue = keyUtil.retrievePassword(forUsername: account.upn.lowercased()) ?? ""
                     } catch {
                         Logger.KrbAuthViewController.debug("Unable to get user's password")
                     }
@@ -219,53 +216,52 @@ class KrbAuthViewController: NSViewController, AccountUpdate {
             }
         }
         
-        RunLoop.main.perform {
-            self.password.stringValue = ""
+        Task { @MainActor in
+            password.stringValue = ""
         }
     }
 }
 
-
 extension KrbAuthViewController: dogeADUserSessionDelegate {
-    
-    func dogeADAuthenticationSucceded() {
+    func dogeADAuthenticationSucceded() async {
         Logger.authUI.debug("Auth succeded")
-        cliTask("kswitch -p \(self.session?.userPrincipal ?? "")")
+        _ = await cliTask("kswitch -p \(self.session?.userPrincipal ?? "")")
         
-        self.session?.userInfo()
+        await session?.userInfo()
         
         if let principal = session?.userPrincipal {
-            if let account = AccountsManager.shared.accountForPrincipal(principal: principal) {
+            if let account = await accountsManager.accountForPrincipal(principal: principal) {
                 let pwm = KeychainManager()
-                Task {
-                    do {
-                        try pwm.saveCredential(forUsername: account.upn.lowercased(), andPassword: self.password.stringValue)
-                        Logger.authUI.debug("Password updated in keychain")
-                    } catch {
-                        Logger.authUI.debug("Failed saving password in keychain")
-                    }
+                do {
+                    try pwm.saveCredential(forUsername: account.upn.lowercased(), andPassword: password.stringValue)
+                    Logger.authUI.debug("Password updated in keychain")
+                } catch {
+                    Logger.authUI.debug("Failed saving password in keychain")
                 }
             } else {
                 let newAccount = DogeAccount(displayName: principal, upn: principal, hasKeychainEntry: prefs.bool(for: .useKeychain))
                 let pwm = KeychainManager()
-                Task {
-                    do {
-                        try pwm.saveCredential(forUsername: principal.lowercased(), andPassword: self.password.stringValue)
-                        Logger.authUI.debug("Password updated in keychain")
-                    } catch {
-                        Logger.authUI.debug("Error saving password in Keychain")
-                    }
+                do {
+                    try pwm.saveCredential(forUsername: principal.lowercased(), andPassword: password.stringValue)
+                    Logger.authUI.debug("Password updated in keychain")
+                } catch {
+                    Logger.authUI.debug("Error saving password in Keychain")
                 }
-                AccountsManager.shared.addAccount(account: newAccount)
+                await accountsManager.addAccount(account: newAccount)
             }
         }
         NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
     }
     
-    func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
+    func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {
         Logger.authUI.info("Error: \(description, privacy: .public)")
         
-        for account in AccountsManager.shared.accounts {
+        if error == .UnAuthenticated {
+            stopOperations()
+            return
+        }
+        
+        for account in await accountsManager.accounts {
             if account.upn.lowercased() == session?.userPrincipal.lowercased() {
                 let pwm = KeychainManager()
                 do {
@@ -284,10 +280,10 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
         Logger.authUI.debug("User info: \(user.userPrincipal, privacy: .public)")
         
         // back to the foreground to change the UI
-        RunLoop.main.perform {
-            self.prefs.setADUserInfo(user: user)
-            self.stopOperations()
-            self.closeWindow()
+        Task { @MainActor in
+            prefs.setADUserInfo(user: user)
+            stopOperations()
+            closeWindow()
         }
     }
 }

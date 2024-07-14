@@ -73,7 +73,7 @@ class ShareViewController: NSViewController {
         configureView()
         progressIndicator.isHidden = true
         authType = AuthType.pwd
-        shareArray = appDelegate.mounter.shareManager.allShares
+        shareArray = appDelegate.mounter!.shareManager.allShares
         shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
         authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
         
@@ -163,7 +163,7 @@ class ShareViewController: NSViewController {
             let newShare = Share.createShare(networkShare: networkShareText, authType: shareData.authType, mountStatus: .unmounted, username: shareData.username, password: shareData.password, managed: shareData.managed)
 
             if shareArray.contains(where: { $0.networkShare == newShare.networkShare }) {
-                if let existingShare = appDelegate.mounter.getShare(forNetworkShare: newShare.networkShare) {
+                if let existingShare = await appDelegate.mounter!.getShare(forNetworkShare: newShare.networkShare) {
                     Logger.shareViewController.debug("Updating existing share \(networkShareText, privacy: .public).")
                     if await updateExistingShare(existingShare: existingShare, newShare: newShare, networkShareText: networkShareText) {
                         return nil
@@ -191,18 +191,18 @@ class ShareViewController: NSViewController {
     /// - Parameter newShare: Share struct containig changed data to update
     /// - Parameter networkShareText: String contianing the URL of the share
     private func updateExistingShare(existingShare: Share, newShare: Share, networkShareText: String) async -> Bool {
-        self.appDelegate.mounter.unmountShare(for: existingShare)
+        await self.appDelegate.mounter!.unmountShare(for: existingShare)
         do {
-            let returned = try await self.appDelegate.mounter.mountShare(forShare: newShare, atPath: self.appDelegate.mounter.defaultMountPath)
+            let returned = try await self.appDelegate.mounter!.mountShare(forShare: newShare, atPath: self.appDelegate.mounter!.defaultMountPath)
             Logger.shareViewController.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
-            self.appDelegate.mounter.updateShare(for: newShare)
-            self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+            await self.appDelegate.mounter!.updateShare(for: newShare)
+            await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["ClearError": MounterError.noError])
             return true
         } catch {
             // share did not mount, reset it to the former state
-            self.appDelegate.mounter.updateShare(for: existingShare)
-            self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+            await self.appDelegate.mounter!.updateShare(for: existingShare)
+            await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
             Logger.shareViewController.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
             showErrorDialog(error: error)
             progressIndicator.stopAnimation(self)
@@ -218,15 +218,15 @@ class ShareViewController: NSViewController {
     /// - Parameter networkShareText: String with the URL of the share
     private func addNewShare(newShare: Share, networkShareText: String) async -> Bool {
         do {
-            let returned = try await self.appDelegate.mounter.mountShare(forShare: newShare, atPath: self.appDelegate.mounter.defaultMountPath)
+            let returned = try await self.appDelegate.mounter!.mountShare(forShare: newShare, atPath: self.appDelegate.mounter!.defaultMountPath)
             Logger.shareViewController.debug("Mounting of new share \(networkShareText, privacy: .public) succeded: \(returned, privacy: .public)")
-            self.appDelegate.mounter.addShare(newShare)
-            self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+            await self.appDelegate.mounter!.addShare(newShare)
+            await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
             return true
         } catch {
             // share did not mount, remove it from the array of shares
-            self.appDelegate.mounter.removeShare(for: newShare)
-            self.appDelegate.mounter.shareManager.saveModifiedShareConfigs()
+            await self.appDelegate.mounter!.removeShare(for: newShare)
+            await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
             Logger.shareViewController.warning("Mounting of new share \(networkShareText, privacy: .public) failed: \(error, privacy: .public)")
             showErrorDialog(error: error)
             progressIndicator.stopAnimation(self)

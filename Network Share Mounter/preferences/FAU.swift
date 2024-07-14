@@ -20,12 +20,16 @@ struct FAU {
 class Migrator: dogeADUserSessionDelegate {
     var session: dogeADSession?
     var prefs = PreferenceManager()
-    var accountsManager: AccountsManager
+    let accountsManager = AccountsManager.shared
     
-    func dogeADAuthenticationSucceded() {
-        cliTask("kswitch -p \(String(describing: self.session?.userPrincipal) )")
+    func dogeADAuthenticationSucceded() async {
+        do {
+            _ = try await cliTask("kswitch -p \(String(describing: self.session?.userPrincipal))")
+        } catch {
+            Logger.FAU.error("kswitch -p failed: \(error.localizedDescription)")
+        }
         NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
-        session?.userInfo()
+        await session?.userInfo()
     }
     
     func dogeADAuthenticationFailed(error: dogeADAuth.dogeADSessionError, description: String) {
@@ -36,12 +40,8 @@ class Migrator: dogeADUserSessionDelegate {
         Logger.FAU.debug("User info: \(user.userPrincipal, privacy: .public)")
     }
     
-    init(accountsManager: AccountsManager) {
-        self.accountsManager = accountsManager
-    }
-    
     /// get keychain entry, create new user and start kerberos authentication
-    func migrate() {
+    func migrate() async {
         do {
             // get existing prefix assistant keychain entry
             let keyUtil = KeychainManager()
@@ -52,13 +52,13 @@ class Migrator: dogeADUserSessionDelegate {
                 if migrateKeychainEntry(forUsername: firstAccount.username, andPassword: firstAccount.password, toRealm: FAU.kerberosRealm) {
                     // create new DogeAccount (at FAU the migrated account will always stored in keychain)
                     let newAccount = DogeAccount(displayName: firstAccount.username, upn: firstAccount.username + "@" + FAU.kerberosRealm, hasKeychainEntry: true)
-                    accountsManager.addAccount(account: newAccount)
+                    await accountsManager.addAccount(account: newAccount)
                     // start kerberos authentication
                     self.session = dogeADSession.init(domain: FAU.kerberosRealm, user: firstAccount.username + "@" + FAU.kerberosRealm)
                     self.session?.setupSessionFromPrefs(prefs: prefs)
                     self.session?.userPass = firstAccount.password
                     self.session?.delegate = self
-                    self.session?.authenticate()
+                    await self.session?.authenticate()
                     Logger.FAU.debug("FAU user migrated, NSM account created and authenticated.")
                 } else {
                     Logger.FAU.debug("FAU user migration failed.")

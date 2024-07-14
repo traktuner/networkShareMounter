@@ -15,20 +15,17 @@ import OSLog
 /// class to handle system (NSWorkspace) notifications when system starts sleeping
 class ActivityController {
     
-    var mounter: Mounter
     var prefs = PreferenceManager()
     // swiftlint:disable force_cast
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     // swiftlint:enable force_cast
-    
-    init(withMounter: Mounter) {
-        mounter = withMounter
-        startMonitoring(mounter: mounter)
-        Logger.activityController.debug("🎯 ActivityController initialized.")
+
+    init() {
+        startMonitoring()
     }
     
     /// initialize observers to get notifications
-    func startMonitoring(mounter: Mounter) {
+    func startMonitoring() {
         // create an observer for NSWorkspace notifications
         // first stop possible exitisting observers
         NSWorkspace.shared.notificationCenter.removeObserver(self)
@@ -63,29 +60,35 @@ class ActivityController {
     
     // call unmount shares on NSWorkspace notification
     @objc func unmountShares() {
-        Logger.activityController.debug(" ▶︎ unmountAllShares called by willSleepNotification.")
-        Task {
-            await self.mounter.unmountAllMountedShares()
+        if let mounter = appDelegate.mounter {
+            Logger.activityController.debug(" ▶︎ unmountAllShares called by willSleepNotification.")
+            Task {
+                await mounter.unmountAllMountedShares()
+            }
         }
     }
     
     // functions called after wake up
     @objc func wakeupFromSleep() {
-        Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
-        Task {
-            // await self.mounter.mountAllShares(userTriggered: true)
-            await self.mounter.mountAllShares()
-            Logger.activityController.debug(" 🐛 Restart Finder to bypass a presumed bug in macOS.")
-            self.mounter.restartFinder()
+        if let mounter = appDelegate.mounter {
+            Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
+            Task {
+                // await self.mounter.mountAllShares(userTriggered: true)
+                await mounter.mountAllShares()
+                Logger.activityController.debug(" 🐛 Restart Finder to bypass a presumed bug in macOS.")
+                mounter.restartFinder()
+            }
         }
     }
     
     // call mount shares on NSWorkspace notification
     @objc func mountShares() {
-        Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
-        Task {
-            // await self.mounter.mountAllShares(userTriggered: true)
-            await self.mounter.mountAllShares()
+        if let mounter = appDelegate.mounter {
+            Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
+            Task {
+                // await self.mounter.mountAllShares(userTriggered: true)
+                await mounter.mountAllShares()
+            }
         }
     }
     
@@ -98,7 +101,7 @@ class ActivityController {
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             Task {
                 Logger.activityController.debug(" ▶︎ kerberos realm configured, processing AutomaticSignIn.")
-                appDelegate.automaticSignIn.signInAllAccounts()
+                await appDelegate.automaticSignIn.signInAllAccounts()
             }
         }
     }
@@ -106,11 +109,13 @@ class ActivityController {
     // call mount shares with manually parameter and, if configured, renew kerberos tickets
     @objc func mountSharesWithUserTrigger() {
         // renew tickets
-        self.processAutomaticSignIn()
+        processAutomaticSignIn()
         // mount shares
-        Logger.activityController.debug(" ▶︎ mountAllShares with user-trigger called.")
-        Task {
-            await self.mounter.mountAllShares(userTriggered: true)
+        if let mounter = appDelegate.mounter {
+            Logger.activityController.debug(" ▶︎ mountAllShares with user-trigger called.")
+            Task {
+                await mounter.mountAllShares(userTriggered: true)
+            }
         }
     }
     
@@ -124,13 +129,15 @@ class ActivityController {
     /// Those who run seem to have all the fun
     /// I'm caught up, I don't know what to do
     @objc func timeGoesBySoSlowly() {
-        Logger.activityController.debug("⏰ Time goes by so slowly: got timer notification.")
-        Logger.activityController.debug(" ▶︎ ...check for possible MDM profile changes.")
-        // call updateShareArray() to reflect possible changes in MDM profile?
-        self.mounter.shareManager.updateShareArray()
-        Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
-        Task {
-            await self.mounter.mountAllShares()
+        if let mounter = appDelegate.mounter {
+            Logger.activityController.debug("⏰ Time goes by so slowly: got timer notification.")
+            Logger.activityController.debug(" ▶︎ ...check for possible MDM profile changes.")
+            // call updateShareArray() to reflect possible changes in MDM profile?
+            mounter.shareManager.updateShareArray()
+            Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
+            Task {
+                await mounter.mountAllShares()
+            }
         }
     }
 }

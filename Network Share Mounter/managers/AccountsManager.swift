@@ -13,30 +13,47 @@ protocol AccountUpdate {
     func updateAccounts(accounts: [DogeAccount])
 }
 
-class AccountsManager {
-    
+actor AccountsManager {
     var prefs = PreferenceManager()
     var accounts = [DogeAccount]()
     var delegates = [AccountUpdate]()
     
     static let shared = AccountsManager()
     
-    init() {
+    private var isInitialized = false
+    
+    private init() {}
+    
+    func initialize() async {
+        guard !isInitialized else { return }
+        
         // perform some FAU tasks
         if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
             if !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator(accountsManager: self)
-                migrator.migrate()
+                let migrator = Migrator()
+                await migrator.migrate()
             }
         }
         loadAccounts()
+        
+        isInitialized = true
     }
     
     private func loadAccounts() {
         let decoder = PropertyListDecoder.init()
         if let accountsData = prefs.data(for: .accounts),
            let accountsList = try? decoder.decode(DogeAccounts.self, from: accountsData) {
-            accounts = accountsList.accounts
+            var uniqueAccounts = [DogeAccount]()
+            var processedUPNs = Set<String>()
+
+            for account in accountsList.accounts {
+                let lowercasedUPN = account.upn.lowercased()
+                if !lowercasedUPN.starts(with: "@") && !processedUPNs.contains(lowercasedUPN) {
+                    uniqueAccounts.append(account)
+                    processedUPNs.insert(lowercasedUPN)
+                }
+            }
+            accounts = uniqueAccounts
         }
         updateDelegates()
     }
@@ -88,5 +105,11 @@ class AccountsManager {
         for delegate in delegates {
             delegate.updateAccounts(accounts: accounts)
         }
+    }
+}
+
+extension AccountsManager {
+    func addDelegate(delegate: AccountUpdate) {
+        delegates.append(delegate)
     }
 }

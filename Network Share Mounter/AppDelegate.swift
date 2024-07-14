@@ -17,7 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     var window = NSWindow()
     var mountpath = ""
-    var mounter = Mounter()
+    var mounter: Mounter?
     var prefs = PreferenceManager()
     var enableKerberos = false
     var authDone = false
@@ -25,7 +25,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     // An observer that you use to monitor and react to network changes
     let monitor = Monitor.shared
-
+    
     var mountTimer = Timer()
     var authTimer = Timer()
     
@@ -34,67 +34,86 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         window.isReleasedWhenClosed = false
+        mounter = Mounter()
         
-        // check if a kerberos domain/realm is set and is not empty
-        if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
-            self.enableKerberos = true
-        }
-        
-        //
-        // initialize statistics reporting struct
-        let stats = AppStatistics.init()
-        Task {
-            await stats.reportAppInstallation()
-        }
-
         //
         // register App according to userDefaults as "start at login"
         LaunchAtLogin.isEnabled = prefs.bool(for: .autostart)
-
+        
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
         window.contentViewController = NetworkShareMounterViewController.newInstance()
-
-        // Do any additional setup after loading the view.
-        constructMenu(withMounter: mounter)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
-        
-        // fire up the activityController to get system/NSWorkspace notifications
-        activityController = ActivityController.init(withMounter: mounter)
-        
-        // set a timer to perform a mount every n seconds
-        self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
-            Logger.app.info("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
-            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
-        })
-        // set a timer to perform authentication every n seconds
-        self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
-            Logger.app.info("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
-            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
-        })
-        
-        //
-        // start monitoring network connectivity and perform mount/unmount on network changes
-        monitor.startMonitoring { connection, reachable in
-            if reachable.rawValue == "yes" {
-                NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
-            } else {
-                Task {
-                    // since the mount status after a network change is unknown it will be set
-                    // to unknown so it can be tested and maybe remounted if the network connects again
-                    Logger.app.debug("Got network monitoring callback, unmount shares.")
-                    await self.mounter.setAllMountStatus(to: MountStatus.undefined)
-                    // trying to unmount all shares
-                    NotificationCenter.default.post(name: Defaults.nsmUnmountTriggerNotification, object: nil)
-                    await self.mounter.unmountAllMountedShares()
-                }
-            }
+        Task {
+            await initializeApp()
         }
-
         //
         // finally authenticate and mount all defined shares...
-        NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+//        if let mounter {
+//            activityController = ActivityController.init()
+//            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+//        }
+    }
+    
+    private func initializeApp() async {
+        Task {
+            await mounter?.asyncInit()
+            // check if a kerberos domain/realm is set and is not empty
+            if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+                self.enableKerberos = true
+            }
+            
+            //
+            // initialize statistics reporting struct
+            let stats = AppStatistics.init()
+            await stats.reportAppInstallation()
+            await AccountsManager.shared.initialize()
+            
+            // Do any additional setup after loading the view.
+            if let mounter {
+                constructMenu(withMounter: mounter)
+                NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
+                // fire up the activityController to get system/NSWorkspace notifications
+//                activityController = ActivityController.init(withMounter: mounter)
+                activityController = ActivityController.init()
+            } else {
+                Logger.app.error("Could not initialize mounter class, this should never happen.")
+            }
+            
+            // set a timer to perform a mount every n seconds
+            mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
+                Logger.app.info("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
+                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+            })
+            // set a timer to perform authentication every n seconds
+            authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
+                Logger.app.info("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
+                NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+            })
+            
+            //
+            // start monitoring network connectivity and perform mount/unmount on network changes
+            monitor.startMonitoring { connection, reachable in
+                if reachable.rawValue == "yes" {
+                    NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
+                } else {
+                    Task {
+                        // since the mount status after a network change is unknown it will be set
+                        // to unknown so it can be tested and maybe remounted if the network connects again
+                        Logger.app.debug("Got network monitoring callback, unmount shares.")
+                        if let mounter = self.mounter {
+                            await mounter.setAllMountStatus(to: MountStatus.undefined)
+                            // trying to unmount all shares
+                            NotificationCenter.default.post(name: Defaults.nsmUnmountTriggerNotification, object: nil)
+                            await mounter.unmountAllMountedShares()
+                        } else {
+                            Logger.app.error("Could not initialize mounter class, this should never happen.")
+                        }
+                    }
+                }
+            }
+            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+        }
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -119,7 +138,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
-                    self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
+                    if let mounter = self.mounter {
+                        self.constructMenu(withMounter: mounter, andStatus: .krbAuthenticationError)
+                    } else {
+                        Logger.app.error("Could not initialize mounter class, this should never happen.")
+                    }
                 }
             }
         } else if notification.userInfo?["AuthError"] is Error {
@@ -128,7 +151,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
-                    self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
+                    if let mounter = self.mounter {
+                        self.constructMenu(withMounter: mounter, andStatus: .authenticationError)
+                    } else {
+                        Logger.app.error("Could not initialize mounter class, this should never happen.")
+                    }
                 }
             }
         } else if notification.userInfo?["ClearError"] is Error {
@@ -137,7 +164,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
-                    self.constructMenu(withMounter: self.mounter)
+                    if let mounter = self.mounter {
+                        self.constructMenu(withMounter: mounter)
+                    } else {
+                        Logger.app.error("Could not initialize mounter class, this should never happen.")
+                    }
                 }
             }
         } else if notification.userInfo?["krbAuthenticated"] is Error {
@@ -176,9 +207,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func openMountDir(_ sender: Any?) {
-        if let mountDirectory =  URL(string: self.mounter.defaultMountPath) {
-            Logger.app.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
+        if let mounter = mounter {
+            if let mountDirectory =  URL(string: mounter.defaultMountPath) {
+                Logger.app.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
+            } else {
+                Logger.app.error("Could not initialize mounter class, this should never happen.")
+            }
         }
     }
     
@@ -190,7 +225,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func unmountShares(_ sender: Any?) {
         Logger.app.debug("User triggered unmount all shares")
         Task {
-            await self.mounter.unmountAllMountedShares(userTriggered: true)
+            if let mounter = mounter {
+                await mounter.unmountAllMountedShares(userTriggered: true)
+            } else {
+                Logger.app.error("Could not initialize mounter class, this should never happen.")
+            }
         }
     }
     
