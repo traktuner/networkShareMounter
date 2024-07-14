@@ -202,7 +202,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         if tableView.clickedRow >= 0 {
             if tableView.clickedColumn == 0 {
                 // swiftlint:disable force_cast
-                let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController")) as! HelpPopoverShareStatusViewController
+                let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController"))
+                    as! HelpPopoverShareStatusViewController
                 // swiftlint:enable force_cast
                 let popover = NSPopover()
                 popover.contentViewController = HelpPopoverShareStatusViewController
