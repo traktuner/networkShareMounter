@@ -6,6 +6,8 @@ To create a perfect solution for administrators _and_ end users, we have develop
 The concept behind the Network Share Mounter is to have a single application for mounting a list of network shares. Ideally, the list of shares is distributed as a configuration profile with an MDM solution based on workgroups, departments, project groups, etc. If a user needs to add additional shares beyond the managed ones, they can easily add them via the menu bar.
 The Shares are mounted in the background based on network accessibility without requiring any user interaction. To enhance this process, a Kerberos environment is recommended to avoid the need for authentication during a mount. With version 3, user credentials can also be stored securely in the user's keychain (managed and manually added shares).
 
+_Go to the [Releases page](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/releases) for the newest version._
+
 **Key features**
 
 - **Supports various protocols:** Easly mount Windows (SMB/CIFS), AFP and WebDAV Shares
