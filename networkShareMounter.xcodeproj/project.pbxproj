@@ -382,8 +382,8 @@
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
-				F7E2AF6D2C3061020063960F /* XCLocalSwiftPackageReference "../doge-adauth" */,
 				F7AB262D2C4FE775008AEBF4 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				F7FDE7EF2C6136B6006C347F /* XCRemoteSwiftPackageReference "dogeadauth" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -917,13 +917,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		F7E2AF6D2C3061020063960F /* XCLocalSwiftPackageReference "../doge-adauth" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "../doge-adauth";
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
 		F7AB262D2C4FE775008AEBF4 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -939,6 +932,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 4.2.0;
+			};
+		};
+		F7FDE7EF2C6136B6006C347F /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.6;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
