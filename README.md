@@ -48,6 +48,7 @@ For an easier configuration of all the preference keys without creating or modif
 | `cleanupLocationDirectory` | Boolean | 1) Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag.    <br /><br />2) Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag.    <br /><br />3) If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array.   <br />*(The previous setting where too dangerous)* | false | ≥ 2.1.0 | - | `false` |
 | `kerberosRealm` | String | Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled | - | ≥ 3.0.0 | optional | EXAMPLE.REALM.COM |
 | `helpURL` | String | Configure a website link to help users interact with the application. | - | ≥ 2.0.0 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
+| `enableAutoUpdater` | Boolean | Turns on the auto update framework so that the app can update itself | true | ≥ 3.0.4 | optional | |
 
 #### ⚠️ Important note for the `location` and `cleanupLocationDirectory` values
 
