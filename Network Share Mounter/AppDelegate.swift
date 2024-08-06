@@ -30,15 +30,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var mountTimer = Timer()
     var authTimer = Timer()
     
-    var updaterController: SPUStandardUpdaterController
+    var updaterController: SPUStandardUpdaterController?
     
     // define the activityController to et notifications from NSWorkspace
     var activityController: ActivityController?
     
     override init() {
-        // If you want to start the updater manually, pass false to startingUpdater and call .startUpdater() later
-        // This is where you can also pass an updater delegate if you need one
-        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        if prefs.bool(for: .enableAutoUpdater) == true {
+            // If you want to start the updater manually, pass false to startingUpdater and call .startUpdater() later
+            // This is where you can also pass an updater delegate if you need one
+            updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        }
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
