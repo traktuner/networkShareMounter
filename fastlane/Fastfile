@@ -144,7 +144,7 @@ lane :testbuild do
       path: "build/Network Share Mounter.app",
       output_path: "build/NetworkShareMounterTest-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Test",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
@@ -167,7 +167,7 @@ lane :alpha do
       path: "build/Network\ Share\ Mounter.app",
       output_path: "build/NetworkShareMounterAlpha-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Alpha",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
@@ -202,7 +202,7 @@ lane :beta do
       path: "build/Network\ Share\ Mounter.app",
       output_path: "build/NetworkShareMounterBeta-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Beta",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
@@ -237,7 +237,7 @@ lane :release do
       path: "build/Network Share Mounter.app",
       output_path: "build/NetworkShareMounter-#{appversion}.dmg",
       volume_name: "NetworkShareMounter",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
