@@ -78,7 +78,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     override func viewWillAppear() {
         if prefs.bool(for: .enableAutoUpdater) == true {
             updateCheckbox.isHidden = false
-            updater = appDelegate.updaterController.updater
+            updater = appDelegate.updaterController?.updater
             updateCheckbox.state = updater?.automaticallyChecksForUpdates ?? false ? .on : .off
         } else {
             updateCheckbox.isHidden = true
