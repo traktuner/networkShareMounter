@@ -20,6 +20,7 @@
 		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7796E112AFBE5AB008F6A26 /* ActivityController.swift */; };
+		F7885F642C623084000B96AC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F7885F632C623084000B96AC /* Sparkle */; };
 		F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* KeychainManager.swift */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
@@ -128,6 +129,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */,
+				F7885F642C623084000B96AC /* Sparkle in Frameworks */,
 				F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */,
 				F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */,
 			);
@@ -296,6 +298,7 @@
 				F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */,
 				F7C205162C305C8A00902B4E /* dogeADAuth */,
 				F7E2AF6E2C3061020063960F /* dogeADAuth */,
+				F7885F632C623084000B96AC /* Sparkle */,
 			);
 			productName = "Network Share Mounter";
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
@@ -382,8 +385,8 @@
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
-				F7AB262D2C4FE775008AEBF4 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				F7FDE7EF2C6136B6006C347F /* XCRemoteSwiftPackageReference "dogeadauth" */,
+				F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -674,7 +677,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 169;
+				CURRENT_PROJECT_VERSION = 173;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -724,7 +727,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 169;
+				CURRENT_PROJECT_VERSION = 173;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -918,7 +921,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		F7AB262D2C4FE775008AEBF4 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+		F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
 			requirement = {
@@ -945,6 +948,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F7885F632C623084000B96AC /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
 		F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */;

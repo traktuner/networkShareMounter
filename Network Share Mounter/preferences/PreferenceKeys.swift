@@ -182,6 +182,8 @@ enum PreferenceKeys: String, CaseIterable {
     case canChangeAutostart = "canChangeAutostart"
     case canQuit = "canQuit"
     case autostart = "autostart"
+    case enableAutoUpdater = "enableAutoUpdater"
+    case autoUpdate = "autoUpdate"
     case cleanupLocationDirectory = "cleanupLocationDirectory"
     case UUID = "UUID"
     case networkSharesKey = "networkShares"
