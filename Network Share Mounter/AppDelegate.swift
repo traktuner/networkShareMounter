@@ -10,6 +10,7 @@ import Cocoa
 import Network
 import LaunchAtLogin
 import OSLog
+import Sparkle
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -29,8 +30,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var mountTimer = Timer()
     var authTimer = Timer()
     
+    var updaterController: SPUStandardUpdaterController
+    
     // define the activityController to et notifications from NSWorkspace
     var activityController: ActivityController?
+    
+    override init() {
+        // If you want to start the updater manually, pass false to startingUpdater and call .startUpdater() later
+        // This is where you can also pass an updater delegate if you need one
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+    }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         window.isReleasedWhenClosed = false
@@ -246,22 +255,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         
         switch andStatus {
-            case .krbAuthenticationError:
-                Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
-                mounter.errorStatus = .authenticationError
-                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
-                                action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
-                menu.addItem(NSMenuItem.separator())
-            case .authenticationError:
-                Logger.app.debug("🏗️ Constructing authentication problem menu.")
-                mounter.errorStatus = .authenticationError
-                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
+        case .krbAuthenticationError:
+            Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
+            mounter.errorStatus = .authenticationError
+            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
                                     action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
-                menu.addItem(NSMenuItem.separator())
+            menu.addItem(NSMenuItem.separator())
+        case .authenticationError:
+            Logger.app.debug("🏗️ Constructing authentication problem menu.")
+            mounter.errorStatus = .authenticationError
+            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
+                                    action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+            menu.addItem(NSMenuItem.separator())
             
-            default:
-                mounter.errorStatus = .noError
-                Logger.app.debug("🏗️ Constructing default menu.")
+        default:
+            mounter.errorStatus = .noError
+            Logger.app.debug("🏗️ Constructing default menu.")
         }
         
         if prefs.string(for: .helpURL)!.description.isValidURL {
@@ -276,6 +285,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                 action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
         // menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem.separator())
+        if prefs.bool(for: .enableAutoUpdater) == true {
+            let checkForUpdatesMenuItem = NSMenuItem(title: NSLocalizedString("Check for Updates...", comment: "Check for Updates"),
+                                        action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
+            checkForUpdatesMenuItem.target = updaterController
+            menu.addItem(checkForUpdatesMenuItem)
+            menu.addItem(NSMenuItem.separator())
+        }
         
         menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
                                 action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))

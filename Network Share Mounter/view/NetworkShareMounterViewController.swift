@@ -9,6 +9,7 @@
 import Cocoa
 import LaunchAtLogin
 import OSLog
+import Sparkle
 
 class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource, NSPopoverDelegate {
     
@@ -30,6 +31,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     // appDelegate is used to accesss variables in AppDelegate
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
     
+    var updater: SPUUpdater?
     // swiftlint:enable force_cast
     
     // toggle to show user defined or managed shares
@@ -74,6 +76,13 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     }
     
     override func viewWillAppear() {
+        if prefs.bool(for: .enableAutoUpdater) == true {
+            updateCheckbox.isHidden = false
+            updater = appDelegate.updaterController.updater
+            updateCheckbox.state = updater?.automaticallyChecksForUpdates ?? false ? .on : .off
+        } else {
+            updateCheckbox.isHidden = true
+        }
         super.viewWillAppear()
         Task {
             //
@@ -122,6 +131,12 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             }
         }
     }
+    
+    @IBAction func updateCheckboxToggled(_ sender: Any) {
+        Logger.activityController.debug("🔄 User has manually switched automatic updates to: \(String((sender as AnyObject).state == .on), privacy: .public)")
+        updater?.automaticallyChecksForUpdates = ((sender as AnyObject).state == .on)
+    }
+    @IBOutlet weak var updateCheckbox: NSButton!
     
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
     

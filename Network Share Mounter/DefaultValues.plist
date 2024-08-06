@@ -32,7 +32,13 @@
 	<string></string>
 	<key>cleanupLocationDirectory</key>
 	<false/>
+	<key>enableAutoUpdater</key>
+	<true/>
+	<key>autoUpdate</key>
+	<true/>
 	<key>customNetworkShares</key>
 	<array/>
+	<key>SUFeedURL</key>
+	<string>https://faumac.rrze.fau.de/apps/NetworkShareMounter-appcast.xml</string>
 </dict>
 </plist>

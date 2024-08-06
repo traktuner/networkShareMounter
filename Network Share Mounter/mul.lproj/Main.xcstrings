@@ -1297,6 +1297,48 @@
         }
       }
     },
+    "BcP-wK-xkM.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Check for updates automatically\"; ObjectID = \"BcP-wK-xkM\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch nach Updates suchen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Check for updates automatically"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones automáticamente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher automatiquement les mises à jour"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifica automaticamente gli aggiornamenti"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch controleren op updates"
+          }
+        }
+      }
+    },
     "BgM-ve-c93.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"    Left to Right\"; ObjectID = \"BgM-ve-c93\";",
       "localizations" : {
