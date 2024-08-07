@@ -17,6 +17,10 @@ _Go to the [releases page](https://gitlab.rrze.fau.de/faumac/networkShareMounter
 - **Background mounting:** Shares are automatically mounted in the background based on network accessibility, requiring no user intervention.
 - **Silent failure handling:** In the event of a mount failure (e.g., unreachable share), no intrusive graphical user interface will appear, ensuring a seamless user experience. Depending on the configuration, the Network Share Mounter icon in the menu bar adapts to provide a quick visual indicator of the current status.
 - **Kerberos and keychain integration:** A Kerberos environment eliminates the need for adding user credentials for mounts, enhancing both security and efficiency. Alternatively, user credentials can be securely stored in the user's keychain.
+- **trigger by UNIX signals:** A mount/unmount of the configured shares can be triggered via Unix signals:
+   - `kill -SIGUSR1 PID` triggers *unmount* of configured shares
+   - `kill -SIGUSR2 PID` triggers *mount* of configured shares
+   - (where `PID` is Network Share Mounter's process id)
 
 <img src="Network%20Share%20Mounter%20-%20Screenshot.png" />  
 
