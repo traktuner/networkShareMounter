@@ -12,58 +12,101 @@ import LaunchAtLogin
 import OSLog
 import Sparkle
 
+/// The main application delegate class responsible for managing the app's lifecycle and core functionality.
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
+    /// The status item displayed in the system menu bar
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    
+    /// The main application window
     var window = NSWindow()
+    
+    /// The path where network shares are mounted
     var mountpath = ""
+    
+    /// The object responsible for mounting network shares
     var mounter: Mounter?
+    
+    /// Manages user preferences
     var prefs = PreferenceManager()
+    
+    /// Flag to enable Kerberos authentication
     var enableKerberos = false
+    
+    /// Flag to indicate if authentication is complete
     var authDone = false
+    
+    /// Handles automatic sign-in functionality
     var automaticSignIn = AutomaticSignIn.shared
     
-    // An observer that you use to monitor and react to network changes
+    /// Monitors network changes
     let monitor = Monitor.shared
     
+    /// Timer for scheduling mount operations
     var mountTimer = Timer()
+    
+    /// Timer for scheduling authentication operations
     var authTimer = Timer()
     
+    /// Dispatch source for handling unmount signals
+    var unmountSignalSource: DispatchSourceSignal?
+    
+    /// Dispatch source for handling mount signals
+    var mountSignalSource: DispatchSourceSignal?
+    
+    /// Controller for managing app updates
     var updaterController: SPUStandardUpdaterController?
     
-    // define the activityController to et notifications from NSWorkspace
+    /// Controller for monitoring system activity
     var activityController: ActivityController?
     
+    /// Initializes the AppDelegate and sets up the auto-updater if enabled
     override init() {
         if prefs.bool(for: .enableAutoUpdater) == true {
-            // If you want to start the updater manually, pass false to startingUpdater and call .startUpdater() later
-            // This is where you can also pass an updater delegate if you need one
+            // Initialize the updater controller with default configuration
+            // TODO: Consider adding custom updater delegate for more control over the update process
             updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
         }
     }
     
+    /// Application entry point after launch
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // Prevent window from being deallocated when closed
         window.isReleasedWhenClosed = false
+        
+        // Initialize the Mounter instance
         mounter = Mounter()
         
-        //
-        // register App according to userDefaults as "start at login"
+        // Configure app to start at login based on user preferences
         LaunchAtLogin.isEnabled = prefs.bool(for: .autostart)
         
+        // Set up the status item in the menu bar
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
+        
+        // Set the main window's content view controller
         window.contentViewController = NetworkShareMounterViewController.newInstance()
+        
+        // Asynchronously initialize the app
         Task {
             await initializeApp()
         }
-        //
-        // finally authenticate and mount all defined shares...
-//        if let mounter {
-//            activityController = ActivityController.init()
-//            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
-//        }
+        
+        // Set up signal handlers for the app
+        setupSignalHandlers()
+        
+        // MARK: TODO - Authentication and mounting
+        // The following code block is commented out and may need to be implemented:
+        // - Initialize ActivityController
+        // - Post notification to trigger mounting of defined shares
+        /*
+        if let mounter {
+            activityController = ActivityController.init()
+            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+        }
+        */
     }
     
     private func initializeApp() async {
@@ -140,13 +183,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    ///
-    /// provide a method to react to certain events
+    /// Handles various error notifications and updates the menu bar icon accordingly.
+    /// - Parameter notification: The notification containing error information.
     @objc func handleErrorNotification(_ notification: NSNotification) {
+        // Handle Kerberos authentication error
         if notification.userInfo?["KrbAuthError"] is Error {
-            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
             DispatchQueue.main.async {
-                // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
                     if let mounter = self.mounter {
@@ -156,10 +198,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             }
-        } else if notification.userInfo?["AuthError"] is Error {
-            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+        }
+        // Handle general authentication error
+        else if notification.userInfo?["AuthError"] is Error {
             DispatchQueue.main.async {
-                // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
                     if let mounter = self.mounter {
@@ -169,10 +211,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             }
-        } else if notification.userInfo?["ClearError"] is Error {
-            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+        }
+        // Handle error clearance
+        else if notification.userInfo?["ClearError"] is Error {
             DispatchQueue.main.async {
-                // Ändert die Farbe des Menuicons
+                // change the color of the menu symbol
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
                     if let mounter = self.mounter {
@@ -182,26 +225,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
             }
-        } else if notification.userInfo?["krbAuthenticated"] is Error {
-            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+        }
+        // Handle successful Kerberos authentication
+        else if notification.userInfo?["krbAuthenticated"] is Error {
             DispatchQueue.main.async {
-                // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
                 }
             }
-        } else if notification.userInfo?["FailError"] is Error {
-            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+        }
+        // Handle general failure
+        else if notification.userInfo?["FailError"] is Error {
             DispatchQueue.main.async {
-                // Ändert die Farbe des Menuicons
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
                 }
             }
-        } else if notification.userInfo?["krbOffDomain"] is Error {
-            // changes of the icon must be done on the main thread, therefore the call on DispatchQueue.main
+        }
+        // Handle Kerberos off-domain status
+        else if notification.userInfo?["krbOffDomain"] is Error {
             DispatchQueue.main.async {
-                // Ändert die Farbe des Menuicons
+                // change the color of the menu symbol
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
                 }
@@ -209,14 +253,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Indicates whether the application supports secure restorable state.
+    /// - Parameter app: The NSApplication instance.
+    /// - Returns: Always returns true for this application.
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
 
+    /// Displays information about the Network Share Mounter.
+    /// - Parameter sender: The object that initiated this action.
+    /// - Note: Currently a placeholder. Consider implementing actual info display in the future.
     @objc func showInfo(_ sender: Any?) {
         Logger.app.info("Some day maybe show some useful information about Network Share Mounter")
     }
 
+    /// Opens the default mount directory in Finder.
+    /// - Parameter sender: The object that initiated this action.
+    /// - Note: Logs an error if the mounter class cannot be initialized.
     @objc func openMountDir(_ sender: Any?) {
         if let mounter = mounter {
             if let mountDirectory =  URL(string: mounter.defaultMountPath) {
@@ -228,11 +281,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    /// Manually mounts all shares when triggered by the user
+    /// - Parameter sender: The object that triggered the action
     @objc func mountManually(_ sender: Any?) {
         Logger.app.debug("User triggered mount all shares")
         NotificationCenter.default.post(name: Defaults.nsmMountManuallyTriggerNotification, object: nil)
     }
-    
+
+    /// Unmounts all currently mounted shares
+    /// - Parameter sender: The object that triggered the action
     @objc func unmountShares(_ sender: Any?) {
         Logger.app.debug("User triggered unmount all shares")
         Task {
@@ -240,22 +297,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 await mounter.unmountAllMountedShares(userTriggered: true)
             } else {
                 Logger.app.error("Could not initialize mounter class, this should never happen.")
+                // TODO: Implement proper error handling and user feedback
             }
         }
     }
-    
+
+    /// Opens the help URL in the default web browser
+    /// - Parameter sender: The object that triggered the action
     @objc func openHelpURL(_ sender: Any?) {
         guard let url = prefs.string(for: .helpURL), let openURL = URL(string: url) else {
+            // TODO: Consider adding error logging or user feedback if URL is invalid
             return
         }
         NSWorkspace.shared.open(openURL)
     }
 
-    ///
-    /// function which reads configured profiles to construct App's menu
+    /// Constructs the app's menu based on configured profiles and current status
+    /// - Parameters:
+    ///   - mounter: The Mounter object responsible for mounting/unmounting shares
+    ///   - andStatus: Optional MounterError indicating any current error state
     func constructMenu(withMounter mounter: Mounter, andStatus: MounterError? = nil) {
         let menu = NSMenu()
         
+        // Handle different error states and construct appropriate menu items
         switch andStatus {
         case .krbAuthenticationError:
             Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
@@ -275,18 +339,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Logger.app.debug("🏗️ Constructing default menu.")
         }
         
+        // Add "About" menu item if help URL is valid
         if prefs.string(for: .helpURL)!.description.isValidURL {
             menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),
                                     action: #selector(AppDelegate.openHelpURL(_:)), keyEquivalent: ""))
         }
+        
+        // Add core functionality menu items
         menu.addItem(NSMenuItem(title: NSLocalizedString("Mount shares", comment: "Mount shares"),
                                 action: #selector(AppDelegate.mountManually(_:)), keyEquivalent: "m"))
         menu.addItem(NSMenuItem(title: NSLocalizedString("Unmount shares", comment: "Unmount shares"),
                                 action: #selector(AppDelegate.unmountShares(_:)), keyEquivalent: "u"))
         menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"),
                                 action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
-        // menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem.separator())
+        
+        // Add "Check for Updates" menu item if auto-updater is enabled
         if prefs.bool(for: .enableAutoUpdater) == true {
             let checkForUpdatesMenuItem = NSMenuItem(title: NSLocalizedString("Check for Updates...", comment: "Check for Updates"),
                                         action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
@@ -295,39 +363,78 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(NSMenuItem.separator())
         }
         
+        // Add "Preferences" menu item
         menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
                                 action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
+        
+        // Add "Quit" menu item if allowed by preferences
         if prefs.bool(for: .canQuit) != false {
             menu.addItem(NSMenuItem.separator())
             menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
                                     action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         }
+        
+        // Set the constructed menu to the statusItem
         statusItem.menu = menu
     }
 
+    /// Shows the preferences window.
     @objc func showWindow(_ sender: Any?) {
-        //
-        // folgender Code zeigt ein neues Fenster an - ohne eigenen WindowController. Es tut was es soll, funktkioniert und ich denke, da
-        // werde/würde ich nicht lang rum machen.
-        // Geschlossen wird es mit dem roten button links oben, nachdem das andere Apps auch so machen ¯\_(ツ)_/¯ 
-        //
-        // without titlebar and title-text
-        // window.titlebarAppearsTransparent = true
+        // Configure window appearance and behavior
         window.title = NSLocalizedString("Preferences", comment: "Preferences")
-        //
-        // somehow we close the window
         window.styleMask.insert([.closable])
-        //
-        // show the window at the center of the current display
+        
+        // Position the window at the center of the current display
         window.center()
-        //
-        // bring the app itself to front
+        
+        // Activate the app and bring the window to front
         NSApp.activate(ignoringOtherApps: true)
-        //
-        // bringt the window to front
         window.orderFrontRegardless()
-        //
-        // make this window the key window receiving keyboard and other non-touch related events
+        
+        // Make this window the key window
         window.makeKey()
+        
+        // MARK: - Potential improvements
+        // TODO: Consider adding a dedicated WindowController for better management
+        // TODO: Evaluate if titlebar transparency is needed: window.titlebarAppearsTransparent = true
+        
+        // NOTE: Window is currently closed using the standard close button
+        // Consider implementing a custom close behavior if needed in the future
     }
+    
+    /// Sets up signal handlers for mounting and unmounting shares.
+    func setupSignalHandlers() {
+        // Define custom signals for unmounting and mounting
+        let unmountSignal = SIGUSR1
+        let mountSignal = SIGUSR2
+
+        // Ignore the signals at the process level
+        signal(unmountSignal, SIG_IGN)
+        signal(mountSignal, SIG_IGN)
+
+        // Create dispatch sources for the signals on the main queue
+        unmountSignalSource = DispatchSource.makeSignalSource(signal: unmountSignal, queue: .main)
+        mountSignalSource = DispatchSource.makeSignalSource(signal: mountSignal, queue: .main)
+
+        // Set up event handler for unmount signal
+        unmountSignalSource?.setEventHandler { [weak self] in
+            Logger.app.debug("🚦Received unmount signal.")
+            Task {
+                await self?.mounter?.unmountAllMountedShares(userTriggered: true)
+            }
+        }
+
+        // Set up event handler for mount signal
+        mountSignalSource?.setEventHandler { [weak self] in
+            Logger.app.debug("🚦Received mount signal.")
+            Task {
+                await self?.mounter?.mountAllShares()
+            }
+        }
+
+        // Activate the signal sources
+        unmountSignalSource?.resume()
+        mountSignalSource?.resume()
+    }
+
 }
