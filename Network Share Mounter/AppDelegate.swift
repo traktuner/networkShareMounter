@@ -417,18 +417,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mountSignalSource = DispatchSource.makeSignalSource(signal: mountSignal, queue: .main)
 
         // Set up event handler for unmount signal
-        unmountSignalSource?.setEventHandler { [weak self] in
+        unmountSignalSource?.setEventHandler { [self] in
             Logger.app.debug("🚦Received unmount signal.")
             Task {
-                await self?.mounter?.unmountAllMountedShares(userTriggered: true)
+                await self.mounter?.unmountAllMountedShares(userTriggered: true)
             }
         }
 
         // Set up event handler for mount signal
-        mountSignalSource?.setEventHandler { [weak self] in
+        mountSignalSource?.setEventHandler { [self] in
             Logger.app.debug("🚦Received mount signal.")
             Task {
-                await self?.mounter?.mountAllShares()
+                await self.mounter?.mountAllShares()
             }
         }
 
