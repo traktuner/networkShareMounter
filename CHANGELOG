@@ -1,0 +1,70 @@
+# 3.0.4
+
+* Mount status display now enhanced with SF Symbols.
+* Integrated the widely used [Sparkle](https://sparkle-project.org/) framework so that the app can update itself. There is a new parameter `enableAutoUpdater` which is set to TRUE by default. If you want to deactivate the auto update feature, you must set this parameter to `false` (Issue #116)
+* Possibility introduced to trigger mount and unmount via UNIX signals (kill -SIGUSR1 PID performs an unmount of all shares, kill -SIGUSR2 PID triggers a mount of all shares) (Issue #106)
+* We are of the opinion that Kerberos functionality via our DogeADAuth library can leave the beta stage soon
+* Fixed a bug where the color of the menu bar symbol did not reflect the status of the Kerberos ticket (kerberos authentication (dogeAuth) beta)
+* Fixed a bug in a doge library (kerberos authentication) call which caused the app to crash
+* Workaround for Finder showing already disconnected drives after wakeup (Issue #109)
+* Fixed a few bug in external doge-ad kerberos authentication library which caused the app to crash after some time (Issue #113)
+
+# 3.0.3
+
+* Fixed a bug where mounts under `/Volumes` as default mount path generated `sharename-1` etc. directories
+   * if there is already a directory with the same name as the share under `/Volumes`, the mount will be aborted. 
+   * since the `/Volumes` directory is read-only for regular users, directories of aborted mounts (also known as "zombie" mount directories) cannot be deleted.
+   * if such a directory exists, the share will not be mounted: **for the aforementioned reasons the *Network Share Mounter* is unable to solve the issue of stale directories under `/Volumes`**. 
+   * Users with root privileges can manually delete these directories, while administrators can use scripts to delete them.
+   * After a reboot of macOS, these directories will also be deleted.
+* Fixed a bug where the color of the menu bar symbol did not reflect the status of the Kerberos ticket (kerberos authentication (dogeAuth) beta)
+
+# 3.0.2
+
+* Fixed a bug that caused the app to crash when the Mac wakes up from sleep
+* if kerberos is enabled (Beta), user triggered *mount all shares* will also re-authenticate/renew Kerberos tickets.
+
+# 3.0.1
+
+* fixed migration of `FAU Prefix Assistant` account to NSM's keychain
+
+# 3.0.0
+
+*For usage and configuration examples please consult the [documentation](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/dev/README.md?ref_type=heads)*
+
+## Speed and Reliability
+* Transition from *Grand Central Dispatch* (GCD) to *Swift Concurrency* for improved asynchronous task management.
+* Mount operations are now executed in parallel (Issue #36).
+* The issue of mounts "overtaking" themselves has been resolved.
+* The occurrence of multiple mount directories (`SHARE-1, SHARE-2, ...`) has been eliminated, which used to happen when a mount became "outdated" (Issue #48, #66, #53).
+
+## Network Shares
+* Added a new internal data structure for shares.
+	* The current "state" of a mount is recorded, including whether it should be mounted, is in the mount queue, is already mounted, or if an error has occurred.
+	* Explicit mount points per share are now possible, instead of relying on a globally defined mount directory (Issue #60).
+* Managed shares now support username/password authentication (Issue #54, #34).
+* Improved authentication features: supports password authentication and MDM-defined network shares can now be handled in a more flexible manner.
+* Users can choose between username/password or Kerberos authentication.
+* The user-defined share credentials are now stored in the macOS Keychain.
+* Network shares defined by MDM are now more flexible.
+
+## Advanced Logging
+* Detailed and clear logging capabilities implemented.
+* All crucial operations now generate corresponding logs.
+
+## Kerberos SSO
+* Serves as a potential alternative to Apple Enterprise Connect, Jamf Connect or NoMAD with our new kerberos authentication library.
+* If a Kerberos realm is configured, such as through a profile, the Network Share Manager can set and store the username and password for obtaining and renewing Kerberos tickets.
+* Display different colors for the app icon in the menu to notify the user about missing or incorrect credentials.
+
+## Additional Features
+* If the user disconnects the drives by clicking the menu option, they will stay disconnected until:
+  	* A network change, such as VPN or switching between home and office networks, happens.
+	* The user remounts the drives manually using the menu.
+* Shares can be mounted or unmounted during specific system events, such as network changes, system sleep, shutdown, and app quit.
+* Support for `afp://` and webdav (`https://`) has been integrated.
+* The app now consistently reflects changes made to the MDM profile (Issue #71).
+* ...and a lot of bugfixes.
+
+## System Requirements
+* macOS 11 Big Sur or later.
