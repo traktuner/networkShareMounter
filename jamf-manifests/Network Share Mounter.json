@@ -66,11 +66,11 @@
                 }
             }
         },
-        "useNewDefaultLocation": {
-            "title": "Use the new default mount location",
-            "description": "With version 3 the old default mount path (~/Netzlaufwerke/) is deprecated. New default is (/Volumes). This key allows administrators to adopt this default value ahead of the official release. This option is provided to ease the transition for administrators.",
+        "enableAutoUpdater": {
+            "title": "Enable AutoUpdater Framework",
+            "description": "Turns the auto update framework on or off, so the App can update itself.",
             "type": "boolean",
-            "default": false
+            "default": true
         },
         "location": {
             "title": "Mount path",
