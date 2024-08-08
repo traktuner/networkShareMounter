@@ -420,7 +420,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         unmountSignalSource?.setEventHandler { [self] in
             Logger.app.debug("🚦Received unmount signal.")
             Task {
-                await self.mounter?.unmountAllMountedShares(userTriggered: true)
+                await self.mounter?.unmountAllMountedShares(userTriggered: false)
             }
         }
 
@@ -428,7 +428,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mountSignalSource?.setEventHandler { [self] in
             Logger.app.debug("🚦Received mount signal.")
             Task {
-                await self.mounter?.mountAllShares()
+                await self.mounter?.mountAllShares(userTriggered: true)
             }
         }
 
