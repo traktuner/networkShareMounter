@@ -243,7 +243,7 @@ class Mounter: ObservableObject {
                     // Now let's check if there is some SHARE-1, SHARE-2, ... mount and unmount it
                     //
                     // compare list of shares with mount
-                    for share in self.shareManager.allShares {
+                    for share in await self.shareManager.allShares {
                         if let shareDirName = URL(string: share.networkShare) {
                             //
                             // get the last component of the share, since this is the name of the mount-directory
@@ -350,7 +350,7 @@ class Mounter: ObservableObject {
     /// Since we do only log if an unmount call fails (and nothing else), this function does not need to throw
     /// - Parameter userTriggered: boolean to define if unmount was triggered by user, defaults to false
     func unmountAllMountedShares(userTriggered: Bool = false) async {
-        for share in shareManager.allShares {
+        for share in await shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
                 let result = await unmountShare(atPath: mountpoint)
                 switch result {
@@ -402,7 +402,7 @@ class Mounter: ObservableObject {
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
         
         // TODO: check if ths is not too dangerous
-        for share in shareManager.allShares {
+        for share in await shareManager.allShares {
             // check if there is a specific mountpoint for the share. If yes, get the
             // parent directory. This is the path where the mountpoint itself is located
             if let path = share.mountPoint {
@@ -425,7 +425,7 @@ class Mounter: ObservableObject {
         let netConnection = Monitor.shared
         
         if netConnection.netOn {
-            if self.shareManager.allShares.isEmpty {
+            if await self.shareManager.allShares.isEmpty {
                 Logger.mounter.info("No shares configured.")
             } else {
                 // perform cleanup routines before mounting
@@ -435,7 +435,7 @@ class Mounter: ObservableObject {
                     Logger.mounter.debug("killall NetAuthSysAgent")
                 }
                 var mountTasks: [Task<Void, Never>] = []
-                for share in self.shareManager.allShares {
+                for share in await self.shareManager.allShares {
                     let mountTask = Task {
                         do {
                             // if the mount was triggered by user, set mountStatus
@@ -494,7 +494,7 @@ class Mounter: ObservableObject {
     /// set mountStatus for all shares
     /// - Parameter to status: mount status of type MountStatus
     func setAllMountStatus(to status: MountStatus) async {
-        for share in shareManager.allShares {
+        for share in await shareManager.allShares {
             await updateShare(mountStatus: status, for: share)
         }
     }

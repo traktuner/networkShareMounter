@@ -65,14 +65,11 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         let applicationVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"]!
         let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
         appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
-        
-        if appDelegate.mounter!.shareManager.allShares.isEmpty {
-            additionalSharesText.isHidden = true
-        } else {
-            additionalSharesText.isHidden = false
+        Task {
+            let hasShares = await appDelegate.mounter!.shareManager.hasShares()
+            additionalSharesText.isHidden = !hasShares
+            additionalSharesText.stringValue = NSLocalizedString("managed-shares-text", comment: "Label for additional/managed shares")
         }
-        
-        additionalSharesText.stringValue = NSLocalizedString("managed-shares-text", comment: "Label for additional/managed shares")
     }
     
     override func viewWillAppear() {
@@ -264,7 +261,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     Logger.networkShareViewController.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
                     await self.appDelegate.mounter!.removeShare(for: selectedShare)
                     // update userDefaults
-                    self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
+                    await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
                     // remove share from local userShares array bound to tableView
                     self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
                     usersNewShare.stringValue=""
@@ -304,15 +301,18 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     self.tableView.reloadData()
                 }
             }
-            if let selectedShare = appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
-                // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
-                // new share will be added
-                shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
-                                                                              authType: selectedShare.authType,
-                                                                              username: selectedShare.username,
-                                                                              password: selectedShare.password,
-                                                                              managed: selectedShare.managed)
-                shareViewController.selectedShareURL = usersNewShare.stringValue
+            Task {
+                if let selectedShare = await appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
+                    // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
+                    // new share will be added
+                    shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
+                                                                                  authType: selectedShare.authType,
+                                                                                  username: selectedShare.username,
+                                                                                  password: selectedShare.password,
+                                                                                  managed: selectedShare.managed)
+                    shareViewController.selectedShareURL = usersNewShare.stringValue
+                }
+                
             }
         }
     }
@@ -321,24 +321,25 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     ///private function to check if a networkShare should added to the list of displayed shares
     ///- Parameter type: enum of various types of shares to check for
     private func refreshUserArray(type: DisplayShareTypes) {
-        appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
-            // set mount symbol
-            var mountSymbol =   (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.symbolName :
-                                (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.symbolName :
-                                (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.symbolName :
-                                (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.symbolName :
-                                (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.symbolName :
-                                (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.symbolName :
-                                MountStatusDescription.unknown.symbolName
-            let mountColor =    (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.color :
-                                (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.color :
-                                (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.color :
-                                (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.color :
-                                (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.color :
-                                (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.color :
-                                MountStatusDescription.unknown.color
-            let shouldAppend: Bool
-            switch type {
+        Task {
+            await appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
+                // set mount symbol
+                var mountSymbol =   (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.symbolName :
+                (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.symbolName :
+                (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.symbolName :
+                (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.symbolName :
+                (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.symbolName :
+                (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.symbolName :
+                MountStatusDescription.unknown.symbolName
+                let mountColor =    (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.color :
+                (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.color :
+                (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.color :
+                (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.color :
+                (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.color :
+                (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.color :
+                MountStatusDescription.unknown.color
+                let shouldAppend: Bool
+                switch type {
                 case .managed:
                     shouldAppend = definedShare.managed
                 case .krb:
@@ -356,12 +357,12 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                 case .missingPassword:
                     shouldAppend = definedShare.authType == .pwd && (definedShare.password == "" || definedShare.password == nil)
                     mountSymbol = MountStatusDescription.invalidCredentials.symbolName
-            }
-            
-            if shouldAppend {
-                // check and skip if share is already in userShares
-                if !userShares.contains(where: { $0.networkShare == definedShare.networkShare }) {
-                    userShares.append(UserShare(networkShare: definedShare.networkShare,
+                }
+                
+                if shouldAppend {
+                    // check and skip if share is already in userShares
+                    if !userShares.contains(where: { $0.networkShare == definedShare.networkShare }) {
+                        userShares.append(UserShare(networkShare: definedShare.networkShare,
                                                     authType: definedShare.authType.rawValue,
                                                     username: definedShare.username,
                                                     password: definedShare.password,
@@ -370,10 +371,11 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                                                     mountStatus: definedShare.mountStatus.rawValue,
                                                     mountSymbol: mountSymbol,
                                                     symbolColor: mountColor))
+                    }
                 }
             }
+            tableView.reloadData()
         }
-        tableView.reloadData()
     }
     ///
     /// provide a method to react to certain events
