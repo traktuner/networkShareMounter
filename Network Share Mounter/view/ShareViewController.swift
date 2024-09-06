@@ -73,7 +73,7 @@ class ShareViewController: NSViewController {
         configureView()
         progressIndicator.isHidden = true
         authType = AuthType.pwd
-        shareArray = appDelegate.mounter!.shareManager.allShares
+//        shareArray = appDelegate.mounter!.shareManager.getAllShares()
         shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
         authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
         

@@ -133,9 +133,9 @@ class ActivityController {
             Logger.activityController.debug("⏰ Time goes by so slowly: got timer notification.")
             Logger.activityController.debug(" ▶︎ ...check for possible MDM profile changes.")
             // call updateShareArray() to reflect possible changes in MDM profile?
-            mounter.shareManager.updateShareArray()
-            Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
             Task {
+                await mounter.shareManager.updateShareArray()
+                Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
                 await mounter.mountAllShares()
             }
         }

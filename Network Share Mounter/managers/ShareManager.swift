@@ -355,6 +355,17 @@ actor ShareManager {
         }
     }
     
+    /// function to return all shares
+    ///    since the class/actor is now asynchron, there is no way to get _shares directly
+    func getAllShares() -> [Share] {
+        _shares
+    }
+    
+    /// function returning a bool if shares array is empty or not
+    func hasShares() -> Bool {
+        return !_shares.isEmpty
+    }
+    
     /// write user defined share configuration
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
     func saveModifiedShareConfigs() {
