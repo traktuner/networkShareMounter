@@ -14,14 +14,12 @@ enum ShareError: Error {
 }
 
 /// class `ShareManager` to manage the shares (array fo Share)
-class ShareManager {
-    private var sharesLock = os_unfair_lock()
+actor ShareManager {
     private var _shares: [Share] = []
     private let userDefaults = UserDefaults.standard
     
     /// Add a share
     func addShare(_ share: Share) {
-        os_unfair_lock_lock(&sharesLock)
         if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
             _shares.append(share)
             //
@@ -37,12 +35,10 @@ class ShareManager {
                 }
             }
         }
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Remove a share at a specific index
     func removeShare(at index: Int) {
-        os_unfair_lock_lock(&sharesLock)
         // remove keychain entry for share
         if let username = _shares[index].username {
             let pwm = KeychainManager()
@@ -54,7 +50,6 @@ class ShareManager {
             }
         }
         _shares.remove(at: index)
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Get all shares
@@ -64,18 +59,14 @@ class ShareManager {
     
     /// delete all shares, delete array entries is not already empty
     func removeAllShares() {
-        os_unfair_lock_lock(&sharesLock)
         if !_shares.isEmpty {
             _shares.removeAll()
         }
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Update a share at a specific index
     func updateShare(at index: Int, withUpdatedShare updatedShare: Share) throws {
-        os_unfair_lock_lock(&sharesLock)
         guard index >= 0 && index < _shares.count else {
-            os_unfair_lock_unlock(&sharesLock)
             throw ShareError.invalidIndex(index)
         }
         //
@@ -99,7 +90,6 @@ class ShareManager {
             }
         }
         _shares[index] = updatedShare
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Update the mount status of a share at a specific index
@@ -107,8 +97,6 @@ class ShareManager {
     ///   - index: The index of the share to update
     ///   - newMountStatus: The new mount status to set
     func updateMountStatus(at index: Int, to newMountStatus: MountStatus) throws {
-        os_unfair_lock_lock(&sharesLock)
-        defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
@@ -121,8 +109,6 @@ class ShareManager {
     ///   - index: The index of the share to update
     ///   - mountPoint: The mount point where the share should be mounted
     func updateMountPoint(at index: Int, to mountPoint: String?) throws {
-        os_unfair_lock_lock(&sharesLock)
-        defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
@@ -135,8 +121,6 @@ class ShareManager {
     ///   - index: The index of the share to update
     ///   - actualMountPoint: The mount point where the share is mounted
     func updateActualMountPoint(at index: Int, to actualMountPoint: String?) throws {
-        os_unfair_lock_lock(&sharesLock)
-        defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
