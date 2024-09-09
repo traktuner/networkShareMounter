@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "menubaricon_16.png",
+      "filename" : "menubaricon 2.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "menubaricon_16@2x.png",
+      "filename" : "menubaricon 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "menubaricon_16@3x.png",
+      "filename" : "menubaricon.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
