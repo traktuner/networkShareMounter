@@ -27,6 +27,7 @@
 		F79B159F274E722100C322A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F79B159D274E722100C322A8 /* Main.storyboard */; };
 		F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */; };
 		F7A383ED2B065E1400CA70E2 /* UserShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A383EC2B065E1400CA70E2 /* UserShare.swift */; };
+		F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7A7A2182C8F0240006772D4 /* dogeADAuth */; };
 		F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */; };
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 		F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7C205162C305C8A00902B4E /* dogeADAuth */; };
@@ -128,6 +129,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */,
 				F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */,
 				F7885F642C623084000B96AC /* Sparkle in Frameworks */,
 				F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */,
@@ -299,6 +301,7 @@
 				F7C205162C305C8A00902B4E /* dogeADAuth */,
 				F7E2AF6E2C3061020063960F /* dogeADAuth */,
 				F7885F632C623084000B96AC /* Sparkle */,
+				F7A7A2182C8F0240006772D4 /* dogeADAuth */,
 			);
 			productName = "Network Share Mounter";
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
@@ -385,8 +388,8 @@
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
-				F7FDE7EF2C6136B6006C347F /* XCRemoteSwiftPackageReference "dogeadauth" */,
 				F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */,
+				F7A7A2172C8F0240006772D4 /* XCLocalSwiftPackageReference "../doge-adauth" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -677,7 +680,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 172;
+				CURRENT_PROJECT_VERSION = 174;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -727,7 +730,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 172;
+				CURRENT_PROJECT_VERSION = 174;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -770,7 +773,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 172;
+				CURRENT_PROJECT_VERSION = 174;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -802,7 +805,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 172;
+				CURRENT_PROJECT_VERSION = 174;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -830,7 +833,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 172;
+				CURRENT_PROJECT_VERSION = 174;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -862,7 +865,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 172;
+				CURRENT_PROJECT_VERSION = 174;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -920,6 +923,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		F7A7A2172C8F0240006772D4 /* XCLocalSwiftPackageReference "../doge-adauth" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../doge-adauth";
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -937,14 +947,6 @@
 				minimumVersion = 4.2.0;
 			};
 		};
-		F7FDE7EF2C6136B6006C347F /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.6;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -952,6 +954,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		F7A7A2182C8F0240006772D4 /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = dogeADAuth;
 		};
 		F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
