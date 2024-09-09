@@ -430,7 +430,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     if let color = userShare.symbolColor {
                         // changing color for SF Symbols is available on macOS >= 12
                         if #available(macOS 12.0, *) {
-                            let config = NSImage.SymbolConfiguration(hierarchicalColor: color)
+                            let config = NSImage.SymbolConfiguration(paletteColors: [color])
                             imageView.image = symbolImage.withSymbolConfiguration(config)
                         } else {
                             imageView.image = symbolImage
