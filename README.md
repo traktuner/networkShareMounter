@@ -6,6 +6,8 @@ To create a perfect solution for administrators _and_ end users, we have develop
 The concept behind the Network Share Mounter is to have a single application for mounting a list of network shares. Ideally, the list of shares is distributed as a configuration profile with an MDM solution based on workgroups, departments, project groups, etc. If a user needs to add additional shares beyond the managed ones, they can easily add them via the menu bar.
 The Shares are mounted in the background based on network accessibility without requiring any user interaction. To enhance this process, a Kerberos environment is recommended to avoid the need for authentication during a mount. With version 3, user credentials can also be stored securely in the user's keychain (managed and manually added shares).
 
+_Go to the [releases page](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/releases) for the newest version._
+
 **Key features**
 
 - **Supports various protocols:** Easly mount Windows (SMB/CIFS), AFP and WebDAV Shares
@@ -15,6 +17,10 @@ The Shares are mounted in the background based on network accessibility without 
 - **Background mounting:** Shares are automatically mounted in the background based on network accessibility, requiring no user intervention.
 - **Silent failure handling:** In the event of a mount failure (e.g., unreachable share), no intrusive graphical user interface will appear, ensuring a seamless user experience. Depending on the configuration, the Network Share Mounter icon in the menu bar adapts to provide a quick visual indicator of the current status.
 - **Kerberos and keychain integration:** A Kerberos environment eliminates the need for adding user credentials for mounts, enhancing both security and efficiency. Alternatively, user credentials can be securely stored in the user's keychain.
+- **trigger by UNIX signals:** A mount/unmount of the configured shares can be triggered via Unix signals:
+   - `kill -SIGUSR1 PID` triggers *unmount* of configured shares
+   - `kill -SIGUSR2 PID` triggers *mount* of configured shares
+   - (where `PID` is Network Share Mounter's process id)
 
 <img src="Network%20Share%20Mounter%20-%20Screenshot.png" />  
 
@@ -43,20 +49,20 @@ For an easier configuration of all the preference keys without creating or modif
 | `canChangeAutostart` | Boolean | If set to false, the user can not change the autostart option. | true | ≥ 2.0.0 | optional ||
 | `unmountOnExit` | Boolean | If set to false, the shares will be mounted after quitting the app. | true | ≥ 2.0.0 | optional ||
 | `location` | String | Path where network shares will be mounted. <br />Make sure, that the user has read and write access to the mount location if the location is not `/Volumes`.<br />Leave blank for the default value *(highly recommended)* | - | ≥ 2.1.0 | optional | `/Volumes` |
-| `useNewDefaultLocation` | Boolean | Use the new default mount location (`/Volumes`)<br /><br />**⚠️ With version 3 the old default mount path (~/Netzlaufwerke/) is deprecated.** | false | 3.0.0 | optional |  |
 | `cleanupLocationDirectory` | Boolean | 1) Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag.    <br /><br />2) Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag.    <br /><br />3) If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array.   <br />*(The previous setting where too dangerous)* | false | ≥ 2.1.0 | - | `false` |
 | `kerberosRealm` | String | Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled | - | ≥ 3.0.0 | optional | EXAMPLE.REALM.COM |
 | `helpURL` | String | Configure a website link to help users interact with the application. | - | ≥ 2.0.0 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
+| `enableAutoUpdater` | Boolean | Turns on the auto update framework so that the app can update itself | true | ≥ 3.0.4 | optional | |
 
-#### ⚠️ Important note for the `location`,  `cleanupLocationDirectory` and `useNewDefaultLocation` values
+#### ⚠️ Important note for the `location` and `cleanupLocationDirectory` values
 
 If the value `location` left empty (or undefined), the directory (`~/Netzlaufwerk`) will be created as a subdirectory of the user's home where the network shares will be mounted. Since this directory always contains only mounted network shares, there is a routine to clean up this directory and deletes unnecessary files and directories.
 
 If another directory is used to mount the network drives (like `location` = `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false` ! 
 
-Make sure that the user has both read and write access permissions to the mount location if you are not using predefined locations such as `~/Netzlaufwerk`,`~/Network shares` in the user's home, or the `/Volumes` location [where the OS handle the mount process](#5-why-is-it-not-possible-to-change-the-mount-point-name-when-using-volumes-for-the-mount-location).
+Make sure that the user has both read and write access permissions to the mount location if you are not using predefined locations such as `~/Netzlaufwerk`,`~/Network shares` in the user's home, or the `/Volumes` location [where the OS have to handle the mount process](#5-why-is-it-not-possible-to-change-the-mount-point-name-when-using-volumes-for-the-mount-location).
 
-**Also, in a feature release, the new default location will be set to `/Volumes`**. The `useNewDefaultLocation` parameter allows users to adopt this default value ahead of the official release. This option is provided to ease the transition for administrators.
+_*Previously we announced to change the default location (`useNewDefaultLocation`) to `/Volumes`. This will not be realized beacuse of issues with the mount process handled by the OS itself. The default mount path will be in the home directory._
 
 ## 📚 FAQ
 ##### **1) Jamf recon stuck with configured Network Share Mounter app**  
@@ -97,7 +103,7 @@ When mounting shares in `/Volumes`, the OS handles the mount process entirely an
 ## 🚀 Planned features and releases
 
 * Kerberos/AD handling for user authentication like Apple Enterprise Connect, Jamf Connect or NoMAD *(Beta in v3.0, Release ETA Summer 2024, v3.1)*
-* Change default mount location to `/Volumes` *(ETA Summer 2024, v3.1)*
+* ~Change default mount location to `/Volumes~ *(cancelled)*
 * Remove the legacy  `networkShares`  value *(ETA Summer 2024, v3.1)*
 
 ## ✉️ Contact

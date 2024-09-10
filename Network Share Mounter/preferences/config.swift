@@ -9,6 +9,7 @@
 
 import NetFS
 import Foundation
+import Cocoa
 
 struct Defaults {
     static let defaultsDomain = "de.fau.rrze.NetworkShareMounter"
@@ -21,8 +22,12 @@ struct Defaults {
         "de": "Netzlaufwerke"
         ]
     // number of seconds bevor triggering actions
-    static let triggerTimer: Double = 300
-    static let nsmTriggerNotification = Notification.Name("nsmTriggerNotification")
+    static let mountTriggerTimer: Double = 5.0 * 60
+    static let authTriggerTimer: Double = 30.0 * 60
+    static let nsmTimeTriggerNotification = Notification.Name("nsmTimeTriggerNotification")
+    static let nsmAuthTriggerNotification = Notification.Name("nsmAuthTriggerNotification")
+    static let nsmMountTriggerNotification = Notification.Name("nsmMountTriggerNotification")
+    static let nsmNetworkChangeTriggerNotification = Notification.Name("nsmNetworkChangeTriggerNotification")
     static let nsmUnmountTriggerNotification = Notification.Name("nsmUnmountTriggerNotification")
     static let nsmMountManuallyTriggerNotification = Notification.Name("nsmMountManuallyTriggerNotification")
     // swiftlint:disable force_cast

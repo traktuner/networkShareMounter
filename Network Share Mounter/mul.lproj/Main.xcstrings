@@ -1297,6 +1297,48 @@
         }
       }
     },
+    "BcP-wK-xkM.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Check for updates automatically\"; ObjectID = \"BcP-wK-xkM\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch nach Updates suchen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Check for updates automatically"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones automáticamente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher automatiquement les mises à jour"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifica automaticamente gli aggiornamenti"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch controleren op updates"
+          }
+        }
+      }
+    },
     "BgM-ve-c93.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"    Left to Right\"; ObjectID = \"BgM-ve-c93\";",
       "localizations" : {
@@ -1717,7 +1759,7 @@
     },
     "cMp-HE-rms.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"Table View Cell\"; ObjectID = \"cMp-HE-rms\";",
-      "extractionState" : "extracted_with_value",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3382,18 +3424,6 @@
         }
       }
     },
-    "k27-MA-16e.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"Table View Cell\"; ObjectID = \"k27-MA-16e\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Table View Cell"
-          }
-        }
-      }
-    },
     "KaW-ft-85H.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Revert to Saved\"; ObjectID = \"KaW-ft-85H\";",
       "extractionState" : "extracted_with_value",
@@ -3652,18 +3682,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bring All to Front"
-          }
-        }
-      }
-    },
-    "LF0-pV-Fyq.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"Text Cell\"; ObjectID = \"LF0-pV-Fyq\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Text Cell"
           }
         }
       }
@@ -3956,6 +3974,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "\tDefault"
+          }
+        }
+      }
+    },
+    "Ns5-m1-njP" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mounted"
           }
         }
       }
@@ -6067,7 +6096,7 @@
     },
     "Ydh-sn-YZQ.headerCell.title" : {
       "comment" : "Class = \"NSTableColumn\"; headerCell.title = \"Share\"; ObjectID = \"Ydh-sn-YZQ\";",
-      "extractionState" : "extracted_with_value",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6360,7 +6389,7 @@
     },
     "zzZ-zK-IIc.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"Text Cell\"; ObjectID = \"zzZ-zK-IIc\";",
-      "extractionState" : "extracted_with_value",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

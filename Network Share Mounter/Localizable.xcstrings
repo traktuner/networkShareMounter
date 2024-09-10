@@ -655,6 +655,41 @@
         }
       }
     },
+    "Check for Updates..." : {
+      "comment" : "Check for Updates",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach Updates suchen..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher des mises à jour..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifica aggiornamenti..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controleren op updates..."
+          }
+        }
+      }
+    },
     "Does not exist" : {
       "comment" : "Does not exist",
       "localizations" : {
@@ -721,6 +756,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fout bij het maken van het koppelingsdirectory."
+          }
+        }
+      }
+    },
+    "errorOnMount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler beim Einhängen der Freigabe"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al montar el recurso compartido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur lors du montage du partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore durante il montaggio della condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fout bij het koppelen van de share"
           }
         }
       }
@@ -1186,6 +1256,47 @@
         }
       }
     },
+    "invalidCredentials" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehlende oder ungültige Anmeldedaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Missing or invalid credentials"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credenciales faltantes o inválidas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identifiants manquants ou invalides"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credenziali mancanti o non valide"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontbrekende of ongeldige inloggegevens"
+          }
+        }
+      }
+    },
     "Kerberos authentication error" : {
       "comment" : "Kerberos authentication error",
       "localizations" : {
@@ -1572,6 +1683,47 @@
         }
       }
     },
+    "mounted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe eingehängt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share mounted"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recurso compartido montado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partage monté"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condivisione montata"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share gekoppeld"
+          }
+        }
+      }
+    },
     "Mountpoint is inacessible" : {
       "comment" : "Mountpoint is inacessible",
       "localizations" : {
@@ -1715,6 +1867,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Er is geen fout opgetreden."
+          }
+        }
+      }
+    },
+    "obstructingDirectory" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht eingehängt: Lokales Verzeichnis blockiert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not mounted: obstructing local directory"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No montado: directorio local obstructivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non monté: répertoire local obstruant"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non montato: directory locale ostruente"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niet gekoppeld: blokkerend lokaal directory"
           }
         }
       }
@@ -1938,6 +2131,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voorkeuren ..."
+          }
+        }
+      }
+    },
+    "queued" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einhängen in Warteschlange"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mount queued"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montaje en cola"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montage en file d'attente"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montaggio in coda"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppeling in wachtrij"
           }
         }
       }
@@ -2298,6 +2532,47 @@
         }
       }
     },
+    "unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannter Fehler beim Einhängen der Freigabe"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown error on mounting share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error desconocido al montar el recurso compartido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur inconnue lors du montage du partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore sconosciuto durante il montaggio della condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onbekende fout bij het koppelen van de share"
+          }
+        }
+      }
+    },
     "Unknown return code, sorry" : {
       "comment" : "Unknown return code, sorry",
       "localizations" : {
@@ -2364,6 +2639,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verbinding verbreken"
+          }
+        }
+      }
+    },
+    "unreachable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server ist nicht erreichbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server is unreachable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor no está accesible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur est inaccessible"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server non è raggiungibile"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server is onbereikbaar"
           }
         }
       }

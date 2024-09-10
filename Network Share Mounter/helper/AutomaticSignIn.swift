@@ -20,37 +20,37 @@ public struct Doge_SessionUserObject {
     var userInfo: ADUserRecord?
 }
 
-class AutomaticSignIn {
+actor AutomaticSignIn {
+    static let shared = AutomaticSignIn()
     
     var prefs = PreferenceManager()
-    var workers = [AutomaticSignInWorker]()
     
-    init() {
-        signInAllAccounts()
-    }
+    let accountsManager = AccountsManager.shared
     
-    private func signInAllAccounts() {
+    private init() {}
+    
+    func signInAllAccounts() async {
         let klist = KlistUtil()
-        _ = klist.klist().map({ $0.principal })
-        let defaultPrinc = klist.defaultPrincipal
-        self.workers.removeAll()
+        _ = await klist.klist().map({ $0.principal })
+        let defaultPrinc = await klist.defaultPrincipal
         
-        // sign in only for defaultPrinc-Account if singleUserMode == true or only one account exists, walk through al accounts
+        // sign in only for defaultPrinc-Account if singleUserMode == true or only one account exists, walk through all accounts
         // if singleUserMode == false and more than 1 account exists
-        for account in AccountsManager.shared.accounts {
-            if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || AccountsManager.shared.accounts.count == 1 {
+        let accounts = await accountsManager.accounts
+        let accountsCount = accounts.count
+        for account in accounts {
+            if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || accountsCount == 1 {
                 let worker = AutomaticSignInWorker(account: account)
-                worker.checkUser()
-                self.workers.append(worker)
+                await worker.checkUser()
             }
         }
         if let defPrinc = defaultPrinc {
-            cliTask("kswitch -p \(defaultPrinc ?? "")")
+            _ = try? await cliTask("kswitch -p \(defPrinc)")
         }
     }
 }
 
-class AutomaticSignInWorker: dogeADUserSessionDelegate {
+actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     var prefs = PreferenceManager()
     var account: DogeAccount
@@ -65,56 +65,60 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
         self.session.setupSessionFromPrefs(prefs: prefs)
     }
     
-    func checkUser() {
-        
+    func checkUser() async {
         let klist = KlistUtil()
-        let princs = klist.klist().map({ $0.principal })
+        let princs = await klist.klist().map({ $0.principal })
         
-        resolver.resolve(query: "_ldap._tcp." + domain.lowercased(), completion: { i in
-            Logger.automaticSignIn.info("SRV Response for: _ldap._tcp.\(self.domain, privacy: .public)")
-            switch i {
-            case .success(let result):
-                if !result.SRVRecords.isEmpty {
-                    if princs.contains(where: { $0.lowercased() == self.account.upn }) {
-                        self.getUserInfo()
+        await withCheckedContinuation { continuation in
+            resolver.resolve(query: "_ldap._tcp." + domain.lowercased()) { result in
+                Logger.automaticSignIn.info("SRV Response for: _ldap._tcp.\(self.domain, privacy: .public)")
+                switch result {
+                case .success(let records):
+                    if !records.SRVRecords.isEmpty {
+                        if princs.contains(where: { $0.lowercased() == self.account.upn }) {
+                            Task {
+                                await self.getUserInfo()
+                            }
+                        }
+                    } else {
+                        Logger.automaticSignIn.info("No SRV records found.")
                     }
-//                    self.auth()
-                } else {
-                    Logger.automaticSignIn.info("No RSV records found.")
+                case .failure(let error):
+                    Logger.automaticSignIn.error("No DNS results for domain \(self.domain, privacy: .public), unable to automatically login. Error: \(error, privacy: .public)")
                 }
-            case .failure(let error):
-                Logger.automaticSignIn.error("No DNS results for domain \(self.domain, privacy: .public), unable to automatically login. Error: \(error, privacy: .public)")
+                continuation.resume()
             }
-        })
-        self.auth()
+        }
+        
+        await auth()
     }
     
-    func auth() {
+    func auth() async {
         let keyUtil = KeychainManager()
         do {
-            if let pass = try keyUtil.retrievePassword(forUsername: self.account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
-                self.account.hasKeychainEntry = true
+            if let pass = try keyUtil.retrievePassword(forUsername: account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
+                account.hasKeychainEntry = true
                 session.userPass = pass
                 session.delegate = self
-                session.authenticate()
+                await session.authenticate()
             }
         } catch {
-            self.account.hasKeychainEntry = false
+            account.hasKeychainEntry = false
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
         }
     }
     
-    func getUserInfo() {
-        cliTask("kswitch -p \(self.session.userPrincipal )")
+    func getUserInfo() async {
+        _ = try? await cliTask("kswitch -p \(session.userPrincipal)")
         session.delegate = self
-        session.userInfo()
+        await session.userInfo()
     }
     
-    func dogeADAuthenticationSucceded() {
-        Logger.automaticSignIn.info("Auth succeded for user: \(self.account.upn, privacy: .public)")
-        cliTask("kswitch -p \(self.session.userPrincipal )")
+    func dogeADAuthenticationSucceded() async {
+        Logger.automaticSignIn.info("Auth succeeded for user: \(self.account.upn, privacy: .public)")
+        _ = try? await cliTask("kswitch -p \(session.userPrincipal)")
         NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
-        session.userInfo()
+        await session.userInfo()
     }
     
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
@@ -125,7 +129,7 @@ class AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.info("Removing bad password from keychain")
             let keyUtil = KeychainManager()
             do {
-                try keyUtil.removeCredential(forUsername: self.account.upn)
+                try keyUtil.removeCredential(forUsername: account.upn)
                 Logger.automaticSignIn.info("Successfully removed keychain item")
             } catch {
                 Logger.automaticSignIn.info("Failed to remove keychain item for username \(self.account.upn)")

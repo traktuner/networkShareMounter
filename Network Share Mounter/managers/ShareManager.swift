@@ -14,14 +14,12 @@ enum ShareError: Error {
 }
 
 /// class `ShareManager` to manage the shares (array fo Share)
-class ShareManager {
-    private var sharesLock = os_unfair_lock()
+actor ShareManager {
     private var _shares: [Share] = []
     private let userDefaults = UserDefaults.standard
     
     /// Add a share
     func addShare(_ share: Share) {
-        os_unfair_lock_lock(&sharesLock)
         if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
             _shares.append(share)
             //
@@ -37,12 +35,10 @@ class ShareManager {
                 }
             }
         }
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Remove a share at a specific index
     func removeShare(at index: Int) {
-        os_unfair_lock_lock(&sharesLock)
         // remove keychain entry for share
         if let username = _shares[index].username {
             let pwm = KeychainManager()
@@ -54,7 +50,6 @@ class ShareManager {
             }
         }
         _shares.remove(at: index)
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Get all shares
@@ -64,18 +59,14 @@ class ShareManager {
     
     /// delete all shares, delete array entries is not already empty
     func removeAllShares() {
-        os_unfair_lock_lock(&sharesLock)
         if !_shares.isEmpty {
             _shares.removeAll()
         }
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Update a share at a specific index
     func updateShare(at index: Int, withUpdatedShare updatedShare: Share) throws {
-        os_unfair_lock_lock(&sharesLock)
         guard index >= 0 && index < _shares.count else {
-            os_unfair_lock_unlock(&sharesLock)
             throw ShareError.invalidIndex(index)
         }
         //
@@ -99,7 +90,6 @@ class ShareManager {
             }
         }
         _shares[index] = updatedShare
-        os_unfair_lock_unlock(&sharesLock)
     }
     
     /// Update the mount status of a share at a specific index
@@ -107,8 +97,6 @@ class ShareManager {
     ///   - index: The index of the share to update
     ///   - newMountStatus: The new mount status to set
     func updateMountStatus(at index: Int, to newMountStatus: MountStatus) throws {
-        os_unfair_lock_lock(&sharesLock)
-        defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
@@ -121,8 +109,6 @@ class ShareManager {
     ///   - index: The index of the share to update
     ///   - mountPoint: The mount point where the share should be mounted
     func updateMountPoint(at index: Int, to mountPoint: String?) throws {
-        os_unfair_lock_lock(&sharesLock)
-        defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
@@ -135,8 +121,6 @@ class ShareManager {
     ///   - index: The index of the share to update
     ///   - actualMountPoint: The mount point where the share is mounted
     func updateActualMountPoint(at index: Int, to actualMountPoint: String?) throws {
-        os_unfair_lock_lock(&sharesLock)
-        defer { os_unfair_lock_unlock(&sharesLock) }
         
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
@@ -177,7 +161,7 @@ class ShareManager {
             }
         }
         
-        let newShare = Share.createShare(networkShare: shareRectified, 
+        let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
                                          mountStatus: mountStatus,
                                          username: userName,
@@ -227,7 +211,7 @@ class ShareManager {
     func updateShareArray() {
         // read MDM shares
         var usedNewMDMprofile = false
-        Logger.shareManager.debug("Checking possible changes in MDM profile")
+        Logger.shareManager.debug("📜 Checking possible changes in MDM profile")
         if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             var newShares: [Share] = []
             for shareElement in sharesDict {
@@ -237,22 +221,22 @@ class ShareManager {
                     // addShare() would check if an element exists and skips it,
                     // but the new share definition could differ from the new one get from MDM
                     if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
-                        Logger.shareManager.debug("Adding new share \(newShare.networkShare, privacy: .public)")
+                        Logger.shareManager.debug(" ▶︎ Reading MDM profile: adding new share \(newShare.networkShare, privacy: .public)")
                         addShare(newShare)
                     } else {
                         if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
                             // save some stati from actual share element and save them to new share
                             // read from MDM. Then overwrite the share with the new data
-                            Logger.shareManager.debug("Found existing share \(newShare.networkShare, privacy: .public), updating status.")
+                            Logger.shareManager.debug(" ▶︎ Reading MDM profile: updating status for existing share \(newShare.networkShare, privacy: .public).")
                             newShare.mountStatus = allShares[index].mountStatus
                             newShare.id = allShares[index].id
                             newShare.actualMountPoint  = allShares[index].actualMountPoint
                             do {
                                 try updateShare(at: index, withUpdatedShare: newShare)
                             } catch ShareError.invalidIndex(let index) {
-                                Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                                Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
                             } catch {
-                                Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), unknown error.")
+                                Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), unknown error.")
                             }
                         }
                     }
@@ -269,7 +253,7 @@ class ShareManager {
             for remove in differing {
                 if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
                     if _shares[index].managed == true {
-                        Logger.shareManager.debug("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                        Logger.shareManager.debug(" ▶︎ Reading MDM profile: deleting share \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
                         removeShare(at: index)
                     }
                 }
@@ -298,9 +282,9 @@ class ShareManager {
                                 do {
                                     try updateShare(at: index, withUpdatedShare: newShare)
                                 } catch ShareError.invalidIndex(let index) {
-                                    Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                                    Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
                                 } catch {
-                                    Logger.shareManager.error("Could not update share \(newShare.networkShare, privacy: .public), unknown error.")
+                                    Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), unknown error.")
                                 }
                                 newShares.append(newShare)
                             }
@@ -317,7 +301,7 @@ class ShareManager {
                 for remove in differing {
                     if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
                         if _shares[index].managed == true {
-                            Logger.shareManager.info("Deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
+                            Logger.shareManager.info(" ▶︎ Reading MDM profile: deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
                             removeShare(at: index)
                         }
                     }
@@ -369,6 +353,17 @@ class ShareManager {
             }
             removeLegacyShareConfigs()
         }
+    }
+    
+    /// function to return all shares
+    ///    since the class/actor is now asynchron, there is no way to get _shares directly
+    func getAllShares() -> [Share] {
+        _shares
+    }
+    
+    /// function returning a bool if shares array is empty or not
+    func hasShares() -> Bool {
+        return !_shares.isEmpty
     }
     
     /// write user defined share configuration

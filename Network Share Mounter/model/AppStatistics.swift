@@ -69,7 +69,7 @@ struct AppStatistics {
     /// - **bundleID**
     func reportAppInstallation() async -> Void {
 #if DEBUG
-        Logger.appStatistics.debug("Debugging app, not reporting anything to statistics server ...")
+        Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to statistics server ...")
 #else
         let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
         guard let reportURL = URL(string: Defaults.statisticsReportURL + reportData) else {
@@ -81,15 +81,15 @@ struct AppStatistics {
         let session = URLSession(configuration: sessionConfiguration)
 
         do {
-            Logger.appStatistics.debug("Trying to connect to statistics server ...")
+            Logger.appStatistics.debug("📈 Trying to connect to statistics server ...")
             let (_, response) = try await session.data(for: request)
             // swiftlint:disable force_cast
             if (response as! HTTPURLResponse).statusCode == 200 {
-                Logger.appStatistics.debug("Reported app statistics.")
+                Logger.appStatistics.debug("📈 Reported app statistics.")
             }
             // swiftlint:enable force_cast
         } catch {
-            Logger.appStatistics.debug("Connection to reporting server failed.")
+            Logger.appStatistics.debug("🏳️ Connection to reporting server failed.")
         }
 #endif
         return()

@@ -32,7 +32,15 @@
 	<string></string>
 	<key>cleanupLocationDirectory</key>
 	<false/>
+	<key>enableAutoUpdater</key>
+	<true/>
+	<key>autoUpdate</key>
+	<true/>
 	<key>customNetworkShares</key>
 	<array/>
+	<key>SUFeedURL</key>
+	<string>https://faumac.rrze.fau.de/nsm-appcast</string>
+	<key>SUPublicEDKey</key>
+	<string>tPzwpKRVdCjP2EFDrkmcX9A2XxTQRVKg6dLMaXoA8cc=</string>
 </dict>
 </plist>

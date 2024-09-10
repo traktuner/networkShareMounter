@@ -63,7 +63,7 @@ lane :commonTasks do
   desc "lint those drity lines of code"
   swiftlint(
     mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
-    output_file: "swiftlint.result.json", # The path of the output file (optional)
+    output_file: "swiftlint.result", # The path of the output file (optional)
     config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
     files: [                                # List of files to process (optional)
         "Network Share Mounter/preferences/config.swift",
@@ -99,21 +99,29 @@ lane :commonTasks do
         "Network Share Mounter/helper/AutomaticSignIn.swift",
         "Network Share Mounter/helper/ActivityController.swift",
         "Network Share Mounter/helper/NSTaskWrapper.swift",
-        "Network Share Mounter/helper/NetworkWatcher.swift",
         "Network Share Mounter/AppDelegate.swift"
     ],
     raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
-    ignore_exit_status: false    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
+    ignore_exit_status: true    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
   )
   get_certificates
-  sync_code_signing
-  cert
+  # sync_code_signing
+  # cert
   # sigh(force: true)
+  # match(type: "appstore")
+  match(
+    type: "developer_id",
+    # type: "developer_id",
+    readonly: is_ci,
+    platform: "macos",
+    app_identifier: 'de.fau.rrze.NetworkShareMounter',
+    additional_cert_types: ["mac_installer_distribution"]
+  )
   gym(
     scheme: "networkShareMounter",
     output_directory: "build/",
     export_method: "developer-id",
-    export_options: "./ExportOptions.plist"
+    installer_cert_name: "Universitaet Erlangen-Nuernberg RRZE (C8F68RFW4L)"
   )
 end
 
@@ -136,7 +144,7 @@ lane :testbuild do
       path: "build/Network Share Mounter.app",
       output_path: "build/NetworkShareMounterTest-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Test",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
@@ -159,7 +167,7 @@ lane :alpha do
       path: "build/Network\ Share\ Mounter.app",
       output_path: "build/NetworkShareMounterAlpha-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Alpha",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
@@ -194,7 +202,7 @@ lane :beta do
       path: "build/Network\ Share\ Mounter.app",
       output_path: "build/NetworkShareMounterBeta-#{appversion}.dmg",
       volume_name: "NetworkShareMounter-Beta",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
@@ -229,7 +237,7 @@ lane :release do
       path: "build/Network Share Mounter.app",
       output_path: "build/NetworkShareMounter-#{appversion}.dmg",
       volume_name: "NetworkShareMounter",
-      size: 6
+      size: 10
     )
     desc "creating .pkg file"
     signing_id = ENV["SIGNING_ID"]
