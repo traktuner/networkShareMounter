@@ -1,9 +1,16 @@
 # 3.0.4
 
+
+### Features
+* Possibility introduced to **trigger mount** and **unmount** via UNIX signals (`kill -SIGUSR1 PID` performs an unmount of all shares, `kill -SIGUSR2 PID` triggers a mount of all shares)
 * Mount status display now enhanced with SF Symbols.
 * Integrated the widely used [Sparkle](https://sparkle-project.org/) framework so that the app can update itself. There is a new parameter `enableAutoUpdater` which is set to TRUE by default. If you want to deactivate the auto update feature, you must set this parameter to `false` (Issue #116)
 * Possibility introduced to trigger mount and unmount via UNIX signals (kill -SIGUSR1 PID performs an unmount of all shares, kill -SIGUSR2 PID triggers a mount of all shares) (Issue #106)
-* We are of the opinion that Kerberos functionality via our DogeADAuth library can leave the beta stage soon
+* increased menu icon size
+* *We are of the opinion that Kerberos functionality via our DogeADAuth library can leave the beta stage soon*
+
+### Bugfixes
+* Fixed two race conditions (one in our DogeAD library) (Issue #123 Issue #125)
 * Fixed a bug where the color of the menu bar symbol did not reflect the status of the Kerberos ticket (kerberos authentication (dogeAuth) beta)
 * Fixed a bug in a doge library (kerberos authentication) call which caused the app to crash
 * Workaround for Finder showing already disconnected drives after wakeup (Issue #109)
