@@ -53,28 +53,29 @@ class Mounter: ObservableObject {
         
         /// initialize the shareArray containing MDM and user defined shares
         await shareManager.createShareArray()
-
+        
         ///
         /// try to to get SMBHomeDirectory (only possible in AD/Kerberos environments) and
         /// add the home-share to `shares`
-        do {
-            // swiftlint:disable force_cast
-            let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-            let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
-                                    matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
-                                    maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
-            if let result = query[0].value(forKey: kODAttributeTypeSMBHome) as? [String] {
-                var homeDirectory = result[0]
-                homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
-                homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
-                await addShare(newShare)
+        await Task.detached(priority: .background) {
+            do {
+                // swiftlint:disable force_cast
+                let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
+                let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
+                                        matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
+                                        maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+                if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
+                    var homeDirectory = result[0]
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
+                    let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+                    await self.addShare(newShare)
+                }
+                // swiftlint:enable force_cast
+            } catch {
+                Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
             }
-            // swiftlint:enable force_cast
-        } catch {
-            /// Couldn't perform mount operation, but this does not have to be a fault in non-AD/krb5 environments
-            Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
-        }
+        }.value
     }
     
     /// checks if there is already a share with the same network export. If not,
@@ -122,10 +123,13 @@ class Mounter: ObservableObject {
         if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             do {
                 try await shareManager.updateMountStatus(at: index, to: mountStatus)
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch ShareError.invalidIndex(let index) {
                 Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch {
                 Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), unknown error.")
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             }
         }
     }
