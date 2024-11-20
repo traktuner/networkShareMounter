@@ -17,12 +17,25 @@ class ActivityController {
     
     var prefs = PreferenceManager()
     // swiftlint:disable force_cast
-    let appDelegate = NSApplication.shared.delegate as! AppDelegate
+//    let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    var appDelegate: AppDelegate
     // swiftlint:enable force_cast
 
-    init() {
+    init(appDelegate: AppDelegate) {
+        self.appDelegate = appDelegate
         startMonitoring()
     }
+    
+//    init() {
+//        DispatchQueue.main.async {
+//            self.appDelegate = NSApplication.shared.delegate as! AppDelegate
+//            self.startMonitoring()
+//        }
+//    }
+    
+//    init() {
+//        startMonitoring()
+//    }
     
     /// initialize observers to get notifications
     func startMonitoring() {
@@ -53,6 +66,8 @@ class ActivityController {
         NotificationCenter.default.addObserver(self, selector: #selector(mountSharesWithUserTrigger), name: Defaults.nsmMountManuallyTriggerNotification, object: nil)
         // trigger on network change to mount shares
         NotificationCenter.default.addObserver(self, selector: #selector(mountSharesWithUserTrigger), name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
+        // triger reconstruct menu
+        NotificationCenter.default.addObserver(self, selector: #selector(reconstructMenuTrigger), name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
         
         // get notification for "CCAPICCacheChangedNotification" (as defined in kcm.h) changes
         DistributedNotificationCenter.default.addObserver(self, selector: #selector(processAutomaticSignIn), name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name, object: nil)
@@ -115,6 +130,15 @@ class ActivityController {
             Logger.activityController.debug(" ▶︎ mountAllShares with user-trigger called.")
             Task {
                 await mounter.mountAllShares(userTriggered: true)
+            }
+        }
+    }
+    
+    @objc func reconstructMenuTrigger() {
+        if let mounter = appDelegate.mounter {
+            Logger.activityController.debug(" ▶︎ reconstruct menu trigger called.")
+            Task { @MainActor in
+                await appDelegate.constructMenu(withMounter: mounter)
             }
         }
     }
