@@ -16,27 +16,13 @@ import OSLog
 class ActivityController {
     
     var prefs = PreferenceManager()
-    // swiftlint:disable force_cast
-//    let appDelegate = NSApplication.shared.delegate as! AppDelegate
     var appDelegate: AppDelegate
-    // swiftlint:enable force_cast
 
     init(appDelegate: AppDelegate) {
         self.appDelegate = appDelegate
         startMonitoring()
     }
-    
-//    init() {
-//        DispatchQueue.main.async {
-//            self.appDelegate = NSApplication.shared.delegate as! AppDelegate
-//            self.startMonitoring()
-//        }
-//    }
-    
-//    init() {
-//        startMonitoring()
-//    }
-    
+       
     /// initialize observers to get notifications
     func startMonitoring() {
         // create an observer for NSWorkspace notifications
