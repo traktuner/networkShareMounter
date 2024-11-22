@@ -396,6 +396,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     ///   - andStatus: Optional MounterError indicating any current error state
     @MainActor func constructMenu(withMounter mounter: Mounter, andStatus: MounterError? = nil) async {
         let menu = NSMenu()
+        menu.autoenablesItems = false
         
         // Handle different error states and construct appropriate menu items
         switch andStatus {
@@ -422,7 +423,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                                   comment: "About Network Share Mounter",
                                                   action: #selector(AppDelegate.openHelpURL(_:)),
                                                   keyEquivalent: "",
-                                                  preferenceKey: .menuConnectShares,
+                                                  preferenceKey: .menuAbout,
                                                   prefs: prefs) {
                 menu.addItem(newMenuItem)
             }
@@ -453,7 +454,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                               comment: "Show mounted shares",
                                               action: #selector(AppDelegate.openDirectory(_:)),
                                               keyEquivalent: "f",
-                                              preferenceKey: .menuDisconnectShares,
+                                              preferenceKey: .menuShowSharesMountDir,
                                               prefs: prefs) {
             newMenuItem.representedObject = mounter.defaultMountPath
             menu.addItem(newMenuItem)
@@ -536,7 +537,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                                 comment: "Quit Network Share Mounter",
                                                 action: #selector(NSApplication.terminate(_:)),
                                                 keyEquivalent: "q",
-                                                preferenceKey: .menuSettings,
+                                                preferenceKey: .menuQuit,
                                                 prefs: prefs) {
                 menu.addItem(NSMenuItem.separator())
                 menu.addItem(newMenuItem)
