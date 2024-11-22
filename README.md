@@ -102,9 +102,8 @@ When mounting shares in `/Volumes`, the OS handles the mount process entirely an
 
 ## 🚀 Planned features and releases
 
-* Kerberos/AD handling for user authentication like Apple Enterprise Connect, Jamf Connect or NoMAD *(Beta in v3.0, Release ETA Summer 2024, v3.1)*
 * ~Change default mount location to `/Volumes~ *(cancelled)*
-* Remove the legacy  `networkShares`  value *(ETA Summer 2024, v3.1)*
+* Remove the legacy  `networkShares`  value *(ETA Winter 2025, v3.2)*
 
 ## ✉️ Contact
 
