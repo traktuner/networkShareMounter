@@ -240,7 +240,8 @@ class KeychainManager: NSObject {
             var query = try makeQuery(share: share, username: username)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
-            query[kSecMatchLimit as String] = kSecAttrSynchronizableAny
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
@@ -267,7 +268,7 @@ class KeychainManager: NSObject {
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
-            query[kSecMatchLimit as String] = kSecAttrSynchronizableAny
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
