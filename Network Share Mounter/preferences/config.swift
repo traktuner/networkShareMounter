@@ -30,6 +30,7 @@ struct Defaults {
     static let nsmNetworkChangeTriggerNotification = Notification.Name("nsmNetworkChangeTriggerNotification")
     static let nsmUnmountTriggerNotification = Notification.Name("nsmUnmountTriggerNotification")
     static let nsmMountManuallyTriggerNotification = Notification.Name("nsmMountManuallyTriggerNotification")
+    static let nsmReconstructMenuTriggerNotification = Notification.Name("nsmReconstructMenuTriggerNotification")
     // swiftlint:disable force_cast
     static let openOptions = [
         kNAUIOptionKey: kNAUIOptionNoUI

@@ -72,10 +72,10 @@ class ActivityController {
     // functions called after wake up
     @objc func wakeupFromSleep() {
         if let mounter = appDelegate.mounter {
-            Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
+            Logger.activityController.debug(" ▶︎ mountGivenShares called by didWakeNotification.")
             Task {
                 // await self.mounter.mountAllShares(userTriggered: true)
-                await mounter.mountAllShares()
+                await mounter.mountGivenShares()
                 Logger.activityController.debug(" 🐛 Restart Finder to bypass a presumed bug in macOS.")
                 mounter.restartFinder()
             }
@@ -85,10 +85,10 @@ class ActivityController {
     // call mount shares on NSWorkspace notification
     @objc func mountShares() {
         if let mounter = appDelegate.mounter {
-            Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
+            Logger.activityController.debug(" ▶︎ mountGivenShares called by didWakeNotification.")
             Task {
                 // await self.mounter.mountAllShares(userTriggered: true)
-                await mounter.mountAllShares()
+                await mounter.mountGivenShares()
             }
         }
     }
@@ -113,9 +113,9 @@ class ActivityController {
         processAutomaticSignIn()
         // mount shares
         if let mounter = appDelegate.mounter {
-            Logger.activityController.debug(" ▶︎ mountAllShares with user-trigger called.")
+            Logger.activityController.debug(" ▶︎ mountGivenShares with user-trigger called.")
             Task {
-                await mounter.mountAllShares(userTriggered: true)
+                await mounter.mountGivenShares(userTriggered: true)
             }
         }
     }
@@ -145,8 +145,8 @@ class ActivityController {
             // call updateShareArray() to reflect possible changes in MDM profile?
             Task {
                 await mounter.shareManager.updateShareArray()
-                Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
-                await mounter.mountAllShares()
+                Logger.activityController.debug(" ▶︎ ...finally call mountGivenShares.")
+                await mounter.mountGivenShares()
             }
         }
     }
