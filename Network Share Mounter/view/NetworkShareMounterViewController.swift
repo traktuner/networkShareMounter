@@ -91,7 +91,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             //
             // copy all mdm and user defined shares to a local array
             // if there is an authentication error show those shares without password
-            if appDelegate.mounter!.errorStatus == .authenticationError {
+            if appDelegate.mounter!.errorStatus == .authenticationError { 
                 refreshUserArray(type: .missingPassword)
                 toggleManagedSwitch.isHidden = true
                 additionalSharesText.isHidden = true

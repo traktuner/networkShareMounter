@@ -53,28 +53,27 @@ class Mounter: ObservableObject {
         
         /// initialize the shareArray containing MDM and user defined shares
         await shareManager.createShareArray()
-
+        
         ///
         /// try to to get SMBHomeDirectory (only possible in AD/Kerberos environments) and
         /// add the home-share to `shares`
-        do {
-            // swiftlint:disable force_cast
-            let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-            let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
-                                    matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
-                                    maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
-            if let result = query[0].value(forKey: kODAttributeTypeSMBHome) as? [String] {
-                var homeDirectory = result[0]
-                homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
-                homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
-                await addShare(newShare)
+        await Task.detached(priority: .background) {
+            do {
+                let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
+                let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
+                                        matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
+                                        maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+                if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
+                    var homeDirectory = result[0]
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
+                    let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+                    await self.addShare(newShare)
+                }
+            } catch {
+                Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
             }
-            // swiftlint:enable force_cast
-        } catch {
-            /// Couldn't perform mount operation, but this does not have to be a fault in non-AD/krb5 environments
-            Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
-        }
+        }.value
     }
     
     /// checks if there is already a share with the same network export. If not,
@@ -82,6 +81,7 @@ class Mounter: ObservableObject {
     /// - Parameter share: share object to check and append to shares array
     func addShare(_ share: Share) async {
         await shareManager.addShare(share)
+        NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
     }
     
     /// deletes a share at the given Index
@@ -122,10 +122,13 @@ class Mounter: ObservableObject {
         if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             do {
                 try await shareManager.updateMountStatus(at: index, to: mountStatus)
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch ShareError.invalidIndex(let index) {
                 Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch {
                 Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), unknown error.")
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             }
         }
     }
@@ -417,72 +420,95 @@ class Mounter: ObservableObject {
 //        await deleteUnneededFiles(path: self.defaultMountPath, filename: nil)
     }
     
-    /// performs mount operation for all shares
-    /// - Parameter userTriggered: boolean to define if mount was triggered by user, defaults to false
-    func mountAllShares(userTriggered: Bool = false) async {
-        //
-        // Check for network connectivity
+    /// Mounts network shares either individually or in batch based on provided parameters
+    /// - Parameters:
+    ///   - userTriggered: Boolean indicating if mount operation was initiated by user
+    ///   - shareID: Optional ID of specific share to mount. If nil, mounts all configured shares
+    /// - Note: Requires active network connection to perform mount operations
+    func mountGivenShares(userTriggered: Bool = false, forShare shareID: String? = nil) async {
+        // Verify network connectivity before attempting mount operations
         let netConnection = Monitor.shared
         
         if netConnection.netOn {
-            if await self.shareManager.allShares.isEmpty {
+            let allShares = await self.shareManager.allShares
+            if allShares.isEmpty {
                 Logger.mounter.info("No shares configured.")
-            } else {
-                // perform cleanup routines before mounting
-                //                await prepareMountPrerequisites()
-                if userTriggered {
-                    cliTask("killall NetAuthSysAgent")
-                    Logger.mounter.debug("killall NetAuthSysAgent")
+                return
+            }
+            
+            // Clean up authentication agent if mount was user-triggered
+            // TODO: Consider more graceful cleanup approach
+            if userTriggered {
+                cliTask("killall NetAuthSysAgent")
+                Logger.mounter.debug("killall NetAuthSysAgent")
+            }
+            
+            var sharesToMount: [Share]
+            
+            // Filter shares based on provided shareID
+            if let shareID = shareID {
+                // Mount single specified share
+                if let specificShare = allShares.first(where: { $0.id == shareID }) {
+                    sharesToMount = [specificShare]
+                } else {
+                    Logger.mounter.error("Share with ID \(shareID) not found.")
+                    return
                 }
-                var mountTasks: [Task<Void, Never>] = []
-                for share in await self.shareManager.allShares {
-                    let mountTask = Task {
-                        do {
-                            // if the mount was triggered by user, set mountStatus
-                            // to .unmounted and therefore it will try to mount
-                            // no matter what the status of the share is.
-                            if userTriggered {
-                                await updateShare(mountStatus: .undefined, for: share)
-                            }
-                            let actualMountpoint = try await mountShare(forShare: share,
-                                                                        atPath: defaultMountPath,
-                                                                        userTriggered: userTriggered)
-                            await updateShare(actualMountPoint: actualMountpoint, for: share)
-                            await updateShare(mountStatus: .mounted, for: share)
-                        } catch MounterError.doesNotExist {
+            } else {
+                // Mount all available shares
+                sharesToMount = allShares
+            }
+            
+            // Create concurrent mount tasks for each share
+            var mountTasks: [Task<Void, Never>] = []
+            for share in sharesToMount {
+                let mountTask = Task {
+                    do {
+                        // Reset mount status for user-triggered mounts
+                        if userTriggered {
+                            await updateShare(mountStatus: .undefined, for: share)
+                        }
+                        
+                        // Attempt to mount share and update status
+                        let actualMountpoint = try await mountShare(forShare: share,
+                                                                    atPath: defaultMountPath,
+                                                                    userTriggered: userTriggered)
+                        await updateShare(actualMountPoint: actualMountpoint, for: share)
+                        await updateShare(mountStatus: .mounted, for: share)
+                    } catch {
+                        // Handle various mount failure scenarios
+                        switch error {
+                        case MounterError.doesNotExist:
                             await updateShare(mountStatus: .errorOnMount, for: share)
-                        } catch MounterError.timedOutHost {
+                        case MounterError.timedOutHost, MounterError.hostIsDown, MounterError.noRouteToHost:
                             await updateShare(mountStatus: .unreachable, for: share)
-                        } catch MounterError.hostIsDown {
-                            await updateShare(mountStatus: .unreachable, for: share)
-                        } catch MounterError.noRouteToHost {
-                            await updateShare(mountStatus: .unreachable, for: share)
-                        } catch MounterError.authenticationError {
-                            // set error status if authentication error occured and auth type is not Kerberos
+                        case MounterError.authenticationError:
                             if share.authType != .krb {
                                 errorStatus = .authenticationError
                                 NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
                             }
                             await updateShare(mountStatus: .invalidCredentials, for: share)
-                        } catch MounterError.shareDoesNotExist {
+                        case MounterError.shareDoesNotExist:
                             await updateShare(mountStatus: .errorOnMount, for: share)
-                        } catch MounterError.mountIsQueued {
+                        case MounterError.mountIsQueued:
                             await updateShare(mountStatus: .queued, for: share)
-                        } catch MounterError.userUnmounted {
+                        case MounterError.userUnmounted:
                             await updateShare(mountStatus: .userUnmounted, for: share)
-                        } catch MounterError.obstructingDirectory {
+                        case MounterError.obstructingDirectory:
                             await updateShare(mountStatus: .obstructingDirectory, for: share)
-                        } catch {
+                        default:
                             await updateShare(mountStatus: .unreachable, for: share)
                         }
                     }
-                    mountTasks.append(mountTask)
                 }
-                await withTaskGroup(of: Void.self) { group in
-                    for task in mountTasks {
-                        group.addTask {
-                            await task.value
-                        }
+                mountTasks.append(mountTask)
+            }
+            
+            // Wait for all mount tasks to complete
+            await withTaskGroup(of: Void.self) { group in
+                for task in mountTasks {
+                    group.addTask {
+                        await task.value
                     }
                 }
             }

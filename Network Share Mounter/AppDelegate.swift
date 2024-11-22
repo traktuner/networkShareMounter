@@ -97,16 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up signal handlers for the app
         setupSignalHandlers()
         
-        // MARK: TODO - Authentication and mounting
-        // The following code block is commented out and may need to be implemented:
-        // - Initialize ActivityController
-        // - Post notification to trigger mounting of defined shares
-        /*
-        if let mounter {
-            activityController = ActivityController.init()
-            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
-        }
-        */
+        activityController = ActivityController(appDelegate: self)
     }
     
     private func initializeApp() async {
@@ -124,12 +115,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await AccountsManager.shared.initialize()
             
             // Do any additional setup after loading the view.
-            if let mounter {
-                constructMenu(withMounter: mounter)
+            if mounter != nil {
                 NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
-                // fire up the activityController to get system/NSWorkspace notifications
-//                activityController = ActivityController.init(withMounter: mounter)
-                activityController = ActivityController.init()
             } else {
                 Logger.app.error("Could not initialize mounter class, this should never happen.")
             }
@@ -192,7 +179,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
                     if let mounter = self.mounter {
-                        self.constructMenu(withMounter: mounter, andStatus: .krbAuthenticationError)
+                        Task { @MainActor in
+                            await self.constructMenu(withMounter: mounter, andStatus: .krbAuthenticationError)
+                        }
                     } else {
                         Logger.app.error("Could not initialize mounter class, this should never happen.")
                     }
@@ -205,7 +194,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
                     if let mounter = self.mounter {
-                        self.constructMenu(withMounter: mounter, andStatus: .authenticationError)
+                        Task { @MainActor in
+                            await self.constructMenu(withMounter: mounter, andStatus: .authenticationError)
+                        }
                     } else {
                         Logger.app.error("Could not initialize mounter class, this should never happen.")
                     }
@@ -219,7 +210,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
                     if let mounter = self.mounter {
-                        self.constructMenu(withMounter: mounter)
+                        Task { @MainActor in
+                            await self.constructMenu(withMounter: mounter)
+                        }
                     } else {
                         Logger.app.error("Could not initialize mounter class, this should never happen.")
                     }
@@ -267,17 +260,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Logger.app.info("Some day maybe show some useful information about Network Share Mounter")
     }
 
-    /// Opens the default mount directory in Finder.
-    /// - Parameter sender: The object that initiated this action.
-    /// - Note: Logs an error if the mounter class cannot be initialized.
-    @objc func openMountDir(_ sender: Any?) {
-        if let mounter = mounter {
-            if let mountDirectory =  URL(string: mounter.defaultMountPath) {
-                Logger.app.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
-                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
-            } else {
-                Logger.app.error("Could not initialize mounter class, this should never happen.")
-            }
+    /// Opens the specified directory in Finder
+    /// - Parameter sender: Menu item containing the directory path to open
+    ///
+    /// The directory path is stored in the menu item's `representedObject` as a String.
+    /// This method attempts to:
+    /// 1. Extract the directory path from the menu item
+    /// 2. Convert it to a URL
+    /// 3. Open it in Finder using NSWorkspace
+    ///
+    /// - Note: Directory path must be a valid file URL that can be opened by Finder
+    /// - Important: Logs error if directory path cannot be extracted or is invalid
+    @objc func openDirectory(_ sender: NSMenuItem) {
+        // Extract directory path from menu item and convert to URL
+        if let openMountedDir = sender.representedObject as? String,
+           let mountDirectory = URL(string: openMountedDir) {
+            // Open directory in Finder
+            Logger.app.info("Trying to open \(mountDirectory, privacy: .public) in Finder...")
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: mountDirectory.path)
+        } else {
+            // Log error if path extraction fails
+            Logger.app.error("Could not initialize mounter class, this should never happen.")
         }
     }
     
@@ -301,6 +304,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    
+    /// Unmounts all currently mounted shares
+    /// - Parameter sender: The object that triggered the action
+    @objc func mountSpecificShare(_ sender: NSMenuItem) {
+        if let shareID = sender.representedObject as? String {
+            Logger.app.debug("User triggered to mount share with id \(shareID)")
+            Task {
+                if let mounter = mounter {
+                    await mounter.mountGivenShares(userTriggered: true, forShare: shareID)
+                    mounter.restartFinder()
+                } else {
+                    Logger.app.error("Could not initialize mounter class, this should never happen.")
+                }
+            }
+        }
+    }
 
     /// Opens the help URL in the default web browser
     /// - Parameter sender: The object that triggered the action
@@ -310,72 +329,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         NSWorkspace.shared.open(openURL)
-    }
-
-    /// Constructs the app's menu based on configured profiles and current status
-    /// - Parameters:
-    ///   - mounter: The Mounter object responsible for mounting/unmounting shares
-    ///   - andStatus: Optional MounterError indicating any current error state
-    func constructMenu(withMounter mounter: Mounter, andStatus: MounterError? = nil) {
-        let menu = NSMenu()
-        
-        // Handle different error states and construct appropriate menu items
-        switch andStatus {
-        case .krbAuthenticationError:
-            Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
-            mounter.errorStatus = .authenticationError
-            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
-                                    action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
-            menu.addItem(NSMenuItem.separator())
-        case .authenticationError:
-            Logger.app.debug("🏗️ Constructing authentication problem menu.")
-            mounter.errorStatus = .authenticationError
-            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
-                                    action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
-            menu.addItem(NSMenuItem.separator())
-            
-        default:
-            mounter.errorStatus = .noError
-            Logger.app.debug("🏗️ Constructing default menu.")
-        }
-        
-        // Add "About" menu item if help URL is valid
-        if prefs.string(for: .helpURL)!.description.isValidURL {
-            menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),
-                                    action: #selector(AppDelegate.openHelpURL(_:)), keyEquivalent: ""))
-        }
-        
-        // Add core functionality menu items
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Mount shares", comment: "Mount shares"),
-                                action: #selector(AppDelegate.mountManually(_:)), keyEquivalent: "m"))
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Unmount shares", comment: "Unmount shares"),
-                                action: #selector(AppDelegate.unmountShares(_:)), keyEquivalent: "u"))
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"),
-                                action: #selector(AppDelegate.openMountDir(_:)), keyEquivalent: "f"))
-        menu.addItem(NSMenuItem.separator())
-        
-        // Add "Check for Updates" menu item if auto-updater is enabled
-        if prefs.bool(for: .enableAutoUpdater) == true {
-            let checkForUpdatesMenuItem = NSMenuItem(title: NSLocalizedString("Check for Updates...", comment: "Check for Updates"),
-                                        action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
-            checkForUpdatesMenuItem.target = updaterController
-            menu.addItem(checkForUpdatesMenuItem)
-            menu.addItem(NSMenuItem.separator())
-        }
-        
-        // Add "Preferences" menu item
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
-                                action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
-        
-        // Add "Quit" menu item if allowed by preferences
-        if prefs.bool(for: .canQuit) != false {
-            menu.addItem(NSMenuItem.separator())
-            menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
-                                    action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        }
-        
-        // Set the constructed menu to the statusItem
-        statusItem.menu = menu
     }
 
     /// Shows the preferences window.
@@ -428,7 +381,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mountSignalSource?.setEventHandler { [self] in
             Logger.app.debug("🚦Received mount signal.")
             Task {
-                await self.mounter?.mountAllShares(userTriggered: true)
+                await self.mounter?.mountGivenShares(userTriggered: true)
             }
         }
 
@@ -436,5 +389,251 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         unmountSignalSource?.resume()
         mountSignalSource?.resume()
     }
-
+    
+    /// Constructs the app's menu based on configured profiles and current status
+    /// - Parameters:
+    ///   - mounter: The Mounter object responsible for mounting/unmounting shares
+    ///   - andStatus: Optional MounterError indicating any current error state
+    @MainActor func constructMenu(withMounter mounter: Mounter, andStatus: MounterError? = nil) async {
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        
+        // Handle different error states and construct appropriate menu items
+        switch andStatus {
+        case .krbAuthenticationError:
+            Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
+            mounter.errorStatus = .authenticationError
+            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
+                                    action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+            menu.addItem(NSMenuItem.separator())
+        case .authenticationError:
+            Logger.app.debug("🏗️ Constructing authentication problem menu.")
+            mounter.errorStatus = .authenticationError
+            menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
+                                    action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+            menu.addItem(NSMenuItem.separator())
+            
+        default:
+            mounter.errorStatus = .noError
+            Logger.app.debug("🏗️ Constructing default menu.")
+        }
+        // Add "About" menu item if help URL is valid
+        if prefs.string(for: .helpURL)!.description.isValidURL {
+            if let newMenuItem = createMenuItem(title: "About Network Share Mounter",
+                                                  comment: "About Network Share Mounter",
+                                                  action: #selector(AppDelegate.openHelpURL(_:)),
+                                                  keyEquivalent: "",
+                                                  preferenceKey: .menuAbout,
+                                                  prefs: prefs) {
+                menu.addItem(newMenuItem)
+            }
+        }
+        
+        // Add core functionality menu items:
+    
+        // Add "mount shares" menu item
+        if let newMenuItem = createMenuItem(title: "Mount shares",
+                                              comment: "Mount share",
+                                              action: #selector(AppDelegate.mountManually(_:)),
+                                              keyEquivalent: "m",
+                                              preferenceKey: .menuConnectShares,
+                                              prefs: prefs) {
+            menu.addItem(newMenuItem)
+        }
+        // Add "unmount shares" menu item
+        if let newMenuItem = createMenuItem(title: "Unmount shares",
+                                              comment: "Unmount shares",
+                                              action: #selector(AppDelegate.unmountShares(_:)),
+                                              keyEquivalent: "u",
+                                              preferenceKey: .menuDisconnectShares,
+                                              prefs: prefs) {
+            menu.addItem(newMenuItem)
+        }
+        // Add "Show mounted shares" menu item
+        if let newMenuItem = createMenuItem(title: "Show mounted shares",
+                                              comment: "Show mounted shares",
+                                              action: #selector(AppDelegate.openDirectory(_:)),
+                                              keyEquivalent: "f",
+                                              preferenceKey: .menuShowSharesMountDir,
+                                              prefs: prefs) {
+            newMenuItem.representedObject = mounter.defaultMountPath
+            menu.addItem(newMenuItem)
+        }
+        
+        // Add "Check for Updates" menu item if auto-updater is enabled
+        if prefs.bool(for: .enableAutoUpdater) == true {
+            if let newMenuItem = createMenuItem(title: "Check for Updates...s",
+                                                comment: "Check for Updates",
+                                                action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
+                                                keyEquivalent: "",
+                                                preferenceKey: .menuCheckUpdates,
+                                                prefs: prefs) {
+                menu.addItem(NSMenuItem.separator())
+                newMenuItem.target = updaterController
+                menu.addItem(newMenuItem)
+            }
+        }
+        
+        let menuShowSharesValue = prefs.string(for: .menuShowShares) ?? ""
+        if await !mounter.shareManager.getAllShares().isEmpty {
+            menu.addItem(NSMenuItem.separator())
+            for share in await mounter.shareManager.allShares {
+                var menuItem: NSMenuItem
+                
+                // Wenn das Share gemountet ist, verwende das Mountpoint-Icon
+                if let mountpoint = share.actualMountPoint {
+                    let mountDir = (mountpoint as NSString).lastPathComponent
+                    Logger.app.debug("  🍰 Adding mountpoint \(mountDir) for \(share.networkShare) to menu.")
+                    
+                    let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
+                    menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
+                                          action: #selector(AppDelegate.openDirectory(_:)),
+                                          keyEquivalent: "")
+                    menuItem.representedObject = mountpoint
+                    menuItem.image = menuIcon
+                } else {
+                    // Wenn das Share nicht gemountet ist, verwende das Standard-Icon
+                    Logger.app.debug("  🍰 Adding remote share \(share.networkShare).")
+                    let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
+                    menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
+                                          action: #selector(AppDelegate.mountSpecificShare(_:)),
+                                          keyEquivalent: "")
+                    menuItem.representedObject = share.id
+                    menuItem.image = menuIcon
+                }
+                
+                // Konfiguriere den Menüeintrag basierend auf dem Präferenzwert
+                switch menuShowSharesValue {
+                case "hidden":
+                    // Menüeintrag wird nicht hinzugefügt
+                    continue
+                case "disabled":
+                    // Menüeintrag wird hinzugefügt, aber deaktiviert
+                    menuItem.isEnabled = false
+                default:
+                    // Menüeintrag wird normal hinzugefügt und ist aktiviert
+                    menuItem.isEnabled = true
+                }
+                
+                // Füge den konfigurierten Menüeintrag hinzu
+                menu.addItem(menuItem)
+            }
+        }
+        
+        // Add "Preferences" menu item
+        if let newMenuItem = createMenuItem(title: "Preferences ...",
+                                              comment: "Preferences",
+                                              action: #selector(AppDelegate.showWindow(_:)),
+                                              keyEquivalent: ",",
+                                              preferenceKey: .menuSettings,
+                                              prefs: prefs) {
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(newMenuItem)
+        }
+        
+        // Add "Quit" menu item if allowed by preferences
+        if prefs.bool(for: .canQuit) != false {
+            if let newMenuItem = createMenuItem(title: "Quit Network Share Mounter",
+                                                comment: "Quit Network Share Mounter",
+                                                action: #selector(NSApplication.terminate(_:)),
+                                                keyEquivalent: "q",
+                                                preferenceKey: .menuQuit,
+                                                prefs: prefs) {
+                menu.addItem(NSMenuItem.separator())
+                menu.addItem(newMenuItem)
+            }
+        }
+        
+        // Set the constructed menu to the statusItem
+        statusItem.menu = menu
+    }
+    
+    /// Creates and configures a menu item based on user preferences
+    ///
+    /// - Parameters:
+    ///   - title: The localized title text for the menu item
+    ///   - action: The selector to be called when menu item is clicked
+    ///   - keyEquivalent: The keyboard shortcut for the menu item
+    ///   - preferenceKey: The preference key to check the menu item's state
+    ///   - prefs: The preference manager instance to retrieve settings
+    ///
+    /// - Returns: A configured NSMenuItem instance, or nil if the menu item should be hidden
+    ///
+    /// The menu item's state is determined by the preference value:
+    /// - "hidden": Returns nil, menu item won't be shown
+    /// - "disabled": Menu item is shown but disabled
+    /// - Any other value: Menu item is shown and enabled
+    func createMenuItem(title: String, comment: String, action: Selector, keyEquivalent: String, preferenceKey: PreferenceKeys, prefs: PreferenceManager) -> NSMenuItem? {
+        // Get preference value for the specified key
+        let preferenceValue = prefs.string(for: preferenceKey) ?? ""
+        // localize menu title
+        let localizedTitle = NSLocalizedString(title, comment: "")
+        // Create menu item with localized title
+        let menuItem = NSMenuItem(title: NSLocalizedString(localizedTitle, comment: comment),
+                                  action: action,
+                                  keyEquivalent: keyEquivalent)
+        
+        // Configure menu item state based on preference value
+        switch preferenceValue {
+        case "hidden":
+            // Don't add menu item
+            return nil
+        case "disabled":
+            // Add menu item but disable it
+            menuItem.isEnabled = false
+        default:
+            // Add menu item normally and enable it
+            menuItem.isEnabled = true
+        }
+        return menuItem
+    }
+    
+    /// Creates a custom menu bar icon with a colored background circle and SF Symbol
+    /// - Parameters:
+    ///   - withIcon: The name of the SF Symbol to use (currently not used in implementation)
+    ///   - backgroundColor: The background color of the circular icon
+    ///   - symbolColor: The color of the SF Symbol
+    /// - Returns: An NSImage containing the composed icon
+    /// - Note: The icon parameter is currently hardcoded to "externaldrive.connected.to.line.below.fill"
+    func createMenuIcon(withIcon: String, backgroundColor: NSColor, symbolColor: NSColor) -> NSImage {
+        
+        // Create NSImage from SF Symbol
+        let symbolImage = NSImage(systemSymbolName: "externaldrive.connected.to.line.below.fill", accessibilityDescription: nil)!
+        
+        // Convert symbol to template image for colorization
+        let templateImage = symbolImage.copy() as! NSImage
+        templateImage.isTemplate = true
+        
+        // Configure symbol appearance with 12pt regular weight
+        let symbolConfig = NSImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        let configuredSymbolImage = templateImage.withSymbolConfiguration(symbolConfig)
+        
+        // Create base image for colored circle background
+        let circleSize = NSSize(width: 24, height: 24)
+        let circleImage = NSImage(size: circleSize)
+        circleImage.lockFocus()
+        
+        // Draw colored circle background
+        let circlePath = NSBezierPath(ovalIn: NSRect(origin: .zero, size: circleSize))
+        backgroundColor.setFill()
+        circlePath.fill()
+        
+        // Center and draw the symbol on top of circle
+        if let configuredSymbolImage = configuredSymbolImage {
+            let symbolRect = NSRect(
+                x: (circleSize.width - configuredSymbolImage.size.width) / 2,
+                y: (circleSize.height - configuredSymbolImage.size.height) / 2,
+                width: configuredSymbolImage.size.width,
+                height: configuredSymbolImage.size.height
+            )
+            
+            // Apply symbol color and draw
+            symbolColor.set()
+            configuredSymbolImage.draw(in: symbolRect)
+        }
+        
+        circleImage.unlockFocus()
+        
+        return circleImage
+    }
 }
