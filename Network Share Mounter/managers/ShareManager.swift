@@ -153,10 +153,10 @@ actor ShareManager {
         }
         
         // Replace username placeholder in share URL
-        let expandenShare = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
+        let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
         
-        // Expand tilde paths to full paths
-        let shareRectified = NSString(string: expandenShare).expandingTildeInPath
+        // Expanding tilde in shares does not make sense
+//        let shareRectified = NSString(string: expandenShare).expandingTildeInPath
         
         // Configure authentication type, defaulting to Kerberos if not specified
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
