@@ -601,7 +601,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let symbolImage = NSImage(systemSymbolName: "externaldrive.connected.to.line.below.fill", accessibilityDescription: nil)!
         
         // Convert symbol to template image for colorization
+        // swiftlint:disable force_cast
         let templateImage = symbolImage.copy() as! NSImage
+        // swiftlint:enable force_cast
         templateImage.isTemplate = true
         
         // Configure symbol appearance with 12pt regular weight
