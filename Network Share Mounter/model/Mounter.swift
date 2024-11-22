@@ -13,6 +13,7 @@ import OpenDirectory
 import AppKit
 import OSLog
 
+// swiftlint:disable type_body_length
 /// class tro perform mount/unmount operations for network shares
 class Mounter: ObservableObject {
     var prefs = PreferenceManager()
@@ -60,9 +61,11 @@ class Mounter: ObservableObject {
         await Task.detached(priority: .background) {
             do {
                 let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
+                // swiftlint:disable force_cast
                 let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
                                         matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
                                         maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+                // swiftlint:enable force_cast
                 if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
                     var homeDirectory = result[0]
                     homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
