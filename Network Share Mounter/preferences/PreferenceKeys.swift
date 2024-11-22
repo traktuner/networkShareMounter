@@ -184,6 +184,10 @@ enum PreferenceKeys: String, CaseIterable {
     case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
     case useNewDefaultLocation = "useNewDefaultLocation"
     
+    // used to manually override %USERNAME% if local and remoter user names differ
+    case usernameOverride = "usernameOverride"
+    
+    // control menu items
     case menuQuit = "menuQuit"
     case menuAbout = "menuAbout"
     case menuConnectShares = "menuConnectShares"
