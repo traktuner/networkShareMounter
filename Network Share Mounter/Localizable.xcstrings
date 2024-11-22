@@ -79,6 +79,7 @@
     },
     "About Network Share Mounter" : {
       "comment" : "About Network Share Mounter",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -657,6 +658,7 @@
     },
     "Check for Updates..." : {
       "comment" : "Check for Updates",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1609,6 +1611,7 @@
     },
     "Mount shares" : {
       "comment" : "Mount shares",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2102,6 +2105,7 @@
     },
     "Preferences ..." : {
       "comment" : "Preferences",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2178,6 +2182,7 @@
     },
     "Quit Network Share Mounter" : {
       "comment" : "Quit Network Share Mounter",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2359,6 +2364,7 @@
     },
     "Show mounted shares" : {
       "comment" : "Show mounted shares",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2610,6 +2616,7 @@
     },
     "Unmount shares" : {
       "comment" : "Unmount shares",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

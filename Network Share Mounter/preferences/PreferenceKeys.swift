@@ -188,6 +188,7 @@ enum PreferenceKeys: String, CaseIterable {
     case menuAbout = "menuAbout"
     case menuConnectShares = "menuConnectShares"
     case menuDisconnectShares = "menuDisconnectShares"
+    case menuCheckUpdates = "menuCheckUpdates"
     case menuShowShares = "menuShowShares"
     case menuSettings = "menuSettings"
     

@@ -418,100 +418,206 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         // Add "About" menu item if help URL is valid
         if prefs.string(for: .helpURL)!.description.isValidURL {
-            menu.addItem(NSMenuItem(title: NSLocalizedString("About Network Share Mounter", comment: "About Network Share Mounter"),
-                                    action: #selector(AppDelegate.openHelpURL(_:)), keyEquivalent: ""))
+            if let newMenuItem = createMenuItem(title: "About Network Share Mounter",
+                                                  comment: "About Network Share Mounter",
+                                                  action: #selector(AppDelegate.openHelpURL(_:)),
+                                                  keyEquivalent: "",
+                                                  preferenceKey: .menuConnectShares,
+                                                  prefs: prefs) {
+                menu.addItem(newMenuItem)
+            }
         }
         
-        // Add core functionality menu items
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Mount shares", comment: "Mount shares"),
-                                action: #selector(AppDelegate.mountManually(_:)), keyEquivalent: "m"))
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Unmount shares", comment: "Unmount shares"),
-                                action: #selector(AppDelegate.unmountShares(_:)), keyEquivalent: "u"))
-        
-        let menuItem = NSMenuItem(title: NSLocalizedString("Show mounted shares", comment: "Show mounted shares"),
-                                action: #selector(AppDelegate.openDirectory(_:)), keyEquivalent: "f")
-        menuItem.representedObject = mounter.defaultMountPath
-        menu.addItem(menuItem)
-        
-        menu.addItem(NSMenuItem.separator())
+        // Add core functionality menu items:
+    
+        // Add "mount shares" menu item
+        if let newMenuItem = createMenuItem(title: "Mount shares",
+                                              comment: "Mount share",
+                                              action: #selector(AppDelegate.mountManually(_:)),
+                                              keyEquivalent: "m",
+                                              preferenceKey: .menuConnectShares,
+                                              prefs: prefs) {
+            menu.addItem(newMenuItem)
+        }
+        // Add "unmount shares" menu item
+        if let newMenuItem = createMenuItem(title: "Unmount shares",
+                                              comment: "Unmount shares",
+                                              action: #selector(AppDelegate.unmountShares(_:)),
+                                              keyEquivalent: "u",
+                                              preferenceKey: .menuDisconnectShares,
+                                              prefs: prefs) {
+            menu.addItem(newMenuItem)
+        }
+        // Add "Show mounted shares" menu item
+        if let newMenuItem = createMenuItem(title: "Show mounted shares",
+                                              comment: "Show mounted shares",
+                                              action: #selector(AppDelegate.openDirectory(_:)),
+                                              keyEquivalent: "f",
+                                              preferenceKey: .menuDisconnectShares,
+                                              prefs: prefs) {
+            newMenuItem.representedObject = mounter.defaultMountPath
+            menu.addItem(newMenuItem)
+        }
         
         // Add "Check for Updates" menu item if auto-updater is enabled
         if prefs.bool(for: .enableAutoUpdater) == true {
-            let checkForUpdatesMenuItem = NSMenuItem(title: NSLocalizedString("Check for Updates...", comment: "Check for Updates"),
-                                                     action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
-            checkForUpdatesMenuItem.target = updaterController
-            menu.addItem(checkForUpdatesMenuItem)
-            menu.addItem(NSMenuItem.separator())
+            if let newMenuItem = createMenuItem(title: "Check for Updates...s",
+                                                comment: "Check for Updates",
+                                                action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
+                                                keyEquivalent: "",
+                                                preferenceKey: .menuCheckUpdates,
+                                                prefs: prefs) {
+                menu.addItem(NSMenuItem.separator())
+                newMenuItem.target = updaterController
+                menu.addItem(newMenuItem)
+            }
         }
+        
+        let menuShowSharesValue = prefs.string(for: .menuShowShares) ?? ""
         if await !mounter.shareManager.getAllShares().isEmpty {
+            menu.addItem(NSMenuItem.separator())
             for share in await mounter.shareManager.allShares {
-                // if share is mounted, add a menu item
+                var menuItem: NSMenuItem
+                
+                // Wenn das Share gemountet ist, verwende das Mountpoint-Icon
                 if let mountpoint = share.actualMountPoint {
                     let mountDir = (mountpoint as NSString).lastPathComponent
                     Logger.app.debug("  🍰 Adding mountpoint \(mountDir) for \(share.networkShare) to menu.")
                     
-                    //                let menuItem = createMenuItem(withTitle: mountpoint, backgroundColor: .systemBlue, symbolColor: .white)
                     let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
-                    let menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
-                                              action: #selector(AppDelegate.openDirectory(_:)),
-                                              keyEquivalent: "")
+                    menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
+                                          action: #selector(AppDelegate.openDirectory(_:)),
+                                          keyEquivalent: "")
                     menuItem.representedObject = mountpoint
                     menuItem.image = menuIcon
-                    menu.addItem(menuItem)
                 } else {
-                    //                    let shareMenuItem = NSMenuItem(title: share.networkShare, action: nil, keyEquivalent: "")
+                    // Wenn das Share nicht gemountet ist, verwende das Standard-Icon
                     Logger.app.debug("  🍰 Adding remote share \(share.networkShare).")
                     let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
-                    let menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
-                                              action: #selector(AppDelegate.mountSpecificShare(_:)),
-                                              keyEquivalent: "")
+                    menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
+                                          action: #selector(AppDelegate.mountSpecificShare(_:)),
+                                          keyEquivalent: "")
                     menuItem.representedObject = share.id
                     menuItem.image = menuIcon
-                    menu.addItem(menuItem)
                 }
+                
+                // Konfiguriere den Menüeintrag basierend auf dem Präferenzwert
+                switch menuShowSharesValue {
+                case "hidden":
+                    // Menüeintrag wird nicht hinzugefügt
+                    continue
+                case "disabled":
+                    // Menüeintrag wird hinzugefügt, aber deaktiviert
+                    menuItem.isEnabled = false
+                default:
+                    // Menüeintrag wird normal hinzugefügt und ist aktiviert
+                    menuItem.isEnabled = true
+                }
+                
+                // Füge den konfigurierten Menüeintrag hinzu
+                menu.addItem(menuItem)
             }
         }
         
-        menu.addItem(NSMenuItem.separator())
-        
         // Add "Preferences" menu item
-        menu.addItem(NSMenuItem(title: NSLocalizedString("Preferences ...", comment: "Preferences"),
-                                action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ","))
+        if let newMenuItem = createMenuItem(title: "Preferences ...",
+                                              comment: "Preferences",
+                                              action: #selector(AppDelegate.showWindow(_:)),
+                                              keyEquivalent: ",",
+                                              preferenceKey: .menuSettings,
+                                              prefs: prefs) {
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(newMenuItem)
+        }
         
         // Add "Quit" menu item if allowed by preferences
         if prefs.bool(for: .canQuit) != false {
-            menu.addItem(NSMenuItem.separator())
-            menu.addItem(NSMenuItem(title: NSLocalizedString("Quit Network Share Mounter", comment: "Quit Network Share Mounter"),
-                                    action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+            if let newMenuItem = createMenuItem(title: "Quit Network Share Mounter",
+                                                comment: "Quit Network Share Mounter",
+                                                action: #selector(NSApplication.terminate(_:)),
+                                                keyEquivalent: "q",
+                                                preferenceKey: .menuSettings,
+                                                prefs: prefs) {
+                menu.addItem(NSMenuItem.separator())
+                menu.addItem(newMenuItem)
+            }
         }
         
         // Set the constructed menu to the statusItem
         statusItem.menu = menu
     }
     
+    /// Creates and configures a menu item based on user preferences
+    ///
+    /// - Parameters:
+    ///   - title: The localized title text for the menu item
+    ///   - action: The selector to be called when menu item is clicked
+    ///   - keyEquivalent: The keyboard shortcut for the menu item
+    ///   - preferenceKey: The preference key to check the menu item's state
+    ///   - prefs: The preference manager instance to retrieve settings
+    ///
+    /// - Returns: A configured NSMenuItem instance, or nil if the menu item should be hidden
+    ///
+    /// The menu item's state is determined by the preference value:
+    /// - "hidden": Returns nil, menu item won't be shown
+    /// - "disabled": Menu item is shown but disabled
+    /// - Any other value: Menu item is shown and enabled
+    func createMenuItem(title: String, comment: String, action: Selector, keyEquivalent: String, preferenceKey: PreferenceKeys, prefs: PreferenceManager) -> NSMenuItem? {
+        // Get preference value for the specified key
+        let preferenceValue = prefs.string(for: preferenceKey) ?? ""
+        // localize menu title
+        let localizedTitle = NSLocalizedString(title, comment: "")
+        // Create menu item with localized title
+        let menuItem = NSMenuItem(title: NSLocalizedString(localizedTitle, comment: comment),
+                                  action: action,
+                                  keyEquivalent: keyEquivalent)
+        
+        // Configure menu item state based on preference value
+        switch preferenceValue {
+        case "hidden":
+            // Don't add menu item
+            return nil
+        case "disabled":
+            // Add menu item but disable it
+            menuItem.isEnabled = false
+        default:
+            // Add menu item normally and enable it
+            menuItem.isEnabled = true
+        }
+        return menuItem
+    }
+    
+    /// Creates a custom menu bar icon with a colored background circle and SF Symbol
+    /// - Parameters:
+    ///   - withIcon: The name of the SF Symbol to use (currently not used in implementation)
+    ///   - backgroundColor: The background color of the circular icon
+    ///   - symbolColor: The color of the SF Symbol
+    /// - Returns: An NSImage containing the composed icon
+    /// - Note: The icon parameter is currently hardcoded to "externaldrive.connected.to.line.below.fill"
     func createMenuIcon(withIcon: String, backgroundColor: NSColor, symbolColor: NSColor) -> NSImage {
         
-        // Erstelle das SFSymbol als NSImage
+        // Create NSImage from SF Symbol
         let symbolImage = NSImage(systemSymbolName: "externaldrive.connected.to.line.below.fill", accessibilityDescription: nil)!
-        // Konvertiere das Symbol in ein Template-Bild
+        
+        // Convert symbol to template image for colorization
         let templateImage = symbolImage.copy() as! NSImage
         templateImage.isTemplate = true
         
-        // Konfiguriere das Symbol
+        // Configure symbol appearance with 12pt regular weight
         let symbolConfig = NSImage.SymbolConfiguration(pointSize: 12, weight: .regular)
         let configuredSymbolImage = templateImage.withSymbolConfiguration(symbolConfig)
         
-        // Erstelle einen farbigen Kreis
+        // Create base image for colored circle background
         let circleSize = NSSize(width: 24, height: 24)
         let circleImage = NSImage(size: circleSize)
         circleImage.lockFocus()
         
-        // Zeichne den farbigen Kreis
+        // Draw colored circle background
         let circlePath = NSBezierPath(ovalIn: NSRect(origin: .zero, size: circleSize))
         backgroundColor.setFill()
         circlePath.fill()
         
-        // Zeichne das Symbol in der Mitte des Kreises
+        // Center and draw the symbol on top of circle
         if let configuredSymbolImage = configuredSymbolImage {
             let symbolRect = NSRect(
                 x: (circleSize.width - configuredSymbolImage.size.width) / 2,
@@ -520,7 +626,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 height: configuredSymbolImage.size.height
             )
             
-            // Setze die Farbe für das Symbol
+            // Apply symbol color and draw
             symbolColor.set()
             configuredSymbolImage.draw(in: symbolRect)
         }
@@ -529,5 +635,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         return circleImage
     }
-
 }

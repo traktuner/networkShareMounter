@@ -81,6 +81,7 @@ class Mounter: ObservableObject {
     /// - Parameter share: share object to check and append to shares array
     func addShare(_ share: Share) async {
         await shareManager.addShare(share)
+        NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
     }
     
     /// deletes a share at the given Index
