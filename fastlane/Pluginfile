@@ -6,3 +6,4 @@
 gem 'fastlane-plugin-get_product_bundle_id'
 gem 'fastlane-plugin-git_tags'
 gem 'fastlane-plugin-dmg'
+gem 'fastlane-plugin-sentry'
