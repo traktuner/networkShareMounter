@@ -11,6 +11,7 @@ import Network
 import LaunchAtLogin
 import OSLog
 import Sparkle
+import Sentry
 
 /// The main application delegate class responsible for managing the app's lifecycle and core functionality.
 @main
@@ -72,6 +73,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     /// Application entry point after launch
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        SentrySDK.start { options in
+            options.dsn = "https://d71a9ab2987bfcb31be310a287f8c1b8@o4508388422320128.ingest.de.sentry.io/4508388444667984"
+            options.debug = true // Enabling debug when first installing is always helpful
+            
+            // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
+            // We recommend adjusting this value in production.
+            options.tracesSampleRate = 1.0
+        }
+        
+        // Manually call startProfiler and stopProfiler
+        // to profile the code in between
+        SentrySDK.startProfiler()
+        // this code will be profiled
+        //
+        // Calls to stopProfiler are optional - if you don't stop the profiler, it will keep profiling
+        // your application until the process exits or stopProfiler is called.
+        SentrySDK.stopProfiler()
+        
         // Prevent window from being deallocated when closed
         window.isReleasedWhenClosed = false
         

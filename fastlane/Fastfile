@@ -184,6 +184,12 @@ lane :alpha do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
+    desc "Upload debugging files to sentry"
+    sentry_upload_dsym(
+      org_slug: "fau-rrze-76",
+      project_slug: "network-share-mounter",
+      dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
+      )
   rescue => exception
     on_error(exception)
   end
@@ -219,6 +225,11 @@ lane :beta do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
+    sentry_upload_dsym(
+      org_slug: "fau-rrze-76",
+      project_slug: "network-share-mounter",
+      dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
+    )
   rescue => exception
     on_error(exception)
   end
@@ -253,6 +264,11 @@ lane :release do
       package: "build/NetworkShareMounter-#{appversion}.pkg", 
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
+    )
+    sentry_upload_dsym(
+      org_slug: "fau-rrze-76",
+      project_slug: "network-share-mounter",
+      dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
     )
   rescue => exception
     on_error(exception)
