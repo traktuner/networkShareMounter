@@ -245,7 +245,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             removeShareButton.isEnabled = false
             modifyShareButton.isEnabled = false
         }
-        tableView.reloadData()
     }
     /// IBAction function called if removeShare button is pressed.
     /// This will remove the share in the selected row in tableView
@@ -265,10 +264,10 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     // remove share from local userShares array bound to tableView
                     self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
                     usersNewShare.stringValue=""
+                    tableView.reloadData()
                 }
             }
         }
-        tableView.reloadData()
     }
     
     // MARK: Storyboard instantiation
