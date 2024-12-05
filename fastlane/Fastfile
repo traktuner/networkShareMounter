@@ -186,7 +186,7 @@ lane :alpha do
     )
     desc "Upload debugging files to sentry"
     sentry_upload_dsym(
-      org_slug: "faumac",
+      url: "https://apps.faumac.de:8443",
       project_slug: "network-share-mounter",
       dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
       )
@@ -226,7 +226,7 @@ lane :beta do
       username: "rrze-apple-entwickler@fau.de"
     )
     sentry_upload_dsym(
-      org_slug: "faumac",
+      url: "https://apps.faumac.de:8443",
       project_slug: "network-share-mounter",
       dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
     )
@@ -266,7 +266,7 @@ lane :release do
       username: "rrze-apple-entwickler@fau.de"
     )
     sentry_upload_dsym(
-      org_slug: "faumac",
+      url: "https://apps.faumac.de:8443",
       project_slug: "network-share-mounter",
       dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
     )

@@ -133,6 +133,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         Logger.activityController.debug("🔄 User has manually switched automatic updates to: \(String((sender as AnyObject).state == .on), privacy: .public)")
         updater?.automaticallyChecksForUpdates = ((sender as AnyObject).state == .on)
     }
+    
     @IBOutlet weak var updateCheckbox: NSButton!
     
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
@@ -203,6 +204,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     @IBOutlet weak var horizontalLine: NSBox!
     
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
+    
+    @IBOutlet weak var sendDiagnosticsRadioButton: NSButton!
     
     @IBOutlet weak var tableView: NSTableView!
     

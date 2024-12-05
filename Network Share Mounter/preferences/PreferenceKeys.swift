@@ -186,6 +186,8 @@ enum PreferenceKeys: String, CaseIterable {
     
     // used to manually override %USERNAME% if local and remoter user names differ
     case usernameOverride = "usernameOverride"
+    // used to define if diagnostic data should be sent to the FAUmac team
+    case sendDiagnostics = "sendDiagnostics"
     
     // control menu items
     case menuQuit = "menuQuit"

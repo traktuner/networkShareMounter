@@ -74,23 +74,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Application entry point after launch
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
-        SentrySDK.start { options in
-            options.dsn = Defaults.sentryDSN
-            options.debug = true // Enabling debug when first installing is always helpful
-            
-            // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
-            // We recommend adjusting this value in production.
-            options.tracesSampleRate = 1.0
+        if prefs.bool(for: .sendDiagnostics) == true {
+            Logger.app.debug("Initializing sentry SDK...")
+            SentrySDK.start { options in
+                options.dsn = Defaults.sentryDSN
+                options.debug = true // Enabling debug when first installing is always helpful
+                
+                // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
+                // We recommend adjusting this value in production.
+                options.tracesSampleRate = 1.0
+            }
+            // Manually call startProfiler and stopProfiler
+            // to profile the code in between
+            SentrySDK.startProfiler()
+            // this code will be profiled
+            //
+            // Calls to stopProfiler are optional - if you don't stop the profiler, it will keep profiling
+            // your application until the process exits or stopProfiler is called.
+            SentrySDK.stopProfiler()
         }
-        
-        // Manually call startProfiler and stopProfiler
-        // to profile the code in between
-        SentrySDK.startProfiler()
-        // this code will be profiled
-        //
-        // Calls to stopProfiler are optional - if you don't stop the profiler, it will keep profiling
-        // your application until the process exits or stopProfiler is called.
-        SentrySDK.stopProfiler()
         
         // Prevent window from being deallocated when closed
         window.isReleasedWhenClosed = false

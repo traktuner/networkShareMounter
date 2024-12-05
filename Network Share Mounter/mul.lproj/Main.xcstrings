@@ -1033,6 +1033,48 @@
         }
       }
     },
+    "A8b-GW-aqC.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Send Diagnostic Data to help improve the application\"; ObjectID = \"A8b-GW-aqC\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sende Diagnosedaten, um die Anwendung zu verbessern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send Diagnostic Data to help improve the application"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviar datos de diagnóstico para ayudar a mejorar la aplicación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer des données de diagnostic pour aider à améliorer l'application"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invia dati diagnostici per aiutare a migliorare l'applicazione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verzend diagnostische gegevens om de applicatie te helpen verbeteren"
+          }
+        }
+      }
+    },
     "a90-PA-mz8.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"Network share address\"; ObjectID = \"a90-PA-mz8\";",
       "extractionState" : "extracted_with_value",
