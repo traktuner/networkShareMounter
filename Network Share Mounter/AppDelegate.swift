@@ -75,7 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         SentrySDK.start { options in
-            options.dsn = "https://d71a9ab2987bfcb31be310a287f8c1b8@o4508388422320128.ingest.de.sentry.io/4508388444667984"
+            options.dsn = Defaults.sentryDSN
             options.debug = true // Enabling debug when first installing is always helpful
             
             // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.

@@ -31,6 +31,8 @@ struct Defaults {
     static let nsmUnmountTriggerNotification = Notification.Name("nsmUnmountTriggerNotification")
     static let nsmMountManuallyTriggerNotification = Notification.Name("nsmMountManuallyTriggerNotification")
     static let nsmReconstructMenuTriggerNotification = Notification.Name("nsmReconstructMenuTriggerNotification")
+    
+    static let sentryDSN = "https://a0768af20276c5f3b9bcd16a8d89e460@apps.faumac.de:8443/2"
     // swiftlint:disable force_cast
     static let openOptions = [
         kNAUIOptionKey: kNAUIOptionNoUI
