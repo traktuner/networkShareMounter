@@ -48,6 +48,14 @@ lane :getlatestag do
   tags.join()
 end
 
+lane :sentryUpload do
+  desc "send dSYM and maybe other data to our sentry instance"
+  sentry_debug_files_upload(
+    project_slug: "network-share-mounter",
+    #path: '/path/to/files', # Optional. Defaults to '.' when no value is provided. Path(s) can be a string, a comma-separated string, or an array of strings.
+)
+end
+
 lane :commonTasks do
   desc "perform some commont build tasks"
   id = getbundleid
@@ -184,12 +192,7 @@ lane :alpha do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
-    desc "Upload debugging files to sentry"
-    sentry_upload_dsym(
-      url: "https://apps.faumac.de:8443",
-      project_slug: "network-share-mounter",
-      dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
-      )
+    sentryUpload
   rescue => exception
     on_error(exception)
   end
@@ -225,11 +228,7 @@ lane :beta do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
-    sentry_upload_dsym(
-      url: "https://apps.faumac.de:8443",
-      project_slug: "network-share-mounter",
-      dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
-    )
+    sentryUpload
   rescue => exception
     on_error(exception)
   end
@@ -265,11 +264,7 @@ lane :release do
       bundle_id: "de.fau.rrze.NetworkShareMounter", 
       username: "rrze-apple-entwickler@fau.de"
     )
-    sentry_upload_dsym(
-      url: "https://apps.faumac.de:8443",
-      project_slug: "network-share-mounter",
-      dsym_path: "build/Network\ Share\ Mounter.app.dSYM.zip"
-    )
+    sentryUpload
   rescue => exception
     on_error(exception)
   end
