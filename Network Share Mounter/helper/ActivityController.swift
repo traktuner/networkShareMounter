@@ -77,7 +77,8 @@ class ActivityController {
                 // await self.mounter.mountAllShares(userTriggered: true)
                 await mounter.mountGivenShares()
                 Logger.activityController.debug(" 🐛 Restart Finder to bypass a presumed bug in macOS.")
-                mounter.restartFinder()
+                let finderController = FinderController()
+                await finderController.restartFinder()
             }
         }
     }

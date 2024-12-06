@@ -22,6 +22,7 @@
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7796E112AFBE5AB008F6A26 /* ActivityController.swift */; };
 		F7885F642C623084000B96AC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F7885F632C623084000B96AC /* Sparkle */; };
+		F78AF9D02D035D5500E32EEA /* FinderController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78AF9CF2D035D5500E32EEA /* FinderController.swift */; };
 		F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* KeychainManager.swift */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
@@ -90,6 +91,7 @@
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		F7796E112AFBE5AB008F6A26 /* ActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityController.swift; sourceTree = "<group>"; };
+		F78AF9CF2D035D5500E32EEA /* FinderController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderController.swift; sourceTree = "<group>"; };
 		F78B9D742B0BA7EF00043327 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 			isa = PBXGroup;
 			children = (
 				F77107B6274EC51600556B20 /* Monitor.swift */,
+				F78AF9CF2D035D5500E32EEA /* FinderController.swift */,
 				F7796E112AFBE5AB008F6A26 /* ActivityController.swift */,
 				F7EF65CF2B3B4DFC00051D44 /* Logger.swift */,
 				F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */,
@@ -492,6 +495,7 @@
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
 				F7EF65F72B3B5DF500051D44 /* Date.swift in Sources */,
 				F7EF65DA2B3B574100051D44 /* SRVResolver.swift in Sources */,
+				F78AF9D02D035D5500E32EEA /* FinderController.swift in Sources */,
 				F7EF65E32B3B57FC00051D44 /* AccountsManager.swift in Sources */,
 				F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */,
 				F7D940502C418B9300028F9A /* MountStatusDescription.swift in Sources */,
@@ -688,7 +692,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 192;
+				CURRENT_PROJECT_VERSION = 193;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -738,7 +742,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 192;
+				CURRENT_PROJECT_VERSION = 193;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;

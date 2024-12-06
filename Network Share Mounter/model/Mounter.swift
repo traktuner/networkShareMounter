@@ -392,7 +392,8 @@ class Mounter: ObservableObject {
             }
         }
         // is ths really needed?
-        restartFinder()
+        let finderController = FinderController()
+        await finderController.restartFinder()
         await prepareMountPrerequisites()
     }
     

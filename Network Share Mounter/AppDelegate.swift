@@ -74,6 +74,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Application entry point after launch
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
+#if DEBUG
+        Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
+#else
         if prefs.bool(for: .sendDiagnostics) == true {
             Logger.app.debug("Initializing sentry SDK...")
             SentrySDK.start { options in
@@ -93,6 +96,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // your application until the process exits or stopProfiler is called.
             SentrySDK.stopProfiler()
         }
+#endif
         
         // Prevent window from being deallocated when closed
         window.isReleasedWhenClosed = false
@@ -335,7 +339,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task {
                 if let mounter = mounter {
                     await mounter.mountGivenShares(userTriggered: true, forShare: shareID)
-                    mounter.restartFinder()
+                    let finderController = FinderController()
+                    await finderController.restartFinder()
                 } else {
                     Logger.app.error("Could not initialize mounter class, this should never happen.")
                 }
