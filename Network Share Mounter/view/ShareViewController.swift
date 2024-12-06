@@ -11,10 +11,7 @@ import OSLog
 
 class ShareViewController: NSViewController {
     
-    var callback: ((String?) -> Void)?
-    var prefs = PreferenceManager()
-    
-    // Share struct
+    // MARK: - Types
     struct ShareData {
         var networkShare: String
         var authType: AuthType
@@ -32,6 +29,12 @@ class ShareViewController: NSViewController {
                     NSLocalizedString("help-password", comment: "")]
     
     // MARK: - Properties
+    var callback: ((String?) -> Void)?
+    var prefs = PreferenceManager()
+    // swiftlint:disable force_cast
+    // appDelegate is used to accesss variables in AppDelegate
+    let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    // swiftlint:enable force_cast
     
     var selectedShareURL: String?
     var shareData: ShareData?
@@ -58,99 +61,138 @@ class ShareViewController: NSViewController {
     @IBOutlet weak var authTypeText: NSTextField!
     @IBOutlet weak var shareViewText: NSTextField!
     @IBOutlet weak var authTypeHelpButton: NSButton!
-    // MARK: - initialization
-    
-    // swiftlint:disable force_cast
-    // appDelegate is used to accesss variables in AppDelegate
-    let appDelegate = NSApplication.shared.delegate as! AppDelegate
-    // swiftlint:enable force_cast
     
     // MARK: - View Lifecycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        configureView()
-        progressIndicator.isHidden = true
-        authType = AuthType.pwd
-//        shareArray = appDelegate.mounter!.shareManager.getAllShares()
-        shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
-        authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
-        
-        // check if NetworkShareMounter View has set selectedShareURL
-        // if yes, prefill the data
-        if let shareString = selectedShareURL {
-            if let selectedShare = shareArray.filter({$0.networkShare == shareString}).first {
-                saveButton.title =  NSLocalizedString("Save", comment: "Save data")
-                networkShareTextField.stringValue = selectedShare.networkShare
-                isManaged = selectedShare.managed
-                // if the share is managed only username and password should be changed
-                if selectedShare.managed {
-                    networkShareTextField.isEditable = false
-                    authTypeSwitch.isEnabled = false
-                    authTypeSwitch.isHidden = true
-                    authTypeText.isHidden = true
-                    authTypeHelpButton.isHidden = true
-                    shareViewText.isHidden = true
-                } else {
-                    if selectedShare.authType == AuthType.pwd {
-                        authTypeSwitch.state = NSControl.StateValue.off
-                        authType = AuthType.pwd
-                        usernameTextField.isEnabled = true
-                        passwordTextField.isEnabled = true
-                        usernameTextField.isHidden = false
-                        passwordTextField.isHidden = false
-                        usernameHelpButton.isHidden = false
-                        passwordHelpButton.isHidden = false
-                        usernameText.isHidden = false
-                        passwordText.isHidden = false
-                        usernameTextField.stringValue = selectedShare.username ?? ""
-                        passwordTextField.stringValue = selectedShare.password ?? ""
-                    } else {
-                        authTypeSwitch.state = NSControl.StateValue.on
-                        authType = AuthType.krb
-                        usernameTextField.isEnabled = false
-                        passwordTextField.isEnabled = false
-                        usernameTextField.isHidden = true
-                        passwordTextField.isHidden = true
-                        usernameHelpButton.isHidden = true
-                        passwordHelpButton.isHidden = true
-                        usernameText.isHidden = true
-                        passwordText.isHidden = true
-                    }
-                }
-            }
+        Task {
+            await configureInitialState()
+            await loadAndConfigureShare()
         }
     }
     
-    // MARK: - Actions
-    
     @IBAction private func saveButtonTapped(_ sender: NSButton) {
         Task { @MainActor in
-            let networkShareText = self.networkShareTextField.stringValue
-            let username = usernameTextField.stringValue
-            let password = passwordTextField.stringValue
-            
-            let shareData = ShareData(networkShare: self.networkShareTextField.stringValue, authType: authType, username: username, password: password, managed: isManaged)
-            
-            let shareURL = networkShareText.replacingOccurrences(of: " ", with: "_")
-            if shareURL.isValidURL {
-                progressIndicator.isHidden = false
-                saveButton.isEnabled = false
-                progressIndicator.startAnimation(self)
-                Task { [self, shareData] in
-                    if (await handleShareURL(networkShareText: networkShareText, shareData: shareData)) != nil {
-                        progressIndicator.isHidden = true
-                        callback?("save")
-                        dismiss(nil)
-                        //                    self.view.window?.windowController?.close()
-                    } else {
-                        progressIndicator.isHidden = true
-                        dismiss(nil)
-                    }
-                }
-            }
+            guard let shareData = createShareData() else { return }
+            await handleSave(with: shareData)
         }
+    }
+    
+    @IBAction private func authTypeSwitchChanged(_ sender: Any) {
+        configureAuthTypeUI(isKerberos: authTypeSwitch.state == .on)
+    }
+    
+    @IBAction private func helpButtonClicked(_ sender: NSButton) {
+        showHelpPopover(for: sender)
+    }
+    
+    @IBAction private func cancelButtonTapped(_ sender: NSButton) {
+        callback?("cancel")
+        dismiss(nil)
+    }
+    
+    // MARK: - Private Methods
+    
+    private func configureInitialState() async {
+        progressIndicator.isHidden = true
+        shareArray = await appDelegate.mounter!.shareManager.getAllShares()
+        shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
+        authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
+    }
+    
+    private func loadAndConfigureShare() async {
+        guard let shareString = selectedShareURL,
+              let selectedShare = shareArray.first(where: { $0.networkShare == shareString }) else { return }
+        
+        await MainActor.run {
+            configureShareUI(with: selectedShare)
+        }
+    }
+    
+    private func configureShareUI(with share: Share) {
+        saveButton.title = NSLocalizedString("Save", comment: "Save data")
+        networkShareTextField.stringValue = share.networkShare
+        isManaged = share.managed
+        
+        if share.managed {
+            configureManagedShareUI()
+        } else {
+            configureUnmanagedShareUI(with: share)
+        }
+    }
+    
+    private func configureManagedShareUI() {
+        networkShareTextField.isEditable = false
+        authTypeSwitch.isEnabled = false
+        [authTypeSwitch, authTypeText, authTypeHelpButton, shareViewText].forEach { $0?.isHidden = true }
+    }
+    
+    private func configureUnmanagedShareUI(with share: Share) {
+        let isPasswordAuth = share.authType == .pwd
+        authType = share.authType
+        authTypeSwitch.state = isPasswordAuth ? .off : .on
+        configureAuthTypeUI(isKerberos: !isPasswordAuth)
+        
+        if isPasswordAuth {
+            usernameTextField.stringValue = share.username ?? ""
+            passwordTextField.stringValue = share.password ?? ""
+        }
+    }
+    
+    private func configureAuthTypeUI(isKerberos: Bool) {
+        authType = isKerberos ? .krb : .pwd
+        let authElements = [usernameTextField, passwordTextField, usernameHelpButton,
+                          passwordHelpButton, usernameText, passwordText]
+        
+        authElements.forEach {
+            $0?.isEnabled = !isKerberos
+            $0?.isHidden = isKerberos
+        }
+    }
+    
+    private func createShareData() -> ShareData? {
+        let networkShareText = networkShareTextField.stringValue
+        guard networkShareText.isValidURL else {
+            showErrorDialog(error: MounterError.errorOnEncodingShareURL)
+            return nil
+        }
+        
+        return ShareData(
+            networkShare: networkShareText,
+            authType: authType,
+            username: usernameTextField.stringValue,
+            password: passwordTextField.stringValue,
+            mountPath: nil,
+            managed: isManaged
+        )
+    }
+    
+    private func handleSave(with shareData: ShareData) async {
+        progressIndicator.isHidden = false
+        saveButton.isEnabled = false
+        progressIndicator.startAnimation(self)
+        
+        if let _ = await handleShareURL(networkShareText: shareData.networkShare, shareData: shareData) {
+            progressIndicator.isHidden = true
+            callback?("save")
+            dismiss(nil)
+        } else {
+            progressIndicator.isHidden = true
+            dismiss(nil)
+        }
+    }
+    
+    private func showHelpPopover(for sender: NSButton) {
+        let helpPopoverViewController = storyboard?.instantiateController(
+            withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")
+        ) as! HelpPopoverViewController
+        
+        let popover = NSPopover()
+        popover.contentViewController = helpPopoverViewController
+        helpPopoverViewController.helpText = helpText[sender.tag]
+        popover.animates = true
+        popover.behavior = .transient
+        popover.show(relativeTo: sender.frame, of: view, preferredEdge: .minY)
     }
     
     
@@ -248,80 +290,5 @@ class ShareViewController: NSViewController {
         // TODO: Unfortunately, two modal views on top of each other don't work as hoped. If I close the alert, the view underneath
         //  is also closed. I have to take a look at it
         alert.runModal()
-
-//        if let viewWindow = self.view.window {
-//            self.view.window?.close()
-//            alert.beginSheetModal(for: viewWindow, completionHandler: { (modalResponse: NSApplication.ModalResponse) -> Void in
-//                if(modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn){
-//                    Logger.shareViewController.debug("User informed about error \(error, privacy: .public)")
-//                }
-//            })
-//        }
-    }
-    
-    
-    @IBAction func authTypeSwitchChanged(_ sender: Any) {
-        if authTypeSwitch.state == NSControl.StateValue.off {
-            authType = AuthType.pwd
-            usernameTextField.isEnabled = true
-            passwordTextField.isEnabled = true
-            usernameTextField.isHidden = false
-            passwordTextField.isHidden = false
-            usernameHelpButton.isHidden = false
-            passwordHelpButton.isHidden = false
-            usernameText.isHidden = false
-            passwordText.isHidden = false
-        } else {
-            authType = AuthType.krb
-            usernameTextField.isEnabled = false
-            passwordTextField.isEnabled = false
-            usernameTextField.isHidden = true
-            passwordTextField.isHidden = true
-            usernameHelpButton.isHidden = true
-            passwordHelpButton.isHidden = true
-            usernameText.isHidden = true
-            passwordText.isHidden = true
-        }
-    }
-    
-    let popover = NSPopover()
-    
-    @IBAction func helpButtonClicked(_ sender: NSButton) {
-        // swiftlint:disable force_cast
-        let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
-        // swiftlint:enable force_cast
-        let popover = NSPopover()
-        popover.contentViewController = helpPopoverViewController
-        helpPopoverViewController.helpText = helpText[sender.tag]
-        popover.animates = true
-        popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: NSRectEdge.minY)
-        popover.behavior = NSPopover.Behavior.transient
-    }
-    
-    @IBAction private func cancelButtonTapped(_ sender: NSButton) {
-        
-        callback?("cancel")
-        self.dismiss(nil)
-    }
-    
-    // MARK: - Private Methods
-    
-    private func configureView() {
-        guard let shareData = shareData else {
-            return
-        }
-        
-        networkShareTextField.stringValue = URL(string: shareData.networkShare)!.absoluteString
-        authTypeSwitch.state = NSControl.StateValue.off
-        usernameTextField.stringValue = shareData.username ?? ""
-        passwordTextField.stringValue = shareData.password ?? ""
-        authTypeSwitch.state = NSControl.StateValue.off
-        authType = AuthType.pwd
-        usernameTextField.isEnabled = true
-        passwordTextField.isEnabled = true
-        usernameTextField.isHidden = false
-        passwordTextField.isHidden = false
-        usernameText.isHidden = false
-        passwordText.isHidden = false
     }
 }
