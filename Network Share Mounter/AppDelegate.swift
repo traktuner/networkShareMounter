@@ -147,6 +147,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 Logger.app.error("Could not initialize mounter class, this should never happen.")
             }
             
+            // trigger user authentication on app start
+            Logger.app.debug("Trigger user authentication on app startup.")
+            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
             // set a timer to perform a mount every n seconds
             mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
                 Logger.app.info("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
@@ -163,8 +166,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             monitor.startMonitoring { connection, reachable in
                 if reachable.rawValue == "yes" {
                     NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
+                    NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                 } else {
                     Task {
+                        NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                         // since the mount status after a network change is unknown it will be set
                         // to unknown so it can be tested and maybe remounted if the network connects again
                         Logger.app.debug("Got network monitoring callback, unmount shares.")
@@ -314,6 +319,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// - Parameter sender: The object that triggered the action
     @objc func mountManually(_ sender: Any?) {
         Logger.app.debug("User triggered mount all shares")
+        NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
         NotificationCenter.default.post(name: Defaults.nsmMountManuallyTriggerNotification, object: nil)
     }
 

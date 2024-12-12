@@ -57,6 +57,7 @@
 		F7EF65F92B3B5E0800051D44 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65F82B3B5E0800051D44 /* URL.swift */; };
 		F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */; };
 		F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */; };
+		F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A12D0B191A0064D038 /* dogeADAuth */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,6 +138,7 @@
 				F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */,
 				F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */,
 				F7885F642C623084000B96AC /* Sparkle in Frameworks */,
+				F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */,
 				F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */,
 				F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */,
 				F7CAE1252CFB879000D0A839 /* Sentry in Frameworks */,
@@ -311,6 +313,7 @@
 				F7885F632C623084000B96AC /* Sparkle */,
 				F7A7A2182C8F0240006772D4 /* dogeADAuth */,
 				F7CAE1242CFB879000D0A839 /* Sentry */,
+				F7EFD0A12D0B191A0064D038 /* dogeADAuth */,
 			);
 			productName = "Network Share Mounter";
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
@@ -398,8 +401,8 @@
 			packageReferences = (
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
 				F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */,
-				F7A402DA2C8F0DB200D75633 /* XCRemoteSwiftPackageReference "dogeadauth" */,
 				F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				F7EFD0A02D0B191A0064D038 /* XCLocalSwiftPackageReference "../doge-adauth" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -692,7 +695,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 193;
+				CURRENT_PROJECT_VERSION = 195;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -742,7 +745,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 193;
+				CURRENT_PROJECT_VERSION = 195;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -784,7 +787,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 193;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -815,7 +818,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 193;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -842,7 +845,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 193;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -873,7 +876,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 193;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -931,6 +934,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		F7EFD0A02D0B191A0064D038 /* XCLocalSwiftPackageReference "../doge-adauth" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../doge-adauth";
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -938,14 +948,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.6.4;
-			};
-		};
-		F7A402DA2C8F0DB200D75633 /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
-			requirement = {
-				branch = main;
-				kind = branch;
 			};
 		};
 		F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
@@ -991,6 +993,10 @@
 			productName = Sentry;
 		};
 		F7E2AF6E2C3061020063960F /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = dogeADAuth;
+		};
+		F7EFD0A12D0B191A0064D038 /* dogeADAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = dogeADAuth;
 		};
