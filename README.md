@@ -98,17 +98,17 @@ With macOS Ventura, Apple has introduced a feature that displays apps running in
 * Rule Value: `de.fau.rrze.NetworkShareMounter`
 * Rule Comment: `Prevent disabling the Network Share Mounter autostart`
 
-##### **4) How can I log the Network Share Mounter for debugging?**
+##### **4) How can I obtain logging information for troubleshooting?**
 
 With version 3, logging has significantly improved. You can use either Konsole.app or the terminal with the following command to log the app:
 
 ``log stream --predicate "subsystem == 'de.fau.rrze.NetworkShareMounter'" --level debug``
 
-##### **5) Why is it not possible to change the mount point name when using /Volumes for the mount location?**
+##### **5) Why can't you change the mount point name when using /Volumes as the mount location?**
 
 When mounting shares in `/Volumes`, the operating system manages the entire mount process and does not permit programmatic changes to the mount point name. Therefore, it is not possible to change the name. If the key `mountPoint` is configured, it will be ignored when using `/Volumes` as the mount location.
 
-##### **6) Is there a way to centrally control the collection of crash reports via MDM?**
+##### **6) Can MDM be used to control the collection and sending of crash reports to the FAUmac developers?**
 
 Network Share Mountre is now using a tool to collect issues and crash reports. It has become apparent that there are recurring errors that we cannot reproduce. Debugging such problems is often time-consuming. Therefore, we decided to look for a tool that collects as few data as possible, is open source, and can be hosted locally in our data center. We chose [Sentry](https://sentry.io).
 - We use a *locally hosted* instance of Sentry, not one hosted in the cloud. The data therefore *never leaves our local servers*, hosted in our own data center.
