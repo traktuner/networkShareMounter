@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
-    "description": "Jamf Manifest for Network Share Mounter v3",
-    "__version": "2.0",
+    "description": "Jamf Manifest for Network Share Mounter v3.1",
+    "__version": "3.0",
     "__feedback": "rrze-mac@fau.de",
     "type": "object",
     "options": {
@@ -161,6 +161,124 @@
                 "type": "string",
                 "pattern": "^smb:\/\/\\S*.+$",
                 "title": "Share"
+            }
+        },
+        "showMountsInMenu": {
+            "title": "Show network mounts in menu",
+            "description": "List mounted/unmounted shares directly in menu bar.",
+            "type": "boolean",
+            "default": true
+        },
+        "menuAbout": {
+            "title": "Menu About",
+            "description": "Show/hide/disable menu item about.",
+            "type": "string",
+            "default": "",
+            "options":
+            {
+                "enum_titles":
+                [
+                    "hidden",
+                    "disabled",
+                    ""
+                ],
+                "infoText": "Key name: menuCheckUpdates"
+            }
+        },
+        "menuConnectShares": {
+            "title": "Menu ConnectShares",
+            "description": "Show/hide/disable menu item connect shares.",
+            "type": "string",
+            "default": "",
+            "options":
+            {
+                "enum_titles":
+                [
+                    "hidden",
+                    "disabled",
+                    ""
+                ],
+                "infoText": "Key name: menuCheckUpdates"
+            }
+        },
+        "menuDisconnectShares": {
+            "title": "Menu DisconnectShares",
+            "description": "Show/hide/disable menu item disconnect shares.",
+            "type": "string",
+            "default": "",
+            "options":
+            {
+                "enum_titles":
+                [
+                    "hidden",
+                    "disabled",
+                    ""
+                ],
+                "infoText": "Key name: menuCheckUpdates"
+            }
+        },
+        "menuCheckUpdates": {
+            "title": "Menu CheckUpdates",
+            "description": "Show/hide/disable menu item check for updates.",
+            "type": "string",
+            "default": "",
+            "options":
+            {
+                "enum_titles":
+                [
+                    "hidden",
+                    "disabled",
+                    ""
+                ],
+                "infoText": "Key name: menuCheckUpdates"
+            }
+        },
+        "menuShowSharesMountDir": {
+            "title": "Menu ShowSharesMountDir",
+            "description": "Show/hide/disable menu item show shares mount directory.",
+            "type": "string",
+            "default": "",
+            "options":
+            {
+                "enum_titles":
+                [
+                    "hidden",
+                    "disabled",
+                    ""
+                ],
+                "infoText": "Key name: menuCheckUpdates"
+            }
+        },
+        "menuShowShares": {
+            "title": "Menu ShowShares",
+            "description": "Show/hide/disable menu item show shares in menu.",
+            "type": "string",
+            "default": "",
+            "options":
+            {
+                "enum_titles":
+                [
+                    "hidden",
+                    "disabled",
+                    ""
+                ],
+                "infoText": "Key name: menuCheckUpdates"
+            }
+        },
+        "menuSettings": {
+            "title": "Menu Settings",
+            "description": "Show/hide/disable menu item settings.",
+            "type": "string",
+            "default": "",
+            "options":
+            {
+                "enum_titles":
+                [
+                    "hidden",
+                    "disabled",
+                    ""
+                ],
+                "infoText": "Key name: menuCheckUpdates"
             }
         }
     }
