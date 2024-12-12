@@ -1,12 +1,14 @@
 # <img src="networkShareMounter.png" alt="drawing" width="90px"/> Network Share Mounter
 
-In a university or corporate environment, it is usually necessary to mount specific network shares depending on departments or locations. Unfortunately, the built-in method of macOS for mounting shares is not very user-friendly and also does not provide an ideal solution for enterprise environments. Solutions based on scripts or other tools are often to static and inflexible for end users. 
-To create a perfect solution for administrators _and_ end users, we have developed the Network Share Mounter.
+In a university or corporate environment, it is often necessary to mount specific network shares based on departments or locations. Unfortunately, the built-in method for mounting shares in macOS is not very user-friendly and does not provide an ideal solution for enterprise environments. Solutions that rely on scripts or other tools are often too static and inflexible for end users.    
 
-The concept behind the Network Share Mounter is to have a single application for mounting a list of network shares. Ideally, the list of shares is distributed as a configuration profile with an MDM solution based on workgroups, departments, project groups, etc. If a user needs to add additional shares beyond the managed ones, they can easily add them via the menu bar.
-The Shares are mounted in the background based on network accessibility without requiring any user interaction. To enhance this process, a Kerberos environment is recommended to avoid the need for authentication during a mount. With version 3, user credentials can also be stored securely in the user's keychain (managed and manually added shares).
+To create an optimal solution for both administrators and end users, we have developed the Network Share Mounter.    
 
-_Go to the [releases page](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/releases) for the newest version._
+The Network Share Mounter is designed as a single application for mounting a list of network shares. Ideally, this list is distributed as a configuration profile through an MDM solution based on workgroups, departments, project groups, etc. If a user needs to add additional shares beyond the managed ones, they can easily do so via the menu bar.     
+
+Shares are mounted in the background based on network accessibility, requiring no user interaction. To enhance this process, we recommend using a Kerberos environment to eliminate the need for authentication during mounting. With version 3, user credentials can also be securely stored in the user's keychain for both managed and manually added shares. Additionally, version 3.1.0 supports the management of Kerberos tickets. Similar to Apple Enterprise Connect, Jamf Connect or NoMAD, Network Share Mounter handles the login and renewal of tickets in a Kerberos realm.
+
+_For the latest version, as well as information on new features and bug fixes, go to the [release page](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/releases)._
 
 **Key features**
 
@@ -15,9 +17,9 @@ _Go to the [releases page](https://gitlab.rrze.fau.de/faumac/networkShareMounter
 - **Fully configurability via MDM:** Distribute a list of managed network shares and configuration as a configuration profile using Mobile Device Management (MDM) solutions.
 - **User-Friendly menu bar interface:** Users can effortlessly add additional shares through the menu bar, providing flexibility beyond the managed ones.
 - **Background mounting:** Shares are automatically mounted in the background based on network accessibility, requiring no user intervention.
-- **Silent failure handling:** In the event of a mount failure (e.g., unreachable share), no intrusive graphical user interface will appear, ensuring a seamless user experience. Depending on the configuration, the Network Share Mounter icon in the menu bar adapts to provide a quick visual indicator of the current status.
+- **Silent failure handling:** In the event of a mount failure, such as an unreachable share, no intrusive graphical user interface will appear, ensuring a seamless user experience. Depending on the configuration, the Network Share Mounter icon in the menu bar will adapt to provide a quick visual indicator of the current status.
 - **Kerberos ticket management:** Serves as a potential alternative to Apple Enterprise Connect, Jamf Connect or NoMAD.
-- **Kerberos and keychain integration:** A Kerberos environment eliminates the need for adding user credentials for mounts, enhancing both security and efficiency. Alternatively, user credentials can be securely stored in the user's keychain.
+- **Kerberos and keychain integration:** A Kerberos environment removes the need to add user credentials for mounts, enhancing both security and efficiency. Alternatively, user credentials can be securely stored in the user's keychain.
 - **trigger by UNIX signals:** A mount/unmount of the configured shares can be triggered via Unix signals:
    - `kill -SIGUSR1 PID` triggers *unmount* of configured shares
    - `kill -SIGUSR2 PID` triggers *mount* of configured shares
@@ -58,28 +60,28 @@ For an easier configuration of all the preference keys without creating or modif
 | `enableAutoUpdater` | Boolean | Turns on the auto update framework so that the app can update itself | true | ≥ 3.0.4 | optional | |
 | `usernameOverride` | String | Provides the option to change the username used for mounting directories (for example, a network home drive).<br/>This may be necessary if the local username does not match the one used for mounting.<br/>This value is usually configured locally on the Mac. | - | ≥ 3.1.0 | optional | `defaults write ~/Preferences/de.fau.rrze.NetworkShareMounter.plist usernameOverride -string "USERNAME"` |
 | `showMountsInMenu` | Boolean | List (mounted/unmounted) shares directly in menu bar and open the mounted directories when they are clicked.<br/>WIf the value is set to `false`, the previously known menu will be displayed. | true | ≥ 3.1.0 | optional | |
-| `menuAbout`<br/>`menuConnectShares`<br/>`menuDisconnectShares`<br/>`menuCheckUpdates`<br/>`menuShowSharesMountDir`<br/>`menuShowShares`<br/>`menuSettings`| String | This allows you to manage the individual menu items:<br/>The `hidden` value hides the respective menu item, while `disabled` grays it out.<br/> If no values are set, the menu item is displayed normally. | - | ≥ 3.1.0 | optional | |
+| `menuAbout`<br/>`menuConnectShares`<br/>`menuDisconnectShares`<br/>`menuCheckUpdates`<br/>`menuShowSharesMountDir`<br/>`menuShowShares`<br/>`menuSettings`| String | This allows you to manage the individual menu items:<br/>Set to `hidden` to conceal the respective menu item, while `disabled` grays it out.<br/> If no values are set, the menu item is displayed normally. | - | ≥ 3.1.0 | optional | |
 
 #### ⚠️ Important note for the `location` and `cleanupLocationDirectory` values
 
-If the value `location` left empty (or undefined), the directory (`~/Netzlaufwerk`) will be created as a subdirectory of the user's home where the network shares will be mounted. Since this directory always contains only mounted network shares, there is a routine to clean up this directory and deletes unnecessary files and directories.
+If the `location` value is left empty (or undefined), the directory (`~/Netzlaufwerk`) will be created as a subdirectory of the user's home, where the network shares will be mounted. Since this directory only contains mounted network shares, there is a routine to clean it up by deleting unnecessary files and directories.
 
-If another directory is used to mount the network drives (like `location` = `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false` ! 
+If another directory is used to mount the network drives (like `location` = `/Volumes`) **it is strongly recommended** to disable the cleanup routine by setting `cleanupLocationDirectory` to `false`! 
 
-Make sure that the user has both read and write access permissions to the mount location if you are not using predefined locations such as `~/Netzlaufwerk`,`~/Network shares` in the user's home, or the `/Volumes` location [where the OS have to handle the mount process](#5-why-is-it-not-possible-to-change-the-mount-point-name-when-using-volumes-for-the-mount-location).
+Ensure that the user has both read and write access permissions to the mount location (the directory where the mounts are made) if you are not using predefined locations such as `~/Netzlaufwerk` or `~/Networkshares` in the user's home, or the `/Volumes` location, where the OS must handle the mount process.
 
-_*Previously we announced to change the default location (`useNewDefaultLocation`) to `/Volumes`. This will not be realized beacuse of issues with the mount process handled by the OS itself. The default mount path will be in the home directory._
+*Previously, we announced a change to the default location (`useNewDefaultLocation`) to `/Volumes`. However, this will not be implemented due to issues with the mount process managed by the operating system. The default mount path will remain in the home directory.*
 
 ## 📚 FAQ
 ##### **1) Jamf recon stuck with configured Network Share Mounter app**  
-This is probably due the inventory collection configuration "Include home directory sizes" in Jamf Pro. Both Network Share Mounter versions, v2 and legacy, mounting the shares in the users home (i.g. `~/Network shares`). If the option is now enabled, Jamf Pro will also try to collect the size of the network share mounter mounts and the process gets stuck.
+This issue is likely due to the inventory collection configuration "Include home directory sizes" in Jamf Pro. Both versions of Network Share Mounter, v2 and legacy, mount the shares in the user's home directory (i.e., `~/Network shares`). If this option is enabled, Jamf Pro will attempt to collect the sizes of the network share mounts, causing the process to get stuck.
 
-To resolve this behaviour, go to **Settings > Computer Management - Management Framework > Inventory Collection** and disable the option "**Include home directory sizes**" in Jamf Pro or modify the Network Share Mounter default mount path. 
+To resolve this behavior, go to **Settings > Computer Management - Management Framework > Inventory Collection** and disable the option "**Include home directory sizes**" in Jamf Pro, or modify the default mount path for the Network Share Mounter.
 
 ##### **2) Autostart**
 
-There are several methods to accomplish the autostart at login. For example, the Apple way, as it is also defined in the Apple App Store guideline. **But the app *has* to be started at least once**.  
-If you're using a MDM solution like *Jamf Pro* you can create a policy to start the Network Share Mounter _once per user and computer_. If done, your MDM trigger the first run. After that, the app will open on every log-in. Example: 
+There are several methods to enable autostart at login. For example, the Apple approach, as outlined in the Apple App Store guidelines. However, the app must be launched at least once. 
+If you're using an MDM solution like *Jamf Pro*, you can create a policy to start the Network Share Mounter once per user and computer. Once this is done, your MDM will trigger the first run. After that, the app will open at every login. For example:
 
 - Policy: `Autostart Network Share Mounter`
   - Trigger: `Login`
@@ -90,7 +92,7 @@ If you're using a MDM solution like *Jamf Pro* you can create a policy to start 
 
 ##### **3) Managed Login Itmes with macOS Ventura**
 
-With macOS Ventura, Apple has added a feature to show apps which are starting and working in the background. Users also have the posibillity to enable or disable these specific apps. To prevent disabling the Network share Mounter autostart you can add a [managed login item](https://support.apple.com/guide/deployment/managed-login-items-payload-settings-dep07b92494/web) payload to the Network Share Mounter configuration profile or create a seperate profile containing the necessery values. Example:
+With macOS Ventura, Apple has introduced a feature that displays apps running in the background. Users can enable or disable these specific apps. To prevent the Network Share Mounter from being disabled at startup, you can add a [managed login item](https://support.apple.com/guide/deployment/managed-login-items-payload-settings-dep07b92494/web) payload to the Network Share Mounter configuration profile or create a separate profile containing the necessary values. For example:
 
 * Rule Type: `Bundle Identifier`
 * Rule Value: `de.fau.rrze.NetworkShareMounter`
@@ -98,15 +100,15 @@ With macOS Ventura, Apple has added a feature to show apps which are starting an
 
 ##### **4) How can I log the Network Share Mounter for debugging?**
 
-With version 3, logging has been significantly improved. You can use either the Konsole.app or the terminal with the following command to log the app:
+With version 3, logging has significantly improved. You can use either Konsole.app or the terminal with the following command to log the app:
 
 ``log stream --predicate "subsystem == 'de.fau.rrze.NetworkShareMounter'" --level debug``
 
 ##### **5) Why is it not possible to change the mount point name when using /Volumes for the mount location?**
 
-When mounting shares in `/Volumes`, the OS handles the mount process entirely and doesn't allow changing the mount point name programmatically. So, it's not possible to change the name. If the key mountPoint is configured, it will be disregarded when using `/Volumes` as the mount location.
+When mounting shares in `/Volumes`, the operating system manages the entire mount process and does not permit programmatic changes to the mount point name. Therefore, it is not possible to change the name. If the key `mountPoint` is configured, it will be ignored when using `/Volumes` as the mount location.
 
-##### **6) Is there a way to centrally control the collection of crash reports via MDM?
+##### **6) Is there a way to centrally control the collection of crash reports via MDM?**
 
 Network Share Mountre is now using a tool to collect issues and crash reports. It has become apparent that there are recurring errors that we cannot reproduce. Debugging such problems is often time-consuming. Therefore, we decided to look for a tool that collects as few data as possible, is open source, and can be hosted locally in our data center. We chose [Sentry](https://sentry.io).
 - We use a *locally hosted* instance of Sentry, not one hosted in the cloud. The data therefore *never leaves our local servers*, hosted in our own data center.
@@ -120,7 +122,7 @@ Network Share Mountre is now using a tool to collect issues and crash reports. I
 
 ## ✉️ Contact
 
-For ideas, enhancements, or bug reports, please contact us through the following address: [rrze-nsm-app@fau.de](mailto:rrze-nsm-app@fau.de).    
-For general questions, you can contact the team at [rrze-mac@fau.de](mailto:rrze-mac@fau.de) directly.
+For ideas, enhancements, or bug reports, please reach out to us at the following address: [rrze-nsm-app@fau.de](mailto:rrze-nsm-app@fau.de).    
+For general questions, you can contact the team directly at [rrze-mac@fau.de](mailto:rrze-mac@fau.de).
 
 `Developed with ❤️ by your FAUmac team`
