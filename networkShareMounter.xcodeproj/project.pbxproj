@@ -58,6 +58,7 @@
 		F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */; };
 		F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */; };
 		F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A12D0B191A0064D038 /* dogeADAuth */; };
+		F7EFD0A52D0B43A50064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A42D0B43A50064D038 /* dogeADAuth */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -135,6 +136,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7EFD0A52D0B43A50064D038 /* dogeADAuth in Frameworks */,
 				F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */,
 				F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */,
 				F7885F642C623084000B96AC /* Sparkle in Frameworks */,
@@ -314,6 +316,7 @@
 				F7A7A2182C8F0240006772D4 /* dogeADAuth */,
 				F7CAE1242CFB879000D0A839 /* Sentry */,
 				F7EFD0A12D0B191A0064D038 /* dogeADAuth */,
+				F7EFD0A42D0B43A50064D038 /* dogeADAuth */,
 			);
 			productName = "Network Share Mounter";
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
@@ -402,7 +405,7 @@
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
 				F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */,
 				F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
-				F7EFD0A02D0B191A0064D038 /* XCLocalSwiftPackageReference "../doge-adauth" */,
+				F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -934,13 +937,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		F7EFD0A02D0B191A0064D038 /* XCLocalSwiftPackageReference "../doge-adauth" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "../doge-adauth";
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
 		F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -964,6 +960,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 8.41.0;
+			};
+		};
+		F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.8;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -998,6 +1002,11 @@
 		};
 		F7EFD0A12D0B191A0064D038 /* dogeADAuth */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = dogeADAuth;
+		};
+		F7EFD0A42D0B43A50064D038 /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */;
 			productName = dogeADAuth;
 		};
 /* End XCSwiftPackageProductDependency section */
