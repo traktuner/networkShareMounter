@@ -1,4 +1,4 @@
-# <img src="networkShareMounter.png" alt="drawing" width="90px"/> Network Share Mounter 
+# <img src="networkShareMounter.png" alt="drawing" width="90px"/> Network Share Mounter
 
 In a university or corporate environment, it is usually necessary to mount specific network shares depending on departments or locations. Unfortunately, the built-in method of macOS for mounting shares is not very user-friendly and also does not provide an ideal solution for enterprise environments. Solutions based on scripts or other tools are often to static and inflexible for end users. 
 To create a perfect solution for administrators _and_ end users, we have developed the Network Share Mounter.
@@ -16,11 +16,14 @@ _Go to the [releases page](https://gitlab.rrze.fau.de/faumac/networkShareMounter
 - **User-Friendly menu bar interface:** Users can effortlessly add additional shares through the menu bar, providing flexibility beyond the managed ones.
 - **Background mounting:** Shares are automatically mounted in the background based on network accessibility, requiring no user intervention.
 - **Silent failure handling:** In the event of a mount failure (e.g., unreachable share), no intrusive graphical user interface will appear, ensuring a seamless user experience. Depending on the configuration, the Network Share Mounter icon in the menu bar adapts to provide a quick visual indicator of the current status.
+- **Kerberos ticket management:** Serves as a potential alternative to Apple Enterprise Connect, Jamf Connect or NoMAD.
 - **Kerberos and keychain integration:** A Kerberos environment eliminates the need for adding user credentials for mounts, enhancing both security and efficiency. Alternatively, user credentials can be securely stored in the user's keychain.
 - **trigger by UNIX signals:** A mount/unmount of the configured shares can be triggered via Unix signals:
    - `kill -SIGUSR1 PID` triggers *unmount* of configured shares
    - `kill -SIGUSR2 PID` triggers *mount* of configured shares
    - (where `PID` is Network Share Mounter's process id)
+- **Using Sparkle for auto-update:** With [Sparkle](https://sparkle-project.org/), the Network Share Mounter can update itself. In enterprise environments, this is not always desired, so the automatic update can, of course, be disabled.
+- **Highly configurable:** Especially in the enterprise environment, it is desirable to customize certain features and behaviors to meet specific requirements.
 
 <img src="Network%20Share%20Mounter%20-%20Screenshot.png" />  
 
@@ -28,11 +31,11 @@ _Go to the [releases page](https://gitlab.rrze.fau.de/faumac/networkShareMounter
 
 Network shares are stored in a NSUserdefaults domain among other configurable aspects of the app. The easiest way to configure the app is to create a configuration profile and distribute the profile via MDM. Alternatively, the configuration can also be done manually via the command line (i.g. defaults). See [configuration preferences](#configuration-preferences) for all available values. 
 
-**Username variable**
-To avoid creating a profile for every user you can use `%USERNAME%`, which will be replaced with the login name of the current user. 
+**Username variable**   
+To avoid creating an MDM distributed profile for each user, you can use `%USERNAME%`, which will be replaced with the current user's login name.
 
 **SMBHome**  
-If the current user has the attribute `SMBHome` defined via LDAP or Active Directory, the user home will be mounted automatically. This is usually the case when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. If necessery, you can set the attribute for a local user manuelly: `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`.
+If the current user has the `SMBHome` attribute defined via LDAP or Active Directory, their home directory will be mounted automatically. This typically occurs when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. If necessary, one can manually set the attribute for a local user with the following command: `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`.
 
 ### Configuration preferences
 
@@ -50,9 +53,12 @@ For an easier configuration of all the preference keys without creating or modif
 | `unmountOnExit` | Boolean | If set to false, the shares will be mounted after quitting the app. | true | ≥ 2.0.0 | optional ||
 | `location` | String | Path where network shares will be mounted. <br />Make sure, that the user has read and write access to the mount location if the location is not `/Volumes`.<br />Leave blank for the default value *(highly recommended)* | - | ≥ 2.1.0 | optional | `/Volumes` |
 | `cleanupLocationDirectory` | Boolean | 1) Directories named like the designated mount points for shares will be deleted, independently of the `cleanupLocationDirectory` flag.    <br /><br />2) Directories named like the shares with a "-1", "-2", "-3" and so on will also be deleted independently of the the flag.    <br /><br />3) If set to true, the mount location will be cleaned up from files defined in the `filesToDelete` array.   <br />*(The previous setting where too dangerous)* | false | ≥ 2.1.0 | - | `false` |
-| `kerberosRealm` | String | Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled | - | ≥ 3.0.0 | optional | EXAMPLE.REALM.COM |
+| `kerberosRealm` | String | Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled | - | ≥ 3.0.0 | optional | `EXAMPLE.REALM.COM |
 | `helpURL` | String | Configure a website link to help users interact with the application. | - | ≥ 2.0.0 | optional |https://www.anleitungen.rrze.fau.de/betriebssysteme/apple-macos-und-ios/macos/#networksharemounter|
 | `enableAutoUpdater` | Boolean | Turns on the auto update framework so that the app can update itself | true | ≥ 3.0.4 | optional | |
+| `usernameOverride` | String | Provides the option to change the username used for mounting directories (for example, a network home drive).<br/>This may be necessary if the local username does not match the one used for mounting.<br/>This value is usually configured locally on the Mac. | - | ≥ 3.1.0 | optional | `defaults write ~/Preferences/de.fau.rrze.NetworkShareMounter.plist usernameOverride -string "USERNAME"` |
+| `showMountsInMenu` | Boolean | List (mounted/unmounted) shares directly in menu bar and open the mounted directories when they are clicked.<br/>WIf the value is set to `false`, the previously known menu will be displayed. | true | ≥ 3.1.0 | optional | |
+| `menuAbout`<br/>`menuConnectShares`<br/>`menuDisconnectShares`<br/>`menuCheckUpdates`<br/>`menuShowSharesMountDir`<br/>`menuShowShares`<br/>`menuSettings`| String | This allows you to manage the individual menu items:<br/>The `hidden` value hides the respective menu item, while `disabled` grays it out.<br/> If no values are set, the menu item is displayed normally. | - | ≥ 3.1.0 | optional | |
 
 #### ⚠️ Important note for the `location` and `cleanupLocationDirectory` values
 
@@ -70,7 +76,7 @@ This is probably due the inventory collection configuration "Include home direct
 
 To resolve this behaviour, go to **Settings > Computer Management - Management Framework > Inventory Collection** and disable the option "**Include home directory sizes**" in Jamf Pro or modify the Network Share Mounter default mount path. 
 
-##### 2) Autostart 
+##### **2) Autostart**
 
 There are several methods to accomplish the autostart at login. For example, the Apple way, as it is also defined in the Apple App Store guideline. **But the app *has* to be started at least once**.  
 If you're using a MDM solution like *Jamf Pro* you can create a policy to start the Network Share Mounter _once per user and computer_. If done, your MDM trigger the first run. After that, the app will open on every log-in. Example: 
@@ -99,6 +105,13 @@ With version 3, logging has been significantly improved. You can use either the 
 ##### **5) Why is it not possible to change the mount point name when using /Volumes for the mount location?**
 
 When mounting shares in `/Volumes`, the OS handles the mount process entirely and doesn't allow changing the mount point name programmatically. So, it's not possible to change the name. If the key mountPoint is configured, it will be disregarded when using `/Volumes` as the mount location.
+
+##### **6) Is there a way to centrally control the collection of crash reports via MDM?
+
+Network Share Mountre is now using a tool to collect issues and crash reports. It has become apparent that there are recurring errors that we cannot reproduce. Debugging such problems is often time-consuming. Therefore, we decided to look for a tool that collects as few data as possible, is open source, and can be hosted locally in our data center. We chose [Sentry](https://sentry.io).
+- We use a *locally hosted* instance of Sentry, not one hosted in the cloud. The data therefore *never leaves our local servers*, hosted in our own data center.
+- Since we have no interest in any user data, *we only collect data that aids us in debugging*.
+- We have introduced a new switch that turns off the collection and sending of analysis data. **This switch cannot be configured via MDM because we believe every user should decide for themselves whether to support us with their crash reports.**
 
 ## 🚀 Planned features and releases
 
