@@ -72,30 +72,36 @@ struct PreferenceManager {
     
     func setADUserInfo(user: ADUserRecord) {
         defaults.set(user.userPrincipal.lowercased(), forKey: PreferenceKeys.lastUser.rawValue)
-        if user.passwordAging ?? false {
-            self.set(for: .userPasswordExpireDate, value: user.computedExireDate as Any)
+        
+        if let passwordAging = user.passwordAging, passwordAging {
+            if let expireDate = user.computedExireDate {
+                self.set(for: .userPasswordExpireDate, value: expireDate)
+            }
         } else {
             self.clear(for: .userPasswordExpireDate)
         }
         
-        stateDefaults?.set(user.cn, forKey: PreferenceKeys.userCN.rawValue)
-        stateDefaults?.set(user.groups, forKey: PreferenceKeys.userGroups.rawValue)
-        stateDefaults?.set(user.computedExireDate, forKey: PreferenceKeys.userPasswordExpireDate.rawValue)
-        stateDefaults?.set(user.passwordSet, forKey: PreferenceKeys.userPasswordSetDate.rawValue)
-        stateDefaults?.set(user.homeDirectory, forKey: PreferenceKeys.userHome.rawValue)
-        stateDefaults?.set(user.userPrincipal, forKey: PreferenceKeys.userPrincipal.rawValue)
-        stateDefaults?.set(user.customAttributes, forKey: PreferenceKeys.customLDAPAttributesResults.rawValue)
-        stateDefaults?.set(user.shortName, forKey: PreferenceKeys.userShortName.rawValue)
-        stateDefaults?.set(user.upn, forKey: PreferenceKeys.userUPN.rawValue)
-        stateDefaults?.set(user.email, forKey: PreferenceKeys.userEmail.rawValue)
-        stateDefaults?.set(user.fullName, forKey: PreferenceKeys.userFullName.rawValue)
-        stateDefaults?.set(user.firstName, forKey: PreferenceKeys.userFirstName.rawValue)
-        stateDefaults?.set(user.lastName, forKey: PreferenceKeys.userLastName.rawValue)
-        stateDefaults?.set(Date(), forKey: PreferenceKeys.userLastChecked.rawValue)
-        var allUsers = stateDefaults?.dictionary(forKey: PreferenceKeys.allUserInformation.rawValue) ?? [String:[String:AnyObject]]()
+        guard let stateDefaults = stateDefaults else { return }
+        
+        stateDefaults.set(user.cn, forKey: PreferenceKeys.userCN.rawValue)
+        stateDefaults.set(user.groups, forKey: PreferenceKeys.userGroups.rawValue)
+        stateDefaults.set(user.computedExireDate, forKey: PreferenceKeys.userPasswordExpireDate.rawValue)
+        stateDefaults.set(user.passwordSet, forKey: PreferenceKeys.userPasswordSetDate.rawValue)
+        stateDefaults.set(user.homeDirectory, forKey: PreferenceKeys.userHome.rawValue)
+        stateDefaults.set(user.userPrincipal, forKey: PreferenceKeys.userPrincipal.rawValue)
+        stateDefaults.set(user.customAttributes, forKey: PreferenceKeys.customLDAPAttributesResults.rawValue)
+        stateDefaults.set(user.shortName, forKey: PreferenceKeys.userShortName.rawValue)
+        stateDefaults.set(user.upn, forKey: PreferenceKeys.userUPN.rawValue)
+        stateDefaults.set(user.email, forKey: PreferenceKeys.userEmail.rawValue)
+        stateDefaults.set(user.fullName, forKey: PreferenceKeys.userFullName.rawValue)
+        stateDefaults.set(user.firstName, forKey: PreferenceKeys.userFirstName.rawValue)
+        stateDefaults.set(user.lastName, forKey: PreferenceKeys.userLastName.rawValue)
+        stateDefaults.set(Date(), forKey: PreferenceKeys.userLastChecked.rawValue)
+        
+        var allUsers = stateDefaults.dictionary(forKey: PreferenceKeys.allUserInformation.rawValue) ?? [String: [String: AnyObject]]()
         allUsers[user.userPrincipal] = [
             "CN": user.cn,
-            "groups:": user.groups,
+            "groups": user.groups,
             "UserPasswordExpireDate": user.computedExireDate?.description ?? "",
             "UserHome": user.homeDirectory ?? "",
             "UserPrincipal": user.userPrincipal,
@@ -108,7 +114,7 @@ struct PreferenceManager {
             "UserLastName": user.lastName,
             "UserLastChecked": Date()
         ]
-        stateDefaults?.setValue(allUsers, forKey: PreferenceKeys.allUserInformation.rawValue)
+        stateDefaults.setValue(allUsers, forKey: PreferenceKeys.allUserInformation.rawValue)
     }
         
     private func readPropertyList() -> [String: Any]? {

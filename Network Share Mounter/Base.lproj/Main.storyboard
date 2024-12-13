@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="23089" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23089"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23504"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -682,11 +682,11 @@
             <objects>
                 <viewController title="NetworkShareMounterViewController" storyboardIdentifier="NetworkShareMounterViewController" id="XfG-lQ-9wD" customClass="NetworkShareMounterViewController" customModule="Network_Share_Mounter" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="m2S-Jp-Qdl" userLabel="View">
-                        <rect key="frame" x="0.0" y="0.0" width="750" height="377"/>
+                        <rect key="frame" x="0.0" y="0.0" width="750" height="405"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AgX-Bj-3ll">
-                                <rect key="frame" x="20" y="337" width="552" height="20"/>
+                                <rect key="frame" x="20" y="365" width="552" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="1KD-eI-R1J">
                                     <font key="font" metaFont="system"/>
@@ -695,7 +695,7 @@
                                 </textFieldCell>
                             </textField>
                             <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="17" horizontalPageScroll="10" verticalLineScroll="17" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8ip-Eo-ik3">
-                                <rect key="frame" x="20" y="240" width="710" height="90"/>
+                                <rect key="frame" x="20" y="268" width="710" height="90"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <clipView key="contentView" drawsBackground="NO" id="PiI-xC-UC9">
                                     <rect key="frame" x="1" y="1" width="708" height="88"/>
@@ -788,7 +788,7 @@
                                 </scroller>
                             </scrollView>
                             <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J0j-se-pTf">
-                                <rect key="frame" x="18" y="93" width="714" height="104"/>
+                                <rect key="frame" x="18" y="121" width="714" height="104"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" selectable="YES" enabled="NO" id="c4d-tI-W6k">
                                     <font key="font" metaFont="system"/>
@@ -800,7 +800,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uzk-qz-SRD">
-                                <rect key="frame" x="573" y="330" width="164" height="32"/>
+                                <rect key="frame" x="573" y="358" width="164" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Modify share" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="mZ5-S4-8d0">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -812,11 +812,11 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="uWO-es-rt8">
-                                <rect key="frame" x="20" y="80" width="710" height="5"/>
+                                <rect key="frame" x="20" y="108" width="710" height="5"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </box>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="d26-jj-wHS">
-                                <rect key="frame" x="41" y="214" width="20" height="20"/>
+                                <rect key="frame" x="41" y="242" width="20" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSRemoveTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="NgK-8t-CVO">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -827,7 +827,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <button tag="1" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EnA-eX-Gzp">
-                                <rect key="frame" x="664" y="214" width="20" height="20"/>
+                                <rect key="frame" x="664" y="242" width="20" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" tag="1" imageScaling="proportionallyDown" inset="2" id="RnN-Pl-HoJ">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -842,14 +842,14 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="NmF-bn-oWA">
-                                <rect key="frame" x="690" y="210" width="42" height="27"/>
+                                <rect key="frame" x="690" y="238" width="42" height="27"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <connections>
                                     <action selector="toggleManagedSharesAction:" target="XfG-lQ-9wD" id="h6P-qQ-O3Z"/>
                                 </connections>
                             </switch>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bYw-WJ-O9f">
-                                <rect key="frame" x="20" y="214" width="20" height="20"/>
+                                <rect key="frame" x="20" y="242" width="20" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAddTemplate" imagePosition="only" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ha5-zA-rA9">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -860,7 +860,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wTV-XD-Goa">
-                                <rect key="frame" x="18" y="57" width="411" height="18"/>
+                                <rect key="frame" x="18" y="85" width="411" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="check" title="Launch Network Share Mounter at login" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="LYP-vw-Zhf">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -875,7 +875,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4u9-Ur-baR">
-                                <rect key="frame" x="18" y="35" width="411" height="18"/>
+                                <rect key="frame" x="18" y="63" width="411" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="check" title="Check for updates automatically" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="BcP-wK-xkM">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -885,8 +885,23 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="updateCheckboxToggled:" target="XfG-lQ-9wD" id="imQ-ec-myf"/>
                                 </connections>
                             </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ofJ-Ws-PoV">
+                                <rect key="frame" x="18" y="41" width="411" height="18"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="check" title="Send Diagnostic Data to help improve the application" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="A8b-GW-aqC">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <binding destination="1RO-SO-9Fv" name="value" keyPath="values.sendDiagnostics" id="5UR-pM-Ae4">
+                                        <dictionary key="options">
+                                            <bool key="NSValidatesImmediately" value="YES"/>
+                                        </dictionary>
+                                    </binding>
+                                </connections>
+                            </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="p5V-Db-bcH">
-                                <rect key="frame" x="462" y="49" width="275" height="32"/>
+                                <rect key="frame" x="462" y="77" width="275" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BLH-tI-fKy">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -897,7 +912,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sCe-DQ-9D5" userLabel="sCe-DQ-9D5">
-                                <rect key="frame" x="67" y="216" width="591" height="16"/>
+                                <rect key="frame" x="67" y="244" width="591" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" alignment="right" title="Managed shares" id="2H5-ga-rE8">
                                     <font key="font" metaFont="system"/>
@@ -905,17 +920,8 @@ The connection will be testet immediately and will be added only if the server i
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="U1x-R4-MXP">
-                                <rect key="frame" x="494" y="20" width="238" height="14"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Developed with ❤️ by FAUmac Team @ FAU" id="Gh3-O0-3mY">
-                                    <font key="font" metaFont="smallSystem"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <button tag="3" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Gq-fA-ElV">
-                                <rect key="frame" x="441" y="56" width="20" height="20"/>
+                                <rect key="frame" x="441" y="84" width="20" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" tag="1" imageScaling="proportionallyDown" inset="2" id="mci-k5-jsa">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -929,6 +935,15 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="helpButtonClicked:" target="XfG-lQ-9wD" id="mJE-Ze-654"/>
                                 </connections>
                             </button>
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="U1x-R4-MXP">
+                                <rect key="frame" x="494" y="20" width="238" height="14"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Developed with ❤️ by FAUmac Team @ FAU" id="Gh3-O0-3mY">
+                                    <font key="font" metaFont="smallSystem"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                             <textField identifier="appVersion" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5Up-Id-ZGf">
                                 <rect key="frame" x="18" y="14" width="124" height="14"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -953,6 +968,8 @@ The connection will be testet immediately and will be added only if the server i
                         <outlet property="modifyShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
                         <outlet property="networShareMounterExplanation" destination="J0j-se-pTf" id="A8p-Cz-gcY"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
+                        <outlet property="sendDiagnosticsCheckbox" destination="A8b-GW-aqC" id="iPu-YU-QI9"/>
+                        <outlet property="sendDiagnosticsRadioButton" destination="ofJ-Ws-PoV" id="mmI-oG-Hzs"/>
                         <outlet property="tableView" destination="s3k-Dc-wH1" id="tOr-hm-vxp"/>
                         <outlet property="toggleManagedSwitch" destination="NmF-bn-oWA" id="4FE-1k-Zdb"/>
                         <outlet property="updateCheckbox" destination="4u9-Ur-baR" id="Uxb-5O-icr"/>
@@ -962,7 +979,7 @@ The connection will be testet immediately and will be added only if the server i
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="1RO-SO-9Fv"/>
             </objects>
-            <point key="canvasLocation" x="-227" y="196.5"/>
+            <point key="canvasLocation" x="-227" y="210.5"/>
         </scene>
         <!--Krb Auth View Controller-->
         <scene sceneID="d3p-sS-eRU">

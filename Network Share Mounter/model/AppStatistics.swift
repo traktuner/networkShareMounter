@@ -68,10 +68,12 @@ struct AppStatistics {
     /// - **appVersion**
     /// - **bundleID**
     func reportAppInstallation() async -> Void {
+        let osVersion = ProcessInfo.processInfo.operatingSystemVersion
+        let osVersionString = "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
 #if DEBUG
         Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to statistics server ...")
 #else
-        let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion
+        let reportData = "/?bundleid=" + self.bundleID + "&uuid=" + self.instanceUUID + "&version=" + self.appVersion + "&osversion=" + osVersionString
         guard let reportURL = URL(string: Defaults.statisticsReportURL + reportData) else {
             return()
         }

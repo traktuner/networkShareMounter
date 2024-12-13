@@ -91,7 +91,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             //
             // copy all mdm and user defined shares to a local array
             // if there is an authentication error show those shares without password
-            if appDelegate.mounter!.errorStatus == .authenticationError {
+            if appDelegate.mounter!.errorStatus == .authenticationError { 
                 refreshUserArray(type: .missingPassword)
                 toggleManagedSwitch.isHidden = true
                 additionalSharesText.isHidden = true
@@ -133,6 +133,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         Logger.activityController.debug("🔄 User has manually switched automatic updates to: \(String((sender as AnyObject).state == .on), privacy: .public)")
         updater?.automaticallyChecksForUpdates = ((sender as AnyObject).state == .on)
     }
+    
     @IBOutlet weak var updateCheckbox: NSButton!
     
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
@@ -204,6 +205,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
     
+    @IBOutlet weak var sendDiagnosticsRadioButton: NSButton!
+    
     @IBOutlet weak var tableView: NSTableView!
     
     @IBOutlet weak var removeShareButton: NSButton!
@@ -245,7 +248,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             removeShareButton.isEnabled = false
             modifyShareButton.isEnabled = false
         }
-        tableView.reloadData()
     }
     /// IBAction function called if removeShare button is pressed.
     /// This will remove the share in the selected row in tableView
@@ -265,10 +267,10 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     // remove share from local userShares array bound to tableView
                     self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
                     usersNewShare.stringValue=""
+                    tableView.reloadData()
                 }
             }
         }
-        tableView.reloadData()
     }
     
     // MARK: Storyboard instantiation
@@ -284,24 +286,23 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     
     // MARK: prepare segues by setting certain values
     override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
-        if segue.identifier == "ShareViewSegue" {
-            // swiftlint:disable force_cast
-            let shareViewController = segue.destinationController as! ShareViewController
-            // swiftlint:enable force_cast
-            // callback action for data coming from shareViewController
-            shareViewController.callback = { result in
-                if result != "cancel" {
-                    if self.appDelegate.mounter!.errorStatus == .authenticationError {
-                        self.refreshUserArray(type: .missingPassword)
-                    } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
-                        self.refreshUserArray(type: .unmanaged)
-                    } else {
-                        self.refreshUserArray(type: .managed)
-                    }
-                    self.tableView.reloadData()
+        Task {
+            if segue.identifier == "ShareViewSegue" {
+                // swiftlint:disable force_cast
+                let shareViewController = segue.destinationController as! ShareViewController
+                // swiftlint:enable force_cast
+                // callback action for data coming from shareViewController
+                shareViewController.callback = { [weak self] result in
+                                guard let self = self else { return }
+                        if self.appDelegate.mounter!.errorStatus == .authenticationError {
+                            self.refreshUserArray(type: .missingPassword)
+                        } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
+                            self.refreshUserArray(type: .unmanaged)
+                        } else {
+                            self.refreshUserArray(type: .managed)
+                        }
+                        self.tableView.reloadData()
                 }
-            }
-            Task {
                 if let selectedShare = await appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                     // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
                     // new share will be added
@@ -312,7 +313,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                                                                                   managed: selectedShare.managed)
                     shareViewController.selectedShareURL = usersNewShare.stringValue
                 }
-                
             }
         }
     }

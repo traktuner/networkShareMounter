@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F70457ED2B31A62E00506DF4 /* Errorcodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70457EC2B31A62E00506DF4 /* Errorcodes.swift */; };
+		F72264792CED189200173B18 /* CircleIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72264782CED189200173B18 /* CircleIconView.swift */; };
 		F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */; };
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
@@ -21,6 +22,7 @@
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7796E112AFBE5AB008F6A26 /* ActivityController.swift */; };
 		F7885F642C623084000B96AC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F7885F632C623084000B96AC /* Sparkle */; };
+		F78AF9D02D035D5500E32EEA /* FinderController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78AF9CF2D035D5500E32EEA /* FinderController.swift */; };
 		F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* KeychainManager.swift */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
@@ -31,6 +33,7 @@
 		F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */; };
 		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 		F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7C205162C305C8A00902B4E /* dogeADAuth */; };
+		F7CAE1252CFB879000D0A839 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F7CAE1242CFB879000D0A839 /* Sentry */; };
 		F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */; };
 		F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D146D72B84CB7600BFD8F5 /* FileManager.swift */; };
 		F7D371222B47F7BE00D54FF5 /* KrbAuthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D371212B47F7BE00D54FF5 /* KrbAuthViewController.swift */; };
@@ -54,6 +57,8 @@
 		F7EF65F92B3B5E0800051D44 /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65F82B3B5E0800051D44 /* URL.swift */; };
 		F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */; };
 		F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */; };
+		F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A12D0B191A0064D038 /* dogeADAuth */; };
+		F7EFD0A52D0B43A50064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A42D0B43A50064D038 /* dogeADAuth */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +80,7 @@
 
 /* Begin PBXFileReference section */
 		F70457EC2B31A62E00506DF4 /* Errorcodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errorcodes.swift; sourceTree = "<group>"; };
+		F72264782CED189200173B18 /* CircleIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleIconView.swift; sourceTree = "<group>"; };
 		F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayShareTypes.swift; sourceTree = "<group>"; };
 		F72B13E92B332987001BDEEA /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
@@ -87,6 +93,7 @@
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		F7796E112AFBE5AB008F6A26 /* ActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityController.swift; sourceTree = "<group>"; };
+		F78AF9CF2D035D5500E32EEA /* FinderController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderController.swift; sourceTree = "<group>"; };
 		F78B9D742B0BA7EF00043327 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -129,11 +136,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7EFD0A52D0B43A50064D038 /* dogeADAuth in Frameworks */,
 				F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */,
 				F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */,
 				F7885F642C623084000B96AC /* Sparkle in Frameworks */,
+				F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */,
 				F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */,
 				F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */,
+				F7CAE1252CFB879000D0A839 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,6 +186,7 @@
 			isa = PBXGroup;
 			children = (
 				F77107B6274EC51600556B20 /* Monitor.swift */,
+				F78AF9CF2D035D5500E32EEA /* FinderController.swift */,
 				F7796E112AFBE5AB008F6A26 /* ActivityController.swift */,
 				F7EF65CF2B3B4DFC00051D44 /* Logger.swift */,
 				F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */,
@@ -221,6 +232,7 @@
 			isa = PBXGroup;
 			children = (
 				F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */,
+				F72264782CED189200173B18 /* CircleIconView.swift */,
 				F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */,
 				F7A9B2E52B04FCF600E6E4EA /* HelpPopoverView.swift */,
 				F7D9404D2C41842700028F9A /* HelpPopoverShareStatusView.swift */,
@@ -302,6 +314,9 @@
 				F7E2AF6E2C3061020063960F /* dogeADAuth */,
 				F7885F632C623084000B96AC /* Sparkle */,
 				F7A7A2182C8F0240006772D4 /* dogeADAuth */,
+				F7CAE1242CFB879000D0A839 /* Sentry */,
+				F7EFD0A12D0B191A0064D038 /* dogeADAuth */,
+				F7EFD0A42D0B43A50064D038 /* dogeADAuth */,
 			);
 			productName = "Network Share Mounter";
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
@@ -354,7 +369,7 @@
 					authType,
 				);
 				LastSwiftUpdateCheck = 1320;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1610;
 				ORGANIZATIONNAME = "Regionales Rechenzentrum Erlangen";
 				TargetAttributes = {
 					F79B1594274E722000C322A8 = {
@@ -389,7 +404,8 @@
 			packageReferences = (
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
 				F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */,
-				F7A402DA2C8F0DB200D75633 /* XCRemoteSwiftPackageReference "dogeadauth" */,
+				F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -476,6 +492,7 @@
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
 				F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */,
 				F7EF65E62B3B582F00051D44 /* DogeAccount.swift in Sources */,
+				F72264792CED189200173B18 /* CircleIconView.swift in Sources */,
 				F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
@@ -484,6 +501,7 @@
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,
 				F7EF65F72B3B5DF500051D44 /* Date.swift in Sources */,
 				F7EF65DA2B3B574100051D44 /* SRVResolver.swift in Sources */,
+				F78AF9D02D035D5500E32EEA /* FinderController.swift in Sources */,
 				F7EF65E32B3B57FC00051D44 /* AccountsManager.swift in Sources */,
 				F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */,
 				F7D940502C418B9300028F9A /* MountStatusDescription.swift in Sources */,
@@ -680,7 +698,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 176;
+				CURRENT_PROJECT_VERSION = 196;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -697,8 +715,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 3.0.4;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
+				MARKETING_VERSION = 3.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
@@ -730,7 +748,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 176;
+				CURRENT_PROJECT_VERSION = 196;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -747,8 +765,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 3.0.4;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
+				MARKETING_VERSION = 3.1.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -763,7 +781,6 @@
 		F79B15B9274E722100C322A8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
@@ -773,7 +790,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 176;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -795,7 +812,6 @@
 		F79B15BA274E722100C322A8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
@@ -805,7 +821,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 176;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -824,7 +840,6 @@
 		F79B15BB274E722100C322A8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -833,7 +848,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 176;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -856,7 +871,6 @@
 		F79B15BC274E722100C322A8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -865,7 +879,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 176;
+				CURRENT_PROJECT_VERSION = 194;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -932,20 +946,28 @@
 				minimumVersion = 2.6.4;
 			};
 		};
-		F7A402DA2C8F0DB200D75633 /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 4.2.0;
+			};
+		};
+		F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.41.0;
+			};
+		};
+		F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.8;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -969,8 +991,22 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = dogeADAuth;
 		};
+		F7CAE1242CFB879000D0A839 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		F7E2AF6E2C3061020063960F /* dogeADAuth */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = dogeADAuth;
+		};
+		F7EFD0A12D0B191A0064D038 /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = dogeADAuth;
+		};
+		F7EFD0A42D0B43A50064D038 /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */;
 			productName = dogeADAuth;
 		};
 /* End XCSwiftPackageProductDependency section */

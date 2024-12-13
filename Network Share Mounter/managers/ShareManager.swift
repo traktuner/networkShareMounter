@@ -17,6 +17,7 @@ enum ShareError: Error {
 actor ShareManager {
     private var _shares: [Share] = []
     private let userDefaults = UserDefaults.standard
+    private var prefs = PreferenceManager()
     
     /// Add a share
     func addShare(_ share: Share) {
@@ -128,39 +129,55 @@ actor ShareManager {
         _shares[index].updateActualMountPoint(to: actualMountPoint)
     }
     
-    /// read dictionary of string containig definitions for the share to be mounted
-    /// - Parameter forShare shareElement: Array of String dictionary `[String:String]`
-    /// - Returns: optional `Share?` element
+    /// Creates and configures a Share object based on MDM configuration dictionary
+    /// - Parameter shareElement: Dictionary containing share configuration from MDM
+    /// - Returns: Configured Share object or nil if required network share URL is missing
+    /// - Note: Handles username resolution, password retrieval from keychain, and share URL expansion
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
+        // Extract network share URL, return nil if not found
         guard let shareUrlString = shareElement[Defaults.networkShare] else {
             return nil
         }
-        //
-        // check if there is a mdm defined username. If so, replace possible occurencies of %USERNAME% with that
-        var userName: String = ""
-        if let username = shareElement[Defaults.username] {
-            userName = username.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-            userName = NSString(string: userName).expandingTildeInPath
+
+        // Determine username with following priority:
+        // 1. Username override from preferences
+        // 2. Username from share configuration dictionary
+        // 3. Local system username
+        let userName: String
+        if let username = prefs.string(for: .usernameOverride) {
+            userName = username
+        } else if let username = shareElement[Defaults.username] {
+            userName = username
+        } else {
+            userName = NSUserName()
         }
         
-        //
-        // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
-        let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+        // Replace username placeholder in share URL
+        let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
+        
+        // Expanding tilde in shares does not make sense
+//        let shareRectified = NSString(string: expandenShare).expandingTildeInPath
+        
+        // Configure authentication type, defaulting to Kerberos if not specified
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
         var password: String?
         var mountStatus = MountStatus.unmounted
+        
+        // For password authentication, attempt to retrieve from keychain
         if shareAuthType == AuthType.pwd {
             do {
                 if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareRectified)!, withUsername: userName) {
                     password = keychainPassword
                 }
             } catch {
+                // Log warning if password retrieval fails and update mount status
                 Logger.shareManager.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain")
                 mountStatus = MountStatus.missingPassword
                 password = nil
             }
         }
         
+        // Create and return new Share object with configured parameters
         let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
                                          mountStatus: mountStatus,

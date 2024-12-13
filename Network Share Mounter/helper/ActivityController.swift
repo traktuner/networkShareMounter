@@ -16,14 +16,13 @@ import OSLog
 class ActivityController {
     
     var prefs = PreferenceManager()
-    // swiftlint:disable force_cast
-    let appDelegate = NSApplication.shared.delegate as! AppDelegate
-    // swiftlint:enable force_cast
+    var appDelegate: AppDelegate
 
-    init() {
+    init(appDelegate: AppDelegate) {
+        self.appDelegate = appDelegate
         startMonitoring()
     }
-    
+       
     /// initialize observers to get notifications
     func startMonitoring() {
         // create an observer for NSWorkspace notifications
@@ -53,6 +52,8 @@ class ActivityController {
         NotificationCenter.default.addObserver(self, selector: #selector(mountSharesWithUserTrigger), name: Defaults.nsmMountManuallyTriggerNotification, object: nil)
         // trigger on network change to mount shares
         NotificationCenter.default.addObserver(self, selector: #selector(mountSharesWithUserTrigger), name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
+        // triger reconstruct menu
+        NotificationCenter.default.addObserver(self, selector: #selector(reconstructMenuTrigger), name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
         
         // get notification for "CCAPICCacheChangedNotification" (as defined in kcm.h) changes
         DistributedNotificationCenter.default.addObserver(self, selector: #selector(processAutomaticSignIn), name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name, object: nil)
@@ -71,12 +72,13 @@ class ActivityController {
     // functions called after wake up
     @objc func wakeupFromSleep() {
         if let mounter = appDelegate.mounter {
-            Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
+            Logger.activityController.debug(" ▶︎ mountGivenShares called by didWakeNotification.")
             Task {
                 // await self.mounter.mountAllShares(userTriggered: true)
-                await mounter.mountAllShares()
+                await mounter.mountGivenShares()
                 Logger.activityController.debug(" 🐛 Restart Finder to bypass a presumed bug in macOS.")
-                mounter.restartFinder()
+                let finderController = FinderController()
+                await finderController.restartFinder()
             }
         }
     }
@@ -84,10 +86,10 @@ class ActivityController {
     // call mount shares on NSWorkspace notification
     @objc func mountShares() {
         if let mounter = appDelegate.mounter {
-            Logger.activityController.debug(" ▶︎ mountAllShares called by didWakeNotification.")
+            Logger.activityController.debug(" ▶︎ mountGivenShares called by didWakeNotification.")
             Task {
                 // await self.mounter.mountAllShares(userTriggered: true)
-                await mounter.mountAllShares()
+                await mounter.mountGivenShares()
             }
         }
     }
@@ -112,9 +114,18 @@ class ActivityController {
         processAutomaticSignIn()
         // mount shares
         if let mounter = appDelegate.mounter {
-            Logger.activityController.debug(" ▶︎ mountAllShares with user-trigger called.")
+            Logger.activityController.debug(" ▶︎ mountGivenShares with user-trigger called.")
             Task {
-                await mounter.mountAllShares(userTriggered: true)
+                await mounter.mountGivenShares(userTriggered: true)
+            }
+        }
+    }
+    
+    @objc func reconstructMenuTrigger() {
+        if let mounter = appDelegate.mounter {
+            Logger.activityController.debug(" ▶︎ reconstruct menu trigger called.")
+            Task { @MainActor in
+                await appDelegate.constructMenu(withMounter: mounter)
             }
         }
     }
@@ -135,8 +146,8 @@ class ActivityController {
             // call updateShareArray() to reflect possible changes in MDM profile?
             Task {
                 await mounter.shareManager.updateShareArray()
-                Logger.activityController.debug(" ▶︎ ...finally call mountAllShares.")
-                await mounter.mountAllShares()
+                Logger.activityController.debug(" ▶︎ ...finally call mountGivenShares.")
+                await mounter.mountGivenShares()
             }
         }
     }
