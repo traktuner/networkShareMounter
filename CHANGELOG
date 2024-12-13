@@ -1,5 +1,34 @@
-# 3.0.4
+# 3.1.0
 
+### Features
+* List (mounted/unmounted) shares in menu bar and open the mounted directories when they are clicked. (#46, #122)
+    * settable by MDM via boolean `showMountsInMenu` (default is to show mounts in menu `showMountsInMenu = true`)
+* Every individual menu item can now be configured as hidden if needed (#122)
+    * The following values can be set (via MDM)
+         * menuAbout
+         * menuConnectShares
+         * menuDisconnectShares
+         * menuCheckUpdates
+         * menuShowSharesMountDir
+         * menuShowShares
+         * menuSettings
+    * The above values can be set to either `disabled` (the menu item will be grayed out) or `hidden` (the menu item will be hidden).
+* Local override of the %USERNAME%  (#130)
+    * If the local username does not match the account name of a network share, an alternative username can be used instead (`usernameOverride`).
+    * This option is intended less for configuration via MDM and more for local setting by a user through `plutil` or something similar.
+* We are now using *Sentry* to collect issues and crash reports (#135, #131, #138)
+    * It has become apparent that there are recurring errors that we cannot reproduce. Debugging such problems is often time-consuming.
+    * We use a locally hosted instance of Sentry, not one hosted in the cloud. The data therefore never leaves our local servers hosted in our data center.
+    * Since we have no interest in any user data, we only collect data that aids us in debugging.
+    * We have introduced a new switch that turns off the collection and sending of analysis data. This switch cannot be set via MDM either. We believe that every user should be able to decide for themselves whether to support us with their crash reports.
+    
+### Bugfixes
+* Fixed a bug where Finder can crash (#134)
+* Fixed a bug where cusatoim network share were not editable (#137)
+* Fixed two race conditions (one in our DogeAD library)
+* Fixed a possible memory management crash in PreferenceManager.setADUserInfo (#142)
+
+# 3.0.4
 
 ### Features
 * Possibility introduced to **trigger mount** and **unmount** via UNIX signals (`kill -SIGUSR1 PID` performs an unmount of all shares, `kill -SIGUSR2 PID` triggers a mount of all shares)
