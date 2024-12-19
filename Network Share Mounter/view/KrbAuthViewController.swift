@@ -244,6 +244,17 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         let klist = KlistUtil()
         let tickets = await klist.klist()
         
+        // Filter out invalid accounts and remove them
+        let accounts = await accountsManager.accounts
+        for account in accounts {
+            let upnComponents = account.upn.split(separator: "@")
+            if upnComponents.count < 2 || upnComponents[0].isEmpty {
+                // Invalid account found, remove it
+                Logger.KrbAuthViewController.debug("Removing invalid account: \(account.displayName)")
+                await accountsManager.deleteAccount(account: account)
+            }
+        }
+        
         if await accountsManager.accounts.count > 1 && !prefs.bool(for: .singleUserMode) {
             accountsList.removeAllItems()
             for account in await accountsManager.accounts {
