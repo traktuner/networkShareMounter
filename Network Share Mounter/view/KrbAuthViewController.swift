@@ -339,7 +339,12 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
     }
     
     private func showHelpPopover(for sender: NSButton) {
-        let helpPopoverViewController = storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
+        guard let helpPopoverViewController = storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as? HelpPopoverViewController else {
+            // Handle the error, e.g., log an error message or show an alert
+            Logger.authUI.error("Failed to instantiate HelpPopoverViewController")
+            return
+        }
+        
         let popover = NSPopover()
         popover.contentViewController = helpPopoverViewController
         helpPopoverViewController.helpText = helpText[sender.tag]
