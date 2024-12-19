@@ -74,7 +74,7 @@ struct PreferenceManager {
         defaults.set(user.userPrincipal.lowercased(), forKey: PreferenceKeys.lastUser.rawValue)
         
         if let passwordAging = user.passwordAging, passwordAging {
-            if let expireDate = user.computedExireDate {
+            if let expireDate = user.computedExpireDate {
                 self.set(for: .userPasswordExpireDate, value: expireDate)
             }
         } else {
@@ -85,7 +85,7 @@ struct PreferenceManager {
         
         stateDefaults.set(user.cn, forKey: PreferenceKeys.userCN.rawValue)
         stateDefaults.set(user.groups, forKey: PreferenceKeys.userGroups.rawValue)
-        stateDefaults.set(user.computedExireDate, forKey: PreferenceKeys.userPasswordExpireDate.rawValue)
+        stateDefaults.set(user.computedExpireDate, forKey: PreferenceKeys.userPasswordExpireDate.rawValue)
         stateDefaults.set(user.passwordSet, forKey: PreferenceKeys.userPasswordSetDate.rawValue)
         stateDefaults.set(user.homeDirectory, forKey: PreferenceKeys.userHome.rawValue)
         stateDefaults.set(user.userPrincipal, forKey: PreferenceKeys.userPrincipal.rawValue)
@@ -98,24 +98,28 @@ struct PreferenceManager {
         stateDefaults.set(user.lastName, forKey: PreferenceKeys.userLastName.rawValue)
         stateDefaults.set(Date(), forKey: PreferenceKeys.userLastChecked.rawValue)
         
-        var allUsers = stateDefaults.dictionary(forKey: PreferenceKeys.allUserInformation.rawValue) ?? [String: [String: AnyObject]]()
-        allUsers[user.userPrincipal] = [
-            "CN": user.cn,
-            "groups": user.groups,
-            "UserPasswordExpireDate": user.computedExireDate?.description ?? "",
-            "UserHome": user.homeDirectory ?? "",
-            "UserPrincipal": user.userPrincipal,
-            "CustomLDAPAttributesResults": user.customAttributes?.description ?? "",
-            "UserShortName": user.shortName,
-            "UserUPN": user.upn,
-            "UserEmail": user.email ?? "",
-            "UserFullName": user.fullName,
-            "UserFirstName": user.firstName,
-            "UserLastName": user.lastName,
-            "UserLastChecked": Date()
-        ]
+        // Break down the complex expression into simpler steps
+        var allUsers = stateDefaults.dictionary(forKey: PreferenceKeys.allUserInformation.rawValue) as? [String: [String: AnyObject]] ?? [:]
+        
+        var userInfo = [String: AnyObject]()
+        userInfo["CN"] = user.cn as AnyObject
+        userInfo["groups"] = user.groups as AnyObject
+        userInfo["UserPasswordExpireDate"] = user.computedExpireDate?.description as AnyObject? ?? "" as AnyObject
+        userInfo["UserHome"] = user.homeDirectory as AnyObject? ?? "" as AnyObject
+        userInfo["UserPrincipal"] = user.userPrincipal as AnyObject
+        userInfo["CustomLDAPAttributesResults"] = user.customAttributes?.description as AnyObject? ?? "" as AnyObject
+        userInfo["UserShortName"] = user.shortName as AnyObject
+        userInfo["UserUPN"] = user.upn as AnyObject
+        userInfo["UserEmail"] = user.email as AnyObject? ?? "" as AnyObject
+        userInfo["UserFullName"] = user.fullName as AnyObject
+        userInfo["UserFirstName"] = user.firstName as AnyObject
+        userInfo["UserLastName"] = user.lastName as AnyObject
+        userInfo["UserLastChecked"] = Date() as AnyObject
+
+        allUsers[user.userPrincipal] = userInfo
         stateDefaults.setValue(allUsers, forKey: PreferenceKeys.allUserInformation.rawValue)
     }
+
         
     private func readPropertyList() -> [String: Any]? {
         guard let plistPath = Bundle.main.path(forResource: "DefaultValues", ofType: "plist"),

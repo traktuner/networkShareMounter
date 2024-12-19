@@ -2921,6 +2921,18 @@
         }
       }
     },
+    "Hsw-le-rfV.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Button\"; ObjectID = \"Hsw-le-rfV\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Button"
+          }
+        }
+      }
+    },
     "HyV-fh-RgO.title" : {
       "comment" : "Class = \"NSMenu\"; title = \"View\"; ObjectID = \"HyV-fh-RgO\";",
       "extractionState" : "extracted_with_value",
@@ -4974,18 +4986,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Toolbar"
-          }
-        }
-      }
-    },
-    "soC-7J-Msf.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"Item 1\"; ObjectID = \"soC-7J-Msf\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Item 1"
           }
         }
       }
