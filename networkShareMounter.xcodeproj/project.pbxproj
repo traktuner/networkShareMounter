@@ -13,8 +13,11 @@
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
+		F7432E722D11A582009B499B /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7432E712D11A582009B499B /* dogeADAuth */; };
+		F7432E752D11A5BF009B499B /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7432E742D11A5BF009B499B /* dogeADAuth */; };
 		F747F8642B6F814A00AC0772 /* AuthType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747F8632B6F814A00AC0772 /* AuthType.swift */; };
 		F747F8662B6F81D400AC0772 /* MountStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747F8652B6F81D400AC0772 /* MountStatus.swift */; };
+		F75964682D13E6CA00916D06 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F75964672D13E6CA00916D06 /* dogeADAuth */; };
 		F765D0552A852911001D5116 /* ShareManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F765D0542A852911001D5116 /* ShareManager.swift */; };
 		F765D0572A852935001D5116 /* Share.swift in Sources */ = {isa = PBXBuildFile; fileRef = F765D0562A852935001D5116 /* Share.swift */; };
 		F77107B7274EC51600556B20 /* Monitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B6274EC51600556B20 /* Monitor.swift */; };
@@ -58,7 +61,6 @@
 		F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */; };
 		F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */; };
 		F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A12D0B191A0064D038 /* dogeADAuth */; };
-		F7EFD0A52D0B43A50064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A42D0B43A50064D038 /* dogeADAuth */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -136,9 +138,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F7EFD0A52D0B43A50064D038 /* dogeADAuth in Frameworks */,
+				F75964682D13E6CA00916D06 /* dogeADAuth in Frameworks */,
+				F7432E722D11A582009B499B /* dogeADAuth in Frameworks */,
 				F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */,
 				F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */,
+				F7432E752D11A5BF009B499B /* dogeADAuth in Frameworks */,
 				F7885F642C623084000B96AC /* Sparkle in Frameworks */,
 				F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */,
 				F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */,
@@ -316,7 +320,9 @@
 				F7A7A2182C8F0240006772D4 /* dogeADAuth */,
 				F7CAE1242CFB879000D0A839 /* Sentry */,
 				F7EFD0A12D0B191A0064D038 /* dogeADAuth */,
-				F7EFD0A42D0B43A50064D038 /* dogeADAuth */,
+				F7432E712D11A582009B499B /* dogeADAuth */,
+				F7432E742D11A5BF009B499B /* dogeADAuth */,
+				F75964672D13E6CA00916D06 /* dogeADAuth */,
 			);
 			productName = "Network Share Mounter";
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
@@ -405,7 +411,7 @@
 				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
 				F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */,
 				F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
-				F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */,
+				F75964662D13E6CA00916D06 /* XCRemoteSwiftPackageReference "dogeadauth" */,
 			);
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
@@ -698,7 +704,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 196;
+				CURRENT_PROJECT_VERSION = 197;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -748,7 +754,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 196;
+				CURRENT_PROJECT_VERSION = 197;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -938,6 +944,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F75964662D13E6CA00916D06 /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.9;
+			};
+		};
 		F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
@@ -962,17 +976,22 @@
 				minimumVersion = 8.41.0;
 			};
 		};
-		F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.8;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F7432E712D11A582009B499B /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = dogeADAuth;
+		};
+		F7432E742D11A5BF009B499B /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = dogeADAuth;
+		};
+		F75964672D13E6CA00916D06 /* dogeADAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F75964662D13E6CA00916D06 /* XCRemoteSwiftPackageReference "dogeadauth" */;
+			productName = dogeADAuth;
+		};
 		F7885F632C623084000B96AC /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */;
@@ -1002,11 +1021,6 @@
 		};
 		F7EFD0A12D0B191A0064D038 /* dogeADAuth */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = dogeADAuth;
-		};
-		F7EFD0A42D0B43A50064D038 /* dogeADAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F7EFD0A32D0B43A50064D038 /* XCRemoteSwiftPackageReference "dogeadauth" */;
 			productName = dogeADAuth;
 		};
 /* End XCSwiftPackageProductDependency section */
