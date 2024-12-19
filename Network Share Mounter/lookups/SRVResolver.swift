@@ -11,133 +11,148 @@ import Foundation
 import dnssd
 import Combine
 
-// Result needs errors, so here's one
-
+/// Enum representing possible errors during SRV resolution.
 public enum SRVResolverError: String, Error, Codable {
     case unableToComplete = "Unable to complete lookup"
 }
 
+/// Type alias for the result of an SRV resolution.
 public typealias SRVResolverResult = Result<SRVResult, SRVResolverError>
+
+/// Type alias for the completion handler used in SRV resolution.
 public typealias SRVResolverCompletion = (SRVResolverResult) -> Void
 
+/// Class responsible for resolving SRV records.
 class SRVResolver {
-    private let queue = DispatchQueue.init(label: "SRVResolution")
-    private var dispatchSourceRead: DispatchSourceRead?;
-    private var timeoutTimer: DispatchSourceTimer?;
+    private let queue = DispatchQueue(label: "SRVResolution")
+    private var dispatchSourceRead: DispatchSourceRead?
+    private var timeoutTimer: DispatchSourceTimer?
     private var serviceRef: DNSServiceRef?
-    private var socket: dnssd_sock_t = -1;
+    private var socket: dnssd_sock_t = -1
     private var query: String?
     
-    // default to 5 sec lookups, we could maybe make this longer
-    // but if you take more than 5 secs to look things up, you'll
-    // probably have other problems
-    
+    /// Default timeout for DNS lookups.
     private let timeout = TimeInterval(5)
     
     var results = [SRVRecord]()
     var completion: SRVResolverCompletion?
     
-    // this processes any results from the system DNS resolver
-    // we could parse all the things, but we don't really need the info...
-    
+    /// Callback function for processing DNS results.
     let queryCallback: DNSServiceQueryRecordReply = { (sdRef, flags, interfaceIndex, errorCode, fullname, rrtype, rrclass, rdlen, rdata, ttl, context) -> Void in
         
         guard let context = context else { return }
         
-        let request: SRVResolver = SRVResolver.bridge(context)
+        let resolver: SRVResolver = SRVResolver.bridge(context)
 
         if let data = rdata?.assumingMemoryBound(to: UInt8.self),
-           let record = SRVRecord(data: Data.init(bytes: data, count: Int(rdlen))) {
-            request.results.append(record)
+           let record = SRVRecord(data: Data(bytes: data, count: Int(rdlen))) {
+            resolver.results.append(record)
         }
         
-        if ((flags & kDNSServiceFlagsMoreComing) == 0) {
-            request.success()
+        if (flags & kDNSServiceFlagsMoreComing) == 0 {
+            resolver.success()
         }
     }
     
-    // These allow for the ObjC -> Swift conversion of a pointer
-    // The DNS APIs are a bit... unique
-    
-    static func bridge<T:AnyObject>(_ obj : T) -> UnsafeMutableRawPointer {
-        return Unmanaged.passUnretained(obj).toOpaque();
+    /// Bridges an Objective-C object to a Swift pointer.
+    static func bridge<T: AnyObject>(_ obj: T) -> UnsafeMutableRawPointer {
+        return Unmanaged.passUnretained(obj).toOpaque()
     }
     
-    static func bridge<T:AnyObject>(_ ptr : UnsafeMutableRawPointer) -> T {
-        return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue();
+    /// Bridges a Swift pointer back to an Objective-C object.
+    static func bridge<T: AnyObject>(_ ptr: UnsafeMutableRawPointer) -> T {
+        return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
     }
     
+    /// Handles a failed SRV resolution.
     func fail() {
         stopQuery()
-        completion?(SRVResolverResult.failure(.unableToComplete))
+        completion?(.failure(.unableToComplete))
     }
     
+    /// Handles a successful SRV resolution.
     func success() {
         stopQuery()
         let result = SRVResult(SRVRecords: results, query: query ?? "Unknown Query")
-        completion?(SRVResolverResult.success(result))
+        completion?(.success(result))
     }
     
+    /// Stops the DNS query and cleans up resources.
     private func stopQuery() {
-        
-        // be nice and clean things up
-        self.timeoutTimer?.cancel()
-        self.dispatchSourceRead?.cancel()
+        timeoutTimer?.cancel()
+        dispatchSourceRead?.cancel()
+        if let serviceRef = serviceRef {
+            DNSServiceRefDeallocate(serviceRef)
+            self.serviceRef = nil
+        }
     }
     
-    func resolve(query: String, completion: SRVResolverCompletion? = nil) {
-        
-        if let completion = completion {
-            self.completion = completion
+    /// Initiates the SRV resolution process.
+    /// - Parameters:
+    ///   - query: The DNS query string.
+    ///   - completion: The completion handler to call when the resolution is complete.
+    func resolve(query: String, completion: @escaping SRVResolverCompletion) {
+        self.completion = completion
+        self.query = query
+        guard let namec = query.cString(using: .utf8) else {
+            fail()
+            return
         }
         
-        self.query = query
-        let namec = query.cString(using: .utf8)
-        
-        let result = DNSServiceQueryRecord(&self.serviceRef, kDNSServiceFlagsReturnIntermediates, UInt32(0), namec,  UInt16(kDNSServiceType_SRV),  UInt16(kDNSServiceClass_IN), queryCallback, SRVResolver.bridge(self))
+        let result = DNSServiceQueryRecord(
+            &serviceRef,
+            kDNSServiceFlagsReturnIntermediates,
+            0, // query on all interfaces.
+            namec,
+            UInt16(kDNSServiceType_SRV),
+            UInt16(kDNSServiceClass_IN),
+            queryCallback,
+            SRVResolver.bridge(self)
+        )
         
         switch result {
         case DNSServiceErrorType(kDNSServiceErr_NoError):
-            
-            guard let sdRef = self.serviceRef else {
+            guard let sdRef = serviceRef else {
                 fail()
                 return
             }
             
-            self.socket = DNSServiceRefSockFD(self.serviceRef)
+            socket = DNSServiceRefSockFD(sdRef)
             
-            guard self.socket != -1 else {
+            guard socket != -1 else {
                 fail()
                 return
             }
             
-            self.dispatchSourceRead = DispatchSource.makeReadSource(fileDescriptor: self.socket, queue: self.queue)
+            dispatchSourceRead = DispatchSource.makeReadSource(fileDescriptor: socket, queue: queue)
             
-            self.dispatchSourceRead?.setEventHandler(handler: {
+            dispatchSourceRead?.setEventHandler(handler: {
                 let res = DNSServiceProcessResult(sdRef)
                 if res != kDNSServiceErr_NoError {
                     self.fail()
                 }
             })
             
-            self.dispatchSourceRead?.setCancelHandler(handler: {
-                DNSServiceRefDeallocate(self.serviceRef)
+            dispatchSourceRead?.setCancelHandler(handler: {
+                if let serviceRef = self.serviceRef {
+                    DNSServiceRefDeallocate(serviceRef)
+                }
             })
             
-            self.dispatchSourceRead?.resume()
+            dispatchSourceRead?.resume()
             
-            self.timeoutTimer = DispatchSource.makeTimerSource(flags: [], queue: self.queue)
+            timeoutTimer = DispatchSource.makeTimerSource(flags: [], queue: queue)
             
-            self.timeoutTimer?.setEventHandler(handler: {
+            timeoutTimer?.setEventHandler(handler: {
                 self.fail()
             })
             
-            let deadline = DispatchTime(uptimeNanoseconds: DispatchTime.now().uptimeNanoseconds + UInt64(timeout * Double(NSEC_PER_SEC)))
-            self.timeoutTimer?.schedule(deadline: deadline, repeating: .infinity, leeway: DispatchTimeInterval.never)
-            self.timeoutTimer?.resume()
+            let deadline = DispatchTime.now() + timeout
+            timeoutTimer?.schedule(deadline: deadline, repeating: .infinity, leeway: .never)
+            timeoutTimer?.resume()
             
         default:
-            self.fail()
+            fail()
         }
     }
 }
