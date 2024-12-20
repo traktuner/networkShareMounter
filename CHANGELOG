@@ -1,3 +1,7 @@
+# 3.1.1
+### Bugfixes
+* Our new debugging framework sentry helped us to find and fix various runtime bugs and crashes (#148, #144, #147, #145, #146)
+
 # 3.1.0
 
 ### Features

@@ -265,7 +265,7 @@
       }
     },
     "authui-krb-infotext" : {
-      "comment" : "informative test for kerberos auth window",
+      "comment" : "informative text for kerberos auth window",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -424,6 +424,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "IdM-Wachtwoord"
+          }
+        }
+      }
+    },
+    "authui-remove-text" : {
+      "comment" : "text on remove button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eintrag löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Entry"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar entrada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer l'entrée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elimina voce"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwijder invoer"
           }
         }
       }

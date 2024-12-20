@@ -1031,7 +1031,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8Vv-en-BKS">
-                                <rect key="frame" x="327" y="13" width="120" height="32"/>
+                                <rect key="frame" x="290" y="13" width="139" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Wh9-zC-thW">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1041,12 +1041,23 @@ The connection will be testet immediately and will be added only if the server i
                                     <action selector="cancelKlicked:" target="6r4-rb-dJs" id="P3P-mS-ZlD"/>
                                 </connections>
                             </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ujD-hy-6bv">
+                                <rect key="frame" x="153" y="13" width="139" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Hsw-le-rfV">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="removeKlicked:" target="6r4-rb-dJs" id="QMx-Jb-are"/>
+                                </connections>
+                            </button>
                             <progressIndicator fixedFrame="YES" maxValue="100" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="tuu-EA-5cz">
-                                <rect key="frame" x="449" y="24" width="16" height="16"/>
+                                <rect key="frame" x="430" y="22" width="16" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </progressIndicator>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hkh-AE-LKO">
-                                <rect key="frame" x="466" y="13" width="120" height="32"/>
+                                <rect key="frame" x="447" y="13" width="139" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Q2i-vC-PLt">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1071,12 +1082,12 @@ The connection will be testet immediately and will be added only if the server i
                             <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="21Z-Um-buj">
                                 <rect key="frame" x="278" y="182" width="305" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="soC-7J-Msf" id="Du8-Ci-I7g">
+                                <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="soC-7J-Msf" id="Du8-Ci-I7g">
                                     <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" usesAppearanceFont="YES"/>
                                     <menu key="menu" id="K43-nA-yPW">
                                         <items>
-                                            <menuItem title="Item 1" state="on" id="soC-7J-Msf"/>
+                                            <menuItem state="on" id="soC-7J-Msf"/>
                                             <menuItem title="Item 2" id="cB8-YR-KqE"/>
                                             <menuItem title="Item 3" id="6wl-yy-c0j"/>
                                         </items>
@@ -1095,7 +1106,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </textFieldCell>
                             </textField>
                             <button tag="1" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OfG-RR-odf">
-                                <rect key="frame" x="281" y="12" width="20" height="37"/>
+                                <rect key="frame" x="132" y="12" width="20" height="37"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" imagePosition="only" alignment="center" tag="1" imageScaling="proportionallyDown" inset="2" id="rh8-cW-6rn">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1121,6 +1132,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                         <outlet property="logo" destination="FOX-uX-n7a" id="vLA-a1-cTo"/>
                         <outlet property="password" destination="3SP-aS-pOn" id="jdf-M4-krx"/>
                         <outlet property="passwordText" destination="BzW-i0-bsL" id="Bhf-WC-xOf"/>
+                        <outlet property="removeButtonText" destination="ujD-hy-6bv" id="gOf-DH-V7Q"/>
                         <outlet property="spinner" destination="tuu-EA-5cz" id="1ny-jb-Pik"/>
                         <outlet property="username" destination="fdl-dJ-Prk" id="Ama-jp-Eai"/>
                         <outlet property="usernameText" destination="wMc-Nf-mq7" id="d1H-jT-KYP"/>
@@ -1454,6 +1466,6 @@ The connection will be testet immediately and will be added only if the server i
         <image name="NSAddTemplate" width="18" height="17"/>
         <image name="NSRemoveTemplate" width="18" height="5"/>
         <image name="nsm_logo" width="512" height="512"/>
-        <image name="questionmark.circle" catalog="system" width="15" height="15"/>
+        <image name="questionmark.circle" catalog="system" width="20" height="20"/>
     </resources>
 </document>

@@ -178,12 +178,18 @@
             {
                 "enum_titles":
                 [
+                    "show",
                     "hidden",
-                    "disabled",
-                    ""
+                    "disabled"
                 ],
-                "infoText": "Key name: menuCheckUpdates"
-            }
+                "infoText": "Key name: menuAbout"
+            },
+            "enum":
+            [
+                    "show",
+                    "hidden",
+                    "disabled"
+            ]
         },
         "menuConnectShares": {
             "title": "Menu ConnectShares",
@@ -194,12 +200,18 @@
             {
                 "enum_titles":
                 [
+                    "show",
                     "hidden",
-                    "disabled",
-                    ""
+                    "disabled"
                 ],
-                "infoText": "Key name: menuCheckUpdates"
-            }
+                "infoText": "Key name: menuConnectShares"
+            },
+            "enum":
+            [
+                    "show",
+                    "hidden",
+                    "disabled"
+            ]
         },
         "menuDisconnectShares": {
             "title": "Menu DisconnectShares",
@@ -210,12 +222,18 @@
             {
                 "enum_titles":
                 [
+                    "show",
                     "hidden",
-                    "disabled",
-                    ""
+                    "disabled"
                 ],
-                "infoText": "Key name: menuCheckUpdates"
-            }
+                "infoText": "Key name: menuDisconnectShares"
+            },
+            "enum":
+            [
+                    "show",
+                    "hidden",
+                    "disabled"
+            ]
         },
         "menuCheckUpdates": {
             "title": "Menu CheckUpdates",
@@ -226,12 +244,18 @@
             {
                 "enum_titles":
                 [
+                    "show",
                     "hidden",
-                    "disabled",
-                    ""
+                    "disabled"
                 ],
                 "infoText": "Key name: menuCheckUpdates"
-            }
+            },
+            "enum":
+            [
+                    "show",
+                    "hidden",
+                    "disabled"
+            ]
         },
         "menuShowSharesMountDir": {
             "title": "Menu ShowSharesMountDir",
@@ -242,12 +266,18 @@
             {
                 "enum_titles":
                 [
+                    "show",
                     "hidden",
-                    "disabled",
-                    ""
+                    "disabled"
                 ],
-                "infoText": "Key name: menuCheckUpdates"
-            }
+                "infoText": "Key name: menuShowSharesMountDir"
+            },
+            "enum":
+            [
+                    "show",
+                    "hidden",
+                    "disabled"
+            ]
         },
         "menuShowShares": {
             "title": "Menu ShowShares",
@@ -258,12 +288,18 @@
             {
                 "enum_titles":
                 [
+                    "show",
                     "hidden",
-                    "disabled",
-                    ""
+                    "disabled"
                 ],
-                "infoText": "Key name: menuCheckUpdates"
-            }
+                "infoText": "Key name: menuShowShares"
+            },
+            "enum":
+            [
+                    "show",
+                    "hidden",
+                    "disabled"
+            ]
         },
         "menuSettings": {
             "title": "Menu Settings",
@@ -274,12 +310,18 @@
             {
                 "enum_titles":
                 [
+                    "show",
                     "hidden",
-                    "disabled",
-                    ""
+                    "disabled"
                 ],
-                "infoText": "Key name: menuCheckUpdates"
-            }
+                "infoText": "Key name: menuSettings"
+            },
+            "enum":
+            [
+                    "show",
+                    "hidden",
+                    "disabled"
+            ]
         }
     }
 }
