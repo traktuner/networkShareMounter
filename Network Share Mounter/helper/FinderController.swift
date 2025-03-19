@@ -7,11 +7,19 @@
 //
 
 import Foundation
+import AppKit
 
 actor FinderController {
     private var isRestarting = false
     
     func restartFinder() async {
+        // Überprüfe, ob der Finder läuft
+        let runningFinder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder")
+        guard !runningFinder.isEmpty else {
+            // Finder läuft nicht, daher Neustart überspringen
+            return
+        }
+        
         guard !isRestarting else { return }
         
         isRestarting = true
