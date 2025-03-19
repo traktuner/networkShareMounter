@@ -592,13 +592,6 @@ class Mounter: ObservableObject {
             mountDirectory += "/" + host
         }
         
-        // I am not sure if removing the "$" for SMB hidden shares is really necessary, but in a Unix/shell basef environment
-        // using directories without special characters is much safer.
-        // BTW: the share itself will still be shown as SHARE$ while the mountpath is under a shell-safe directory without the "$"
-        if mountDirectory.hasSuffix("$") {
-            mountDirectory = String(mountDirectory.dropLast())
-        }
-        
         // first check if there is already a directory
         if fm.isDirectory(atPath: mountDirectory) {
             // then if the driectory is a mount point
