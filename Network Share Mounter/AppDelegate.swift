@@ -495,7 +495,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Add "Check for Updates" menu item if auto-updater is enabled
         if prefs.bool(for: .enableAutoUpdater) == true {
-            if let newMenuItem = createMenuItem(title: "Check for Updates...s",
+            if let newMenuItem = createMenuItem(title: "Check for Updates...",
                                                 comment: "Check for Updates",
                                                 action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
                                                 keyEquivalent: "",
