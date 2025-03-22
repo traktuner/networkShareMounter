@@ -26,10 +26,14 @@ actor FinderController {
         defer { isRestarting = false }
         
         let task = Process()
-        task.launchPath = "/usr/bin/killall"
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
         task.arguments = ["Finder"]
         let pipe = Pipe()
         task.standardOutput = pipe
-        task.launch()
+        do {
+            try task.run()
+        } catch {
+            print("Error restarting Finder: \(error)")
+        }
     }
 }
