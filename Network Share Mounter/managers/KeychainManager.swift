@@ -45,7 +45,7 @@ struct Credentials {
     var password: String
 }
 
-enum KeychainError: Error {
+enum KeychainError: Error, Equatable {
     case noPassword
     case malformedShare
     case unexpectedPasswordData
@@ -67,16 +67,18 @@ class KeychainManager: NSObject {
     /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
     func makeQuery(share shareURL: URL, username: String, service: String? = nil, accessGroup: String? = nil, comment: String? = nil) throws -> [String: Any]  {
-        let host = shareURL.host
+        guard let host = shareURL.host else {
+            throw KeychainError.malformedShare
+        }
         let path = shareURL.lastPathComponent
         let urlScheme = shareURL.scheme
 
         var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrAccount as String: username,
-                                    kSecAttrServer as String: host as Any,
+                                    kSecAttrServer as String: host,
                                     kSecAttrPath as String: path,
-                                    kSecAttrLabel as String: host as Any,
-                                    kSecAttrSynchronizable as String: prefs.bool(for: .keychainiCloudSync) ? kCFBooleanTrue as Any : kCFBooleanFalse as Any
+                                    kSecAttrLabel as String: host,
+                                    kSecAttrSynchronizable as String: kCFBooleanFalse
                                     ]
         switch urlScheme {
         case "https":
@@ -108,10 +110,11 @@ class KeychainManager: NSObject {
     /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
     /// - Parameter label: ``String`` string containing keychain label name
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
-    func makeQuery(username: String, service: String = Defaults.keyChainService, accessGroup: String? = nil, label: String? = nil, comment: String? = nil, iCloudSync: Bool? = nil) throws -> [String: Any]  {
+    func makeQuery(username: String, service: String = Defaults.keyChainService, accessGroup: String? = nil, label: String? = nil, comment: String? = nil) throws -> [String: Any]  {
         var query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrService as String: service,
+                                    kSecAttrSynchronizable as String: kCFBooleanFalse
                                     ]
         if let kcComment = comment {
             query[kSecAttrComment as String] = kcComment
@@ -122,12 +125,7 @@ class KeychainManager: NSObject {
         if let kSecAttrLabel = label {
             query[kSecAttrLabel as String] = kSecAttrLabel
         }
-        if let synchronizable = iCloudSync {
-            query[kSecAttrSynchronizable as String] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
-        } else {
-            query[kSecAttrSynchronizable as String] = prefs.bool(for: .keychainiCloudSync) ? kCFBooleanTrue : kCFBooleanFalse
-        }
-
+        
         return query
     }
     
@@ -141,14 +139,23 @@ class KeychainManager: NSObject {
     func saveCredential(forShare share: URL, withUsername username: String, andPassword password: String, withLabel label: String? = Defaults.keyChainService, accessGroup: String? = Defaults.keyChainAccessGroup, comment: String? = nil) throws {
         do {
             var query = try makeQuery(share: share, username: username, accessGroup: accessGroup, comment: comment)
-            query[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
-            /// Delete existing entry (if applicable)
+            
+            // Ensure that password data can be successfully encoded
+            guard let passwordData = password.data(using: String.Encoding.utf8) else {
+                throw KeychainError.unexpectedPasswordData
+            }
+            query[kSecValueData as String] = passwordData
+            
+            // Delete existing entry (if present)
+            // Ignore the return value since it's normal if no entry exists
             SecItemDelete(query as CFDictionary)
             
             let status = SecItemAdd(query as CFDictionary, nil)
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
+        } catch let error as KeychainError {
+            throw error
         } catch {
             throw KeychainError.undefinedError
         }
@@ -163,15 +170,23 @@ class KeychainManager: NSObject {
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
     func saveCredential(forUsername username: String, andPassword password: String, withService service: String = Defaults.keyChainService, andLabel label: String? = nil, accessGroup: String? = nil, comment: String? = nil) throws {
         do {
-            var query = try makeQuery(username: username, service: Defaults.keyChainService, accessGroup: Defaults.keyChainAccessGroup, label: label, comment: comment)
-            query[kSecValueData as String] = password.data(using: String.Encoding.utf8)!
-            /// Delete existing entry (if applicable)
+            var query = try makeQuery(username: username, service: service, accessGroup: accessGroup, label: label, comment: comment)
+            
+            // Ensure that password data can be successfully encoded
+            guard let passwordData = password.data(using: String.Encoding.utf8) else {
+                throw KeychainError.unexpectedPasswordData
+            }
+            query[kSecValueData as String] = passwordData
+            
+            // Delete existing entry (if present)
             SecItemDelete(query as CFDictionary)
             
             let status = SecItemAdd(query as CFDictionary, nil)
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
+        } catch let error as KeychainError {
+            throw error
         } catch {
             throw KeychainError.undefinedError
         }
@@ -182,20 +197,20 @@ class KeychainManager: NSObject {
     /// - Parameter withUsername: ``username`` login for share
     func removeCredential(forShare share: URL, withUsername username: String) throws {
         do {
-            let query = try makeQuery(share: share, username: username)
-            
-            // try to get the password for share and username. If none is returned, the
-            // entry does not exist and there is no need to remove an entry -> return
-            do {
-                _ = try retrievePassword(forShare: share, withUsername: username)
-            } catch {
+            // Check if an entry exists without retrieving the password
+            guard credentialExists(forShare: share, withUsername: username) else {
+                // No entry present, nothing to delete
                 return
             }
             
+            let query = try makeQuery(share: share, username: username)
             let status = SecItemDelete(query as CFDictionary)
+            
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
+        } catch let error as KeychainError {
+            throw error
         } catch {
             throw KeychainError.errorRemovingEntry
         }
@@ -204,29 +219,23 @@ class KeychainManager: NSObject {
     /// delete a specific keychain entry defined by
     /// - Parameter forhUsername: ``String`` login for share
     /// - Parameter andService: ``String`` keychain service
-    /// - Parameter label: ``String`` keychain label
-    func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup, iCloudSync: Bool? = nil) throws {
+    /// - Parameter accessGroup: ``String`` access group
+    func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws {
         do {
-            var doiCloudSync = prefs.bool(for: .keychainiCloudSync)
-            if let doSync = iCloudSync {
-                doiCloudSync = doSync
-            }
-            let query = try makeQuery(username: username, service: service, accessGroup: accessGroup, iCloudSync: doiCloudSync)
-            
-            // try to get the password for share and username. If none is returned, the
-            // entry does not exist and there is no need to remove an entry -> return
-            do {
-                _ = try retrievePassword(forUsername: username, 
-                                         andService: service,
-                                         accessGroup: accessGroup)
-            } catch {
+            // Check if an entry exists without retrieving the password
+            guard credentialExists(forUsername: username, andService: service, accessGroup: accessGroup) else {
+                // No entry present, nothing to delete
                 return
             }
             
+            let query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             let status = SecItemDelete(query as CFDictionary)
+            
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
+        } catch let error as KeychainError {
+            throw error
         } catch {
             throw KeychainError.errorRemovingEntry
         }
@@ -262,7 +271,6 @@ class KeychainManager: NSObject {
     /// - Parameter forUsername: ``String`` username
     /// - Parameter andService: ``String`` service, defaults to Defaults.keyChainService
     /// - Parameter accessGroup: ``String`` accessGroup, defaults to Defaults.keyChainAccessGroup
-    /// - Parameter iCLoudSync: ``Bool?`` if account is iCLoud synced
     func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
@@ -324,6 +332,47 @@ class KeychainManager: NSObject {
             let dict: [[String: Any]] = array.toSwiftArray()
             let pairs = dict.compactMap { $0.accountPasswordPair }
             return pairs
+        }
+    }
+
+    /// Checks if a keychain entry exists without retrieving the password
+    /// - Parameter forShare: Share URL
+    /// - Parameter withUsername: Username
+    /// - Returns: true if the entry exists, false otherwise
+    private func credentialExists(forShare share: URL, withUsername username: String) -> Bool {
+        do {
+            var query = try makeQuery(share: share, username: username)
+            // Only check if the entry exists without retrieving data
+            query[kSecReturnData as String] = kCFBooleanFalse
+            query[kSecMatchLimit as String] = kSecMatchLimitOne
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            
+            var ref: AnyObject?
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            return status == errSecSuccess
+        } catch {
+            return false
+        }
+    }
+    
+    /// Checks if a keychain entry exists without retrieving the password
+    /// - Parameter forUsername: Username
+    /// - Parameter andService: Service name
+    /// - Parameter accessGroup: Access group
+    /// - Returns: true if the entry exists, false otherwise
+    private func credentialExists(forUsername username: String, andService service: String, accessGroup: String? = nil) -> Bool {
+        do {
+            var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
+            // Only check if the entry exists without retrieving data
+            query[kSecReturnData as String] = kCFBooleanFalse
+            query[kSecMatchLimit as String] = kSecMatchLimitOne
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            
+            var ref: AnyObject?
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            return status == errSecSuccess
+        } catch {
+            return false
         }
     }
 }

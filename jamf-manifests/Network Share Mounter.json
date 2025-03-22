@@ -131,12 +131,6 @@
             "type": "string",
             "default": ""
         },
-        "keychainiCloudSync": {
-            "title": "Keychain iCloud sync",
-            "description": "Enable iCloud sync for Network Share Mounter keychain entries if the user's iCloud keychain is available.",
-            "type": "boolean",
-            "default": false
-        },
         "keyChainService": {
             "title": "Keychain Service",
             "description": "Human readable service name of keychain item entry",
