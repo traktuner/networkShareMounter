@@ -344,6 +344,47 @@ class KeychainManager: NSObject {
             return pairs
         }
     }
+
+    /// Checks if a keychain entry exists without retrieving the password
+    /// - Parameter forShare: Share URL
+    /// - Parameter withUsername: Username
+    /// - Returns: true if the entry exists, false otherwise
+    private func credentialExists(forShare share: URL, withUsername username: String) -> Bool {
+        do {
+            var query = try makeQuery(share: share, username: username)
+            // Only check if the entry exists without retrieving data
+            query[kSecReturnData as String] = kCFBooleanFalse
+            query[kSecMatchLimit as String] = kSecMatchLimitOne
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            
+            var ref: AnyObject?
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            return status == errSecSuccess
+        } catch {
+            return false
+        }
+    }
+    
+    /// Checks if a keychain entry exists without retrieving the password
+    /// - Parameter forUsername: Username
+    /// - Parameter andService: Service name
+    /// - Parameter accessGroup: Access group
+    /// - Returns: true if the entry exists, false otherwise
+    private func credentialExists(forUsername username: String, andService service: String, accessGroup: String? = nil) -> Bool {
+        do {
+            var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
+            // Only check if the entry exists without retrieving data
+            query[kSecReturnData as String] = kCFBooleanFalse
+            query[kSecMatchLimit as String] = kSecMatchLimitOne
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            
+            var ref: AnyObject?
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            return status == errSecSuccess
+        } catch {
+            return false
+        }
+    }
 }
 
 
@@ -367,54 +408,4 @@ extension Dictionary where Key == String, Value == Any {
     }
     return (username, String(data: password, encoding: .utf8) ?? "")
   }
-}
-
-/// Überprüft, ob ein Schlüsselbundeintrag existiert, ohne das Passwort abzurufen
-/// - Parameter forShare: Freigabe-URL
-/// - Parameter withUsername: Benutzername
-/// - Returns: true wenn der Eintrag existiert, sonst false
-/// Checks if a keychain entry exists without retrieving the password
-/// - Parameter forShare: Share URL
-/// - Parameter withUsername: Username
-/// - Returns: true if the entry exists, false otherwise
-private func credentialExists(forShare share: URL, withUsername username: String) -> Bool {
-    do {
-        var query = try makeQuery(share: share, username: username)
-        // Only check if the entry exists without retrieving data
-        query[kSecReturnData as String] = kCFBooleanFalse
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
-        query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
-        
-        var ref: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &ref)
-        return status == errSecSuccess
-    } catch {
-        return false
-    }
-}
-
-/// Überprüft, ob ein Schlüsselbundeintrag existiert, ohne das Passwort abzurufen
-/// - Parameter forUsername: Benutzername
-/// - Parameter andService: Dienstname
-/// - Parameter accessGroup: Zugriffsgruppe
-/// - Returns: true wenn der Eintrag existiert, sonst false
-/// Checks if a keychain entry exists without retrieving the password
-/// - Parameter forUsername: Username
-/// - Parameter andService: Service name
-/// - Parameter accessGroup: Access group
-/// - Returns: true if the entry exists, false otherwise
-private func credentialExists(forUsername username: String, andService service: String, accessGroup: String? = nil) -> Bool {
-    do {
-        var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
-        // Only check if the entry exists without retrieving data
-        query[kSecReturnData as String] = kCFBooleanFalse
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
-        query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
-        
-        var ref: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &ref)
-        return status == errSecSuccess
-    } catch {
-        return false
-    }
 }
