@@ -45,7 +45,7 @@ struct Credentials {
     var password: String
 }
 
-enum KeychainError: Error {
+enum KeychainError: Error, Equatable {
     case noPassword
     case malformedShare
     case unexpectedPasswordData
@@ -78,7 +78,7 @@ class KeychainManager: NSObject {
                                     kSecAttrServer as String: host,
                                     kSecAttrPath as String: path,
                                     kSecAttrLabel as String: host,
-                                    kSecAttrSynchronizable as String: prefs.bool(for: .keychainiCloudSync) ? kCFBooleanTrue as Any : kCFBooleanFalse as Any
+                                    kSecAttrSynchronizable as String: kCFBooleanFalse
                                     ]
         switch urlScheme {
         case "https":
@@ -110,10 +110,11 @@ class KeychainManager: NSObject {
     /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
     /// - Parameter label: ``String`` string containing keychain label name
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
-    func makeQuery(username: String, service: String = Defaults.keyChainService, accessGroup: String? = nil, label: String? = nil, comment: String? = nil, iCloudSync: Bool? = nil) throws -> [String: Any]  {
+    func makeQuery(username: String, service: String = Defaults.keyChainService, accessGroup: String? = nil, label: String? = nil, comment: String? = nil) throws -> [String: Any]  {
         var query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrService as String: service,
+                                    kSecAttrSynchronizable as String: kCFBooleanFalse
                                     ]
         if let kcComment = comment {
             query[kSecAttrComment as String] = kcComment
@@ -124,12 +125,7 @@ class KeychainManager: NSObject {
         if let kSecAttrLabel = label {
             query[kSecAttrLabel as String] = kSecAttrLabel
         }
-        if let synchronizable = iCloudSync {
-            query[kSecAttrSynchronizable as String] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
-        } else {
-            query[kSecAttrSynchronizable as String] = prefs.bool(for: .keychainiCloudSync) ? kCFBooleanTrue : kCFBooleanFalse
-        }
-
+        
         return query
     }
     
@@ -223,8 +219,8 @@ class KeychainManager: NSObject {
     /// delete a specific keychain entry defined by
     /// - Parameter forhUsername: ``String`` login for share
     /// - Parameter andService: ``String`` keychain service
-    /// - Parameter label: ``String`` keychain label
-    func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup, iCloudSync: Bool? = nil) throws {
+    /// - Parameter accessGroup: ``String`` access group
+    func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws {
         do {
             // Check if an entry exists without retrieving the password
             guard credentialExists(forUsername: username, andService: service, accessGroup: accessGroup) else {
@@ -232,12 +228,7 @@ class KeychainManager: NSObject {
                 return
             }
             
-            var doiCloudSync = prefs.bool(for: .keychainiCloudSync)
-            if let doSync = iCloudSync {
-                doiCloudSync = doSync
-            }
-            
-            let query = try makeQuery(username: username, service: service, accessGroup: accessGroup, iCloudSync: doiCloudSync)
+            let query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             let status = SecItemDelete(query as CFDictionary)
             
             guard status == errSecSuccess else {
@@ -280,7 +271,6 @@ class KeychainManager: NSObject {
     /// - Parameter forUsername: ``String`` username
     /// - Parameter andService: ``String`` service, defaults to Defaults.keyChainService
     /// - Parameter accessGroup: ``String`` accessGroup, defaults to Defaults.keyChainAccessGroup
-    /// - Parameter iCLoudSync: ``Bool?`` if account is iCLoud synced
     func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)

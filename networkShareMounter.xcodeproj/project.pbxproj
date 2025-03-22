@@ -71,13 +71,6 @@
 			remoteGlobalIDString = F79B1594274E722000C322A8;
 			remoteInfo = "Network Share Mounter";
 		};
-		F79B15B0274E722100C322A8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D60FA5141E7FBE1300D9B5A5 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F79B1594274E722000C322A8;
-			remoteInfo = "Network Share Mounter";
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -103,7 +96,6 @@
 		F79B159B274E722100C322A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F79B159E274E722100C322A8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Network_Share_Mounter.entitlements; sourceTree = "<group>"; };
-		F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Network Share MounterUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Network-Share-Mounter-Info.plist"; sourceTree = SOURCE_ROOT; };
 		F79B15C3274E800C00C322A8 /* NetworkShareMounterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMounterViewController.swift; sourceTree = "<group>"; };
 		F7A383EC2B065E1400CA70E2 /* UserShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserShare.swift; sourceTree = "<group>"; };
@@ -162,13 +154,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F79B15AC274E722100C322A8 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -185,7 +170,6 @@
 			isa = PBXGroup;
 			children = (
 				F79B1595274E722000C322A8 /* Network Share Mounter.app */,
-				F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */,
 				F706FED12D8EABCF001C2785 /* Network Share MounterTests.xctest */,
 			);
 			name = Products;
@@ -356,24 +340,6 @@
 			productReference = F79B1595274E722000C322A8 /* Network Share Mounter.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F79B15AE274E722100C322A8 /* Network Share MounterUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F79B15BF274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share MounterUITests" */;
-			buildPhases = (
-				F79B15AB274E722100C322A8 /* Sources */,
-				F79B15AC274E722100C322A8 /* Frameworks */,
-				F79B15AD274E722100C322A8 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F79B15B1274E722100C322A8 /* PBXTargetDependency */,
-			);
-			name = "Network Share MounterUITests";
-			productName = "Network Share MounterUITests";
-			productReference = F79B15AF274E722100C322A8 /* Network Share MounterUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -394,10 +360,6 @@
 					};
 					F79B1594274E722000C322A8 = {
 						CreatedOnToolsVersion = 13.2;
-					};
-					F79B15AE274E722100C322A8 = {
-						CreatedOnToolsVersion = 13.2;
-						TestTargetID = F79B1594274E722000C322A8;
 					};
 				};
 			};
@@ -426,7 +388,6 @@
 			projectRoot = "";
 			targets = (
 				F79B1594274E722000C322A8 /* Network Share Mounter */,
-				F79B15AE274E722100C322A8 /* Network Share MounterUITests */,
 				F706FED02D8EABCF001C2785 /* Network Share MounterTests */,
 			);
 		};
@@ -448,13 +409,6 @@
 				F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */,
 				F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */,
 				F79B159F274E722100C322A8 /* Main.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F79B15AD274E722100C322A8 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -536,13 +490,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F79B15AB274E722100C322A8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -550,11 +497,6 @@
 			isa = PBXTargetDependency;
 			target = F79B1594274E722000C322A8 /* Network Share Mounter */;
 			targetProxy = F706FED52D8EABCF001C2785 /* PBXContainerItemProxy */;
-		};
-		F79B15B1274E722100C322A8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F79B1594274E722000C322A8 /* Network Share Mounter */;
-			targetProxy = F79B15B0274E722100C322A8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -849,65 +791,6 @@
 			};
 			name = Release;
 		};
-		F79B15BB274E722100C322A8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 195;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.1;
-				MARKETING_VERSION = 1.0;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "Network Share Mounter";
-			};
-			name = Debug;
-		};
-		F79B15BC274E722100C322A8 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 195;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 73H7Y3TZRJ;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.1;
-				MARKETING_VERSION = 1.0;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "Network Share Mounter";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -934,15 +817,6 @@
 			buildConfigurations = (
 				F79B15B7274E722100C322A8 /* Debug */,
 				F79B15B8274E722100C322A8 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F79B15BF274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share MounterUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F79B15BB274E722100C322A8 /* Debug */,
-				F79B15BC274E722100C322A8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

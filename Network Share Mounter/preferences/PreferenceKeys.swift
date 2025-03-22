@@ -176,7 +176,6 @@ enum PreferenceKeys: String, CaseIterable {
     case customSharesKey = "customNetworkShares"
     case userNetworkShares = "userNetworkShares"
     case location = "location"
-    case keychainiCloudSync = "keychainiCloudSync"
     case authenticationDialogImage = "authenticationDialogImage"
     case keyChainService = "keyChainService"
     case keyChainLabel = "keyChainLabel"
