@@ -8,222 +8,261 @@
 //
 
 import Foundation
+import OSLog
 
+/// Keys used for accessing user preferences in the application
+///
+/// This enumeration defines all preference keys used throughout the application.
+/// Each key corresponds to a specific setting that can be stored in and retrieved from `UserDefaults`.
 enum PreferenceKeys: String, CaseIterable {
     
     typealias RawValue = String
     
+    // MARK: - User Account Settings
+    
+    /// List of user accounts
     case accounts = "Accounts"
-//    case actionItemOnly = "ActionItemOnly"
+    
+    /// Active Directory domain
     case aDDomain = "ADDomain"
-//    case aDSite = "ADSite"
+    
+    /// Active Directory domain controller
     case aDDomainController = "ADDomainController"
-//    case allowEAPOL = "AllowEAPOL"
+    
+    /// Dictionary of all user information
     case allUserInformation = "AllUserInformation"
-//    case autoAddAccounts = "AutoAddAccounts"
-//    case autoConfigure = "AutoConfigure"
-//    case autoRenewCert = "AutoRenewCert"
-//    case changePasswordCommand = "ChangePasswordCommand"
-//    case changePasswordType = "ChangePasswordType"
-//    case changePasswordOptions = "ChangePasswordOptions"
-//    case caribouTime = "CaribouTime"
-//    case cleanCerts = "CleanCerts"
-//    case configureChrome = "ConfigureChrome"
-//    case configureChromeDomain = "ConfigureChromeDomain"
+    
+    /// Custom LDAP attributes to query
     case customLDAPAttributes = "CustomLDAPAttributes"
+    
+    /// Results of custom LDAP attribute queries
     case customLDAPAttributesResults = "CustomLDAPAttributesResults"
-//    case deadLDAPKillTickets = "DeadLDAPKillTickets"
+    
+    /// User's display name
     case displayName = "DisplayName"
-//    case dontMatchKerbPrefs = "DontMatchKerbPrefs"
-//    case dontShowWelcome = "DontShowWelcome"
-//    case dontShowWelcomeDefaultOn = "DontShowWelcomeDefaultOn"
-//    case exportableKey = "ExportableKey"
-//    case firstRunDone = "FirstRunDone"
-//    case getCertAutomatically = "GetCertificateAutomatically"
-//    case getHelpType = "GetHelpType"
-//    case getHelpOptions = "GetHelpOptions"
-//    case groups = "Groups"
-//    case hicFix = "HicFix"
-//    case hideAbout = "HideAbout"
-//    case hideAccounts = "HideAccounts"
-//    case hideExpiration = "HideExpiration"
-//    case hideExpirationMessage = "HideExpirationMessage"
-//    case hideCertificateNumber = "HideCertificateNumber"
-//    case hideHelp = "HideHelp"
-//    case hideGetSoftware = "HideGetSoftware"
+    
+    /// Whether to hide the last user in UI
     case hideLastUser = "HideLastUser"
-//    case hideLockScreen = "HideLockScreen"
-//    case hideRenew = "HideRenew"
-//    case hidePrefs = "HidePrefs"
-//    case hideSignIn = "HideSignIn"
-//    case hideTickets = "HideTickets"
-//    case hideQuit = "HideQuit"
-//    case hideSignOut = "HideSignOut"
-//    case homeAppendDomain = "HomeAppendDomain"
-//    case iconOff = "IconOff"
-//    case iconOffDark = "IconOffDark"
-//    case iconOn = "IconOn"
-//    case iconOnDark = "IconOnDark"
+    
+    /// Kerberos realm for authentication
     case kerberosRealm = "kerberosRealm"
-//    case keychainItems = "KeychainItems"
-//    case keychainItemsInternet = "KeychainItemsInternet"
-//    case keychainItemsCreateSerial = "KeychainItemsCreateSerial"
-//    case keychainItemsDebug = "KeychainItemsDebug"
-//    case keychainMinderWindowTitle = "KeychainMinderWindowTitle"
-//    case keychainMinderWindowMessage = "KeychainMinderWindowMessage"
-//    case keychainMinderShowReset = "KeychainMinderShowReset"
-//    case keychainPasswordMatch = "KeychainPasswordMatch"
-//    case lastCertificateExpiration = "LastCertificateExpiration"
-//    case lightsOutIKnowWhatImDoing = "LightsOutIKnowWhatImDoing"
-//    case loginComamnd = "LoginComamnd"
-//    case loginItem = "LoginItem"
+    
+    /// Whether LDAP queries should be anonymous
     case ldapAnonymous = "LDAPAnonymous"
-//    case lDAPSchema = "LDAPSchema"
+    
+    /// List of LDAP servers to query
     case lDAPServerList = "LDAPServerList"
-//    case lDAPServerListDeny = "LDAPServerListDeny"
+    
+    /// Whether to use SSL for LDAP connections
     case lDAPoverSSL = "LDAPOverSSL"
-//    case lDAPOnly = "LDAPOnly"
-//    case lDAPType = "LDAPType"
-//    case localPasswordSync = "LocalPasswordSync"
-//    case localPasswordSyncDontSyncLocalUsers = "LocalPasswordSyncDontSyncLocalUsers"
-//    case localPasswordSyncDontSyncNetworkUsers = "LocalPasswordSyncDontSyncNetworkUsers"
-//    case localPasswordSyncOnMatchOnly = "LocalPasswordSyncOnMatchOnly"
-//    case lockedKeychainCheck = "LockedKeychainCheck"
+    
+    /// Last logged in user
     case lastUser = "LastUser"
-//    case lastPasswordWarning = "LastPasswordWarning"
-//    case lastPasswordExpireDate = "LastPasswordExpireDate"
-//    case loginLogo = "LoginLogo"
-//    
-//    case messageLocalSync = "MessageLocalSync"
-//    case messageNotConnected = "MessageNotConnected"
-//    case messageUPCAlert = "MessageUPCAlert"
-//    case messagePasswordChangePolicy = "MessagePasswordChangePolicy"
-//    case mountSharesWithFinder = "MountSharesWithFinder"
-//    case passwordExpirationDays = "PasswordExpirationDays"
-//    case passwordExpireAlertTime = "PasswordExpireAlertTime"
-//    case passwordExpireCustomAlert = "PasswordExpireCustomAlert"
-//    case passwordExpireCustomWarnTime = "PasswordExpireCustomWarnTime"
-//    case passwordExpireCustomAlertTime = "PasswordExpireCustomAlertTime"
-//    case passwordPolicy = "PasswordPolicy"
-//    case persistExpiration = "PersistExpiration"
-//    case profileDone = "ProfileDone"
-//    case profileWait = "ProfileWait"
-//    case recursiveGroupLookup = "RecursiveGroupLookup"
-//    case renewTickets = "RenewTickets"
-//    case showHome = "ShowHome"
-//    case secondsToRenew = "SecondsToRenew"
-//    case shareReset = "ShareReset"        // clean listing of shares between runs
-//    case signInCommand = "SignInCommand"
-//    case signInWindowAlert = "SignInWindowAlert"
-//    case signInWindowAlertTime = "SignInWindowAlertTime"
-//    case signInWindowOnLaunch = "SignInWindowOnLaunch"
-//    case signInWindowOnLaunchExclusions = "SignInWindowOnLaunchExclusions"
-//    case signedIn = "SignedIn"
-//    case signOutCommand = "SignOutCommand"
+    
+    /// Whether to use single user mode
     case singleUserMode = "SingleUserMode"
-//    case siteIgnore = "SiteIgnore"
-//    case siteForce = "SiteForce"
-//    case slowMount = "SlowMount"
-//    case slowMountDelay = "SlowMountDelay"
-//    case stateChangeAction = "StateChangeAction"
-//    case switchKerberosUser = "SwitchKerberosUser"
-//    case template = "Template"
-//    case titleSignIn = "TitleSignIn"
-//    case uPCAlert = "UPCAlert"
-//    case uPCAlertAction = "UPCAlertAction"
+    
+    /// User's Common Name (CN)
     case userCN = "UserCN"
+    
+    /// User's group memberships
     case userGroups = "UserGroups"
+    
+    /// User's Kerberos principal
     case userPrincipal = "UserPrincipal"
+    
+    /// User's home directory
     case userHome = "UserHome"
+    
+    /// User's password expiration date
     case userPasswordExpireDate = "UserPasswordExpireDate"
-//    case userCommandTask1 = "UserCommandTask1"
-//    case userCommandName1 = "UserCommandName1"
-//    case userCommandHotKey1 = "UserCommandHotKey1"
+    
+    /// Date when user's password was last set
     case userPasswordSetDate = "UserPasswordSetDate"
+    
+    /// Whether to use Keychain for password storage
     case useKeychain = "UseKeychain"
-//    case useKeychainPrompt = "UseKeychainPrompt"
-//    case userAging = "UserAging"
-//    case userAttributes = "UserAttributes"
+    
+    /// User's email address
     case userEmail = "UserEmail"
+    
+    /// User's first name
     case userFirstName = "UserFirstName"
+    
+    /// User's full name
     case userFullName = "UserFullName"
+    
+    /// User's last name
     case userLastName = "UserLastName"
+    
+    /// Last time user information was checked
     case userLastChecked = "UserLastChecked"
+    
+    /// User's short name (username)
     case userShortName = "UserShortName"
-//    case userSwitch = "UserSwitch"
+    
+    /// User's User Principal Name (UPN)
     case userUPN = "UserUPN"
-//    case verbose = "Verbose"
-//    case wifiNetworks = "WifiNetworks"
-//    case windowSignIn = "WindowSignIn"
-//    case x509CA = "X509CA"
-//    case x509Name = "X509Name"
     
+    // MARK: - Application Settings
+    
+    /// Whether to unmount shares on application exit
     case unmountOnExit = "unmountOnExit"
-    case helpURL = "helpURL"
-    case canChangeAutostart = "canChangeAutostart"
-    case canQuit = "canQuit"
-    case autostart = "autostart"
-    case enableAutoUpdater = "enableAutoUpdater"
-    case autoUpdate = "autoUpdate"
-    case cleanupLocationDirectory = "cleanupLocationDirectory"
-    case UUID = "UUID"
-    case networkSharesKey = "networkShares"
-    case managedNetworkSharesKey = "managedNetworkShares"
-    case authType = "authType"
-    case networkShare = "networkShare"
-    case mountPoint = "mountPoint"
-    case username = "username"
-    case customSharesKey = "customNetworkShares"
-    case userNetworkShares = "userNetworkShares"
-    case location = "location"
-    case authenticationDialogImage = "authenticationDialogImage"
-    case keyChainService = "keyChainService"
-    case keyChainLabel = "keyChainLabel"
-    case keyChainComment = "keyChainComment"
-    case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
-    case useNewDefaultLocation = "useNewDefaultLocation"
     
-    // used to manually override %USERNAME% if local and remoter user names differ
+    /// URL for help documentation
+    case helpURL = "helpURL"
+    
+    /// Whether user can change autostart setting
+    case canChangeAutostart = "canChangeAutostart"
+    
+    /// Whether user can quit the application
+    case canQuit = "canQuit"
+    
+    /// Whether application starts automatically at login
+    case autostart = "autostart"
+    
+    /// Whether auto-updater is enabled
+    case enableAutoUpdater = "enableAutoUpdater"
+    
+    /// Whether to automatically check for updates
+    case autoUpdate = "autoUpdate"
+    
+    /// Directory for cleanup operations
+    case cleanupLocationDirectory = "cleanupLocationDirectory"
+    
+    /// Unique identifier for the application instance
+    case UUID = "UUID"
+    
+    /// Override for username if local and remote usernames differ
     case usernameOverride = "usernameOverride"
-    // used to define if diagnostic data should be sent to the FAUmac team
+    
+    /// Whether to send diagnostic data
     case sendDiagnostics = "sendDiagnostics"
     
-    // control menu items
+    /// Whether to use new default location for mounts
+    case useNewDefaultLocation = "useNewDefaultLocation"
+    
+    // MARK: - Network Share Settings
+    
+    /// List of network shares
+    case networkSharesKey = "networkShares"
+    
+    /// List of managed network shares (from MDM)
+    case managedNetworkSharesKey = "managedNetworkShares"
+    
+    /// Authentication type for shares
+    case authType = "authType"
+    
+    /// Network share path
+    case networkShare = "networkShare"
+    
+    /// Mount point for shares
+    case mountPoint = "mountPoint"
+    
+    /// Username for share authentication
+    case username = "username"
+    
+    /// List of custom network shares
+    case customSharesKey = "customNetworkShares"
+    
+    /// List of user-specific network shares
+    case userNetworkShares = "userNetworkShares"
+    
+    /// Location for network shares
+    case location = "location"
+    
+    // MARK: - UI Settings
+    
+    /// Image name for authentication dialog
+    case authenticationDialogImage = "authenticationDialogImage"
+    
+    /// Service name for keychain entries
+    case keyChainService = "keyChainService"
+    
+    /// Label for keychain entries
+    case keyChainLabel = "keyChainLabel"
+    
+    /// Comment for keychain entries
+    case keyChainComment = "keyChainComment"
+    
+    /// Whether keychain migration from Prefix Manager is done
+    case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
+    
+    // MARK: - Menu Items
+    
+    /// Whether to show Quit menu item
     case menuQuit = "menuQuit"
+    
+    /// Whether to show About menu item
     case menuAbout = "menuAbout"
+    
+    /// Whether to show Connect Shares menu item
     case menuConnectShares = "menuConnectShares"
+    
+    /// Whether to show Disconnect Shares menu item
     case menuDisconnectShares = "menuDisconnectShares"
+    
+    /// Whether to show Check Updates menu item
     case menuCheckUpdates = "menuCheckUpdates"
+    
+    /// Whether to show Show Shares Mount Directory menu item
     case menuShowSharesMountDir = "menuShowSharesMountDir"
+    
+    /// Whether to show Show Shares menu item
     case menuShowShares = "menuShowShares"
+    
+    /// Whether to show Settings menu item
     case menuSettings = "menuSettings"
     
+    // MARK: - Utility Functions
+    
+    /// Prints all preferences and their values to the console
+    ///
+    /// This function iterates through all preference keys and prints
+    /// their current values from UserDefaults, formatting them according
+    /// to their type.
     func printAllPrefs() {
         let defaults = UserDefaults.standard
+        
+        Logger.preferences.debug("Printing all preference values:")
+        
         for key in PreferenceKeys.allCases {
-            let pref = defaults.object(forKey: key.rawValue) as AnyObject
-            
-            switch String(describing: type(of: pref)) {
-            case "__NSCFBoolean" :
-                print("\t" + key.rawValue + ": " + String(describing: ( defaults.bool(forKey: key.rawValue))))
-            case "__NSCFArray" :
-                print("\t" + key.rawValue + ": " + ( String(describing: (defaults.array(forKey: key.rawValue)))))
-            case "__NSTaggedDate":
-                if let object = pref as? Date {
-                    print("\t" + key.rawValue + ": " + object.description(with: Locale.current))
-                } else {
-                    print("\t" + key.rawValue + ": Unknown")
-                }
-            case "__NSCFDictionary":
-                let description = String(describing: defaults.dictionary(forKey: key.rawValue))
-                print("\t" + key.rawValue + ": " + description)
-            case "__NSCFData" :
-                print("\t" + key.rawValue + ": " + (defaults.data(forKey: key.rawValue)?.base64EncodedString() ?? "Unknown"))
-            default :
-                print("\t" + key.rawValue + ": " + ( defaults.object(forKey: key.rawValue) as? String ?? "Unset"))
+            guard let value = defaults.object(forKey: key.rawValue) else {
+                Logger.preferences.debug("\(key.rawValue): Unset")
+                continue
             }
+            
+            // Format the value based on its type
+            let formattedValue: String
+            
+            switch value {
+            case let boolValue as Bool:
+                formattedValue = String(describing: boolValue)
+                
+            case let arrayValue as [Any]:
+                formattedValue = String(describing: arrayValue)
+                
+            case let dateValue as Date:
+                formattedValue = dateValue.description(with: Locale.current)
+                
+            case let dictValue as [String: Any]:
+                formattedValue = String(describing: dictValue)
+                
+            case let dataValue as Data:
+                formattedValue = dataValue.base64EncodedString()
+                
+            case let stringValue as String:
+                formattedValue = stringValue
+                
+            default:
+                formattedValue = String(describing: value)
+            }
+            
+            // Log the key and its value
             if defaults.objectIsForced(forKey: key.rawValue) {
-                print("\t\tForced")
+                Logger.preferences.debug("\(key.rawValue): \(formattedValue) (Forced)")
+            } else {
+                Logger.preferences.debug("\(key.rawValue): \(formattedValue)")
             }
         }
     }

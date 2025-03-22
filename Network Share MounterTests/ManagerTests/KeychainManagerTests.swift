@@ -141,4 +141,4 @@ class MockKeychainManager: KeychainManager {
         // Simulate the code path where password encoding fails
         throw KeychainError.unexpectedPasswordData
     }
-} 
+}

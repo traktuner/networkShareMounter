@@ -21,7 +21,7 @@ final class KeychainManagerMockTests: XCTestCase {
             return ["mockKey": "mockValue"]
         }
         
-        override func makeQuery(username: String, service: String = Defaults.keyChainService, accessGroup: String? = nil, label: String? = nil, comment: String? = nil, iCloudSync: Bool? = nil) throws -> [String: Any] {
+        override func makeQuery(username: String, service: String = Defaults.keyChainService, accessGroup: String? = nil, label: String? = nil, comment: String? = nil) throws -> [String: Any] {
             makeQueryCalled = true
             
             if shouldThrowOnMakeQuery {
@@ -72,7 +72,7 @@ final class KeychainManagerMockTests: XCTestCase {
             savedCredentials.removeValue(forKey: key)
         }
         
-        override func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup, iCloudSync: Bool? = nil) throws {
+        override func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws {
             let key = "\(service)|\(username)"
             savedCredentials.removeValue(forKey: key)
         }
