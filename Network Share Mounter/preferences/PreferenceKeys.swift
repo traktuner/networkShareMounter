@@ -142,6 +142,10 @@ enum PreferenceKeys: String, CaseIterable {
     /// Whether to use new default location for mounts
     case useNewDefaultLocation = "useNewDefaultLocation"
     
+    /// Whether to use localized directory names for mount points
+    /// When false, always uses "Networkshares" for backward compatibility
+    case useLocalizedMountDirectories = "useLocalizedMountDirectories"
+    
     // MARK: - Network Share Settings
     
     /// List of network shares

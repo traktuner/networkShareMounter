@@ -30,13 +30,24 @@ class Mounter: ObservableObject {
     
     var errorStatus: MounterError = .noError
     
-    private var localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
+    private var localizedFolder = Defaults.translation["en"]!
     var defaultMountPath: String = Defaults.defaultMountPath
     
     init() {
     }
         
     func asyncInit() async {
+        // Determine whether to use localized folder names based on preference
+        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: false) {
+            // Use language-specific folder name if preference is enabled
+            self.localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
+            Logger.mounter.debug("Using localized folder name: \(self.localizedFolder)")
+        } else {
+            // Always use English name for backward compatibility
+            self.localizedFolder = Defaults.translation["en"]!
+            Logger.mounter.debug("Using default English folder name for compatibility: \(self.localizedFolder)")
+        }
+        
         // define and create the directory where the shares will be mounted:
         // prepared for future release: use Defaults.defaultMountPath (aka /Volumes) as default for location
         if prefs.bool(for: .useNewDefaultLocation) {
@@ -189,7 +200,9 @@ class Mounter: ObservableObject {
         } else {
             let task = Process()
             task.launchPath = "/bin/rmdir"
-            task.arguments = ["\(atPath)"]
+            // Escape spaces in the path for shell command
+            let escapedPath = atPath.replacingOccurrences(of: " ", with: "\\ ")
+            task.arguments = ["\(escapedPath)"]
             let pipe = Pipe()
             task.standardOutput = pipe
             //
@@ -628,7 +641,9 @@ class Mounter: ObservableObject {
                 //        (or if failed, the directory will be removed later)
                 // apparently there is no way t oset the `hidden` attribute via FileManager `setAttributes`
                 // https://developer.apple.com/documentation/foundation/filemanager/1413667-setattributes
-                cliTask("/usr/bin/chflags hidden \(mountDirectory)")
+                // Escape path for shell command
+                let escapedPath = mountDirectory.replacingOccurrences(of: " ", with: "\\ ")
+                cliTask("/usr/bin/chflags hidden \(escapedPath)")
             }
             if share.authType == .guest {
                 openOptions = Defaults.openOptionsGuest
@@ -646,7 +661,9 @@ class Mounter: ObservableObject {
             case 0:
                 Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
                 // unhide the directory for the fresh mounted share
-                cliTask("/usr/bin/chflags nohidden \(mountDirectory)")
+                // Escape path for shell command
+                let escapedPath = mountDirectory.replacingOccurrences(of: " ", with: "\\ ")
+                cliTask("/usr/bin/chflags nohidden \(escapedPath)")
                 return mountDirectory
             case 2:
                 Logger.mounter.info("❌ \(url, privacy: .public): does not exist")

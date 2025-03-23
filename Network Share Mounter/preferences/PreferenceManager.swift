@@ -92,6 +92,18 @@ struct PreferenceManager {
         defaults.bool(forKey: prefKey.rawValue)
     }
     
+    /// Retrieves a boolean for the specified preference key with a default value
+    /// - Parameters:
+    ///   - key: The preference key to look up
+    ///   - defaultValue: The default value to return if the key doesn't exist
+    /// - Returns: The boolean value or the default value
+    func bool(for key: PreferenceKeys, defaultValue: Bool) -> Bool {
+        guard let value = defaults.object(forKey: key.rawValue) as? Bool else {
+            return defaultValue
+        }
+        return value
+    }
+    
     /// Sets a value for the specified preference key
     /// - Parameters:
     ///   - prefKey: The preference key to set
