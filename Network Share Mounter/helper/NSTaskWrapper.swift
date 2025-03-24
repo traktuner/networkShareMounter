@@ -12,7 +12,43 @@ import SystemConfiguration
 import IOKit
 import OSLog
 
-/// Definiert mögliche Fehler bei der Ausführung von Shell-Befehlen
+/// A queue for managing shell command execution to prevent race conditions and ensure proper resource management.
+/// This actor ensures that only one shell command is executed at a time, preventing file descriptor conflicts.
+private actor ShellCommandQueue {
+    private var isExecuting = false
+    
+    /// Executes a shell command operation while ensuring thread safety.
+    /// - Parameter operation: The async operation to execute
+    /// - Returns: The result of the operation
+    /// - Throws: Any error that occurs during execution
+    func execute<T>(_ operation: () async throws -> T) async throws -> T {
+        while isExecuting {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        isExecuting = true
+        defer { isExecuting = false }
+        return try await operation()
+    }
+}
+
+/// Global instance of the shell command queue
+private let shellCommandQueue = ShellCommandQueue()
+
+/// Safely manages a FileHandle by ensuring it is properly closed after use.
+/// - Parameters:
+///   - pipe: The Pipe containing the FileHandle to manage
+///   - operation: The operation to perform with the FileHandle
+/// - Returns: The result of the operation
+/// - Throws: Any error that occurs during the operation
+private func withFileHandle<T>(_ pipe: Pipe, _ operation: (FileHandle) throws -> T) throws -> T {
+    let handle = pipe.fileHandleForReading
+    defer {
+        try? handle.close()
+    }
+    return try operation(handle)
+}
+
+/// Defines possible errors that can occur during shell command execution
 public enum ShellCommandError: Error, LocalizedError {
     case commandNotFound(String)
     case executionFailed(String, Int32)
@@ -22,151 +58,94 @@ public enum ShellCommandError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .commandNotFound(let command):
-            return "Befehl nicht gefunden: \(command)"
+            return "Command not found: \(command)"
         case .executionFailed(let command, let code):
-            return "Befehlsausführung fehlgeschlagen: \(command), Exit-Code: \(code)"
+            return "Command execution failed: \(command), Exit code: \(code)"
         case .invalidCommand:
-            return "Ungültiger Befehl"
+            return "Invalid command"
         case .outputEncodingFailed:
-            return "Ausgabetext konnte nicht kodiert werden"
+            return "Failed to encode command output"
         }
     }
 }
 
-/// Cache für Systemwerte, die sich nicht ändern
+/// Cache for system values that don't change frequently
 private struct SystemInfoCache {
     static var serialNumber: String?
     static var macAddress: String?
 }
 
-/// Führt einen Shell-Befehl aus und gibt die Ausgabe zurück
+/// Executes a shell command and returns its output.
+/// This is the main entry point for shell command execution.
 ///
 /// - Parameters:
-///   - command: Der auszuführende Befehl oder Pfad zur ausführbaren Datei
-///   - arguments: Optionale Befehlsargumente, wenn nicht im command enthalten
-/// - Returns: Die Ausgabe des Befehls (stdout + stderr)
+///   - command: The command to execute or path to executable
+///   - arguments: Optional command arguments if not included in command
+/// - Returns: The command output (stdout + stderr)
+/// - Throws: ShellCommandError if execution fails
 @discardableResult
-public func cliTask(_ command: String, arguments: [String]? = nil) -> String {
-    Logger.tasks.debug("Ausführung: \(command) \(arguments?.joined(separator: " ") ?? "")")
+public func cliTask(_ command: String, arguments: [String]? = nil) async throws -> String {
+    Logger.tasks.debug("Executing: \(command) \(arguments?.joined(separator: " ") ?? "")")
     
-    // Sicher die Befehlskomponenten extrahieren
-    let (commandLaunchPath, commandPieces) = prepareCommand(command, arguments: arguments)
-    
-    // Shell-Befehl ausführen
-    let output = executeTask(launchPath: commandLaunchPath, arguments: commandPieces)
-    return output
+    let (commandLaunchPath, commandPieces) = try validateAndPrepareCommand(command, arguments: arguments)
+    return try await executeTaskAsync(launchPath: commandLaunchPath, arguments: commandPieces)
 }
 
-/// Asynchrone Version von cliTask
+/// Executes a shell command without waiting for termination.
+/// This is specifically for commands that don't terminate normally.
 ///
-/// - Parameters:
-///   - command: Der auszuführende Befehl oder Pfad zur ausführbaren Datei
-///   - arguments: Optionale Befehlsargumente, wenn nicht im command enthalten
-/// - Returns: Die Ausgabe des Befehls (stdout + stderr)
-/// - Throws: ShellCommandError wenn die Ausführung fehlschlägt
-@discardableResult
-public func cliTaskAsync(_ command: String, arguments: [String]? = nil) async throws -> String {
-    Logger.tasks.debug("Asynchrone Ausführung: \(command) \(arguments?.joined(separator: " ") ?? "")")
+/// - Parameter command: The command to execute
+/// - Returns: The command output so far
+/// - Throws: ShellCommandError if execution fails
+public func cliTaskNoTerm(_ command: String) async throws -> String {
+    Logger.tasks.debug("Executing without termination: \(command)")
     
-    return try await withCheckedThrowingContinuation { continuation in
-        // Sicher die Befehlskomponenten extrahieren
-        do {
-            let (commandLaunchPath, commandPieces) = try validateAndPrepareCommand(command, arguments: arguments)
-            
-            // Task ausführen
-            let myTask = Process()
-            let myPipe = Pipe()
-            let myErrorPipe = Pipe()
-            
-            myTask.executableURL = URL(fileURLWithPath: commandLaunchPath)
-            myTask.arguments = commandPieces
-            myTask.standardOutput = myPipe
-            myTask.standardError = myErrorPipe
-            
-            // Befehl abschließen behandeln
-            myTask.terminationHandler = { process in
-                let data = myPipe.fileHandleForReading.readDataToEndOfFile()
-                let error = myErrorPipe.fileHandleForReading.readDataToEndOfFile()
-                
-                // Ausgabe kodieren
-                guard let output = String(data: data, encoding: .utf8),
-                      let errorOutput = String(data: error, encoding: .utf8) else {
-                    continuation.resume(throwing: ShellCommandError.outputEncodingFailed)
-                    return
-                }
-                
-                // Fehlercode überprüfen
-                if process.terminationStatus != 0 {
-                    Logger.tasks.error("Befehl fehlgeschlagen: \(command) mit Exit-Code \(process.terminationStatus)")
-                    continuation.resume(throwing: ShellCommandError.executionFailed(command, process.terminationStatus))
-                } else {
-                    let result = output + errorOutput
-                    continuation.resume(returning: result)
-                }
+    return try await shellCommandQueue.execute {
+        let (commandLaunchPath, commandPieces) = try validateAndPrepareCommand(command)
+        
+        let task = Process()
+        let outputPipe = Pipe()
+        let inputPipe = Pipe()
+        let errorPipe = Pipe()
+        
+        task.executableURL = URL(fileURLWithPath: commandLaunchPath)
+        task.arguments = commandPieces
+        task.standardOutput = outputPipe
+        task.standardInput = inputPipe
+        task.standardError = errorPipe
+        
+        try task.run()
+        
+        return try withFileHandle(outputPipe) { handle in
+            let data = handle.readDataToEndOfFile()
+            guard let output = String(data: data, encoding: .utf8) else {
+                throw ShellCommandError.outputEncodingFailed
             }
-            
-            try myTask.run()
-        } catch {
-            // Fehler zurückgeben
-            continuation.resume(throwing: error)
+            return output
         }
     }
 }
 
-/// Führt einen Shell-Befehl ohne zu warten auf Beendigung aus
+/// Returns the current console user.
 ///
-/// Speziell für Befehle, die nicht normal terminieren
-///
-/// - Parameter command: Der auszuführende Befehl
-/// - Returns: Die bisherige Ausgabe des Befehls
-public func cliTaskNoTerm(_ command: String) -> String {
-    Logger.tasks.debug("Ausführung ohne Terminierung: \(command)")
-    
-    // Sicher die Befehlskomponenten extrahieren
-    let (commandLaunchPath, commandPieces) = prepareCommand(command)
-    
-    // Task ausführen ohne zu warten
-    let myTask = Process()
-    let myPipe = Pipe()
-    let myInputPipe = Pipe()
-    let myErrorPipe = Pipe()
-    
-    myTask.launchPath = commandLaunchPath
-    myTask.arguments = commandPieces
-    myTask.standardOutput = myPipe
-    myTask.standardInput = myInputPipe
-    myTask.standardError = myErrorPipe
-    
-    myTask.launch()
-    
-    guard let output = String(data: myPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) else {
-        Logger.tasks.error("Ausgabe konnte nicht kodiert werden")
-        return ""
-    }
-    
-    return output
-}
-
-/// Gibt den aktuellen Konsolenbenutzer zurück
-///
-/// - Returns: Benutzername des aktuellen Konsolenbenutzers
+/// - Returns: The username of the current console user
 public func getConsoleUser() -> String {
     var uid: uid_t = 0
     var gid: gid_t = 0
     
     guard let theResult = SCDynamicStoreCopyConsoleUser(nil, &uid, &gid) else {
-        Logger.tasks.error("Konsolenbenutzer konnte nicht ermittelt werden")
+        Logger.tasks.error("Failed to determine console user")
         return ""
     }
     
     return theResult as String
 }
 
-/// Gibt die Seriennummer des Geräts zurück
+/// Returns the device serial number.
 ///
-/// - Returns: Die Seriennummer oder einen leeren String bei Fehler
+/// - Returns: The serial number or empty string on error
 public func getSerial() -> String {
-    // Wert aus Cache zurückgeben, wenn verfügbar
+    // Return cached value if available
     if let cachedSerial = SystemInfoCache.serialNumber {
         return cachedSerial
     }
@@ -174,7 +153,7 @@ public func getSerial() -> String {
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
     
     guard platformExpert > 0 else {
-        Logger.tasks.error("Platform Expert nicht gefunden")
+        Logger.tasks.error("Platform Expert not found")
         return ""
     }
     
@@ -186,69 +165,89 @@ public func getSerial() -> String {
                                                                        kIOPlatformSerialNumberKey as CFString, 
                                                                        kCFAllocatorDefault, 
                                                                        0) else {
-        Logger.tasks.error("Seriennummer konnte nicht ausgelesen werden")
+        Logger.tasks.error("Failed to read serial number")
         return ""
     }
     
     guard let serialNumber = serialNumberAsCFString.takeUnretainedValue() as? String else {
-        Logger.tasks.error("Seriennummer hat ein ungültiges Format")
+        Logger.tasks.error("Invalid serial number format")
         return ""
     }
     
-    // Wert im Cache speichern
+    // Cache the value
     SystemInfoCache.serialNumber = serialNumber
     return serialNumber
 }
 
-/// Gibt die MAC-Adresse des ersten Netzwerkinterfaces zurück
+/// Returns the MAC address of the first network interface.
 ///
-/// - Returns: Die MAC-Adresse oder einen leeren String bei Fehler
-public func getMAC() -> String {
-    // Wert aus Cache zurückgeben, wenn verfügbar
+/// - Returns: The MAC address or empty string on error
+public func getMAC() async throws -> String {
+    // Return cached value if available
     if let cachedMAC = SystemInfoCache.macAddress {
         return cachedMAC
     }
     
-    let myMACOutput = cliTask("/sbin/ifconfig -a").components(separatedBy: "\n")
-    var myMac = ""
+    let myMACOutput = try await cliTask("/sbin/ifconfig -a")
+    let lines = myMACOutput.components(separatedBy: "\n")
     
-    for line in myMACOutput {
+    for line in lines {
         if line.contains("ether") {
-            myMac = line.replacingOccurrences(of: "ether", with: "").trimmingCharacters(in: .whitespaces)
-            break
+            let mac = line.replacingOccurrences(of: "ether", with: "").trimmingCharacters(in: .whitespaces)
+            // Cache the value if a MAC was found
+            if !mac.isEmpty {
+                SystemInfoCache.macAddress = mac
+            }
+            return mac
         }
     }
     
-    // Wert im Cache speichern, wenn eine MAC gefunden wurde
-    if !myMac.isEmpty {
-        SystemInfoCache.macAddress = myMac
-    }
-    
-    return myMac
+    return ""
 }
 
-// MARK: - Private Hilfsfunktionen
+// MARK: - Private Helper Functions
 
-/// Bereitet einen Befehl für die Ausführung vor
+/// Prepares a command for execution by validating and resolving the command path.
 ///
 /// - Parameters:
-///   - command: Der Befehl
-///   - arguments: Optionale Argumente
-/// - Returns: Tuple mit dem Pfad zum Befehl und den Argumenten
+///   - command: The command to prepare
+///   - arguments: Optional command arguments
+/// - Returns: Tuple containing the command path and arguments
+/// - Throws: ShellCommandError if the command is invalid
+private func validateAndPrepareCommand(_ command: String, arguments: [String]? = nil) throws -> (String, [String]) {
+    if command.isEmpty {
+        throw ShellCommandError.invalidCommand
+    }
+    
+    let (launchPath, args) = prepareCommand(command, arguments: arguments)
+    
+    // Check if command exists
+    if launchPath.isEmpty || !FileManager.default.fileExists(atPath: launchPath) {
+        throw ShellCommandError.commandNotFound(command)
+    }
+    
+    return (launchPath, args)
+}
+
+/// Prepares a command for execution by parsing and resolving the command path.
+///
+/// - Parameters:
+///   - command: The command to prepare
+///   - arguments: Optional command arguments
+/// - Returns: Tuple containing the command path and arguments
 private func prepareCommand(_ command: String, arguments: [String]? = nil) -> (String, [String]) {
     var commandLaunchPath: String
     var commandPieces: [String]
     
     if arguments == nil {
-        // Befehl in Komponenten aufteilen
+        // Split command into components
         commandPieces = command.components(separatedBy: " ")
         
-        // Escape-Sequenzen verarbeiten
+        // Handle escape sequences
         if command.contains("\\") {
             var x = 0
-            
-            for line in commandPieces {
-                if line.last == "\\" {
+            while x < commandPieces.count {
+                if commandPieces[x].last == "\\" {
                     commandPieces[x] = commandPieces[x].replacingOccurrences(of: "\\", with: " ") + commandPieces.remove(at: x+1)
                     x -= 1
                 }
@@ -262,7 +261,7 @@ private func prepareCommand(_ command: String, arguments: [String]? = nil) -> (S
         commandPieces = arguments!
     }
     
-    // Vollständigen Pfad für den Befehl ermitteln, wenn nötig
+    // Resolve full path if needed
     if !commandLaunchPath.contains("/") {
         commandLaunchPath = which(commandLaunchPath)
     }
@@ -270,99 +269,104 @@ private func prepareCommand(_ command: String, arguments: [String]? = nil) -> (S
     return (commandLaunchPath, commandPieces)
 }
 
-/// Führt einen Shell-Befehl aus
+/// Asynchronously executes a shell command and returns its output.
 ///
 /// - Parameters:
-///   - launchPath: Pfad zur ausführbaren Datei
-///   - arguments: Befehlsargumente
-/// - Returns: Die Ausgabe des Befehls
-private func executeTask(launchPath: String, arguments: [String]) -> String {
-    let myTask = Process()
-    let myPipe = Pipe()
-    let myErrorPipe = Pipe()
-    
-    myTask.launchPath = launchPath
-    myTask.arguments = arguments
-    myTask.standardOutput = myPipe
-    myTask.standardError = myErrorPipe
-    
-    do {
-        myTask.launch()
-        myTask.waitUntilExit()
+///   - launchPath: Path to the executable
+///   - arguments: Command arguments
+/// - Returns: The command output
+/// - Throws: ShellCommandError if execution fails
+private func executeTaskAsync(launchPath: String, arguments: [String]) async throws -> String {
+    return try await shellCommandQueue.execute {
+        let task = Process()
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
         
-        let data = myPipe.fileHandleForReading.readDataToEndOfFile()
-        let error = myErrorPipe.fileHandleForReading.readDataToEndOfFile()
+        task.executableURL = URL(fileURLWithPath: launchPath)
+        task.arguments = arguments
+        task.standardOutput = outputPipe
+        task.standardError = errorPipe
         
-        guard let output = String(data: data, encoding: .utf8),
-              let errorOutput = String(data: error, encoding: .utf8) else {
-            Logger.tasks.error("Ausgabe konnte nicht kodiert werden")
-            return ""
-        }
-        
-        if myTask.terminationStatus != 0 {
-            Logger.tasks.error("Befehl fehlgeschlagen mit Exit-Code \(myTask.terminationStatus): \(launchPath) \(arguments.joined(separator: " "))")
-        }
-        
-        return output + errorOutput
-    } catch {
-        Logger.tasks.error("Fehler bei Befehlsausführung: \(error.localizedDescription)")
-        return ""
-    }
-}
-
-/// Validiert und bereitet einen Befehl für die Ausführung vor
-///
-/// - Parameters:
-///   - command: Der Befehl
-///   - arguments: Optionale Argumente
-/// - Returns: Tuple mit dem Pfad zum Befehl und den Argumenten
-/// - Throws: ShellCommandError wenn der Befehl ungültig ist
-private func validateAndPrepareCommand(_ command: String, arguments: [String]? = nil) throws -> (String, [String]) {
-    if command.isEmpty {
-        throw ShellCommandError.invalidCommand
-    }
-    
-    let (launchPath, args) = prepareCommand(command, arguments: arguments)
-    
-    // Überprüfen, ob der Befehl existiert
-    if launchPath.isEmpty || !FileManager.default.fileExists(atPath: launchPath) {
-        throw ShellCommandError.commandNotFound(command)
-    }
-    
-    return (launchPath, args)
-}
-
-/// Ermittelt den vollständigen Pfad eines Befehls
-///
-/// - Parameter command: Der zu suchende Befehl
-/// - Returns: Vollständiger Pfad zum Befehl oder leerer String bei Fehler
-private func which(_ command: String) -> String {
-    let task = Process()
-    task.launchPath = "/usr/bin/which"
-    task.arguments = [command]
-    
-    let whichPipe = Pipe()
-    task.standardOutput = whichPipe
-    
-    do {
-        task.launch()
+        try task.run()
         task.waitUntilExit()
         
-        let data = whichPipe.fileHandleForReading.readDataToEndOfFile()
-        guard let output = String(data: data, encoding: .utf8) else {
-            Logger.tasks.error("Which-Ausgabe konnte nicht kodiert werden")
-            return ""
+        let output = try withFileHandle(outputPipe) { handle in
+            let data = handle.readDataToEndOfFile()
+            guard let string = String(data: data, encoding: .utf8) else {
+                throw ShellCommandError.outputEncodingFailed
+            }
+            return string
         }
         
-        let result = output.components(separatedBy: "\n").first ?? ""
-        
-        if result.isEmpty {
-            Logger.tasks.error("Binary existiert nicht: \(command)")
+        let error = try withFileHandle(errorPipe) { handle in
+            let data = handle.readDataToEndOfFile()
+            guard let string = String(data: data, encoding: .utf8) else {
+                throw ShellCommandError.outputEncodingFailed
+            }
+            return string
         }
         
-        return result
-    } catch {
-        Logger.tasks.error("Fehler bei which-Befehl: \(error.localizedDescription)")
-        return ""
+        if task.terminationStatus != 0 {
+            Logger.tasks.error("Command failed with exit code \(task.terminationStatus): \(launchPath) \(arguments.joined(separator: " "))")
+        }
+        
+        return output + error
+    }
+}
+
+/// Asynchronously resolves the full path of a command using the 'which' command.
+///
+/// - Parameter command: The command to resolve
+/// - Returns: The full path to the command
+/// - Throws: ShellCommandError if resolution fails
+private func which(_ command: String) -> String {
+    // Synchronous wrapper for backward compatibility
+    let semaphore = DispatchSemaphore(value: 0)
+    var result = ""
+    
+    Task {
+        do {
+            result = try await whichAsync(command)
+        } catch {
+            Logger.tasks.error("Error in which command: \(error.localizedDescription)")
+            result = ""
+        }
+        semaphore.signal()
+    }
+    
+    semaphore.wait()
+    return result
+}
+
+/// Asynchronous version of the which command.
+///
+/// - Parameter command: The command to resolve
+/// - Returns: The full path to the command
+/// - Throws: ShellCommandError if resolution fails
+private func whichAsync(_ command: String) async throws -> String {
+    return try await shellCommandQueue.execute {
+        let task = Process()
+        let pipe = Pipe()
+        
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+        task.arguments = [command]
+        task.standardOutput = pipe
+        
+        try task.run()
+        task.waitUntilExit()
+        
+        return try withFileHandle(pipe) { handle in
+            let data = handle.readDataToEndOfFile()
+            guard let output = String(data: data, encoding: .utf8) else {
+                throw ShellCommandError.outputEncodingFailed
+            }
+            let result = output.components(separatedBy: "\n").first ?? ""
+            
+            if result.isEmpty {
+                Logger.tasks.error("Binary does not exist: \(command)")
+            }
+            
+            return result
+        }
     }
 }

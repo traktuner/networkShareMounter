@@ -456,7 +456,7 @@ class Mounter: ObservableObject {
             // Clean up authentication agent if mount was user-triggered
             // TODO: Consider more graceful cleanup approach
             if userTriggered {
-                cliTask("killall NetAuthSysAgent")
+                try? await cliTask("killall NetAuthSysAgent")
                 Logger.mounter.debug("killall NetAuthSysAgent")
             }
             
@@ -643,7 +643,7 @@ class Mounter: ObservableObject {
                 // https://developer.apple.com/documentation/foundation/filemanager/1413667-setattributes
                 // Escape path for shell command
                 let escapedPath = mountDirectory.replacingOccurrences(of: " ", with: "\\ ")
-                cliTask("/usr/bin/chflags hidden \(escapedPath)")
+                try? await cliTask("/usr/bin/chflags hidden \(escapedPath)")
             }
             if share.authType == .guest {
                 openOptions = Defaults.openOptionsGuest
@@ -663,7 +663,7 @@ class Mounter: ObservableObject {
                 // unhide the directory for the fresh mounted share
                 // Escape path for shell command
                 let escapedPath = mountDirectory.replacingOccurrences(of: " ", with: "\\ ")
-                cliTask("/usr/bin/chflags nohidden \(escapedPath)")
+                try? await cliTask("/usr/bin/chflags nohidden \(escapedPath)")
                 return mountDirectory
             case 2:
                 Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
