@@ -21,31 +21,58 @@ class Mounter: ObservableObject {
     
     /// convenience variable for `FileManager.default`
     private let fm = FileManager.default
-    /// initalize class which will perform all the automounter tasks
-//    static let mounter = Mounter.init()
-    /// define locks to protect `shares`-array from race conditions
-    private let lock = NSLock()
-    private let taskLock = NSLock()
     
-    /// Set to store active mount tasks
-    private var mountTasks = Set<Task<Void, Never>>()
+    // Actor für die Thread-sichere Verwaltung von Mount-Tasks
+    private actor TaskController {
+        var mountTasks = Set<Task<Void, Never>>()
+        
+        func addTask(_ task: Task<Void, Never>) {
+            mountTasks.insert(task)
+        }
+        
+        func setTasks(_ tasks: [Task<Void, Never>]) {
+            mountTasks = Set(tasks)
+        }
+        
+        func getTasks() -> Set<Task<Void, Never>> {
+            return mountTasks
+        }
+        
+        func cancelAndClearTasks() {
+            mountTasks.forEach { $0.cancel() }
+            mountTasks.removeAll()
+        }
+    }
+    
+    /// Thread-sichere Verwaltung der Mount-Tasks
+    private let taskController = TaskController()
     
     /// get home direcotry for the user running the app
     let userHomeDirectory: String = FileManager.default.homeDirectoryForCurrentUser.path
     
-    private let errorStatusLock = NSLock()
+    // Verwendung einer Atomaren Variable für Thread-Sicherheit statt MainActor
+    private let _errorStatusLock = NSRecursiveLock()
     private var _errorStatus: MounterError = .noError
     
     var errorStatus: MounterError {
         get {
-            errorStatusLock.lock()
-            defer { errorStatusLock.unlock() }
+            // Thread-sicherer synchroner Zugriff über Lock
+            _errorStatusLock.lock()
+            defer { _errorStatusLock.unlock() }
             return _errorStatus
         }
         set {
-            errorStatusLock.lock()
+            // Thread-sichere Aktualisierung und asynchrone Notification
+            _errorStatusLock.lock()
             _errorStatus = newValue
-            errorStatusLock.unlock()
+            _errorStatusLock.unlock()
+            
+            // Benachrichtigungen können asynchron erfolgen
+            Task {
+                if newValue == .authenticationError {
+                    NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+                }
+            }
         }
     }
     
@@ -152,9 +179,7 @@ class Mounter: ObservableObject {
     /// - Parameter mountStatus: new MountStatus
     /// - Parameter for: share to be updated
     func updateShare(mountStatus: MountStatus, for share: Share) async {
-        lock.lock()
-        defer { lock.unlock() }
-        
+        // Kein Lock mehr nötig, da shareManager bereits ein actor ist
         if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             do {
                 try await shareManager.updateMountStatus(at: index, to: mountStatus)
@@ -173,9 +198,7 @@ class Mounter: ObservableObject {
     /// - Parameter actualMountPoint: an optional `String` definig where the share is mounted (or not, if not defined)
     /// - Parameter for: share to be updated
     func updateShare(actualMountPoint: String?, for share: Share) async {
-        lock.lock()
-        defer { lock.unlock() }
-        
+        // Kein Lock mehr nötig, da shareManager bereits ein actor ist
         if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             do {
                 try await shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
@@ -476,12 +499,8 @@ class Mounter: ObservableObject {
     ///   - shareID: Optional ID of specific share to mount. If nil, mounts all configured shares
     /// - Note: Requires active network connection to perform mount operations
     func mountGivenShares(userTriggered: Bool = false, forShare shareID: String? = nil) async {
-        // Safely manage task collection
-        taskLock.lock()
-        // Cancel any existing mount tasks
-        mountTasks.forEach { $0.cancel() }
-        mountTasks.removeAll()
-        taskLock.unlock()
+        // Thread-sichere Verwaltung der Tasks über actor
+        await taskController.cancelAndClearTasks()
         
         // Verify network connectivity before attempting mount operations
         let netConnection = Monitor.shared
@@ -496,8 +515,12 @@ class Mounter: ObservableObject {
             // Clean up authentication agent if mount was user-triggered
             // TODO: Consider more graceful cleanup approach
             if userTriggered {
-                try? await cliTask("killall NetAuthSysAgent")
-                Logger.mounter.debug("killall NetAuthSysAgent")
+                do {
+                    try await cliTask("killall NetAuthSysAgent")
+                    Logger.mounter.debug("killall NetAuthSysAgent")
+                } catch {
+                    Logger.mounter.debug("Error killing NetAuthSysAgent: \(error.localizedDescription)")
+                }
             }
             
             var sharesToMount: [Share]
@@ -541,8 +564,9 @@ class Mounter: ObservableObject {
                             await updateShare(mountStatus: .unreachable, for: share)
                         case MounterError.authenticationError:
                             if share.authType != .krb {
+                                // Direktes Setzen des _errorStatus, da wir den Setter verwenden
                                 errorStatus = .authenticationError
-                                NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
+                                // Die Notification wird vom Setter gesendet
                             }
                             await updateShare(mountStatus: .invalidCredentials, for: share)
                         case MounterError.shareDoesNotExist:
@@ -561,10 +585,8 @@ class Mounter: ObservableObject {
                 localMountTasks.append(mountTask)
             }
             
-            // Safely store the tasks for lifecycle management
-            taskLock.lock()
-            mountTasks = Set(localMountTasks)
-            taskLock.unlock()
+            // Thread-sichere Aktualisierung der Task-Kollektion
+            await taskController.setTasks(localMountTasks)
             
             // Wait for all mount tasks to complete
             await withTaskGroup(of: Void.self) { group in
@@ -687,7 +709,11 @@ class Mounter: ObservableObject {
                 // apparently there is no way t oset the `hidden` attribute via FileManager `setAttributes`
                 // https://developer.apple.com/documentation/foundation/filemanager/1413667-setattributes
                 // Use the safe path escaping function
-                try? await cliTask("/usr/bin/chflags hidden \(escapePath(mountDirectory))")
+                do {
+                    try await cliTask("/usr/bin/chflags hidden \(escapePath(mountDirectory))")
+                } catch {
+                    Logger.mounter.debug("Error setting hidden flag: \(error.localizedDescription)")
+                }
             }
             if share.authType == .guest {
                 openOptions = Defaults.openOptionsGuest
@@ -706,7 +732,11 @@ class Mounter: ObservableObject {
                 Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
                 // unhide the directory for the fresh mounted share
                 // Use the safe path escaping function
-                try? await cliTask("/usr/bin/chflags nohidden \(escapePath(mountDirectory))")
+                do {
+                    try await cliTask("/usr/bin/chflags nohidden \(escapePath(mountDirectory))")
+                } catch {
+                    Logger.mounter.debug("Error removing hidden flag: \(error.localizedDescription)")
+                }
                 return mountDirectory
             case 2:
                 Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
