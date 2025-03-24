@@ -25,10 +25,29 @@ class Mounter: ObservableObject {
 //    static let mounter = Mounter.init()
     /// define locks to protect `shares`-array from race conditions
     private let lock = NSLock()
+    private let taskLock = NSLock()
+    
+    /// Set to store active mount tasks
+    private var mountTasks = Set<Task<Void, Never>>()
+    
     /// get home direcotry for the user running the app
     let userHomeDirectory: String = FileManager.default.homeDirectoryForCurrentUser.path
     
-    var errorStatus: MounterError = .noError
+    private let errorStatusLock = NSLock()
+    private var _errorStatus: MounterError = .noError
+    
+    var errorStatus: MounterError {
+        get {
+            errorStatusLock.lock()
+            defer { errorStatusLock.unlock() }
+            return _errorStatus
+        }
+        set {
+            errorStatusLock.lock()
+            _errorStatus = newValue
+            errorStatusLock.unlock()
+        }
+    }
     
     private var localizedFolder = Defaults.translation["en"]!
     var defaultMountPath: String = Defaults.defaultMountPath
@@ -133,6 +152,9 @@ class Mounter: ObservableObject {
     /// - Parameter mountStatus: new MountStatus
     /// - Parameter for: share to be updated
     func updateShare(mountStatus: MountStatus, for share: Share) async {
+        lock.lock()
+        defer { lock.unlock() }
+        
         if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             do {
                 try await shareManager.updateMountStatus(at: index, to: mountStatus)
@@ -151,6 +173,9 @@ class Mounter: ObservableObject {
     /// - Parameter actualMountPoint: an optional `String` definig where the share is mounted (or not, if not defined)
     /// - Parameter for: share to be updated
     func updateShare(actualMountPoint: String?, for share: Share) async {
+        lock.lock()
+        defer { lock.unlock() }
+        
         if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             do {
                 try await shareManager.updateActualMountPoint(at: index, to: actualMountPoint)
@@ -191,6 +216,15 @@ class Mounter: ObservableObject {
         task.launch()
     }
     
+    /// Safely escapes a path for use in shell commands
+    /// - Parameter path: The path to escape
+    /// - Returns: A properly escaped path string safe for use in shell commands
+    private func escapePath(_ path: String) -> String {
+        // Use single quotes which handle most special characters
+        // But escape single quotes within the path by replacing ' with '\''
+        return "'\(path.replacingOccurrences(of: "'", with: "'\\''"))'"
+    }
+    
     /// function to delete a directory via system shell `rmdir`
     /// - Paramater atPath: full path of the directory
     func removeDirectory(atPath: String) {
@@ -200,9 +234,8 @@ class Mounter: ObservableObject {
         } else {
             let task = Process()
             task.launchPath = "/bin/rmdir"
-            // Escape spaces in the path for shell command
-            let escapedPath = atPath.replacingOccurrences(of: " ", with: "\\ ")
-            task.arguments = ["\(escapedPath)"]
+            // Use the safe path escaping function
+            task.arguments = [atPath] // Process handles argument escaping
             let pipe = Pipe()
             task.standardOutput = pipe
             //
@@ -443,6 +476,13 @@ class Mounter: ObservableObject {
     ///   - shareID: Optional ID of specific share to mount. If nil, mounts all configured shares
     /// - Note: Requires active network connection to perform mount operations
     func mountGivenShares(userTriggered: Bool = false, forShare shareID: String? = nil) async {
+        // Safely manage task collection
+        taskLock.lock()
+        // Cancel any existing mount tasks
+        mountTasks.forEach { $0.cancel() }
+        mountTasks.removeAll()
+        taskLock.unlock()
+        
         // Verify network connectivity before attempting mount operations
         let netConnection = Monitor.shared
         
@@ -477,7 +517,7 @@ class Mounter: ObservableObject {
             }
             
             // Create concurrent mount tasks for each share
-            var mountTasks: [Task<Void, Never>] = []
+            var localMountTasks: [Task<Void, Never>] = []
             for share in sharesToMount {
                 let mountTask = Task {
                     do {
@@ -518,12 +558,17 @@ class Mounter: ObservableObject {
                         }
                     }
                 }
-                mountTasks.append(mountTask)
+                localMountTasks.append(mountTask)
             }
+            
+            // Safely store the tasks for lifecycle management
+            taskLock.lock()
+            mountTasks = Set(localMountTasks)
+            taskLock.unlock()
             
             // Wait for all mount tasks to complete
             await withTaskGroup(of: Void.self) { group in
-                for task in mountTasks {
+                for task in localMountTasks {
                     group.addTask {
                         await task.value
                     }
@@ -641,9 +686,8 @@ class Mounter: ObservableObject {
                 //        (or if failed, the directory will be removed later)
                 // apparently there is no way t oset the `hidden` attribute via FileManager `setAttributes`
                 // https://developer.apple.com/documentation/foundation/filemanager/1413667-setattributes
-                // Escape path for shell command
-                let escapedPath = mountDirectory.replacingOccurrences(of: " ", with: "\\ ")
-                try? await cliTask("/usr/bin/chflags hidden \(escapedPath)")
+                // Use the safe path escaping function
+                try? await cliTask("/usr/bin/chflags hidden \(escapePath(mountDirectory))")
             }
             if share.authType == .guest {
                 openOptions = Defaults.openOptionsGuest
@@ -661,9 +705,8 @@ class Mounter: ObservableObject {
             case 0:
                 Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
                 // unhide the directory for the fresh mounted share
-                // Escape path for shell command
-                let escapedPath = mountDirectory.replacingOccurrences(of: " ", with: "\\ ")
-                try? await cliTask("/usr/bin/chflags nohidden \(escapedPath)")
+                // Use the safe path escaping function
+                try? await cliTask("/usr/bin/chflags nohidden \(escapePath(mountDirectory))")
                 return mountDirectory
             case 2:
                 Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
