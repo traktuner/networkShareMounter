@@ -28,4 +28,6 @@ extension Logger {
     static let directoryOperations = Logger(subsystem: subsystem, category: "directoryOperations")
     static let authUI = Logger(subsystem: subsystem, category: "authUI")
     static let FAU = Logger(subsystem: subsystem, category: "FAU")
+    static let preferences = Logger(subsystem: subsystem, category: "preferences")
+    static let login = Logger(subsystem: subsystem, category: "login")
 }

@@ -11,6 +11,7 @@ import OSLog
 
 enum ShareError: Error {
     case invalidIndex(Int)
+    case invalidURL(String)
 }
 
 /// class `ShareManager` to manage the shares (array fo Share)
@@ -25,16 +26,28 @@ actor ShareManager {
             _shares.append(share)
             //
             // save password in keychain
-            if let password = share.password {
-                if let username = share.username {
-                    let pwm = KeychainManager()
-                    do {
-                        try pwm.saveCredential(forShare: URL(string: share.networkShare)!, withUsername: username, andPassword: password)
-                    } catch {
-                        Logger.shareManager.error("🛑 Cannot store password for share \(share.networkShare, privacy: .public) in user's keychain")
-                    }
-                }
+            if let password = share.password, let username = share.username {
+                savePasswordToKeychain(for: share.networkShare, username: username, password: password)
             }
+        }
+    }
+    
+    /// Saves a password to the keychain for a share
+    /// - Parameters:
+    ///   - shareURL: The network share URL string
+    ///   - username: The username for authentication
+    ///   - password: The password to save
+    private func savePasswordToKeychain(for shareURL: String, username: String, password: String) {
+        let pwm = KeychainManager()
+        guard let url = URL(string: shareURL) else {
+            Logger.shareManager.error("🛑 Cannot create URL from share path: \(shareURL, privacy: .public)")
+            return
+        }
+        
+        do {
+            try pwm.saveCredential(forShare: url, withUsername: username, andPassword: password)
+        } catch {
+            Logger.shareManager.error("🛑 Cannot store password for share \(shareURL, privacy: .public) in user's keychain: \(error.localizedDescription)")
         }
     }
     
@@ -42,15 +55,28 @@ actor ShareManager {
     func removeShare(at index: Int) {
         // remove keychain entry for share
         if let username = _shares[index].username {
-            let pwm = KeychainManager()
-            do {
-                Logger.shareManager.debug("trying to remove keychain entry for \(self._shares[index].networkShare, privacy: .public) with username: \(username, privacy: .public)")
-                try pwm.removeCredential(forShare: URL(string: self._shares[index].networkShare)!, withUsername: username)
-            } catch {
-                Logger.shareManager.error("🛑 Cannot remove keychain entry for share \(self._shares[index].networkShare, privacy: .public)")
-            }
+            removePasswordFromKeychain(for: _shares[index].networkShare, username: username)
         }
         _shares.remove(at: index)
+    }
+    
+    /// Removes a password from the keychain for a share
+    /// - Parameters:
+    ///   - shareURL: The network share URL string
+    ///   - username: The username for authentication
+    private func removePasswordFromKeychain(for shareURL: String, username: String) {
+        let pwm = KeychainManager()
+        guard let url = URL(string: shareURL) else {
+            Logger.shareManager.error("🛑 Cannot create URL from share path: \(shareURL, privacy: .public)")
+            return
+        }
+        
+        do {
+            Logger.shareManager.debug("Trying to remove keychain entry for \(shareURL, privacy: .public) with username: \(username, privacy: .public)")
+            try pwm.removeCredential(forShare: url, withUsername: username)
+        } catch {
+            Logger.shareManager.error("🛑 Cannot remove keychain entry for share \(shareURL, privacy: .public): \(error.localizedDescription)")
+        }
     }
     
     /// Get all shares
@@ -73,22 +99,12 @@ actor ShareManager {
         //
         // remove existing keychain entry first since it wouldn't be found with the new data
         if let username = _shares[index].username {
-            let pwm = KeychainManager()
-            do {
-                try pwm.removeCredential(forShare: URL(string: _shares[index].networkShare)!, withUsername: username)
-            } catch {
-            }
+            removePasswordFromKeychain(for: _shares[index].networkShare, username: username)
         }
         //
         // save password in keychain
-        if let password = updatedShare.password {
-            if let username = updatedShare.username {
-                let pwm = KeychainManager()
-                do {
-                    try pwm.saveCredential(forShare: URL(string: updatedShare.networkShare)!, withUsername: username, andPassword: password)
-                } catch {
-                }
-            }
+        if let password = updatedShare.password, let username = updatedShare.username {
+            savePasswordToKeychain(for: updatedShare.networkShare, username: username, password: password)
         }
         _shares[index] = updatedShare
     }
@@ -155,9 +171,6 @@ actor ShareManager {
         // Replace username placeholder in share URL
         let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
         
-        // Expanding tilde in shares does not make sense
-//        let shareRectified = NSString(string: expandenShare).expandingTildeInPath
-        
         // Configure authentication type, defaulting to Kerberos if not specified
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
         var password: String?
@@ -165,13 +178,18 @@ actor ShareManager {
         
         // For password authentication, attempt to retrieve from keychain
         if shareAuthType == AuthType.pwd {
+            guard let url = URL(string: shareRectified) else {
+                Logger.shareManager.error("🛑 Invalid share URL: \(shareRectified, privacy: .public)")
+                return nil
+            }
+            
             do {
-                if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareRectified)!, withUsername: userName) {
+                if let keychainPassword = try KeychainManager().retrievePassword(forShare: url, withUsername: userName) {
                     password = keychainPassword
                 }
             } catch {
                 // Log warning if password retrieval fails and update mount status
-                Logger.shareManager.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain")
+                Logger.shareManager.warning("Password for share \(shareRectified, privacy: .public) not found in user's keychain: \(error.localizedDescription)")
                 mountStatus = MountStatus.missingPassword
                 password = nil
             }
@@ -209,119 +227,127 @@ actor ShareManager {
         }
         var password: String?
         var mountStatus = MountStatus.unmounted
+        
         if let username = shareElement[Defaults.username] {
+            guard let url = URL(string: shareUrlString) else {
+                Logger.shareManager.error("🛑 Invalid share URL: \(shareUrlString, privacy: .public)")
+                return nil
+            }
+            
             do {
-                if let keychainPassword = try KeychainManager().retrievePassword(forShare: URL(string: shareUrlString)!, withUsername: username) {
+                if let keychainPassword = try KeychainManager().retrievePassword(forShare: url, withUsername: username) {
                     password = keychainPassword
                 }
             } catch {
-                Logger.shareManager.warning("Password for share \(shareUrlString, privacy: .public) not found in user's keychain")
+                Logger.shareManager.warning("Password for share \(shareUrlString, privacy: .public) not found in user's keychain: \(error.localizedDescription)")
                 mountStatus = MountStatus.missingPassword
                 password = nil
             }
         }
+        
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
         let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Defaults.username], password: password, managed: false)
         return(newShare)
     }
     
     func updateShareArray() {
-        // read MDM shares
-        var usedNewMDMprofile = false
+        // Check for and process MDM shares first
+        let processingResult = processMDMShares()
+        
+        // If no MDM shares were processed, try legacy MDM shares
+        if !processingResult.usedNewMDMProfile {
+            processingLegacyShares()
+        }
+    }
+    
+    /// Processes MDM shares and updates the share array
+    /// - Returns: A tuple indicating whether MDM profile was used and the processed shares
+    private func processMDMShares() -> (usedNewMDMProfile: Bool, newShares: [Share]) {
         Logger.shareManager.debug("📜 Checking possible changes in MDM profile")
+        var usedNewMDMProfile = false
+        var newShares: [Share] = []
+        
+        // Process new MDM profile format if available
         if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
-            var newShares: [Share] = []
+            usedNewMDMProfile = true
+            
             for shareElement in sharesDict {
-                if var newShare = self.getMDMShareConfig(forShare: shareElement) {
-                    usedNewMDMprofile = true
-                    // check if share exists and if not, add it to array of shares
-                    // addShare() would check if an element exists and skips it,
-                    // but the new share definition could differ from the new one get from MDM
-                    if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
-                        Logger.shareManager.debug(" ▶︎ Reading MDM profile: adding new share \(newShare.networkShare, privacy: .public)")
-                        addShare(newShare)
-                    } else {
-                        if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
-                            // save some stati from actual share element and save them to new share
-                            // read from MDM. Then overwrite the share with the new data
-                            Logger.shareManager.debug(" ▶︎ Reading MDM profile: updating status for existing share \(newShare.networkShare, privacy: .public).")
-                            newShare.mountStatus = allShares[index].mountStatus
-                            newShare.id = allShares[index].id
-                            newShare.actualMountPoint  = allShares[index].actualMountPoint
-                            do {
-                                try updateShare(at: index, withUpdatedShare: newShare)
-                            } catch ShareError.invalidIndex(let index) {
-                                Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
-                            } catch {
-                                Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), unknown error.")
-                            }
-                        }
-                    }
-                    newShares.append(newShare)
+                if let newShare = self.getMDMShareConfig(forShare: shareElement) {
+                    processShareForUpdate(newShare: newShare, isManaged: true, into: &newShares)
                 }
             }
-            // get the difference between _shares and the new share read from MDM
-            let differing = _shares.filter { _shares in
-                !newShares.contains { newShares in
-                    _shares.networkShare == newShares.networkShare
+            
+            // Remove managed shares that are no longer in the MDM profile
+            removeOrphanedManagedShares(newShares: newShares)
+        }
+        
+        return (usedNewMDMProfile, newShares)
+    }
+    
+    /// Processes legacy shares when no MDM shares are present
+    private func processingLegacyShares() {
+        var newShares: [Share] = []
+        
+        if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
+            for share in nwShares {
+                if let newShare = self.getLegacyShareConfig(forShare: share) {
+                    processShareForUpdate(newShare: newShare, isManaged: true, into: &newShares)
                 }
             }
-            // remove found shares
-            for remove in differing {
-                if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
-                    if _shares[index].managed == true {
-                        Logger.shareManager.debug(" ▶︎ Reading MDM profile: deleting share \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
-                        removeShare(at: index)
-                    }
+            
+            // Remove managed shares that are no longer in the legacy configuration
+            removeOrphanedManagedShares(newShares: newShares)
+        }
+    }
+    
+    /// Processes a share for update, adding it if new or updating existing one
+    /// - Parameters:
+    ///   - newShare: The share to process
+    ///   - isManaged: Whether the share is managed by MDM
+    ///   - sharesArray: The array to update with processed shares
+    private func processShareForUpdate(newShare: Share, isManaged: Bool, into sharesArray: inout [Share]) {
+        // Check if share exists
+        if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
+            Logger.shareManager.debug(" ▶︎ Adding new share \(newShare.networkShare, privacy: .public)")
+            addShare(newShare)
+        } else {
+            if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
+                // Update existing share with new configuration while preserving state
+                var updatedShare = newShare
+                updatedShare.mountStatus = allShares[index].mountStatus
+                updatedShare.id = allShares[index].id
+                updatedShare.actualMountPoint = allShares[index].actualMountPoint
+                
+                do {
+                    try updateShare(at: index, withUpdatedShare: updatedShare)
+                    Logger.shareManager.debug(" ▶︎ Updated existing share \(newShare.networkShare, privacy: .public)")
+                } catch ShareError.invalidIndex(let index) {
+                    Logger.shareManager.error(" ▶︎ Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+                } catch {
+                    Logger.shareManager.error(" ▶︎ Could not update share \(newShare.networkShare, privacy: .public), error: \(error.localizedDescription)")
                 }
             }
         }
-        if !usedNewMDMprofile {
-            // the same as above with the legacy MDM profiles
-            if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
-                var newShares: [Share] = []
-                for share in nwShares {
-                    if var newShare = self.getLegacyShareConfig(forShare: share) {
-                        usedNewMDMprofile = true
-                        // check if share exists and if not, add it to array of shares
-                        // addShare() would check if an element exists and skips it,
-                        // but the new share definition could differ from the new one get from MDM
-                        if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
-                            addShare(newShare)
-                            newShares.append(newShare)
-                        } else {
-                            if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
-                                // save some stati from actual share element and save them to new share
-                                // read from MDM. Then overwrite the share with the new data
-                                newShare.mountStatus = allShares[index].mountStatus
-                                newShare.id = allShares[index].id
-                                newShare.actualMountPoint  = allShares[index].actualMountPoint
-                                do {
-                                    try updateShare(at: index, withUpdatedShare: newShare)
-                                } catch ShareError.invalidIndex(let index) {
-                                    Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
-                                } catch {
-                                    Logger.shareManager.error(" ▶︎ Reading MDM profile: could not update share \(newShare.networkShare, privacy: .public), unknown error.")
-                                }
-                                newShares.append(newShare)
-                            }
-                        }
-                    }
-                }
-                // get the difference between _shares and the new share read from MDM
-                let differing = _shares.filter { _shares in
-                    !newShares.contains { newShares in
-                        _shares.networkShare == newShares.networkShare
-                    }
-                }
-                // remove found shares
-                for remove in differing {
-                    if let index = allShares.firstIndex(where: { $0.networkShare == remove.networkShare }) {
-                        if _shares[index].managed == true {
-                            Logger.shareManager.info(" ▶︎ Reading MDM profile: deleting share: \(remove.networkShare, privacy: .public) at Index \(index, privacy: .public)")
-                            removeShare(at: index)
-                        }
-                    }
+        
+        sharesArray.append(newShare)
+    }
+    
+    /// Removes managed shares that are no longer present in configuration
+    /// - Parameter newShares: The current list of shares from configuration
+    private func removeOrphanedManagedShares(newShares: [Share]) {
+        // Find shares that are in _shares but not in newShares
+        let differing = _shares.filter { share in
+            !newShares.contains { newShare in
+                share.networkShare == newShare.networkShare
+            }
+        }
+        
+        // Remove orphaned managed shares
+        for orphanedShare in differing {
+            if let index = allShares.firstIndex(where: { $0.networkShare == orphanedShare.networkShare }) {
+                if _shares[index].managed == true {
+                    Logger.shareManager.debug(" ▶︎ Deleting share \(orphanedShare.networkShare, privacy: .public) at index \(index, privacy: .public)")
+                    self.removeShare(at: index)
                 }
             }
         }
@@ -331,31 +357,49 @@ actor ShareManager {
     /// import configured shares from userDefaults for both mdm defined (legacy)`Settings.networkSharesKey`
     /// or `Settings.mdmNetworkSahresKey` and user defined `Settings.customSharesKey`.
     func createShareArray() {
-        /// **Important**:
-        /// - read only `Settings.mdmNetworkSahresKey` *OR* `Settings.networkSharesKey`, NOT both arrays
-        /// - then read user defined `Settings.customSharesKey`
-        ///
-        var usedNewMDMprofile = false
+        // Process MDM shares first
+        let processingResult = processInitialMDMShares()
+        
+        // If no MDM shares were found, try legacy MDM configuration
+        if !processingResult {
+            processInitialLegacyMDMShares()
+        }
+        
+        // Process user-defined shares
+        processUserDefinedShares()
+    }
+    
+    /// Processes initial MDM shares during application startup
+    /// - Returns: Whether MDM shares were processed
+    private func processInitialMDMShares() -> Bool {
+        var usedNewMDMProfile = false
+        
         if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             for shareElement in sharesDict {
                 if let newShare = self.getMDMShareConfig(forShare: shareElement) {
-                    usedNewMDMprofile = true
+                    usedNewMDMProfile = true
                     addShare(newShare)
                 }
             }
         }
-        /// alternatively try to get configured shares with now obsolete
-        /// Network Share Mounter 2 definitions
-        if !usedNewMDMprofile {
-            if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
-                for share in nwShares {
-                    if let newShare = self.getLegacyShareConfig(forShare: share) {
-                        addShare(newShare)
-                    }
+        
+        return usedNewMDMProfile
+    }
+    
+    /// Processes legacy MDM shares during application startup
+    private func processInitialLegacyMDMShares() {
+        if let nwShares: [String] = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
+            for share in nwShares {
+                if let newShare = self.getLegacyShareConfig(forShare: share) {
+                    addShare(newShare)
                 }
             }
         }
-        /// next look if there are some user-defined shares to import
+    }
+    
+    /// Processes user-defined shares during application startup
+    private func processUserDefinedShares() {
+        // Try new user-defined share format first
         if let privSharesDict = userDefaults.array(forKey: Defaults.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
             for share in privSharesDict {
                 if let newShare = self.getUserShareConfigs(forShare: share) {
@@ -363,7 +407,7 @@ actor ShareManager {
                 }
             }
         }
-        /// at last there may be legacy user defined share definitions
+        // Fall back to legacy user-defined share format
         else if let nwShares: [String] = userDefaults.array(forKey: Defaults.customSharesKey) as? [String], !nwShares.isEmpty {
             for share in nwShares {
                 addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
@@ -388,7 +432,6 @@ actor ShareManager {
     func saveModifiedShareConfigs() {
         var userDefaultsConfigs: [[String: String]] = []
         
-        
         for share in _shares {
             //
             // save non-managed shares in userconfig
@@ -410,12 +453,11 @@ actor ShareManager {
             }
         }
         userDefaults.set(userDefaultsConfigs, forKey: Defaults.userNetworkShares)
-        userDefaults.synchronize()
+        // synchronize() is deprecated and unnecessary
     }
     
     private func removeLegacyShareConfigs() {
         userDefaults.removeObject(forKey: Defaults.customSharesKey)
-        userDefaults.synchronize()
+        // synchronize() is deprecated and unnecessary
     }
-
 }

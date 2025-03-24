@@ -3,19 +3,29 @@
 //  Network Share Mounter
 //
 //  Created by Longariva, Gregor (RRZE) on 15.12.23.
-//  Copyright © 2020 Orchard & Grove, Inc. All rights reserved.
-//  Copyright © 2024 RRZE. All rights reserved.
+//  Copyright © 2025 RRZE. All rights reserved.
 //
 
 import Foundation
 
 extension URL {
+    /// Checks if a file exists at the URL's path
+    ///
+    /// This method verifies whether a file or directory exists at the location
+    /// specified by this URL's path.
+    ///
+    /// Example:
+    /// ```
+    /// let fileURL = URL(fileURLWithPath: "/path/to/file.txt")
+    /// if fileURL.checkFileExist() {
+    ///     print("File exists")
+    /// } else {
+    ///     print("File does not exist")
+    /// }
+    /// ```
+    ///
+    /// - Returns: `true` if a file exists at the path, `false` otherwise
     func checkFileExist() -> Bool {
-        let path = self.path
-        if (FileManager.default.fileExists(atPath: path)) {
-            return true
-        } else {
-            return false
-        }
+        return FileManager.default.fileExists(atPath: self.path)
     }
 }
