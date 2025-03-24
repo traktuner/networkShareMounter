@@ -61,10 +61,10 @@ class Migrator: dogeADUserSessionDelegate {
         }
         
         do {
-            let result = try await cliTaskAsync("kswitch -p \(principal)")
-            Logger.FAU.debug("Successfully switched Kerberos principal: \(result)")
+            let result = try await cliTask("kswitch -p \(principal)")
+            Logger.login.debug("Principal switch result: \(result)")
         } catch {
-            Logger.FAU.error("kswitch -p failed: \(error.localizedDescription)")
+            Logger.login.error("Failed to switch principal: \(error.localizedDescription)")
             // Continue despite error, as authentication still succeeded
         }
         

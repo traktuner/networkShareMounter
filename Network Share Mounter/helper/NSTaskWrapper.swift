@@ -23,7 +23,7 @@ private actor ShellCommandQueue {
     /// - Throws: Any error that occurs during execution
     func execute<T>(_ operation: () async throws -> T) async throws -> T {
         while isExecuting {
-            try await Task.sleep(for: .milliseconds(100))
+            try await Task.sleep(nanoseconds: 100_000_000) // 100ms in Nanosekunden
         }
         isExecuting = true
         defer { isExecuting = false }

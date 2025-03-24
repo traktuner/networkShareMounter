@@ -306,7 +306,7 @@ class ActivityController {
         }
     }
     
-    // MARK: - Helpers for utilizing the cliTaskAsync method
+    // MARK: - Helpers for utilizing the cliTask method
     
     /// Executes a CLI command asynchronously with error handling
     /// 
@@ -315,7 +315,7 @@ class ActivityController {
     /// - Throws: Any errors that occur during command execution
     private func executeCommand(_ command: String) async throws -> String {
         do {
-            return try await cliTaskAsync(command)
+            return try await cliTask(command)
         } catch {
             Logger.activityController.error("Command execution failed: \(command), error: \(error.localizedDescription)")
             throw error

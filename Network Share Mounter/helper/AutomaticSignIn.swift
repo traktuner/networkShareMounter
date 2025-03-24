@@ -98,7 +98,7 @@ actor AutomaticSignIn {
         // Standard-Principal wiederherstellen
         if let defPrinc = defaultPrinc {
             do {
-                let output = try await cliTaskAsync("kswitch -p \(defPrinc)")
+                let output = try await cliTask("kswitch -p \(defPrinc)")
                 Logger.automaticSignIn.debug("kswitch Ausgabe: \(output)")
             } catch {
                 Logger.automaticSignIn.error("Fehler beim Umschalten auf Standard-Principal: \(error.localizedDescription)")
@@ -229,7 +229,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     func getUserInfo() async {
         do {
             // Zum Benutzer-Principal wechseln
-            let output = try await cliTaskAsync("kswitch -p \(session.userPrincipal)")
+            let output = try await cliTask("kswitch -p \(session.userPrincipal)")
             Logger.automaticSignIn.debug("kswitch Ausgabe: \(output)")
             
             // Benutzerdaten abrufen
@@ -248,7 +248,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         
         do {
             // Zum authentifizierten Benutzer wechseln
-            let output = try await cliTaskAsync("kswitch -p \(session.userPrincipal)")
+            let output = try await cliTask("kswitch -p \(session.userPrincipal)")
             Logger.automaticSignIn.debug("kswitch Ausgabe: \(output)")
             
             // Erfolg mitteilen
