@@ -78,7 +78,7 @@ class KeychainManager: NSObject {
                                     kSecAttrServer as String: host,
                                     kSecAttrPath as String: path,
                                     kSecAttrLabel as String: host,
-                                    kSecAttrSynchronizable as String: kCFBooleanFalse
+                                    kSecAttrSynchronizable as String: kCFBooleanFalse as Any
                                     ]
         switch urlScheme {
         case "https":
@@ -114,7 +114,7 @@ class KeychainManager: NSObject {
         var query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrService as String: service,
-                                    kSecAttrSynchronizable as String: kCFBooleanFalse
+                                    kSecAttrSynchronizable as String: kCFBooleanFalse as Any
                                     ]
         if let kcComment = comment {
             query[kSecAttrComment as String] = kcComment

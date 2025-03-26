@@ -45,12 +45,20 @@ struct Defaults {
     // MARK: - Localization
     
     /// Translations for the network shares folder name in different languages
+    // FIXME: temporarely disable feature
+//    static let translation = [
+//        "en": "Networkshares",
+//        "de": "Netzlaufwerke",
+//        "es": "Recursos de red",
+//        "fr": "Partages réseau",
+//        "nl": "Netwerkschijven"
+//    ]
     static let translation = [
         "en": "Networkshares",
         "de": "Netzlaufwerke",
-        "es": "Recursos de red",
-        "fr": "Partages réseau",
-        "nl": "Netwerkschijven"
+        "es": "Networkshares",
+        "fr": "Networkshares",
+        "nl": "Networkshares"
     ]
     
     // MARK: - Timer Settings

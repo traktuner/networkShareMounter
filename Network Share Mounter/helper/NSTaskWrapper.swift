@@ -150,7 +150,7 @@ public func getSerial() -> String {
         return cachedSerial
     }
     
-    let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+    let platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
     
     guard platformExpert > 0 else {
         Logger.tasks.error("Platform Expert not found")
