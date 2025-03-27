@@ -208,7 +208,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             // Check if a kerberos domain/realm is set and is not empty
             if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+                Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
                 self.enableKerberos = true
+            } else {
+                Logger.app.info("No Kerberos Realm found.")
             }
             
             // Initialize statistics reporting

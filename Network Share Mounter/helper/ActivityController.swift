@@ -289,6 +289,7 @@ class ActivityController {
     /// Those who run seem to have all the fun
     /// I'm caught up, I don't know what to do
     @objc func timeGoesBySoSlowly() {
+        NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
         guard let mounter = appDelegate?.mounter else {
             Logger.activityController.error("Timer processing failed: Mounter not available")
             return
