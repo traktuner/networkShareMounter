@@ -85,7 +85,7 @@ private struct SystemInfoCache {
 /// - Throws: ShellCommandError if execution fails
 @discardableResult
 public func cliTask(_ command: String, arguments: [String]? = nil) async throws -> String {
-    Logger.tasks.debug("Executing: \(command) \(arguments?.joined(separator: " ") ?? "")")
+    Logger.tasks.debug("Executing: \(command, privacy: .public) \(arguments?.joined(separator: " ") ?? "", privacy: .public)")
     
     let (commandLaunchPath, commandPieces) = try validateAndPrepareCommand(command, arguments: arguments)
     return try await executeTaskAsync(launchPath: commandLaunchPath, arguments: commandPieces)
@@ -98,7 +98,7 @@ public func cliTask(_ command: String, arguments: [String]? = nil) async throws 
 /// - Returns: The command output so far
 /// - Throws: ShellCommandError if execution fails
 public func cliTaskNoTerm(_ command: String) async throws -> String {
-    Logger.tasks.debug("Executing without termination: \(command)")
+    Logger.tasks.debug("Executing without termination: \(command, privacy: .public)")
     
     return try await shellCommandQueue.execute {
         let (commandLaunchPath, commandPieces) = try validateAndPrepareCommand(command)
@@ -307,7 +307,7 @@ private func executeTaskAsync(launchPath: String, arguments: [String]) async thr
         }
         
         if task.terminationStatus != 0 {
-            Logger.tasks.error("Command failed with exit code \(task.terminationStatus): \(launchPath) \(arguments.joined(separator: " "))")
+            Logger.tasks.error("Command failed with exit code \(task.terminationStatus, privacy: .public): \(launchPath, privacy: .public) \(arguments.joined(separator: " "), privacy: .public)")
         }
         
         return output + error
@@ -328,7 +328,7 @@ private func which(_ command: String) -> String {
         do {
             result = try await whichAsync(command)
         } catch {
-            Logger.tasks.error("Error in which command: \(error.localizedDescription)")
+            Logger.tasks.error("Error in which command: \(error.localizedDescription, privacy: .public)")
             result = ""
         }
         semaphore.signal()
@@ -363,7 +363,7 @@ private func whichAsync(_ command: String) async throws -> String {
             let result = output.components(separatedBy: "\n").first ?? ""
             
             if result.isEmpty {
-                Logger.tasks.error("Binary does not exist: \(command)")
+                Logger.tasks.error("Binary does not exist: \(command, privacy: .public)")
             }
             
             return result
