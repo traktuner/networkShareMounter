@@ -8,6 +8,7 @@
 
 import Foundation
 import AppKit
+import OSLog
 
 actor FinderController {
     private var isRestarting = false
@@ -33,7 +34,7 @@ actor FinderController {
         do {
             try task.run()
         } catch {
-            print("Error restarting Finder: \(error)")
+            Logger.finderController.error("Error restarting Finder: \(error, privacy: .public).")
         }
     }
 }

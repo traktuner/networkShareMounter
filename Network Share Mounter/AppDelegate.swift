@@ -670,7 +670,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // If share is mounted, use the mountpoint icon
                     if let mountpoint = share.actualMountPoint {
                         let mountDir = (mountpoint as NSString).lastPathComponent
-                        Logger.app.debug("  🍰 Adding mountpoint \(mountDir) for \(share.networkShare) to menu.")
+                        Logger.app.debug("  🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
                         
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
@@ -680,7 +680,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         menuItem.image = menuIcon
                     } else {
                         // If share is not mounted, use the standard icon
-                        Logger.app.debug("  🍰 Adding remote share \(share.networkShare).")
+                        Logger.app.debug("  🍰 Adding remote share \(share.networkShare, privacy: .public).")
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),

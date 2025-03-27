@@ -30,4 +30,5 @@ extension Logger {
     static let FAU = Logger(subsystem: subsystem, category: "FAU")
     static let preferences = Logger(subsystem: subsystem, category: "preferences")
     static let login = Logger(subsystem: subsystem, category: "login")
+    static let finderController = Logger(subsystem: subsystem, category: "finderController")
 }

@@ -36,7 +36,7 @@ extension FileManager {
                 return fileSystemFileNumber == FileManager.filesystemMountNumber
             }
         } catch {
-            Logger.mounter.debug("Error checking mount status for \(atPath): \(error.localizedDescription)")
+            Logger.mounter.debug("Error checking mount status for \(atPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return false
         }
         return false
