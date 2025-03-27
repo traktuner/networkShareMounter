@@ -245,6 +245,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Start network connectivity monitoring
             monitor.startMonitoring { connection, reachable in
                 if reachable.rawValue == "yes" {
+                    Logger.app.debug("Network is reachable, firing nsmNetworkChangeTriggerNotification and nsmAuthTriggerNotification.")
                     // Network is available - trigger connection and authentication
                     NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
                     NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
