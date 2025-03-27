@@ -11,7 +11,7 @@ import Foundation
 import OSLog
 import dogeADAuth
 
-/// Mögliche Fehler bei der automatischen Anmeldung
+/// Possible errors during automatic sign-in
 public enum AutoSignInError: Error, LocalizedError {
     case noSRVRecords(String)
     case noActiveTickets
@@ -22,287 +22,287 @@ public enum AutoSignInError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .noSRVRecords(let domain):
-            return "Keine SRV-Einträge gefunden für Domäne: \(domain)"
+            return "No SRV records found for domain: \(domain)"
         case .noActiveTickets:
-            return "Keine aktiven Kerberos-Tickets vorhanden"
+            return "No active Kerberos tickets available"
         case .keychainAccessFailed(let error):
-            return "Zugriff auf Keychain fehlgeschlagen: \(error.localizedDescription)"
+            return "Keychain access failed: \(error.localizedDescription)"
         case .authenticationFailed(let message):
-            return "Authentifizierung fehlgeschlagen: \(message)"
+            return "Authentication failed: \(message)"
         case .networkError(let message):
-            return "Netzwerkfehler: \(message)"
+            return "Network error: \(message)"
         }
     }
 }
 
-/// Benutzer-Sitzungsobjekt mit Informationen zur Authentifizierung
+/// User session object with authentication information
 public struct Doge_SessionUserObject {
-    /// Benutzerprincipal (z.B. user@DOMAIN.COM)
+    /// User principal (e.g. user@DOMAIN.COM)
     var userPrincipal: String
-    /// Active Directory Sitzung
+    /// Active Directory session
     var session: dogeADSession
-    /// Gibt an, ob Passwort-Aging aktiviert ist
+    /// Indicates if password aging is enabled
     var aging: Bool
-    /// Ablaufdatum des Passworts, falls vorhanden
+    /// Password expiration date, if available
     var expiration: Date?
-    /// Verbleibende Tage bis zum Ablauf des Passworts
+    /// Remaining days until password expiration
     var daysToGo: Int?
-    /// Benutzerinformationen aus Active Directory
+    /// User information from Active Directory
     var userInfo: ADUserRecord?
 }
 
-/// Actor für die automatische Anmeldung an Active Directory
+/// Actor for automatic sign-in to Active Directory
 /// 
-/// Verwaltet automatische Anmeldungen für mehrere Konten
+/// Manages automatic sign-ins for multiple accounts
 actor AutomaticSignIn {
-    /// Gemeinsame Instanz (Singleton)
+    /// Shared instance (Singleton)
     static let shared = AutomaticSignIn()
     
-    /// Preference Manager für Einstellungen
+    /// Preference Manager for settings
     var prefs = PreferenceManager()
     
-    /// Accounts Manager für Benutzerkontenverwaltung
+    /// Accounts Manager for user account management
     let accountsManager = AccountsManager.shared
     
-    /// Private Initialisierung für Singleton-Pattern
+    /// Private initialization for Singleton pattern
     private init() {}
     
-    /// Meldet alle relevanten Konten automatisch an
+    /// Automatically signs in all relevant accounts
     /// 
-    /// Basierend auf Einstellungen werden entweder alle Konten oder nur das Standard-Konto angemeldet.
+    /// Based on settings, either all accounts or only the default account will be signed in.
     func signInAllAccounts() async {
-        Logger.automaticSignIn.info("Starte automatischen Anmeldeprozess")
+        Logger.automaticSignIn.info("Starting automatic sign-in process")
         
         let klist = KlistUtil()
-        // Alle verfügbaren Kerberos-Principals abrufen
+        // Retrieve all available Kerberos principals
         let principals = await klist.klist().map({ $0.principal })
         let defaultPrinc = await klist.defaultPrincipal
         
-        Logger.automaticSignIn.debug("Gefundene Principals: \(principals.joined(separator: ", "))")
-        Logger.automaticSignIn.debug("Standard-Principal: \(defaultPrinc ?? "Keiner")")
+        Logger.automaticSignIn.debug("Found principals: \(principals.joined(separator: ", "), privacy: .public)")
+        Logger.automaticSignIn.debug("Default principal: \(defaultPrinc ?? "None", privacy: .public)")
         
-        // Konten abrufen und Anmeldestrategie bestimmen:
-        // - Wenn Single-User-Modus aktiv ist, nur Standard-Konto anmelden
-        // - Ansonsten alle Konten anmelden
+        // Retrieve accounts and determine sign-in strategy:
+        // - If single-user mode is active, only sign in default account
+        // - Otherwise sign in all accounts
         let accounts = await accountsManager.accounts
         let accountsCount = accounts.count
         
         for account in accounts {
             if !prefs.bool(for: .singleUserMode) || account.upn == defaultPrinc || accountsCount == 1 {
-                Logger.automaticSignIn.info("Automatische Anmeldung für Konto: \(account.upn)")
+                Logger.automaticSignIn.info("Automatic sign-in for account: \(account.upn, privacy: .public)")
                 let worker = AutomaticSignInWorker(account: account)
                 await worker.checkUser()
             }
         }
         
-        // Standard-Principal wiederherstellen
+        // Restore default principal
         if let defPrinc = defaultPrinc {
             do {
                 let output = try await cliTask("kswitch -p \(defPrinc)")
-                Logger.automaticSignIn.debug("kswitch Ausgabe: \(output)")
+                Logger.automaticSignIn.debug("kswitch output: \(output, privacy: .public)")
             } catch {
-                Logger.automaticSignIn.error("Fehler beim Umschalten auf Standard-Principal: \(error.localizedDescription)")
+                Logger.automaticSignIn.error("Error switching to default principal: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
 }
 
-/// Worker-Actor für die Anmeldung eines einzelnen Kontos
+/// Worker-Actor for signing in a single account
 /// 
-/// Implementiert die Delegate-Methoden für dogeADUserSessionDelegate
+/// Implements the delegate methods for dogeADUserSessionDelegate
 actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     
-    /// Preference Manager für Einstellungen
+    /// Preference Manager for settings
     var prefs = PreferenceManager()
     
-    /// Das zu verwaltende Benutzerkonto
+    /// The user account to manage
     var account: DogeAccount
     
-    /// Active Directory Sitzung
+    /// Active Directory session
     var session: dogeADSession
     
-    /// DNS-Resolver für SRV-Einträge
+    /// DNS resolver for SRV entries
     var resolver = SRVResolver()
     
-    /// Die Domäne des Benutzerkontos
+    /// The domain of the user account
     let domain: String
     
-    /// Initialisiert einen neuen Worker mit einem Benutzerkonto
+    /// Initializes a new worker with a user account
     /// 
-    /// - Parameter account: Das Benutzerkonto für die Anmeldung
+    /// - Parameter account: The user account for sign-in
     init(account: DogeAccount) {
         self.account = account
         domain = account.upn.userDomain() ?? ""
         self.session = dogeADSession(domain: domain, user: account.upn.user())
         self.session.setupSessionFromPrefs(prefs: prefs)
         
-        Logger.automaticSignIn.debug("Worker initialisiert für Benutzer: \(account.upn), Domäne: \(self.domain)")
+        Logger.automaticSignIn.debug("Worker initialized for user: \(account.upn, privacy: .public), domain: \(self.domain, privacy: .public)")
     }
     
-    /// Überprüft den Benutzer und führt die Anmeldung durch
+    /// Checks the user and performs sign-in
     /// 
-    /// Der Prozess umfasst:
-    /// 1. Auflösen der SRV-Einträge für LDAP-Server
-    /// 2. Überprüfung bestehender Kerberos-Tickets
-    /// 3. Abrufen von Benutzerinformationen oder Authentifizierung
+    /// The process includes:
+    /// 1. Resolving SRV records for LDAP servers
+    /// 2. Checking existing Kerberos tickets
+    /// 3. Retrieving user information or authentication
     func checkUser() async {
         let klist = KlistUtil()
         let princs = await klist.klist().map({ $0.principal })
         
-        // SRV-Einträge für LDAP auflösen
+        // Resolve SRV records for LDAP
         do {
             let records = try await resolveSRVRecords()
             
-            // Wenn SRV-Einträge gefunden wurden und das Konto ein gültiges Ticket hat
+            // If SRV records were found and the account has a valid ticket
             if !records.SRVRecords.isEmpty {
                 if princs.contains(where: { $0.lowercased() == self.account.upn }) {
-                    Logger.automaticSignIn.info("Gültiges Ticket gefunden für: \(self.account.upn)")
+                    Logger.automaticSignIn.info("Valid ticket found for: \(self.account.upn, privacy: .public)")
                     await getUserInfo()
                 } else {
-                    Logger.automaticSignIn.info("Kein gültiges Ticket gefunden, starte Authentifizierung")
+                    Logger.automaticSignIn.info("No valid ticket found, starting authentication")
                     await auth()
                 }
             } else {
-                Logger.automaticSignIn.warning("Keine SRV-Einträge gefunden für Domäne: \(self.domain)")
+                Logger.automaticSignIn.warning("No SRV records found for domain: \(self.domain, privacy: .public)")
                 throw AutoSignInError.noSRVRecords(domain)
             }
         } catch {
-            Logger.automaticSignIn.error("Fehler beim Auflösen der SRV-Einträge: \(error.localizedDescription)")
-            // Bei Fehlern trotzdem Authentifizierung versuchen
+            Logger.automaticSignIn.error("Error resolving SRV records: \(error.localizedDescription, privacy: .public)")
+            // Try authentication despite errors
             await auth()
         }
     }
     
-    /// Löst SRV-Einträge für die LDAP-Dienste auf
+    /// Resolves SRV records for LDAP services
     /// 
-    /// - Returns: Die gefundenen SRV-Einträge
-    /// - Throws: Fehler, wenn keine Einträge gefunden werden
+    /// - Returns: The found SRV records
+    /// - Throws: Error if no records are found
     private func resolveSRVRecords() async throws -> SRVResult {
         return try await withCheckedThrowingContinuation { continuation in
             let query = "_ldap._tcp." + domain.lowercased()
-            Logger.automaticSignIn.debug("Löse SRV-Einträge auf für: \(query)")
+            Logger.automaticSignIn.debug("Resolving SRV records for: \(query, privacy: .public)")
             
             resolver.resolve(query: query) { result in
-                Logger.automaticSignIn.info("SRV-Antwort für: \(query)")
+                Logger.automaticSignIn.info("SRV response for: \(query, privacy: .public)")
                 switch result {
                 case .success(let records):
                     continuation.resume(returning: records)
                 case .failure(let error):
-                    Logger.automaticSignIn.error("Keine DNS-Ergebnisse für Domäne \(self.domain), automatische Anmeldung nicht möglich. Fehler: \(error)")
+                    Logger.automaticSignIn.error("No DNS results for domain \(self.domain, privacy: .public), automatic sign-in not possible. Error: \(error, privacy: .public)")
                     continuation.resume(throwing: error)
                 }
             }
         }
     }
     
-    /// Authentifiziert den Benutzer mit Keychain-Zugangsdaten
+    /// Authenticates the user with keychain credentials
     /// 
-    /// Ruft das Passwort aus dem Keychain ab und startet den Authentifizierungsprozess
+    /// Retrieves the password from keychain and starts the authentication process
     func auth() async {
         let keyUtil = KeychainManager()
         
         do {
-            // Passwort aus Keychain abrufen
+            // Retrieve password from keychain
             if let pass = try keyUtil.retrievePassword(forUsername: account.upn.lowercaseDomain(), andService: Defaults.keyChainService) {
-                Logger.automaticSignIn.debug("Passwort für \(self.account.upn) aus Keychain abgerufen")
+                Logger.automaticSignIn.debug("Password for \(self.account.upn, privacy: .public) retrieved from keychain")
                 account.hasKeychainEntry = true
                 session.userPass = pass
                 session.delegate = self
                 
-                // Authentifizierung starten
+                // Start authentication
                 await session.authenticate()
             } else {
-                Logger.automaticSignIn.warning("Kein Passwort im Keychain gefunden für: \(self.account.upn)")
+                Logger.automaticSignIn.warning("No password found in keychain for: \(self.account.upn, privacy: .public)")
                 account.hasKeychainEntry = false
                 NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
             }
         } catch {
-            Logger.automaticSignIn.error("Fehler beim Zugriff auf Keychain: \(error.localizedDescription)")
+            Logger.automaticSignIn.error("Error accessing keychain: \(error.localizedDescription, privacy: .public)")
             account.hasKeychainEntry = false
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
         }
     }
     
-    /// Ruft Benutzerinformationen vom Active Directory ab
+    /// Retrieves user information from Active Directory
     /// 
-    /// Wechselt zum Benutzer-Principal und ruft Detailinformationen ab
+    /// Switches to the user principal and retrieves detailed information
     func getUserInfo() async {
         do {
-            // Zum Benutzer-Principal wechseln
+            // Switch to user principal
             let output = try await cliTask("kswitch -p \(session.userPrincipal)")
-            Logger.automaticSignIn.debug("kswitch Ausgabe: \(output)")
+            Logger.automaticSignIn.debug("kswitch output: \(output, privacy: .public)")
             
-            // Benutzerdaten abrufen
+            // Retrieve user data
             session.delegate = self
             await session.userInfo()
         } catch {
-            Logger.automaticSignIn.error("Fehler beim Abrufen der Benutzerinformationen: \(error.localizedDescription)")
+            Logger.automaticSignIn.error("Error retrieving user information: \(error.localizedDescription, privacy: .public)")
         }
     }
     
-    // MARK: - dogeADUserSessionDelegate Methoden
+    // MARK: - dogeADUserSessionDelegate Methods
     
-    /// Wird aufgerufen, wenn die Authentifizierung erfolgreich war
+    /// Called when authentication was successful
     func dogeADAuthenticationSucceded() async {
-        Logger.automaticSignIn.info("Authentifizierung erfolgreich für: \(self.account.upn)")
+        Logger.automaticSignIn.info("Authentication successful for: \(self.account.upn, privacy: .public)")
         
         do {
-            // Zum authentifizierten Benutzer wechseln
+            // Switch to authenticated user
             let output = try await cliTask("kswitch -p \(session.userPrincipal)")
-            Logger.automaticSignIn.debug("kswitch Ausgabe: \(output)")
+            Logger.automaticSignIn.debug("kswitch output: \(output, privacy: .public)")
             
-            // Erfolg mitteilen
+            // Notify success
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
             
-            // Benutzerinformationen abrufen
+            // Retrieve user information
             await session.userInfo()
         } catch {
-            Logger.automaticSignIn.error("Fehler nach erfolgreicher Authentifizierung: \(error.localizedDescription)")
+            Logger.automaticSignIn.error("Error after successful authentication: \(error.localizedDescription, privacy: .public)")
         }
     }
     
-    /// Wird aufgerufen, wenn die Authentifizierung fehlgeschlagen ist
+    /// Called when authentication failed
     /// 
     /// - Parameters:
-    ///   - error: Fehlertyp
-    ///   - description: Fehlerbeschreibung
+    ///   - error: Error type
+    ///   - description: Error description
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
-        Logger.automaticSignIn.info("Authentifizierung fehlgeschlagen für: \(self.account.upn), Fehler: \(description)")
+        Logger.automaticSignIn.info("Authentication failed for: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         
         switch error {
         case .AuthenticationFailure, .PasswordExpired:
-            // Bei Authentifizierungsfehlern oder abgelaufenen Passwörtern:
-            // - Benachrichtigung senden
-            // - Falsches Passwort aus Keychain entfernen
+            // For authentication errors or expired passwords:
+            // - Send notification
+            // - Remove incorrect password from keychain
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
-            Logger.automaticSignIn.info("Entferne ungültiges Passwort aus Keychain")
+            Logger.automaticSignIn.info("Remove invalid password from Keychain")
             
             let keyUtil = KeychainManager()
             do {
                 try keyUtil.removeCredential(forUsername: account.upn)
-                Logger.automaticSignIn.info("Keychain-Eintrag erfolgreich entfernt")
+                Logger.automaticSignIn.info("Keychain entry successfully removed.")
             } catch {
-                Logger.automaticSignIn.error("Fehler beim Entfernen des Keychain-Eintrags für: \(self.account.upn), Fehler: \(error.localizedDescription)")
+                Logger.automaticSignIn.error("Error removing the keychain entry for: \(self.account.upn, privacy: .public), Error: \(error.localizedDescription, privacy: .public)")
             }
             
         case .OffDomain:
-            // Wenn außerhalb der Kerberos-Domäne
-            Logger.automaticSignIn.info("Außerhalb des Kerberos-Realm-Netzwerks")
+            // When outside the Kerberos domain
+            Logger.automaticSignIn.info("Outside the Kerberos Realm network")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
             
         default:
-            Logger.automaticSignIn.warning("Unbehandelter Authentifizierungsfehler: \(error)")
+            Logger.automaticSignIn.warning("Unhandled Authentication Error: \(error, privacy: .public)")
             break
         }
     }
     
-    /// Wird aufgerufen, wenn Benutzerinformationen erfolgreich abgerufen wurden
+    /// Called when user information was successfully retrieved
     /// 
-    /// - Parameter user: Abgerufene Benutzerinformationen
+    /// - Parameter user: Retrieved user information
     func dogeADUserInformation(user: ADUserRecord) {
-        Logger.automaticSignIn.debug("Benutzerinformationen erhalten für: \(user.userPrincipal)")
+        Logger.automaticSignIn.debug("Retrieve user information for: \(user.userPrincipal, privacy: .public)")
         
-        // Benutzerinformationen im PreferenceManager speichern
+        // Save user information in PreferenceManager
         prefs.setADUserInfo(user: user)
     }
 }
