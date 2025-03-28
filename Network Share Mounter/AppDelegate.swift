@@ -231,16 +231,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
             
             // Set up periodic mount timer
-            mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
-                Logger.app.info("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
-                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
-            })
-            
-            // Set up periodic authentication timer
-            authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
-                Logger.app.info("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
-                NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
-            })
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                // Set up periodic mount timer
+                self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
+                    Logger.app.debug("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
+                    NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+                })
+                
+                // Set up periodic authentication timer
+                self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
+                    Logger.app.debug("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
+                    NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+                })
+                
+                // Debug log to confirm timers were initialized
+                Logger.app.info("Timer wurden auf dem Hauptthread initialisiert - Mount: \(self.mountTimer.isValid), Auth: \(self.authTimer.isValid)")
+            }
             
             // Start network connectivity monitoring
             monitor.startMonitoring { connection, reachable in
