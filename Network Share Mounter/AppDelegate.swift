@@ -208,7 +208,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             // Check if a kerberos domain/realm is set and is not empty
             if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+                Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
                 self.enableKerberos = true
+            } else {
+                Logger.app.info("No Kerberos Realm found.")
             }
             
             // Initialize statistics reporting
@@ -228,20 +231,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
             
             // Set up periodic mount timer
-            mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
-                Logger.app.info("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
-                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
-            })
-            
-            // Set up periodic authentication timer
-            authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
-                Logger.app.info("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
-                NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
-            })
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                // Set up periodic mount timer
+                self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
+                    Logger.app.debug("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
+                    NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+                })
+                
+                // Set up periodic authentication timer
+                self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
+                    Logger.app.debug("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
+                    NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+                })
+                
+                // Debug log to confirm timers were initialized
+                Logger.app.info("Timer wurden auf dem Hauptthread initialisiert - Mount: \(self.mountTimer.isValid), Auth: \(self.authTimer.isValid)")
+            }
             
             // Start network connectivity monitoring
             monitor.startMonitoring { connection, reachable in
                 if reachable.rawValue == "yes" {
+                    Logger.app.debug("Network is reachable, firing nsmNetworkChangeTriggerNotification and nsmAuthTriggerNotification.")
                     // Network is available - trigger connection and authentication
                     NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
                     NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
@@ -667,7 +679,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // If share is mounted, use the mountpoint icon
                     if let mountpoint = share.actualMountPoint {
                         let mountDir = (mountpoint as NSString).lastPathComponent
-                        Logger.app.debug("  🍰 Adding mountpoint \(mountDir) for \(share.networkShare) to menu.")
+                        Logger.app.debug("  🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
                         
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
@@ -677,7 +689,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         menuItem.image = menuIcon
                     } else {
                         // If share is not mounted, use the standard icon
-                        Logger.app.debug("  🍰 Adding remote share \(share.networkShare).")
+                        Logger.app.debug("  🍰 Adding remote share \(share.networkShare, privacy: .public).")
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),
