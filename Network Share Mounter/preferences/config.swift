@@ -64,12 +64,10 @@ struct Defaults {
     // MARK: - Timer Settings
     
     /// Time interval for triggering mount operations (5 minutes)
-    static let mountTriggerTimer: Double = 1 * 60
-//    static let mountTriggerTimer: Double = 5.0 * 60
+    static let mountTriggerTimer: Double = 5.0 * 60
     
     /// Time interval for triggering authentication operations (30 minutes)
-    static let authTriggerTimer: Double = 2 * 60
-//    static let authTriggerTimer: Double = 30.0 * 60
+    static let authTriggerTimer: Double = 30.0 * 60
     
     // MARK: - Notification Names
     
