@@ -45,7 +45,14 @@ private func withFileHandle<T>(_ pipe: Pipe, _ operation: (FileHandle) throws ->
     defer {
         try? handle.close()
     }
-    return try operation(handle)
+    
+    // Versuche die Operation auszuführen
+    do {
+        return try operation(handle)
+    } catch {
+        Logger.tasks.error("Error during file handle operation: \(error.localizedDescription, privacy: .public)")
+        throw error
+    }
 }
 
 /// Defines possible errors that can occur during shell command execution
@@ -287,30 +294,37 @@ private func executeTaskAsync(launchPath: String, arguments: [String]) async thr
         task.standardOutput = outputPipe
         task.standardError = errorPipe
         
+        // Halte die File Handles zur Verwendung bereit
+        let outputHandle = outputPipe.fileHandleForReading
+        let errorHandle = errorPipe.fileHandleForReading
+        
         try task.run()
+        
+        // Lies die Daten VOR dem Warten auf Prozessende
+        let outputData = outputHandle.readDataToEndOfFile()
+        let errorData = errorHandle.readDataToEndOfFile()
+        
+        // Warte erst NACH dem Lesen auf Prozessende
         task.waitUntilExit()
         
-        let output = try withFileHandle(outputPipe) { handle in
-            let data = handle.readDataToEndOfFile()
-            guard let string = String(data: data, encoding: .utf8) else {
-                throw ShellCommandError.outputEncodingFailed
-            }
-            return string
+        // Schließe die Handles explizit
+        try? outputHandle.close()
+        try? errorHandle.close()
+        
+        // Konvertiere die Daten zu Strings
+        guard let outputString = String(data: outputData, encoding: .utf8) else {
+            throw ShellCommandError.outputEncodingFailed
         }
         
-        let error = try withFileHandle(errorPipe) { handle in
-            let data = handle.readDataToEndOfFile()
-            guard let string = String(data: data, encoding: .utf8) else {
-                throw ShellCommandError.outputEncodingFailed
-            }
-            return string
+        guard let errorString = String(data: errorData, encoding: .utf8) else {
+            throw ShellCommandError.outputEncodingFailed
         }
         
         if task.terminationStatus != 0 {
             Logger.tasks.error("Command failed with exit code \(task.terminationStatus, privacy: .public): \(launchPath, privacy: .public) \(arguments.joined(separator: " "), privacy: .public)")
         }
         
-        return output + error
+        return outputString + errorString
     }
 }
 
