@@ -110,14 +110,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// This method:
     /// - Checks if the auto-updater is enabled in user preferences
     /// - Initializes the Sparkle updater controller if updates are enabled
+    /// - Configures Sparkle settings based on preferences before starting
     ///
     /// The updater controller is configured with default settings, which can be
     /// customized for more specific control over the update process.
     override init() {
+        super.init()
+        
+        // First check if auto-updater is enabled
         if prefs.bool(for: .enableAutoUpdater) == true {
-            // Initialize the updater controller with default configuration
-            // TODO: Consider adding custom updater delegate for more control over the update process
-            updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            // Configure Sparkle defaults before initializing the controller
+            let sparkleDefaults = UserDefaults.standard
+            
+            // Set SUEnableAutomaticChecks from preferences or default to true
+            let enableChecks = prefs.bool(for: .SUEnableAutomaticChecks)
+            sparkleDefaults.set(enableChecks, forKey: "SUEnableAutomaticChecks")
+            
+            // Set SUAutomaticallyUpdate from preferences or default to true
+            let autoUpdate = prefs.bool(for: .SUAutomaticallyUpdate)
+            sparkleDefaults.set(autoUpdate, forKey: "SUAutomaticallyUpdate")
+            
+            // Only initialize the updater controller if auto-updater is enabled
+            updaterController = SPUStandardUpdaterController(
+                startingUpdater: enableChecks, // Only start updater if checks are enabled
+                updaterDelegate: nil,
+                userDriverDelegate: nil)
+            
+            Logger.app.debug("Sparkle initialized with: checks=\(enableChecks), auto-update=\(autoUpdate)")
+        } else {
+            // Explicitly disable Sparkle in defaults when auto-updater is disabled
+            UserDefaults.standard.set(false, forKey: "SUEnableAutomaticChecks")
+            Logger.app.debug("Auto-updater disabled via preferences")
         }
     }
     
@@ -158,6 +181,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 #endif
         
+        // Synchronize Sparkle settings with current preferences
+        synchronizeSparkleSettings()
+        
         // Prevent window from being deallocated when closed
         window.isReleasedWhenClosed = false
         
@@ -184,6 +210,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupSignalHandlers()
         
         activityController = ActivityController(appDelegate: self)
+    }
+    
+    /// Synchronizes Sparkle settings with current preferences.
+    ///
+    /// This method ensures that Sparkle respects the MDM configuration settings
+    /// by explicitly setting all Sparkle-related defaults based on the current
+    /// preferences. This is especially important when MDM configurations change
+    /// without the app being restarted.
+    ///
+    /// The method:
+    /// 1. Checks if auto-updater is enabled overall
+    /// 2. Sets all Sparkle-specific keys accordingly
+    /// 3. Logs the current configuration for debugging
+    private func synchronizeSparkleSettings() {
+        let sparkleDefaults = UserDefaults.standard
+        let autoUpdaterEnabled = prefs.bool(for: .enableAutoUpdater)
+        
+        // If auto-updater is disabled, ensure all Sparkle settings are disabled
+        if !autoUpdaterEnabled {
+            sparkleDefaults.set(false, forKey: "SUEnableAutomaticChecks")
+            sparkleDefaults.set(false, forKey: "SUAutomaticallyUpdate")
+            sparkleDefaults.set(true, forKey: "SUHasLaunchedBefore")
+            Logger.app.info("Auto-updater disabled: Setting all Sparkle settings to false")
+            return
+        }
+        
+        // Otherwise, apply the specific settings
+        let enableChecks = prefs.bool(for: .SUEnableAutomaticChecks)
+        let autoUpdate = prefs.bool(for: .SUAutomaticallyUpdate)
+        let hasLaunchedBefore = prefs.bool(for: .SUHasLaunchedBefore)
+        
+        sparkleDefaults.set(enableChecks, forKey: "SUEnableAutomaticChecks")
+        sparkleDefaults.set(autoUpdate, forKey: "SUAutomaticallyUpdate")
+        sparkleDefaults.set(hasLaunchedBefore, forKey: "SUHasLaunchedBefore")
+        
+        Logger.app.info("Sparkle settings synchronized: enableAutoUpdater=\(autoUpdaterEnabled), enableChecks=\(enableChecks), autoUpdate=\(autoUpdate), hasLaunchedBefore=\(hasLaunchedBefore)")
     }
     
     /// Performs asynchronous initialization tasks for the application.
@@ -654,7 +716,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         // Add "Check for Updates" menu item if auto-updater is enabled
-        if prefs.bool(for: .enableAutoUpdater) == true {
+        if prefs.bool(for: .enableAutoUpdater) == true && updaterController != nil {
             if let newMenuItem = createMenuItem(title: "Check for Updates...",
                                                 comment: "Check for Updates",
                                                 action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
