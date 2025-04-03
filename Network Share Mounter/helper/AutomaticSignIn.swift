@@ -178,11 +178,26 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// - Returns: The found SRV records
     /// - Throws: Error if no records are found
     private func resolveSRVRecords() async throws -> SRVResult {
+        // Flag to ensure the continuation is only resumed once
+        var continuationResumed = false
+        let lock = NSLock() // Use a lock for thread safety
+
         return try await withCheckedThrowingContinuation { continuation in
             let query = "_ldap._tcp." + domain.lowercased()
             Logger.automaticSignIn.debug("Resolving SRV records for: \(query, privacy: .public)")
-            
+
             resolver.resolve(query: query) { result in
+                lock.lock() // Acquire lock before checking/modifying the flag
+                // Check if already resumed
+                guard !continuationResumed else {
+                    lock.unlock() // Release lock if already resumed
+                    Logger.automaticSignIn.warning("Continuation for SRV query '\(query)' already resumed. Ignoring duplicate callback.")
+                    return
+                }
+                // Mark as resumed
+                continuationResumed = true
+                lock.unlock() // Release lock after modifying the flag
+
                 Logger.automaticSignIn.info("SRV response for: \(query, privacy: .public)")
                 switch result {
                 case .success(let records):
