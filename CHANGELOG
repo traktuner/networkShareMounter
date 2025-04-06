@@ -1,3 +1,15 @@
+# 3.1.2
+### Bugfixes
+*  Fixed a problem where shares ended with the special character *$* (aka hidden share) (#165)
+*  Resolved several bugs that caused exceptions (#156, #172, #173)
+*  Corrected a type issue (#162)
+*  Made improvements in keychain handling (#151)
+*  Created and enhanced XCTest functions
+*  Improved the core mounter class
+*  Fixed an issue where the menu-bar object fails to open if no shares are configured (#163)
+*  Addressed a Kerberos ticket management issue (#171)
+*  Fixed problems with disabling the auto-update functionality (`enableAutoUpdater`) (#152)
+
 # 3.1.1
 ### Bugfixes
 * Our new debugging framework sentry helped us to find and fix various runtime bugs and crashes (#148, #144, #147, #145, #146)
