@@ -11,6 +11,13 @@
 		F72264792CED189200173B18 /* CircleIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72264782CED189200173B18 /* CircleIconView.swift */; };
 		F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */; };
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
+		F73429F82DA5767C0025985F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F73429F42DA5767C0025985F /* README.md */; };
+		F73429F92DA5767C0025985F /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F12DA5767C0025985F /* AuthenticationView.swift */; };
+		F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F52DA5767C0025985F /* SettingsView.swift */; };
+		F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F32DA5767C0025985F /* NetworkSharesView.swift */; };
+		F73429FC2DA5767C0025985F /* SettingsWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F62DA5767C0025985F /* SettingsWindowManager.swift */; };
+		F73429FD2DA5767C0025985F /* AppDelegate+SettingsIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F02DA5767C0025985F /* AppDelegate+SettingsIntegration.swift */; };
+		F73429FE2DA5767C0025985F /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F22DA5767C0025985F /* GeneralSettingsView.swift */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
 		F7432E722D11A582009B499B /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7432E712D11A582009B499B /* dogeADAuth */; };
@@ -79,6 +86,13 @@
 		F72264782CED189200173B18 /* CircleIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleIconView.swift; sourceTree = "<group>"; };
 		F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayShareTypes.swift; sourceTree = "<group>"; };
 		F72B13E92B332987001BDEEA /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
+		F73429F02DA5767C0025985F /* AppDelegate+SettingsIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+SettingsIntegration.swift"; sourceTree = "<group>"; };
+		F73429F12DA5767C0025985F /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
+		F73429F22DA5767C0025985F /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
+		F73429F32DA5767C0025985F /* NetworkSharesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSharesView.swift; sourceTree = "<group>"; };
+		F73429F42DA5767C0025985F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		F73429F52DA5767C0025985F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F73429F62DA5767C0025985F /* SettingsWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowManager.swift; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
 		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
 		F747F8632B6F814A00AC0772 /* AuthType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthType.swift; sourceTree = "<group>"; };
@@ -188,6 +202,20 @@
 			path = helper;
 			sourceTree = "<group>";
 		};
+		F73429F72DA5767C0025985F /* views */ = {
+			isa = PBXGroup;
+			children = (
+				F73429F02DA5767C0025985F /* AppDelegate+SettingsIntegration.swift */,
+				F73429F12DA5767C0025985F /* AuthenticationView.swift */,
+				F73429F22DA5767C0025985F /* GeneralSettingsView.swift */,
+				F73429F32DA5767C0025985F /* NetworkSharesView.swift */,
+				F73429F42DA5767C0025985F /* README.md */,
+				F73429F52DA5767C0025985F /* SettingsView.swift */,
+				F73429F62DA5767C0025985F /* SettingsWindowManager.swift */,
+			);
+			path = views;
+			sourceTree = "<group>";
+		};
 		F78455422B4C52F000A8F507 /* preferences */ = {
 			isa = PBXGroup;
 			children = (
@@ -213,6 +241,7 @@
 				F7EF65DD2B3B57AB00051D44 /* managers */,
 				F7E727A82B03AA0D0036CF15 /* model */,
 				F70457EB2B307C8D00506DF4 /* helper */,
+				F73429F72DA5767C0025985F /* views */,
 				F7E727A72B03A9FB0036CF15 /* view */,
 				F79B159B274E722100C322A8 /* Assets.xcassets */,
 				F79B159D274E722100C322A8 /* Main.storyboard */,
@@ -400,6 +429,7 @@
 			files = (
 				F79B159C274E722100C322A8 /* Assets.xcassets in Resources */,
 				F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */,
+				F73429F82DA5767C0025985F /* README.md in Resources */,
 				F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */,
 				F79B159F274E722100C322A8 /* Main.storyboard in Resources */,
 			);
@@ -449,6 +479,12 @@
 				F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */,
 				F7EF65E62B3B582F00051D44 /* DogeAccount.swift in Sources */,
 				F72264792CED189200173B18 /* CircleIconView.swift in Sources */,
+				F73429F92DA5767C0025985F /* AuthenticationView.swift in Sources */,
+				F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */,
+				F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */,
+				F73429FC2DA5767C0025985F /* SettingsWindowManager.swift in Sources */,
+				F73429FD2DA5767C0025985F /* AppDelegate+SettingsIntegration.swift in Sources */,
+				F73429FE2DA5767C0025985F /* GeneralSettingsView.swift in Sources */,
 				F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
@@ -717,6 +753,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match Development de.fau.rrze.NetworkShareMounter macos";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = minimal;
@@ -765,6 +802,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match Development de.fau.rrze.NetworkShareMounter macos";
+				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
