@@ -66,6 +66,20 @@ playground.xcworkspace
 
 Carthage/Build
 
+# other files
+#
+#
+*.cer
+Package.resolved
+/swiftlint.result
+.vscode
+.cursor
+.swp
+.idea
+.env
+.env.default
+.swo
+
 # fastlane
 #
 # It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
@@ -77,10 +91,3 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
-A958N9R8B9.cer
-UFTJN6KTTW.cer
-ZVG78J8USL.cer
-*.cer
-.env.default
-Package.resolved
-/swiftlint.result

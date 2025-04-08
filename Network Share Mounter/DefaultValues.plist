@@ -12,8 +12,6 @@
 	<string>Network Share Mounter</string>
 	<key>keyChainComment</key>
 	<string>Generated and used by Network Share Mounter</string>
-	<key>keychainiCloudSync</key>
-	<false/>
 	<key>authenticationDialogImage</key>
 	<string>nsm_logo</string>
 	<key>kerberosRealm</key>
