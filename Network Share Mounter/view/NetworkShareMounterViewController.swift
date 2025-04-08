@@ -49,7 +49,10 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
         
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+            Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
             self.enableKerberos = true
+        } else {
+            Logger.app.info("No Kerberos Realm found.")
         }
         
         modifyShareButton.isEnabled = false

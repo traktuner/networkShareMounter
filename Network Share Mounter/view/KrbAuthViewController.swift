@@ -358,10 +358,20 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
 extension KrbAuthViewController: dogeADUserSessionDelegate {
     func dogeADAuthenticationSucceded() async {
         Logger.authUI.debug("Auth succeeded")
-        _ = await cliTask("kswitch -p \(self.session?.userPrincipal ?? "")")
         
-        await session?.userInfo()
-        await handleSuccessfulAuthentication()
+        do {
+            // Wechsel zum Benutzer-Principal
+            let output = try await cliTask("kswitch -p \(self.session?.userPrincipal ?? "")")
+            Logger.authUI.debug("kswitch Ausgabe: \(output)")
+            
+            await session?.userInfo()
+            await handleSuccessfulAuthentication()
+        } catch {
+            Logger.authUI.warning("Fehler beim Wechseln des Kerberos-Principal: \(error.localizedDescription)")
+            // Trotzdem mit Authentifizierung fortfahren, da der primäre Auth-Prozess erfolgreich war
+            await session?.userInfo()
+            await handleSuccessfulAuthentication()
+        }
     }
     
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {

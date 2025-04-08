@@ -3,78 +3,191 @@
 //  Network Share Mounter
 //
 //  Created by Gregor Longariva on 24.11.21.
-//  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
+//  Copyright © 2025 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
 import Foundation
 import Network
 import OSLog
 import AppKit
+import Combine
 
-// variable is used to wait a few seconds to settle network connectivity
-var networkUpdatePending = false
-var networkUpdateTimer: Timer?
-
-enum Reachable: String {
-    case yes, nope
+/// Represents the reachability state of the network
+///
+/// Used to indicate if a network connection is available.
+public enum Reachable: String {
+    /// Network is reachable
+    case yes
+    /// Network is not reachable
+    case nope
 }
 
-enum Connection: String {
-    case cellular, loopback, wifi, wiredEthernet, other, unknown, none
+/// Represents different types of network connections
+///
+/// Used to classify the type of network interface being used.
+public enum Connection: String {
+    /// Cellular network connection (e.g., 4G, 5G)
+    case cellular
+    /// Loopback connection (localhost)
+    case loopback
+    /// WiFi network connection
+    case wifi
+    /// Wired Ethernet connection
+    case wiredEthernet
+    /// Other connection type not specifically categorized
+    case other
+    /// Unknown connection type
+    case unknown
+    /// No connection available
+    case none
 }
 
-class Monitor {
-    static public let shared = Monitor()
-    let monitor: NWPathMonitor
-    private let queue = DispatchQueue(label: "Monitor")
-    var netOn: Bool = true
-    var connType: Connection = .loopback
+/// Monitors network connectivity and provides notifications about network changes
+///
+/// This class uses the Network framework's `NWPathMonitor` to observe network status changes
+/// and provides multiple ways to receive updates about these changes:
+/// - Traditional callback method
+/// - Combine publisher for reactive programming
+///
+/// It includes a built-in delay mechanism to allow the network to settle before notifying consumers.
+public class Monitor {
+    /// Shared singleton instance
+    public static let shared = Monitor()
     
-    init() {
+    /// The underlying network path monitor
+    let monitor: NWPathMonitor
+    
+    /// Queue used for network monitoring
+    private let queue = DispatchQueue(label: "Monitor")
+    
+    /// Flag indicating if network is currently available
+    public private(set) var netOn: Bool = true
+    
+    /// Current network connection type
+    public private(set) var connType: Connection = .loopback
+    
+    /// Whether a network update is pending (waiting for the settle time)
+    private var networkUpdatePending = false
+    
+    /// Timer used to implement the network settle time
+    private var networkUpdateTimer: Timer?
+    
+    /// Publisher that emits network status updates
+    private let networkStatusSubject = PassthroughSubject<(Connection, Reachable), Never>()
+    
+    /// Publisher for network status changes
+    ///
+    /// Subscribe to this publisher to receive updates about network changes.
+    /// Each emission contains a tuple with the connection type and reachability state.
+    public var networkStatusPublisher: AnyPublisher<(Connection, Reachable), Never> {
+        return networkStatusSubject.eraseToAnyPublisher()
+    }
+    
+    /// Time in seconds to wait for network to settle before sending updates
+    private let networkSettleTime: Double = 4
+    
+    /// Initializes a new network monitor and starts monitoring
+    public init() {
         self.monitor = NWPathMonitor()
         self.monitor.start(queue: queue)
     }
+    
+    /// Stops the network monitor and releases resources
+    deinit {
+        cancel()
+    }
 }
 
+// MARK: - Monitoring Methods
 extension Monitor {
-    func startMonitoring( callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void ) {
-        let networkSettleTime: Double = 4
-        monitor.pathUpdateHandler = { path in
-
-            let reachable = (path.status == .unsatisfied || path.status == .requiresConnection)  ? Reachable.nope  : Reachable.yes
+    /// Starts monitoring network changes and provides updates through a callback
+    ///
+    /// This method registers a callback that will be called whenever the network status changes.
+    /// A built-in delay mechanism allows the network to settle before triggering the callback.
+    ///
+    /// - Parameter callBack: A closure that receives the new connection type and reachability state
+    public func startMonitoring(callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void) {
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard let self = self else { return }
+            
+            let reachable = (path.status == .unsatisfied || path.status == .requiresConnection) ? Reachable.nope : Reachable.yes
             self.netOn = path.status == .satisfied
-            self.connType = self.checkConnectionTypeForPath(path)
-            Logger.networkMonitor.info("🔌 Got Network connection change trigger from \(self.connType.rawValue, privacy: .public) to \(self.checkConnectionTypeForPath(path).rawValue, privacy: .public)..")
+            let newConnType = self.checkConnectionTypeForPath(path)
+            self.connType = newConnType
+            
+            Logger.networkMonitor.info("🔌 Got Network connection change trigger from \(self.connType.rawValue, privacy: .public) to \(newConnType.rawValue, privacy: .public)..")
+            
+            // Emit update to the Combine publisher
+            let update = (newConnType, reachable)
+            DispatchQueue.main.async {
+                self.networkStatusSubject.send(update)
+            }
             
             if path.status == .satisfied {
-                // wait a few seconds to settle network before firing callbacks
-                if !networkUpdatePending {
-                    Logger.networkMonitor.debug(" ▶︎ Waiting \(Int(networkSettleTime), privacy: .public) seconds to settle network...")
-                    networkUpdateTimer = Timer.init(timeInterval: networkSettleTime, repeats: false, block: {_ in
-                        networkUpdatePending = false
-                        Logger.networkMonitor.debug(" ▶︎ Firing network change callbacks")
-                        if path.usesInterfaceType(.wifi) {
-                            return callBack(.wifi, reachable)
-                        } else if path.usesInterfaceType(.cellular) {
-                            return callBack(.cellular, reachable)
-                        } else if path.usesInterfaceType(.wiredEthernet) {
-                            return callBack(.wiredEthernet, reachable)
-                        } else {
-                            return callBack(.other, reachable)
-                        }
-                    })
-                    RunLoop.main.add(networkUpdateTimer!, forMode: RunLoop.Mode.default)
-                    networkUpdatePending = true
-                }
+                // Wait for network to settle before firing callbacks
+                self.handleNetworkSettlingPeriod(path: path, reachable: reachable, callBack: callBack)
             } else {
-                return callBack(.none, .nope)
+                DispatchQueue.main.async {
+                    callBack(.none, .nope)
+                }
             }
+        }
+    }
+    
+    /// Handles the network settling period before triggering callbacks
+    ///
+    /// - Parameters:
+    ///   - path: The network path that triggered the update
+    ///   - reachable: The current reachability state
+    ///   - callBack: The callback to trigger after the settling period
+    private func handleNetworkSettlingPeriod(path: NWPath, reachable: Reachable, callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void) {
+        // Invalidate existing timer if there is one
+        self.networkUpdateTimer?.invalidate()
+        
+        // Wait to settle network before firing callbacks
+        if !self.networkUpdatePending {
+            Logger.networkMonitor.debug(" ▶︎ Waiting \(Int(self.networkSettleTime), privacy: .public) seconds to settle network...")
+            
+            self.networkUpdateTimer = Timer.scheduledTimer(withTimeInterval: self.networkSettleTime, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                
+                self.networkUpdatePending = false
+                Logger.networkMonitor.debug(" ▶︎ Firing network change callbacks")
+                
+                let connectionType = self.determineConnectionType(path: path)
+                DispatchQueue.main.async {
+                    callBack(connectionType, reachable)
+                }
+            }
+            
+            self.networkUpdatePending = true
+        }
+    }
+    
+    /// Determines the specific connection type from a network path
+    ///
+    /// - Parameter path: The network path to analyze
+    /// - Returns: The determined connection type
+    private func determineConnectionType(path: NWPath) -> Connection {
+        if path.usesInterfaceType(.wifi) {
+            return .wifi
+        } else if path.usesInterfaceType(.cellular) {
+            return .cellular
+        } else if path.usesInterfaceType(.wiredEthernet) {
+            return .wiredEthernet
+        } else {
+            return .other
         }
     }
 }
 
+// MARK: - Utility Methods
 extension Monitor {
-    func checkConnectionTypeForPath(_ path: NWPath) -> Connection {
+    /// Checks the connection type for a given network path
+    ///
+    /// - Parameter path: The network path to check
+    /// - Returns: The determined connection type
+    public func checkConnectionTypeForPath(_ path: NWPath) -> Connection {
         if path.usesInterfaceType(.wiredEthernet) {
             return .wiredEthernet
         } else if path.usesInterfaceType(.wifi) {
@@ -88,8 +201,14 @@ extension Monitor {
     }
 }
 
+// MARK: - Resource Management
 extension Monitor {
-    func cancel() {
+    /// Cancels the network monitor and releases resources
+    ///
+    /// Call this method when you no longer need network monitoring to free up resources.
+    public func cancel() {
+        networkUpdateTimer?.invalidate()
+        networkUpdateTimer = nil
         monitor.cancel()
     }
 }

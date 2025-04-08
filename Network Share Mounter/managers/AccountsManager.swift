@@ -33,23 +33,23 @@ actor AccountsManager {
         guard !isInitialized else { return }
         
         // Perform FAU-specific tasks if the Kerberos realm matches.
-        if await prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
-            if await !prefs.bool(for: .keyChainPrefixManagerMigration) {
+        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
+            if !prefs.bool(for: .keyChainPrefixManagerMigration) {
                 let migrator = Migrator()
                 await migrator.migrate()
             }
         }
         
         // Load accounts from persistent storage.
-        await loadAccounts()
+        loadAccounts()
         
         isInitialized = true
     }
     
     /// Loads accounts from UserDefaults and updates the internal accounts list.
-    private func loadAccounts() async {
+    private func loadAccounts() {
         let decoder = PropertyListDecoder()
-        if let accountsData = await prefs.data(for: .accounts),
+        if let accountsData = prefs.data(for: .accounts),
            let accountsList = try? decoder.decode(DogeAccounts.self, from: accountsData) {
             var uniqueAccounts = [DogeAccount]()
             var processedUPNs = Set<String>()
@@ -70,10 +70,10 @@ actor AccountsManager {
     }
     
     /// Saves the current accounts list to UserDefaults.
-    func saveAccounts() async {
+    func saveAccounts() {
         let encoder = PropertyListEncoder()
         if let accountData = try? encoder.encode(DogeAccounts(accounts: accounts)) {
-            await prefs.set(for: .accounts, value: accountData)
+            prefs.set(for: .accounts, value: accountData)
         }
         
         // Notify delegates about the updated accounts list.
@@ -83,13 +83,13 @@ actor AccountsManager {
     /// Adds a new account and updates the persistent storage.
     func addAccount(account: DogeAccount) async {
         accounts.append(account)
-        await saveAccounts()
+        saveAccounts()
     }
     
     /// Deletes an existing account and updates the persistent storage.
     func deleteAccount(account: DogeAccount) async {
         accounts.removeAll { $0 == account }
-        await saveAccounts()
+        saveAccounts()
     }
     
     /// Retrieves an account for a given principal.
