@@ -21,6 +21,34 @@ struct GeneralSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 30) {
+                
+                // Header Section
+                HStack(spacing: 12) {
+                    Image(systemName: "gearshape") // Icon for General
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.gray) // Background color for General
+                        .cornerRadius(6)
+                        .frame(width: 32, height: 32)
+                        
+                    VStack(alignment: .leading) {
+                        Text("Allgemein") // Title
+                            .font(.headline)
+                            .fontWeight(.medium)
+                        Text("Passen Sie hier allgemeine Einstellungen der Anwendung an.") // Description
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(12)
+                .background(.quaternary.opacity(0.4))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .padding(.bottom, 20)
+                
                 // Startup section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Programmstart")
@@ -103,9 +131,9 @@ struct GeneralSettingsView: View {
                     }
                 }
             }
-            .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(20)
         .animation(.easeInOut(duration: 0.2), value: enableAutoUpdate)
         .animation(.easeInOut(duration: 0.2), value: sendDiagnosticData)
     }

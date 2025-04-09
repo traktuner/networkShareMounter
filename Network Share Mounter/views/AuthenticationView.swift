@@ -58,127 +58,172 @@ struct AuthenticationView: View {
     @State private var profileToEdit: AuthProfile?
     
     var body: some View {
-        HStack(spacing: 0) {
-            // Profile list column
-            VStack {
-                List(selection: $selectedProfileID) {
-                    ForEach(profiles) { profile in
-                        HStack {
-                            Image(systemName: profile.symbolName)
-                                .foregroundColor(.white)
-                                .padding(6)
-                                .background(
-                                    Circle()
-                                        .fill(profile.symbolColor)
-                                        .frame(width: 28, height: 28)
-                                )
-                            
-                            VStack(alignment: .leading) {
-                                Text(profile.name)
-                                    .font(.headline)
+        // Outer VStack to place Header above the split view
+        VStack(alignment: .leading, spacing: 0) { 
+            
+            // Header Section (at the top level)
+            HStack(spacing: 12) {
+                Image(systemName: "person.badge.key") 
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(.white)
+                    .padding(6)
+                    .background(Color.orange) 
+                    .cornerRadius(6)
+                    .frame(width: 32, height: 32)
+                    
+                VStack(alignment: .leading) {
+                    Text("Authentifizierung") 
+                        .font(.headline)
+                        .fontWeight(.medium)
+                    Text("Verwalten Sie hier Ihre Authentifizierungsprofile für Netzwerkverbindungen.") 
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                Spacer() 
+            }
+            .padding(12) // Consistent internal padding
+            .background(.quaternary.opacity(0.4))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            // Consistent padding below header
+            .padding(.bottom, 20)
+        
+            // Main structure is the HStack splitting left and right panes
+            HStack(spacing: 0) {
+                // Profile list column 
+                VStack {
+                    List(selection: $selectedProfileID) {
+                        ForEach(profiles) { profile in
+                            HStack {
+                                Image(systemName: profile.symbolName)
+                                    .foregroundColor(.white)
+                                    .padding(6)
+                                    .background(
+                                        Circle()
+                                            .fill(profile.symbolColor)
+                                            .frame(width: 28, height: 28)
+                                    )
                                 
-                                Text(profile.useKerberos ? "Kerberos: \(profile.kerberosRealm)" : profile.username)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            if profile.useKerberos {
-                                HStack {
-                                    Circle()
-                                        .fill(profile.hasValidTicket ? .green : .red)
-                                        .frame(width: 8, height: 8)
-                                    Text(profile.hasValidTicket ? "Ticket aktiv" : "Kein Ticket")
-                                        .font(.caption2)
+                                VStack(alignment: .leading) {
+                                    Text(profile.name)
+                                        .font(.headline)
+                                    
+                                    Text(profile.useKerberos ? "Kerberos: \(profile.kerberosRealm)" : profile.username)
+                                        .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
+                                
+                                Spacer()
+                                
+                                if profile.useKerberos {
+                                    HStack {
+                                        Circle()
+                                            .fill(profile.hasValidTicket ? .green : .red)
+                                            .frame(width: 8, height: 8)
+                                        Text(profile.hasValidTicket ? "Ticket aktiv" : "Kein Ticket")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                            .tag(profile.id)
+                            .contextMenu {
+                                Button("Bearbeiten") {
+                                    profileToEdit = profile
+                                    isEditingProfile = true
+                                }
+                                Button("Löschen") {
+                                    if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
+                                        profiles.remove(at: index)
+                                        if selectedProfileID == profile.id {
+                                            selectedProfileID = profiles.first?.id
+                                        }
+                                    }
+                                }
+                                Divider()
+                                Button("Shares anzeigen") {
+                                    // Design-Platzhalter
+                                }
+                                if profile.useKerberos {
+                                    Divider()
+                                    Button("Ticket aktualisieren") {
+                                        if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
+                                            profiles[index].hasValidTicket = true
+                                        }
+                                    }
+                                }
                             }
                         }
-                        .tag(profile.id)
-                        .contextMenu {
-                            Button("Bearbeiten") { 
+                    }
+                    
+                    HStack {
+                        Button(action: { isAddingProfile = true }) {
+                            Image(systemName: "plus")
+                        }
+                        .help("Neues Profil hinzufügen")
+                        
+                        Button(action: {
+                            if let selectedID = selectedProfileID,
+                               let index = profiles.firstIndex(where: { $0.id == selectedID }) {
+                                profiles.remove(at: index)
+                                selectedProfileID = profiles.first?.id
+                            }
+                        }) {
+                            Image(systemName: "minus")
+                        }
+                        .help("Profil entfernen")
+                        .disabled(selectedProfileID == nil)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                .frame(width: 300)
+                // Remove padding from here, handled by outer VStack
+                // .padding(.trailing, 10) 
+                
+                // Divider between columns
+                Divider()
+                
+                // Right Detail Column - Only ScrollView
+                ScrollView {
+                    if let selectedID = selectedProfileID,
+                       let profile = profiles.first(where: { $0.id == selectedID }) {
+                        ProfileDetailView(
+                            profile: profile,
+                            associatedShares: shares,
+                            onEditProfile: {
                                 profileToEdit = profile
                                 isEditingProfile = true
-                            }
-                            Button("Löschen") { 
+                            },
+                            onRefreshTicket: {
                                 if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
-                                    profiles.remove(at: index)
-                                    if selectedProfileID == profile.id {
-                                        selectedProfileID = profiles.first?.id
-                                    }
+                                    profiles[index].hasValidTicket = true
                                 }
                             }
-                            Divider()
-                            Button("Shares anzeigen") {
-                                // Design-Platzhalter
-                            }
-                            if profile.useKerberos {
-                                Divider()
-                                Button("Ticket aktualisieren") { 
-                                    if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
-                                        profiles[index].hasValidTicket = true
-                                    }
-                                }
-                            }
+                        )
+                    } else {
+                        VStack(alignment: .center) {
+                            Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
+                                .foregroundColor(.secondary)
                         }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        // Padding for placeholder text can remain if needed within its VStack
+                        // or be handled by the ScrollView padding
+                        // .padding(20) 
                     }
                 }
-                
-                HStack {
-                    Button(action: { isAddingProfile = true }) {
-                        Image(systemName: "plus")
-                    }
-                    .help("Neues Profil hinzufügen")
-                    
-                    Button(action: {
-                        if let selectedID = selectedProfileID,
-                           let index = profiles.firstIndex(where: { $0.id == selectedID }) {
-                            profiles.remove(at: index)
-                            selectedProfileID = profiles.first?.id
-                        }
-                    }) {
-                        Image(systemName: "minus")
-                    }
-                    .help("Profil entfernen")
-                    .disabled(selectedProfileID == nil)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-            }
-            .frame(width: 300)
-            
-            // Divider between columns
-            Divider()
-            
-            // Profile details column
-            ScrollView {
-                if let selectedID = selectedProfileID,
-                   let profile = profiles.first(where: { $0.id == selectedID }) {
-                    ProfileDetailView(
-                        profile: profile,
-                        associatedShares: shares,
-                        onEditProfile: {
-                            profileToEdit = profile
-                            isEditingProfile = true
-                        },
-                        onRefreshTicket: {
-                            if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
-                                profiles[index].hasValidTicket = true
-                            }
-                        }
-                    )
-                } else {
-                    VStack(alignment: .center) {
-                        Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            }
-        }
+                // Re-apply padding to the ScrollView for its content
+                .padding(20) 
+
+            } // End of Main HStack
+            .frame(maxHeight: .infinity) 
+
+        } // End of Outer VStack
+        // Apply consistent padding to the Outer VStack
+        .padding(20)
         .sheet(isPresented: $isAddingProfile) {
             ProfileEditorView(isPresented: $isAddingProfile, onSave: { newProfile in
                 profiles.append(newProfile)
@@ -217,7 +262,7 @@ struct ProfileDetailView: View {
                     .background(
                         Circle()
                             .fill(profile.symbolColor)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 30, height: 30)
                     )
                 
                 Text(profile.name)
@@ -331,7 +376,8 @@ struct ProfileDetailView: View {
                 }
             }
         }
-        .padding(20)
+        // Remove padding here if it was added before, it's handled by the container
+        // .padding(20) 
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

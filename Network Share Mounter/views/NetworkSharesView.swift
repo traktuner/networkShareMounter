@@ -39,11 +39,35 @@ struct NetworkSharesView: View {
     @State private var shareToAssignProfile: NetworkShare?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Header description
-            Text("Konfigurieren Sie die Netzwerk-Shares, die Sie automatisch verbinden möchten.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        VStack(alignment: .leading) {
+            
+            // Header Section
+            HStack(spacing: 12) {
+                Image(systemName: "externaldrive.connected.to.line.below") // Icon for Network Shares
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 20, height: 20) // Smaller icon size
+                    .foregroundColor(.white)
+                    .padding(6) // Slightly reduced padding
+                    .background(Color.blue) // Background color for Network Shares
+                    .cornerRadius(6) // Slightly smaller corner radius
+                    .frame(width: 32, height: 32) // Overall smaller icon frame
+                    
+                VStack(alignment: .leading) {
+                    Text("Network Shares") // Title
+                        .font(.headline) // Smaller title font
+                        .fontWeight(.medium) // Adjusted weight
+                    Text("Konfigurieren Sie hier die Netzwerk-Shares und deren Verbindungseinstellungen.") // Description
+                        .font(.subheadline) // Explicitly set subheadline font
+                        .foregroundColor(.secondary)
+                }
+                Spacer() // Pushes content to the left
+            }
+            .padding(12) // Consistent internal padding
+            .background(.quaternary.opacity(0.4)) 
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            // Consistent padding below header
+            .padding(.bottom, 20)
             
             // List of shares with simple layout
             VStack(spacing: 0) {
@@ -207,6 +231,7 @@ struct NetworkSharesView: View {
             }
             .padding(.top, 8)
         }
+        // Apply consistent padding to the main VStack
         .padding(20)
         .sheet(isPresented: $showAddSheet) {
             AddShareView(isPresented: $showAddSheet, onSave: { newShare in
