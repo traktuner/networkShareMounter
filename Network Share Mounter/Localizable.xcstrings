@@ -77,6 +77,52 @@
         }
       }
     },
+    "Abbrechen" : {
+
+    },
+    "About" : {
+      "comment" : "About section title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Über"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About"
+          }
+        }
+      }
+    },
+    "Adjust general application settings here." : {
+      "comment" : "General settings description",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passen Sie hier allgemeine Einstellungen der Anwendung an."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Adjust general application settings here."
+          }
+        }
+      }
+    },
+    "Alle trennen" : {
+
+    },
+    "Alle verbinden" : {
+
+    },
+    "Anmeldedaten" : {
+
+    },
     "authenticate-share-button" : {
       "comment" : "Button text to change authentication",
       "localizations" : {
@@ -146,6 +192,9 @@
           }
         }
       }
+    },
+    "Authentifizierung" : {
+
     },
     "authui-button-text" : {
       "comment" : "text on authenticate button",
@@ -515,6 +564,70 @@
         }
       }
     },
+    "Automatically Check for Updates" : {
+      "comment" : "Automatically check for updates toggle label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch nach Updates suchen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically Check for Updates"
+          }
+        }
+      }
+    },
+    "Automatically Install Updates" : {
+      "comment" : "Automatically install updates toggle label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates automatisch installieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically Install Updates"
+          }
+        }
+      }
+    },
+    "Bearbeiten" : {
+
+    },
+    "Benutzername eingeben" : {
+
+    },
+    "Benutzername:" : {
+
+    },
+    "Bezeichnung:" : {
+
+    },
+    "Build Date" : {
+      "comment" : "Build date label",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build-Datum"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Build Date"
+          }
+        }
+      }
+    },
     "Can nout mount share because of obstructing directory" : {
       "comment" : "Can nout mount share because of obstructing directory",
       "localizations" : {
@@ -661,6 +774,52 @@
         }
       }
     },
+    "Check for Updates Now" : {
+      "comment" : "Check for updates button label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt nach Updates suchen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Check for Updates Now"
+          }
+        }
+      }
+    },
+    "Diagnostics" : {
+      "comment" : "Diagnostics section title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnosedaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Diagnostics"
+          }
+        }
+      }
+    },
+    "Does not exist" : {
+      "comment" : "Does not exist"
+    },
+    "Einstellungen" : {
+
+    },
+    "Entfernen" : {
+
+    },
+    "Error creating mount directory" : {
+      "comment" : "Error creating mount directory"
+    },
     "errorOnMount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -695,6 +854,128 @@
           }
         }
       }
+    },
+    "Farbe wählen" : {
+
+    },
+    "Farbe:" : {
+
+    },
+    "General" : {
+      "comment" : "General settings title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allgemein"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "General"
+          }
+        }
+      }
+    },
+    "help-auth-error" : {
+      "comment" : "Help text shown if some shares are not authenticated"
+    },
+    "help-authType" : {
+
+    },
+    "help-krb-auth-text" : {
+
+    },
+    "help-new-share" : {
+      "comment" : "Help text with some infos about adding new shares"
+    },
+    "help-password" : {
+
+    },
+    "help-show-managed-shares" : {
+
+    },
+    "help-username" : {
+
+    },
+    "Hinzufügen" : {
+
+    },
+    "Host is down" : {
+      "comment" : "Host is down"
+    },
+    "Hostname error or no route to host" : {
+      "comment" : "Hostname error or no route to host"
+    },
+    "Hostname is invalid" : {
+      "comment" : "Hostname is invalid"
+    },
+    "Invalid mount options" : {
+      "comment" : "Invalid mount options"
+    },
+    "Invalid mount path" : {
+      "comment" : "Invalid mount path"
+    },
+    "Kein gültiges Ticket" : {
+
+    },
+    "Kein Ticket" : {
+
+    },
+    "Keine Netzwerk-Shares konfiguriert" : {
+
+    },
+    "Keine verknüpften Shares" : {
+
+    },
+    "Keines" : {
+
+    },
+    "Kerberos authentication error" : {
+      "comment" : "Kerberos authentication error"
+    },
+    "Kerberos authentication successful" : {
+      "comment" : "Kerberos authentication successful"
+    },
+    "Kerberos Realm:" : {
+
+    },
+    "Kerberos-Authentifizierung" : {
+
+    },
+    "Kerberos-Authentifizierung verwenden" : {
+
+    },
+    "Klicken Sie auf '+', um einen neuen Share hinzuzufügen" : {
+
+    },
+    "Konfigurieren Sie hier die Netzwerk-Shares und deren Verbindungseinstellungen." : {
+
+    },
+    "krb-auth-button" : {
+      "comment" : "Button text for kerberos authentication"
+    },
+    "krb-offdomain-button" : {
+      "comment" : "Button text for kerberos authentication"
+    },
+    "Löschen" : {
+
+    },
+    "managed-shares-text" : {
+      "comment" : "Label for additional/managed shares"
+    },
+    "missing-krb-auth-button" : {
+      "comment" : "Button text for missing kerberos authentication"
+    },
+    "modify-share-button" : {
+      "comment" : "Button text to modify share"
+    },
+    "Mount queued" : {
+      "comment" : "Mount queued"
+    },
+    "mount-status-info-text" : {
+
     },
     "mounted" : {
       "extractionState" : "manual",
@@ -772,6 +1053,9 @@
         }
       }
     },
+    "Name:" : {
+
+    },
     "Network connectivity cannot be tested" : {
       "comment" : "Network connectivity cannot be tested",
       "localizations" : {
@@ -848,6 +1132,18 @@
           }
         }
       }
+    },
+    "Network Shares" : {
+
+    },
+    "Neuen Network Share hinzufügen" : {
+
+    },
+    "Neues Profil erstellen" : {
+
+    },
+    "Neues Profil hinzufügen" : {
+
     },
     "no error occured" : {
       "comment" : "no error occured",
@@ -1001,6 +1297,12 @@
         }
       }
     },
+    "Passwort eingeben" : {
+
+    },
+    "Passwort:" : {
+
+    },
     "Permission denied" : {
       "comment" : "Permission denied",
       "localizations" : {
@@ -1113,6 +1415,18 @@
         }
       }
     },
+    "Profil ändern..." : {
+
+    },
+    "Profil auswählen" : {
+
+    },
+    "Profil bearbeiten" : {
+
+    },
+    "Profil entfernen" : {
+
+    },
     "Profil zuweisen" : {
 
     },
@@ -1203,6 +1517,26 @@
           }
         }
       }
+    },
+    "Send Anonymous Diagnostic Data" : {
+      "comment" : "Send diagnostic data toggle label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonyme Diagnosedaten senden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send Anonymous Diagnostic Data"
+          }
+        }
+      }
+    },
+    "Server-URL:" : {
+
     },
     "Share does not exist" : {
       "comment" : "Share does not exist",
@@ -1318,6 +1652,43 @@
         }
       }
     },
+    "smb://server.example.com/share" : {
+
+    },
+    "Software Update" : {
+      "comment" : "Software update section title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Software-Aktualisierung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software Update"
+          }
+        }
+      }
+    },
+    "Software update management is disabled by an MDM policy." : {
+      "comment" : "MDM update disabled info text",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Verwaltung der Software-Aktualisierungen ist durch eine MDM-Richtlinie deaktiviert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software update management is disabled by an MDM policy."
+          }
+        }
+      }
+    },
     "Sorry, no help available" : {
       "comment" : "this should not happen",
       "localizations" : {
@@ -1355,6 +1726,40 @@
     },
     "Speichern" : {
 
+    },
+    "Start at Login" : {
+      "comment" : "Start at login toggle label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Anmelden starten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Start at Login"
+          }
+        }
+      }
+    },
+    "Startup" : {
+      "comment" : "Startup section title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programmstart"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Startup"
+          }
+        }
+      }
     },
     "Symbol wählen" : {
 
@@ -1660,244 +2065,6 @@
     },
     "z.B. UNI-ERLANGEN.DE" : {
 
-    },
-    "General" : {
-      "comment" : "General settings title",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allgemein"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "General"
-          }
-        }
-      }
-    },
-    "Adjust general application settings here." : {
-      "comment" : "General settings description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passen Sie hier allgemeine Einstellungen der Anwendung an."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust general application settings here."
-          }
-        }
-      }
-    },
-    "Startup" : {
-      "comment" : "Startup section title",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Programmstart"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Startup"
-          }
-        }
-      }
-    },
-    "Start at Login" : {
-      "comment" : "Start at login toggle label",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beim Anmelden starten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Start at Login"
-          }
-        }
-      }
-    },
-    "Diagnostics" : {
-      "comment" : "Diagnostics section title",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diagnosedaten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Diagnostics"
-          }
-        }
-      }
-    },
-    "Send Anonymous Diagnostic Data" : {
-      "comment" : "Send diagnostic data toggle label",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonyme Diagnosedaten senden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send Anonymous Diagnostic Data"
-          }
-        }
-      }
-    },
-    "Software Update" : {
-      "comment" : "Software update section title",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Software-Aktualisierung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Software Update"
-          }
-        }
-      }
-    },
-    "Automatically Check for Updates" : {
-      "comment" : "Automatically check for updates toggle label",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatisch nach Updates suchen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically Check for Updates"
-          }
-        }
-      }
-    },
-    "Automatically Install Updates" : {
-      "comment" : "Automatically install updates toggle label",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updates automatisch installieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically Install Updates"
-          }
-        }
-      }
-    },
-    "Check for Updates Now" : {
-      "comment" : "Check for updates button label",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jetzt nach Updates suchen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Check for Updates Now"
-          }
-        }
-      }
-    },
-    "Software update management is disabled by an MDM policy." : {
-      "comment" : "MDM update disabled info text",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Verwaltung der Software-Aktualisierungen ist durch eine MDM-Richtlinie deaktiviert."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Software update management is disabled by an MDM policy."
-          }
-        }
-      }
-    },
-    "About" : {
-      "comment" : "About section title",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Über"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "About"
-          }
-        }
-      }
-    },
-    "Version" : {
-      "comment" : "Version label",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Version"
-          }
-        }
-      }
-    },
-    "Build Date" : {
-      "comment" : "Build date label",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Build-Datum"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Build Date"
-          }
-        }
-      }
     }
   },
   "version" : "1.0"
