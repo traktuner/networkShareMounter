@@ -1,3 +1,11 @@
+//
+//  GeneralSettingsView.swift
+//  Network Share Mounter
+//
+//  Created by Longariva, Gregor (RRZE) on 10.04.25.
+//  Copyright © 2024 RRZE. All rights reserved.
+//
+
 import SwiftUI
 
 /// Simple model for auth profiles (design only)
@@ -61,7 +69,7 @@ struct AuthenticationView: View {
         // Outer VStack to place Header above the split view
         VStack(alignment: .leading, spacing: 0) { 
             
-            // Header Section (at the top level)
+            // Header Section (now at the top level)
             HStack(spacing: 12) {
                 Image(systemName: "person.badge.key") 
                     .resizable()
@@ -83,11 +91,10 @@ struct AuthenticationView: View {
                 }
                 Spacer() 
             }
-            .padding(12) // Consistent internal padding
+            .padding(12) // Internal padding
             .background(.quaternary.opacity(0.4))
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            // Consistent padding below header
-            .padding(.bottom, 20)
+            .padding(10)
         
             // Main structure is the HStack splitting left and right panes
             HStack(spacing: 0) {
@@ -181,49 +188,51 @@ struct AuthenticationView: View {
                     .padding(.vertical, 8)
                 }
                 .frame(width: 300)
-                // Remove padding from here, handled by outer VStack
-                // .padding(.trailing, 10) 
                 
                 // Divider between columns
                 Divider()
                 
-                // Right Detail Column - Only ScrollView
-                ScrollView {
-                    if let selectedID = selectedProfileID,
-                       let profile = profiles.first(where: { $0.id == selectedID }) {
-                        ProfileDetailView(
-                            profile: profile,
-                            associatedShares: shares,
-                            onEditProfile: {
-                                profileToEdit = profile
-                                isEditingProfile = true
-                            },
-                            onRefreshTicket: {
-                                if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
-                                    profiles[index].hasValidTicket = true
+                // Right Detail Column - Now only contains the ScrollView
+                // VStack(alignment: .leading, spacing: 0) { // Original VStack removed/merged
+                    
+                    // Header Section removed from here 
+
+                    // Profile details column (inside ScrollView)
+                    ScrollView {
+                        if let selectedID = selectedProfileID,
+                           let profile = profiles.first(where: { $0.id == selectedID }) {
+                            ProfileDetailView(
+                                profile: profile,
+                                associatedShares: shares,
+                                onEditProfile: {
+                                    profileToEdit = profile
+                                    isEditingProfile = true
+                                },
+                                onRefreshTicket: {
+                                    if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
+                                        profiles[index].hasValidTicket = true
+                                    }
                                 }
+                            )
+                        } else {
+                            VStack(alignment: .center) {
+                                Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
+                                    .foregroundColor(.secondary)
+                                    // Center placeholder text vertically if needed
+                                    // .frame(maxHeight: .infinity) 
                             }
-                        )
-                    } else {
-                        VStack(alignment: .center) {
-                            Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
-                                .foregroundColor(.secondary)
+                            // Give the placeholder some padding and make it fill width
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(20) 
                         }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        // Padding for placeholder text can remain if needed within its VStack
-                        // or be handled by the ScrollView padding
-                        // .padding(20) 
                     }
-                }
-                // Re-apply padding to the ScrollView for its content
-                .padding(20) 
+                    // Apply padding around the ScrollView content area
+                    .padding(20)
+                // } // End of original Right VStack
+                // .padding(20) // Padding removed from here
 
             } // End of Main HStack
-            .frame(maxHeight: .infinity) 
-
         } // End of Outer VStack
-        // Apply consistent padding to the Outer VStack
-        .padding(20)
         .sheet(isPresented: $isAddingProfile) {
             ProfileEditorView(isPresented: $isAddingProfile, onSave: { newProfile in
                 profiles.append(newProfile)
@@ -262,7 +271,7 @@ struct ProfileDetailView: View {
                     .background(
                         Circle()
                             .fill(profile.symbolColor)
-                            .frame(width: 30, height: 30)
+                            .frame(width: 40, height: 40)
                     )
                 
                 Text(profile.name)
@@ -376,8 +385,7 @@ struct ProfileDetailView: View {
                 }
             }
         }
-        // Remove padding here if it was added before, it's handled by the container
-        // .padding(20) 
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

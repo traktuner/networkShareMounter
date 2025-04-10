@@ -16,7 +16,6 @@
 		F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F52DA5767C0025985F /* SettingsView.swift */; };
 		F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F32DA5767C0025985F /* NetworkSharesView.swift */; };
 		F73429FC2DA5767C0025985F /* SettingsWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F62DA5767C0025985F /* SettingsWindowManager.swift */; };
-		F73429FD2DA5767C0025985F /* AppDelegate+SettingsIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F02DA5767C0025985F /* AppDelegate+SettingsIntegration.swift */; };
 		F73429FE2DA5767C0025985F /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F22DA5767C0025985F /* GeneralSettingsView.swift */; };
 		F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */ = {isa = PBXBuildFile; fileRef = F739C418275525BC003A3CC5 /* DefaultValues.plist */; };
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
@@ -86,7 +85,6 @@
 		F72264782CED189200173B18 /* CircleIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleIconView.swift; sourceTree = "<group>"; };
 		F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayShareTypes.swift; sourceTree = "<group>"; };
 		F72B13E92B332987001BDEEA /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
-		F73429F02DA5767C0025985F /* AppDelegate+SettingsIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+SettingsIntegration.swift"; sourceTree = "<group>"; };
 		F73429F12DA5767C0025985F /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		F73429F22DA5767C0025985F /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		F73429F32DA5767C0025985F /* NetworkSharesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSharesView.swift; sourceTree = "<group>"; };
@@ -205,7 +203,6 @@
 		F73429F72DA5767C0025985F /* views */ = {
 			isa = PBXGroup;
 			children = (
-				F73429F02DA5767C0025985F /* AppDelegate+SettingsIntegration.swift */,
 				F73429F12DA5767C0025985F /* AuthenticationView.swift */,
 				F73429F22DA5767C0025985F /* GeneralSettingsView.swift */,
 				F73429F32DA5767C0025985F /* NetworkSharesView.swift */,
@@ -445,6 +442,7 @@
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"\"${BUILT_PRODUCTS_DIR}/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/copy-helper-swiftpm.sh\"",
 				"",
+				"",
 			);
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -483,7 +481,6 @@
 				F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */,
 				F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */,
 				F73429FC2DA5767C0025985F /* SettingsWindowManager.swift in Sources */,
-				F73429FD2DA5767C0025985F /* AppDelegate+SettingsIntegration.swift in Sources */,
 				F73429FE2DA5767C0025985F /* GeneralSettingsView.swift in Sources */,
 				F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,

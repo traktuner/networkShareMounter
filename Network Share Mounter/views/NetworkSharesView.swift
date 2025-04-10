@@ -1,3 +1,11 @@
+//
+//  GeneralSettingsView.swift
+//  Network Share Mounter
+//
+//  Created by Longariva, Gregor (RRZE) on 10.04.25.
+//  Copyright © 2024 RRZE. All rights reserved.
+//
+
 import SwiftUI
 
 /// View for configuring network shares
@@ -63,11 +71,10 @@ struct NetworkSharesView: View {
                 }
                 Spacer() // Pushes content to the left
             }
-            .padding(12) // Consistent internal padding
-            .background(.quaternary.opacity(0.4)) 
+            .padding(10)
+            // Apply background and clip shape
+            .background(.quaternary.opacity(0.4)) // Subtle background
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            // Consistent padding below header
-            .padding(.bottom, 20)
             
             // List of shares with simple layout
             VStack(spacing: 0) {
@@ -231,7 +238,8 @@ struct NetworkSharesView: View {
             }
             .padding(.top, 8)
         }
-        // Apply consistent padding to the main VStack
+        // Apply padding only to horizontal and bottom edges
+//        .padding([.horizontal, .bottom], 20)
         .padding(20)
         .sheet(isPresented: $showAddSheet) {
             AddShareView(isPresented: $showAddSheet, onSave: { newShare in
