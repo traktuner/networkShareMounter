@@ -77,42 +77,6 @@
         }
       }
     },
-    "About Network Share Mounter" : {
-      "comment" : "About Network Share Mounter",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Über Network Share Mounter"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sobre Network Share Mounter"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "À propos de Network Share Mounter"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Informazioni Network Share Mounter"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Over Network Share Mounter"
-          }
-        }
-      }
-    },
     "authenticate-share-button" : {
       "comment" : "Button text to change authentication",
       "localizations" : {
@@ -693,48 +657,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kan gedeelde map niet afkoppelen."
-          }
-        }
-      }
-    },
-    "Check for Updates..." : {
-      "comment" : "Check for Updates",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nach Updates suchen..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check for Updates…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Buscar actualizaciones..."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Rechercher des mises à jour..."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Verifica aggiornamenti..."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Controleren op updates..."
           }
         }
       }
@@ -1656,42 +1578,6 @@
         }
       }
     },
-    "Mount shares" : {
-      "comment" : "Mount shares",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbinde Freigaben"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instalar fracciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monter les partages"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connetti condivisioni"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Netwerkverbinding maken"
-          }
-        }
-      }
-    },
     "mount-status-info-text" : {
       "comment" : "short info to mount status icons",
       "localizations" : {
@@ -2150,42 +2036,6 @@
         }
       }
     },
-    "Preferences ..." : {
-      "comment" : "Preferences",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einstellungen ..."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preferencias ..."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Préférences ..."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preferenze ..."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voorkeuren ..."
-          }
-        }
-      }
-    },
     "queued" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2223,42 +2073,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Koppeling in wachtrij"
-          }
-        }
-      }
-    },
-    "Quit Network Share Mounter" : {
-      "comment" : "Quit Network Share Mounter",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Network Share Mounter beenden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terminar Network Share Mounter"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quitter Network Share Mounter"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esci Network Share Mounter"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sluit Network Share Mounter"
           }
         }
       }
@@ -2405,42 +2219,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je kunt elke Windows (smb/cifs), afp of WebDAV netwerkshare koppelen zolang je de servernaam en het exportpad kent.\nVoer de share in als smb://server.name/export/path.\nDe verbinding wordt onmiddellijk getest en wordt alleen toegevoegd als de server bereikbaar is en de share beschikbaar is."
-          }
-        }
-      }
-    },
-    "Show mounted shares" : {
-      "comment" : "Show mounted shares",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeige eingebundene Freigaben"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar fracciones installadas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher les partages montés"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra condivisioni montate"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Laat netwerkverbindingen zien"
           }
         }
       }
@@ -2657,42 +2435,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Onbekende retourcode, sorry."
-          }
-        }
-      }
-    },
-    "Unmount shares" : {
-      "comment" : "Unmount shares",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trenne Freigaben"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desinstalar fracciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Démonter les partages"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disconnetta condivisioni"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbinding verbreken"
           }
         }
       }
