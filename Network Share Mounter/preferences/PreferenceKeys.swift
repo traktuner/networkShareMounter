@@ -121,8 +121,12 @@ enum PreferenceKeys: String, CaseIterable {
     /// Whether application starts automatically at login
     case autostart = "autostart"
     
-    /// Whether auto-updater is enabled
+    /// Whether auto-updater is enabled.
+    /// Since NSM 4 this is a legacy value and is essentially serving as an inverted alias for disableAutoUpdateFramework
     case enableAutoUpdater = "enableAutoUpdater"
+    
+    /// Wheter Sparkle framework is enabled/loaded
+    case disableAutoUpdateFramework = "disableAutoUpdateFramework"
     
     /// Sparkle: Whether to automatically check for updates
     case SUEnableAutomaticChecks = "SUEnableAutomaticChecks"
