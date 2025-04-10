@@ -118,7 +118,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         super.init()
         
         // First check if auto-updater is enabled
-        if prefs.bool(for: .enableAutoUpdater) == true {
+        if prefs.bool(for: .disableAutoUpdateFramework) == false {
             // Configure Sparkle defaults before initializing the controller
             let sparkleDefaults = UserDefaults.standard
             
@@ -156,6 +156,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     ///
     /// - Parameter aNotification: The notification object sent when the app finishes launching
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        // --- Preference Migration Logic for Sparkle --- 
+        migrateSparklePreference()
+        // --- End Migration Logic ---
         
 #if DEBUG
         Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
@@ -212,6 +216,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         activityController = ActivityController(appDelegate: self)
     }
     
+    /// Migrates the old Sparkle enable preference to the new disable preference if necessary.
+    /// The new key `.disableAutoUpdateFramework` takes precedence.
+    private func migrateSparklePreference() {
+        let defaults = UserDefaults.standard
+        let newKey = PreferenceKeys.disableAutoUpdateFramework.rawValue
+        let oldKey = PreferenceKeys.enableAutoUpdater.rawValue
+
+        // Check if the new key is already set (by user or MDM)
+        if defaults.object(forKey: newKey) != nil {
+            Logger.app.info("New preference key '\(newKey)' found. Ignoring old key '\(oldKey)'.")
+            // New key exists, no migration needed, its value takes precedence.
+        } 
+        // Check if the old key exists and the new one doesn't
+        else if defaults.object(forKey: oldKey) != nil {
+            let oldValue = defaults.bool(forKey: oldKey) // Read the old value
+            let newValue = !oldValue // Invert the logic for the new key
+            prefs.set(for: .disableAutoUpdateFramework, value: newValue)
+            Logger.app.warning("Old preference key '\(oldKey)' found and migrated to '\(newKey)=\(newValue)'. Please update configuration profiles.")
+        } else {
+            Logger.app.info("Neither new ('\(newKey)') nor old ('\(oldKey)') Sparkle preference key found. Using default value.")
+            // Neither key exists, rely on the default registered for disableAutoUpdateFramework (likely false).
+        }
+    }
+    
     /// Synchronizes Sparkle settings with current preferences.
     ///
     /// This method ensures that Sparkle respects the MDM configuration settings
@@ -225,14 +253,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// 3. Logs the current configuration for debugging
     private func synchronizeSparkleSettings() {
         let sparkleDefaults = UserDefaults.standard
-        let autoUpdaterEnabled = prefs.bool(for: .enableAutoUpdater)
+        // Use the new preference key to determine if the framework is globally disabled
+        let autoUpdaterFrameworkDisabled = prefs.bool(for: .disableAutoUpdateFramework)
         
-        // If auto-updater is disabled, ensure all Sparkle settings are disabled
-        if !autoUpdaterEnabled {
+        // If framework is disabled, ensure all Sparkle settings reflect this
+        if autoUpdaterFrameworkDisabled {
             sparkleDefaults.set(false, forKey: "SUEnableAutomaticChecks")
             sparkleDefaults.set(false, forKey: "SUAutomaticallyUpdate")
             sparkleDefaults.set(true, forKey: "SUHasLaunchedBefore")
-            Logger.app.info("Auto-updater disabled: Setting all Sparkle settings to false")
+            Logger.app.info("Sparkle framework disabled via 'disableAutoUpdateFramework': Setting all Sparkle settings to false")
             return
         }
         
@@ -245,7 +274,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         sparkleDefaults.set(autoUpdate, forKey: "SUAutomaticallyUpdate")
         sparkleDefaults.set(hasLaunchedBefore, forKey: "SUHasLaunchedBefore")
         
-        Logger.app.info("Sparkle settings synchronized: enableAutoUpdater=\(autoUpdaterEnabled), enableChecks=\(enableChecks), autoUpdate=\(autoUpdate), hasLaunchedBefore=\(hasLaunchedBefore)")
+        Logger.app.info("Sparkle framework enabled. Settings synchronized: enableChecks=\(enableChecks), autoUpdate=\(autoUpdate), hasLaunchedBefore=\(hasLaunchedBefore)")
     }
     
     /// Performs asynchronous initialization tasks for the application.
