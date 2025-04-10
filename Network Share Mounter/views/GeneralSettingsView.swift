@@ -55,6 +55,22 @@ struct GeneralSettingsView: View {
         prefs.bool(for: .disableAutoUpdateFramework)
     }
     
+    // MARK: - Computed Properties for Bundle Info
+    
+    /// Fetches the application version (CFBundleShortVersionString) from the bundle's Info.plist.
+    private var appVersion: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        // Return "N/A" if version is nil OR empty
+        return (version?.isEmpty ?? true) ? "N/A" : version!
+    }
+    
+    /// Fetches the build number (CFBundleVersion) from the bundle's Info.plist.
+    private var buildNumber: String {
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        // Return "N/A" if build is nil OR empty
+        return (build?.isEmpty ?? true) ? "N/A" : build!
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -155,14 +171,8 @@ struct GeneralSettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.0 (123)")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("Build Date")
-                        Spacer()
-                        Text("08.04.2024")
+                        // Display dynamic version and build number
+                        Text(appVersion + " (" + buildNumber + ")")
                             .foregroundColor(.secondary)
                     }
                 }
