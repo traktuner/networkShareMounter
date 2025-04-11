@@ -7,45 +7,23 @@
 //
 
 import SwiftUI
+import OSLog
+
+/// Delegate to access AppDelegate methods and properties
+let appDelegate = NSApplication.shared.delegate as! AppDelegate
 
 /// View for configuring network shares
 struct NetworkSharesView: View {
-    // Beispiel-Daten für das Design
-    @State private var shares = [
-        NetworkShare(
-            id: UUID(),
-            name: "Dokumente",
-            url: "smb://server.example.com/documents",
-            isMounted: true,
-            profileName: "Büro", 
-            profileSymbol: "building.2", 
-            profileColor: .blue
-        ),
-        NetworkShare(
-            id: UUID(),
-            name: "Projekte",
-            url: "smb://server.example.com/projects",
-            isMounted: false,
-            profileName: "Home-Office", 
-            profileSymbol: "house", 
-            profileColor: .green
-        ),
-        NetworkShare(
-            id: UUID(),
-            name: "Arbeitsgruppe",
-            url: "smb://teamserver.example.com/shared",
-            isMounted: false,
-            profileName: nil, 
-            profileSymbol: nil, 
-            profileColor: nil
-        )
-    ]
-    
-    @State private var selectedShareID: UUID?
+    // Replace static demo data with state for real data
+    @State private var shares: [Share] = []
+    @State private var selectedShareID: String?
     @State private var showAddSheet = false
-    @State private var showProfileSelector = false
-    @State private var shareToAssignProfile: NetworkShare?
+    // @State private var showProfileSelector = false // Deactivated for now
+    // @State private var shareToAssignProfile: Share? // Deactivated for now
     
+    // Access the Mounter to interact with shares
+    private let mounter = appDelegate.mounter!
+
     var body: some View {
         VStack(alignment: .leading) {
             
@@ -81,23 +59,25 @@ struct NetworkSharesView: View {
                 ForEach(shares) { share in
                     HStack {
                         HStack(spacing: 6) {
-                            // Show associated profile icon if a profile is linked
-                            if let profileSymbol = share.profileSymbol,
-                               let profileColor = share.profileColor {
-                                Image(systemName: profileSymbol)
-                                    .foregroundColor(.white)
-                                    .background(
-                                        Circle()
-                                            .fill(profileColor)
-                                            .frame(width: 24, height: 24)
-                                    )
-                                    .help(share.profileName ?? "")
-                            }
+                            // TODO: Integrate profile data later
+//                            // Show associated profile icon if a profile is linked
+//                            if let profileSymbol = share.profileSymbol,
+//                               let profileColor = share.profileColor {
+//                                Image(systemName: profileSymbol)
+//                                    .foregroundColor(.white)
+//                                    .background(
+//                                        Circle()
+//                                            .fill(profileColor)
+//                                            .frame(width: 24, height: 24)
+//                                    )
+//                                    .help(share.profileName ?? "")
+//                            }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(share.name)
+                                // Use shareDisplayName if available, otherwise networkShare
+                                Text(share.shareDisplayName ?? share.networkShare)
                                     .font(.headline)
-                                Text(share.url)
+                                Text(share.networkShare)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -105,18 +85,20 @@ struct NetworkSharesView: View {
                         
                         Spacer()
                         
-                        // Associated profile name
-                        if let profileName = share.profileName {
-                            Text(profileName)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 8)
-                        }
+                        // TODO: Integrate profile data later
+//                        // Associated profile name
+//                        if let profileName = share.profileName {
+//                            Text(profileName)
+//                                .font(.caption)
+//                                .foregroundColor(.secondary)
+//                                .padding(.horizontal, 8)
+//                        }
                         
-                        // Simple status indicator
+                        // Status indicator based on real mountStatus
                         Circle()
-                            .fill(share.isMounted ? Color.green : Color.gray)
+                            .fill(mountStatusColor(for: share.mountStatus))
                             .frame(width: 10, height: 10)
+                            .help(share.mountStatus.rawValue) // Show status rawValue on hover
                     }
                     .padding(.vertical, 10)
                     .padding(.horizontal, 12)
@@ -125,35 +107,47 @@ struct NetworkSharesView: View {
                         selectedShareID = share.id
                     }
                     .contextMenu {
-                        Button(share.isMounted ? "Trennen" : "Verbinden") {
-                            if let index = shares.firstIndex(where: { $0.id == share.id }) {
-                                shares[index].isMounted.toggle()
-                            }
-                        }
-                        
-                        Button(share.profileName == nil ? "Profil zuweisen..." : "Profil ändern...") {
-                            shareToAssignProfile = share
-                            showProfileSelector = true
-                        }
-                        
-                        if share.profileName != nil {
-                            Button("Profilzuweisung aufheben") {
-                                if let index = shares.firstIndex(where: { $0.id == share.id }) {
-                                    shares[index].profileName = nil
-                                    shares[index].profileSymbol = nil
-                                    shares[index].profileColor = nil
+                        // Button to Mount/Unmount the selected share
+                        Button(share.mountStatus == .mounted ? "Trennen" : "Verbinden") {
+                            Task {
+                                if share.mountStatus == .mounted {
+                                    await mounter.unmountShare(for: share)
+                                } else {
+                                    await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
                                 }
+                                // Reload shares after action
+                                await loadShares()
                             }
                         }
                         
-                        Divider()
+                        // TODO: Integrate profile actions later
+//                        Button(share.profileName == nil ? "Profil zuweisen..." : "Profil ändern...") {
+//                            shareToAssignProfile = share
+//                            showProfileSelector = true
+//                        }
+//                        
+//                        if share.profileName != nil {
+//                            Button("Profilzuweisung aufheben") {
+//                                if let index = shares.firstIndex(where: { $0.id == share.id }) {
+//                                    // TODO: Implement profile removal logic
+//                                }
+//                            }
+//                        }
+//                        
+//                        Divider()
                         
-                        Button("Löschen") {
-                            if let index = shares.firstIndex(where: { $0.id == share.id }) {
-                                shares.remove(at: index)
-                            }
-                            if selectedShareID == share.id {
-                                selectedShareID = nil
+                        // Button to delete the share (only if not managed)
+                        if !share.managed {
+                            Divider() // Add divider only if delete is possible
+                            Button("Löschen") {
+                                Task {
+                                    await mounter.removeShare(for: share)
+                                    if selectedShareID == share.id {
+                                        selectedShareID = nil
+                                    }
+                                    // Reload shares after deletion
+                                    await loadShares()
+                                }
                             }
                         }
                     }
@@ -193,44 +187,58 @@ struct NetworkSharesView: View {
                 .help("Hinzufügen")
                 
                 Button(action: {
-                    if let selectedID = selectedShareID,
-                       let index = shares.firstIndex(where: { $0.id == selectedID }) {
-                        shares.remove(at: index)
-                        selectedShareID = nil
+                    Task {
+                        if let selectedID = selectedShareID,
+                           let shareToRemove = shares.first(where: { $0.id == selectedID }),
+                           !shareToRemove.managed { // Only allow removing unmanaged shares
+                                await mounter.removeShare(for: shareToRemove)
+                                selectedShareID = nil
+                                await loadShares() // Reload after removal
+                        }
                     }
                 }) {
                     Image(systemName: "minus")
                 }
                 .help("Entfernen")
-                .disabled(selectedShareID == nil)
+                // Disable if no share is selected or if the selected share is managed
+                .disabled(selectedShareID == nil || shares.first(where: { $0.id == selectedShareID })?.managed ?? true)
                 
-                Button(action: {
-                    if let selectedID = selectedShareID,
-                       let share = shares.first(where: { $0.id == selectedID }) {
-                        shareToAssignProfile = share
-                        showProfileSelector = true
-                    }
-                }) {
-                    Image(systemName: "person.badge.key")
-                }
-                .help("Profil zuweisen")
-                .disabled(selectedShareID == nil)
+                // TODO: Re-enable profile assignment later
+//                Button(action: {
+//                    if let selectedID = selectedShareID,
+//                       let share = shares.first(where: { $0.id == selectedID }) {
+//                        shareToAssignProfile = share
+//                        showProfileSelector = true
+//                    }
+//                }) {
+//                    Image(systemName: "person.badge.key")
+//                }
+//                .help("Profil zuweisen")
+//                .disabled(selectedShareID == nil)
                 
                 Spacer()
                 
+                // Mount/Unmount button
                 Button(action: {
-                    if let selectedID = selectedShareID,
-                       let index = shares.firstIndex(where: { $0.id == selectedID }) {
-                        shares[index].isMounted.toggle()
+                    Task {
+                        if let selectedID = selectedShareID,
+                           let share = shares.first(where: { $0.id == selectedID }) {
+                            if share.mountStatus == .mounted {
+                                await mounter.unmountShare(for: share)
+                            } else {
+                                await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
+                            }
+                            await loadShares() // Reload after action
+                        }
                     }
                 }) {
                     HStack {
                         Image(systemName: "arrow.up.arrow.down")
                         if let selectedID = selectedShareID,
                            let share = shares.first(where: { $0.id == selectedID }) {
-                            Text(share.isMounted ? "Trennen" : "Verbinden")
+                            Text(share.mountStatus == .mounted ? "Trennen" : "Verbinden")
                         } else {
-                            Text("Verbinden")
+                            Text("Verbinden/Trennen")
                         }
                     }
                 }
@@ -241,180 +249,57 @@ struct NetworkSharesView: View {
         // Apply padding only to horizontal and bottom edges
 //        .padding([.horizontal, .bottom], 20)
         .padding(20)
+        // Load shares when the view appears
+        .onAppear {
+            Task {
+                await loadShares()
+            }
+        }
         .sheet(isPresented: $showAddSheet) {
-            AddShareView(isPresented: $showAddSheet, onSave: { newShare in
-                shares.append(newShare)
-                selectedShareID = newShare.id
-            })
+            // TODO: Implement AddShareView properly to work with ShareManager
+            Text("Add Share View Placeholder") // Placeholder until AddShareView is updated
+//            AddShareView(isPresented: $showAddSheet, onSave: { newShare in
+//                // TODO: Replace with call to ShareManager/Mounter to add the share
+//                // shares.append(newShare)
+//                // selectedShareID = newShare.id
+//                Task { await loadShares() } // Reload after potential add
+//            })
         }
-        .sheet(isPresented: $showProfileSelector) {
-            if let share = shareToAssignProfile {
-                ProfileSelectorView(
-                    isPresented: $showProfileSelector,
-                    onProfileSelected: { profileName, profileSymbol, profileColor in
-                        if let index = shares.firstIndex(where: { $0.id == share.id }) {
-                            shares[index].profileName = profileName
-                            shares[index].profileSymbol = profileSymbol
-                            shares[index].profileColor = profileColor
-                        }
-                    }
-                )
-            }
+//        .sheet(isPresented: $showProfileSelector) { // Deactivated for now
+//            if let share = shareToAssignProfile {
+//                ProfileSelectorView(
+//                    isPresented: $showProfileSelector,
+//                    onProfileSelected: { profileName, profileSymbol, profileColor in
+//                        if let index = shares.firstIndex(where: { $0.id == share.id }) {
+//                            // TODO: Implement profile assignment logic
+//                        }
+//                    }
+//                )
+//            }
+//        }
+    }
+    
+    /// Asynchronously loads shares from the ShareManager.
+    private func loadShares() async {
+        self.shares = await mounter.shareManager.allShares
+        // If the selected share no longer exists, deselect it
+        if let selectedID = selectedShareID, !shares.contains(where: { $0.id == selectedID }) {
+            selectedShareID = nil
         }
     }
-}
-
-/// Model representing a network share for design
-struct NetworkShare: Identifiable {
-    var id: UUID
-    var name: String
-    var url: String
-    var isMounted: Bool
-    var profileName: String?
-    var profileSymbol: String?
-    var profileColor: Color?
-}
-
-/// View for adding a new share
-struct AddShareView: View {
-    @Binding var isPresented: Bool
-    var onSave: (NetworkShare) -> Void
     
-    @State private var shareName: String = ""
-    @State private var shareURL: String = ""
-    @State private var selectedProfileName: String? = nil
-    
-    // Beispiel Profile für die Design-Phase
-    let availableProfiles = [
-        (name: "Büro", symbol: "building.2", color: Color.blue),
-        (name: "Home-Office", symbol: "house", color: Color.green)
-    ]
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Neuen Network Share hinzufügen")
-                .font(.headline)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Name:")
-                TextField("z.B. Arbeitsdokumente", text: $shareName)
-                    .textFieldStyle(.roundedBorder)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Server-URL:")
-                TextField("smb://server.example.com/share", text: $shareURL)
-                    .textFieldStyle(.roundedBorder)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Profil zuweisen (optional):")
-                
-                Picker("Profil auswählen", selection: $selectedProfileName) {
-                    Text("Keines").tag(nil as String?)
-                    
-                    ForEach(availableProfiles, id: \.name) { profile in
-                        HStack {
-                            Image(systemName: profile.symbol)
-                                .foregroundColor(.white)
-                                .padding(4)
-                                .background(
-                                    Circle()
-                                        .fill(profile.color)
-                                        .frame(width: 20, height: 20)
-                                )
-                            Text(profile.name)
-                        }
-                        .tag(profile.name as String?)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-            
-            Spacer()
-            
-            HStack {
-                Button("Abbrechen") {
-                    isPresented = false
-                }
-                
-                Spacer()
-                
-                Button("Hinzufügen") {
-                    // Find the selected profile tuple based on the name, if a name is selected
-                    let selectedProfileTuple = availableProfiles.first { $0.name == selectedProfileName }
-                    
-                    // Create the new share regardless of profile selection
-                    let newShare = NetworkShare(
-                        id: UUID(),
-                        name: shareName,
-                        url: shareURL,
-                        isMounted: false,
-                        profileName: selectedProfileTuple?.name,
-                        profileSymbol: selectedProfileTuple?.symbol,
-                        profileColor: selectedProfileTuple?.color
-                    )
-                    
-                    // Save and dismiss
-                    onSave(newShare)
-                    isPresented = false
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(shareName.isEmpty || shareURL.isEmpty)
-            }
+    /// Returns the appropriate color for the mount status indicator.
+    private func mountStatusColor(for status: MountStatus) -> Color {
+        switch status {
+        case .mounted:
+            return .green
+        case .unmounted, .queued, .userUnmounted, .toBeMounted:
+            return .gray
+        case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unreachable:
+            return .red
+        case .unknown, .undefined:
+            return .orange
         }
-        .padding(20)
-        .frame(width: 400, height: 300)
-    }
-}
-
-/// View for selecting an auth profile
-struct ProfileSelectorView: View {
-    @Binding var isPresented: Bool
-    var onProfileSelected: (String, String, Color) -> Void
-    
-    // Beispiel Profile für die Design-Phase
-    let availableProfiles = [
-        (name: "Büro", symbol: "building.2", color: Color.blue),
-        (name: "Home-Office", symbol: "house", color: Color.green),
-        (name: "Universität", symbol: "graduationcap", color: Color.purple)
-    ]
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("Profil auswählen")
-                .font(.headline)
-            
-            List {
-                ForEach(availableProfiles, id: \.name) { profile in
-                    HStack {
-                        Image(systemName: profile.symbol)
-                            .foregroundColor(.white)
-                            .padding(6)
-                            .background(
-                                Circle()
-                                    .fill(profile.color)
-                                    .frame(width: 28, height: 28)
-                            )
-                        
-                        Text(profile.name)
-                            .font(.headline)
-                    }
-                    .padding(.vertical, 4)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onProfileSelected(profile.name, profile.symbol, profile.color)
-                        isPresented = false
-                    }
-                }
-            }
-            
-            Button("Abbrechen") {
-                isPresented = false
-            }
-        }
-        .padding(20)
-        .frame(width: 300, height: 300)
     }
 }
 

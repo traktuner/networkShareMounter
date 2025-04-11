@@ -49,6 +49,8 @@
 		F7D940502C418B9300028F9A /* MountStatusDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D9404F2C418B9300028F9A /* MountStatusDescription.swift */; };
 		F7E2AF6F2C3061020063960F /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7E2AF6E2C3061020063960F /* dogeADAuth */; };
 		F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */; };
+		F7E9A2E22DA9721C00AB264F /* AuthProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E9A2E12DA9721C00AB264F /* AuthProfile.swift */; };
+		F7E9A2E42DA9725300AB264F /* AuthProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E9A2E32DA9725300AB264F /* AuthProfileManager.swift */; };
 		F7EF65CE2B3B4BEE00051D44 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CD2B3B4BEE00051D44 /* Notification.swift */; };
 		F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65CF2B3B4DFC00051D44 /* Logger.swift */; };
 		F7EF65D22B3B56A600051D44 /* AutomaticSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65D12B3B56A600051D44 /* AutomaticSignIn.swift */; };
@@ -117,6 +119,8 @@
 		F7D9404D2C41842700028F9A /* HelpPopoverShareStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpPopoverShareStatusView.swift; sourceTree = "<group>"; };
 		F7D9404F2C418B9300028F9A /* MountStatusDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountStatusDescription.swift; sourceTree = "<group>"; };
 		F7E727A92B03AA9A0036CF15 /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "Network Share Mounter/view/ShareViewController.swift"; sourceTree = SOURCE_ROOT; };
+		F7E9A2E12DA9721C00AB264F /* AuthProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProfile.swift; sourceTree = "<group>"; };
+		F7E9A2E32DA9725300AB264F /* AuthProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProfileManager.swift; sourceTree = "<group>"; };
 		F7EF65CD2B3B4BEE00051D44 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		F7EF65CF2B3B4DFC00051D44 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		F7EF65D12B3B56A600051D44 /* AutomaticSignIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticSignIn.swift; sourceTree = "<group>"; };
@@ -262,6 +266,8 @@
 			isa = PBXGroup;
 			children = (
 				F747F8652B6F81D400AC0772 /* MountStatus.swift */,
+				F7E9A2E32DA9725300AB264F /* AuthProfileManager.swift */,
+				F7E9A2E12DA9721C00AB264F /* AuthProfile.swift */,
 				F747F8632B6F814A00AC0772 /* AuthType.swift */,
 				F7EF65E52B3B582F00051D44 /* DogeAccount.swift */,
 				F77107B8274EC76200556B20 /* Mounter.swift */,
@@ -441,6 +447,7 @@
 				"",
 				"",
 				"",
+				"",
 			);
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -473,6 +480,7 @@
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
 				F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */,
 				F7EF65E62B3B582F00051D44 /* DogeAccount.swift in Sources */,
+				F7E9A2E42DA9725300AB264F /* AuthProfileManager.swift in Sources */,
 				F72264792CED189200173B18 /* CircleIconView.swift in Sources */,
 				F73429F92DA5767C0025985F /* AuthenticationView.swift in Sources */,
 				F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */,
@@ -482,6 +490,7 @@
 				F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
+				F7E9A2E22DA9721C00AB264F /* AuthProfile.swift in Sources */,
 				F72B13EA2B332987001BDEEA /* Menu.swift in Sources */,
 				F70457ED2B31A62E00506DF4 /* Errorcodes.swift in Sources */,
 				F77107BB274EC7D200556B20 /* config.swift in Sources */,

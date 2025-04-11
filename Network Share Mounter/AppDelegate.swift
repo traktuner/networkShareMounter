@@ -782,7 +782,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         // If share is not mounted, use the standard icon
                         Logger.app.debug("  🍰 Adding remote share \(share.networkShare, privacy: .public).")
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
-                        menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
+                        // Use shareDisplayName if available, otherwise networkShare
+                        let menuItemTitle = share.shareDisplayName ?? share.networkShare
+                        menuItem = NSMenuItem(title: NSLocalizedString(menuItemTitle, comment: "Menu item title for a specific share"),
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),
                                               keyEquivalent: "")
                         menuItem.representedObject = share.id

@@ -7,64 +7,25 @@
 //
 
 import SwiftUI
-
-/// Simple model for auth profiles (design only)
-struct AuthProfile: Identifiable {
-    var id = UUID()
-    var name: String
-    var username: String
-    var password: String
-    var useKerberos: Bool
-    var kerberosRealm: String
-    var symbolName: String
-    var symbolColor: Color
-    var hasValidTicket: Bool
-}
-
-/// Simple model for shares (design only)
-struct ShareItem: Identifiable {
-    var id = UUID()
-    var name: String
-    var url: String
-    var isMounted: Bool
-}
+import OSLog // Add OSLog for logging
 
 /// View for configuring authentication settings
 struct AuthenticationView: View {
-    // Beispiel-Daten für das Design
-    @State private var profiles = [
-        AuthProfile(
-            name: "Büro", 
-            username: "musterfrau", 
-            password: "••••••••", 
-            useKerberos: true, 
-            kerberosRealm: "UNI-ERLANGEN.DE", 
-            symbolName: "building.2", 
-            symbolColor: .blue, 
-            hasValidTicket: true
-        ),
-        AuthProfile(
-            name: "Home-Office", 
-            username: "homeuser", 
-            password: "••••••••", 
-            useKerberos: false, 
-            kerberosRealm: "", 
-            symbolName: "house", 
-            symbolColor: .green, 
-            hasValidTicket: false
-        )
-    ]
-    
-    @State private var shares = [
-        ShareItem(name: "Dokumente", url: "smb://server.example.com/documents", isMounted: true),
-        ShareItem(name: "Projekte", url: "smb://server.example.com/projects", isMounted: false)
-    ]
-    
-    @State private var selectedProfileID: UUID?
+    // Use @StateObject for the singleton managers
+    @StateObject private var profileManager = AuthProfileManager.shared
+
+    // Use the ID type from the model
+    @State private var selectedProfileID: String? // Changed from UUID to String (if AuthProfile.id is String)
     @State private var isAddingProfile = false
     @State private var isEditingProfile = false
     @State private var profileToEdit: AuthProfile?
     
+    // State variable to hold shares for the selected profile
+    @State private var currentAssociatedShares: [Share] = []
+    
+    // Access the Mounter
+    private let mounter = appDelegate.mounter!
+
     var body: some View {
         // Outer VStack to place Header above the split view
         VStack(alignment: .leading, spacing: 0) { 
@@ -96,147 +57,79 @@ struct AuthenticationView: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .padding(10)
         
-            // Main structure is the HStack splitting left and right panes
+            // Main structure using the extracted ProfileListView
             HStack(spacing: 0) {
-                // Profile list column 
-                VStack {
-                    List(selection: $selectedProfileID) {
-                        ForEach(profiles) { profile in
-                            HStack {
-                                Image(systemName: profile.symbolName)
-                                    .foregroundColor(.white)
-                                    .padding(6)
-                                    .background(
-                                        Circle()
-                                            .fill(profile.symbolColor)
-                                            .frame(width: 28, height: 28)
-                                    )
-                                
-                                VStack(alignment: .leading) {
-                                    Text(profile.name)
-                                        .font(.headline)
-                                    
-                                    Text(profile.useKerberos ? "Kerberos: \(profile.kerberosRealm)" : profile.username)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                if profile.useKerberos {
-                                    HStack {
-                                        Circle()
-                                            .fill(profile.hasValidTicket ? .green : .red)
-                                            .frame(width: 8, height: 8)
-                                        Text(profile.hasValidTicket ? "Ticket aktiv" : "Kein Ticket")
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                            }
-                            .tag(profile.id)
-                            .contextMenu {
-                                Button("Bearbeiten") {
-                                    profileToEdit = profile
-                                    isEditingProfile = true
-                                }
-                                Button("Löschen") {
-                                    if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
-                                        profiles.remove(at: index)
-                                        if selectedProfileID == profile.id {
-                                            selectedProfileID = profiles.first?.id
-                                        }
-                                    }
-                                }
-                                Divider()
-                                Button("Shares anzeigen") {
-                                    // Design-Platzhalter
-                                }
-                                if profile.useKerberos {
-                                    Divider()
-                                    Button("Ticket aktualisieren") {
-                                        if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
-                                            profiles[index].hasValidTicket = true
-                                        }
-                                    }
-                                }
+                ProfileListView(
+                    profileManager: profileManager, 
+                    selectedProfileID: $selectedProfileID,
+                    onAddProfile: { isAddingProfile = true },
+                    onEditProfile: { profile in
+                        profileToEdit = profile
+                        isEditingProfile = true
+                    },
+                    onRemoveProfile: { profile in
+                        Task {
+                            try? await profileManager.removeProfile(profile)
+                            if selectedProfileID == profile.id {
+                                selectedProfileID = profileManager.profiles.first?.id
                             }
                         }
+                    },
+                    onRefreshTicket: { profile in
+                        // TODO: Implement actual Kerberos ticket refresh logic
+                        Logger.viewCycle.info("Ticket refresh requested for profile \(profile.displayName)")
                     }
-                    
-                    HStack {
-                        Button(action: { isAddingProfile = true }) {
-                            Image(systemName: "plus")
-                        }
-                        .help("Neues Profil hinzufügen")
-                        
-                        Button(action: {
-                            if let selectedID = selectedProfileID,
-                               let index = profiles.firstIndex(where: { $0.id == selectedID }) {
-                                profiles.remove(at: index)
-                                selectedProfileID = profiles.first?.id
-                            }
-                        }) {
-                            Image(systemName: "minus")
-                        }
-                        .help("Profil entfernen")
-                        .disabled(selectedProfileID == nil)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                }
+                )
                 .frame(width: 300)
                 
                 // Divider between columns
                 Divider()
                 
-                // Right Detail Column - Now only contains the ScrollView
-                // VStack(alignment: .leading, spacing: 0) { // Original VStack removed/merged
-                    
-                    // Header Section removed from here 
-
-                    // Profile details column (inside ScrollView)
-                    ScrollView {
-                        if let selectedID = selectedProfileID,
-                           let profile = profiles.first(where: { $0.id == selectedID }) {
-                            ProfileDetailView(
-                                profile: profile,
-                                associatedShares: shares,
-                                onEditProfile: {
-                                    profileToEdit = profile
-                                    isEditingProfile = true
-                                },
-                                onRefreshTicket: {
-                                    if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
-                                        profiles[index].hasValidTicket = true
-                                    }
-                                }
-                            )
-                        } else {
-                            VStack(alignment: .center) {
-                                Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
-                                    .foregroundColor(.secondary)
-                                    // Center placeholder text vertically if needed
-                                    // .frame(maxHeight: .infinity) 
+                // Right Detail Column
+                ScrollView {
+                    if let selectedID = selectedProfileID,
+                       let profile = profileManager.profiles.first(where: { $0.id == selectedID }) {
+                        // Pass the state variable holding the filtered shares
+                        ProfileDetailView(
+                            profile: profile,
+                            associatedShares: currentAssociatedShares, // Pass the state variable
+                            onEditProfile: {
+                                profileToEdit = profile
+                                isEditingProfile = true
+                            },
+                            onRefreshTicket: {
+                                // TODO: Implement actual Kerberos ticket refresh logic
+                                Logger.viewCycle.info("Ticket refresh requested for profile \(profile.displayName)")
                             }
-                            // Give the placeholder some padding and make it fill width
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(20) 
+                        )
+                    } else {
+                        VStack(alignment: .center) {
+                            Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
+                                .foregroundColor(.secondary)
+                                // Center placeholder text vertically if needed
+                                // .frame(maxHeight: .infinity) 
                         }
+                        // Give the placeholder some padding and make it fill width
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(20) 
                     }
-                    // Apply padding around the ScrollView content area
-                    .padding(20)
-                // } // End of original Right VStack
-                // .padding(20) // Padding removed from here
-
+                }
+                // Apply padding around the ScrollView content area
+                .padding(20)
             } // End of Main HStack
         } // End of Outer VStack
+        // Fetch associated shares when the selected profile changes
+        .onChange(of: selectedProfileID) { _, newProfileID in
+            Task {
+                await loadAssociatedShares(for: newProfileID)
+            }
+        }
         .sheet(isPresented: $isAddingProfile) {
-            ProfileEditorView(isPresented: $isAddingProfile, onSave: { newProfile in
-                profiles.append(newProfile)
-                selectedProfileID = newProfile.id
+            ProfileEditorView(isPresented: $isAddingProfile, onSave: { newProfile, password in
+                Task {
+                    try? await profileManager.addProfile(newProfile, password: password)
+                    selectedProfileID = newProfile.id
+                }
             })
         }
         .sheet(isPresented: $isEditingProfile) {
@@ -244,12 +137,138 @@ struct AuthenticationView: View {
                 ProfileEditorView(
                     isPresented: $isEditingProfile,
                     existingProfile: profile,
-                    onSave: { updatedProfile in
-                        if let index = profiles.firstIndex(where: { $0.id == updatedProfile.id }) {
-                            profiles[index] = updatedProfile
+                    onSave: { updatedProfile, password in
+                        Task {
+                            try? await profileManager.updateProfile(updatedProfile)
+                            if let pwd = password, !pwd.isEmpty {
+                                try? await profileManager.savePassword(for: updatedProfile, password: pwd)
+                            }
                         }
                     }
                 )
+            }
+        }
+    }
+    
+    /// Asynchronously loads shares associated with the given profile ID.
+    private func loadAssociatedShares(for profileID: String?) async {
+        guard let id = profileID else {
+            currentAssociatedShares = []
+            return
+        }
+        let allShares = await mounter.shareManager.allShares
+        currentAssociatedShares = allShares.filter { $0.profileID == id }
+        Logger.viewCycle.info("Loaded \(currentAssociatedShares.count) shares associated with profile ID \(id)")
+    }
+}
+
+// MARK: - Subviews
+
+/// View for displaying the list of authentication profiles.
+struct ProfileListView: View {
+    // Use ObservedObject for managers passed from the parent
+    @ObservedObject var profileManager: AuthProfileManager
+    @Binding var selectedProfileID: String?
+    
+    // Actions to be triggered in the parent view
+    var onAddProfile: () -> Void
+    var onEditProfile: (AuthProfile) -> Void
+    var onRemoveProfile: (AuthProfile) -> Void // Action for '-' button
+    var onRefreshTicket: (AuthProfile) -> Void // Action for context menu
+
+    var body: some View {
+        VStack {
+            List(selection: $selectedProfileID) {
+                ForEach(profileManager.profiles) { profile in
+                    ProfileRowView(profile: profile)
+                        .tag(profile.id)
+                        .contextMenu {
+                            Button("Bearbeiten") {
+                                onEditProfile(profile)
+                            }
+                            Button("Löschen") {
+                                // Direct removal via manager for context menu
+                                Task {
+                                    try? await profileManager.removeProfile(profile)
+                                    // Deselect if the selected one was deleted
+                                    if selectedProfileID == profile.id {
+                                        selectedProfileID = profileManager.profiles.first?.id
+                                    }
+                                }
+                            }
+                            if profile.useKerberos {
+                                Divider()
+                                Button("Ticket aktualisieren") {
+                                    onRefreshTicket(profile)
+                                }
+                            }
+                        }
+                }
+            }
+            
+            // Toolbar for Add/Remove buttons
+            HStack {
+                Button(action: onAddProfile) {
+                    Image(systemName: "plus")
+                }
+                .help("Neues Profil hinzufügen")
+                
+                Button(action: {
+                    if let selectedID = selectedProfileID,
+                       let profileToRemove = profileManager.profiles.first(where: { $0.id == selectedID }) {
+                        onRemoveProfile(profileToRemove)
+                    }
+                }) {
+                    Image(systemName: "minus")
+                }
+                .help("Profil entfernen")
+                .disabled(selectedProfileID == nil)
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
+/// View for displaying a single row in the profile list.
+struct ProfileRowView: View {
+    let profile: AuthProfile
+
+    var body: some View {
+        HStack {
+            Image(systemName: profile.symbolName ?? "person.circle") // Use default symbol if nil
+                .foregroundColor(.white)
+                .padding(6)
+                .background(
+                    Circle()
+                        .fill(profile.symbolColor)
+                        .frame(width: 28, height: 28)
+                )
+            
+            VStack(alignment: .leading) {
+                Text(profile.displayName) // Use displayName now
+                    .font(.headline)
+                
+                Text(profile.useKerberos ? "Kerberos: \(profile.kerberosRealm ?? "N/A")" : profile.username ?? "N/A")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // Display Kerberos ticket status (needs real logic)
+            if profile.useKerberos {
+                HStack {
+                    Circle()
+                        // TODO: Replace with actual ticket status check
+                        .fill(profile.hasValidTicket ?? false ? .green : .red)
+                        .frame(width: 8, height: 8)
+                    Text(profile.hasValidTicket ?? false ? "Ticket aktiv" : "Kein Ticket")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
         }
     }
@@ -257,10 +276,13 @@ struct AuthenticationView: View {
 
 struct ProfileDetailView: View {
     let profile: AuthProfile
-    let associatedShares: [ShareItem]
+    let associatedShares: [Share] // Use the real Share model
     let onEditProfile: () -> Void
     let onRefreshTicket: () -> Void
     
+    // Access the Mounter
+    private let mounter = appDelegate.mounter!
+
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             // Profile header
@@ -336,8 +358,9 @@ struct ProfileDetailView: View {
             // Associated shares
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Verknüpfte Network Shares")
+                    Text("Zugeordnete Shares (\(associatedShares.count))")
                         .font(.headline)
+                        .padding(.bottom, 4)
                     
                     Spacer()
                     
@@ -348,82 +371,108 @@ struct ProfileDetailView: View {
                 }
                 
                 if associatedShares.isEmpty {
-                    Text("Keine verknüpften Shares")
+                    Text("Diesem Profil sind keine Shares zugeordnet.")
                         .foregroundColor(.secondary)
-                        .italic()
-                        .padding(.top, 4)
                 } else {
-                    ForEach(associatedShares) { share in
-                        HStack {
-                            Image(systemName: "folder")
-                                .foregroundColor(.secondary)
-                            Text(share.name)
-                            Spacer()
-                            Button {
-                                // Design-Platzhalter
-                            } label: {
-                                Image(systemName: "xmark")
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(associatedShares) { share in
+                            HStack {
+                                Image(systemName: "externaldrive") // Generic share icon
+                                    .foregroundColor(.secondary)
+                                // Use shareDisplayName if available, otherwise networkShare
+                                Text(share.shareDisplayName ?? share.networkShare)
+                                Spacer()
+                                // Show mount status icon/text
+                                Circle()
+                                     .fill(mountStatusColor(for: share.mountStatus))
+                                     .frame(width: 8, height: 8)
+                                Text(share.mountStatus.rawValue)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            .buttonStyle(.plain)
+                            .padding(.vertical, 2)
+                            // Add context menu for share actions (optional)
+                            .contextMenu {
+                                Button(share.mountStatus == .mounted ? "Trennen" : "Verbinden") {
+                                    Task {
+                                        if share.mountStatus == .mounted {
+                                            await mounter.unmountShare(for: share)
+                                        } else {
+                                            await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
+                                        }
+                                        // Note: Reloading shares here won't update this specific view directly
+                                        // unless AuthenticationView reloads its shareManager data.
+                                        // Consider using @ObservedObject or other state management if needed.
+                                    }
+                                }
+                                Button("Profilzuweisung aufheben") {
+                                    // TODO: Implement logic to remove profile from share
+                                    Logger.viewCycle.info("Remove profile assignment requested for share \(share.networkShare)")
+                                }
+                            }
                         }
-                        .padding(.vertical, 4)
                     }
-                    
-                    HStack {
-                        Spacer()
-                        Button("Alle verbinden") {
-                            // Design-Platzhalter
-                        }
-                        
-                        Button("Alle trennen") {
-                            // Design-Platzhalter
-                        }
-                    }
-                    .padding(.top, 8)
                 }
             }
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+    
+    /// Returns the appropriate color for the mount status indicator.
+    private func mountStatusColor(for status: MountStatus) -> Color {
+        switch status {
+        case .mounted:
+            return .green
+        case .unmounted, .queued:
+            return .gray
+        case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unreachable:
+            return .red
+        case .unknown:
+            return .orange
+        }
+    }
 }
 
 struct ProfileEditorView: View {
     @Binding var isPresented: Bool
     var existingProfile: AuthProfile?
-    var onSave: (AuthProfile) -> Void
+    // Adjust onSave to accept optional password separately
+    var onSave: (AuthProfile, String?) -> Void // Changed signature
     
     @State private var profileName: String
     @State private var username: String
-    @State private var password: String
+    @State private var password: String // Keep password state for UI
     @State private var useKerberos: Bool
     @State private var kerberosRealm: String
     @State private var selectedSymbol: String
     @State private var selectedColor: Color
     
-    init(isPresented: Binding<Bool>, existingProfile: AuthProfile? = nil, onSave: @escaping (AuthProfile) -> Void) {
+    // To track if password field was actually edited
+    @State private var passwordChanged: Bool = false
+    
+    init(isPresented: Binding<Bool>, existingProfile: AuthProfile? = nil, onSave: @escaping (AuthProfile, String?) -> Void) {
         self._isPresented = isPresented
         self.existingProfile = existingProfile
-        self.onSave = onSave
+        self.onSave = onSave // Updated signature
         
         // Initialize state from existing profile or with defaults
         if let profile = existingProfile {
-            self._profileName = State(initialValue: profile.name)
-            self._username = State(initialValue: profile.username)
-            self._password = State(initialValue: profile.password)
+            self._profileName = State(initialValue: profile.displayName)
+            self._username = State(initialValue: profile.username ?? "")
+            self._password = State(initialValue: "") // Start with empty password field for existing profiles
             self._useKerberos = State(initialValue: profile.useKerberos)
-            self._kerberosRealm = State(initialValue: profile.kerberosRealm)
-            self._selectedSymbol = State(initialValue: profile.symbolName)
+            self._kerberosRealm = State(initialValue: profile.kerberosRealm ?? "")
+            self._selectedSymbol = State(initialValue: profile.symbolName ?? "person.circle")
             self._selectedColor = State(initialValue: profile.symbolColor)
         } else {
+            // Defaults for new profile
             self._profileName = State(initialValue: "")
             self._username = State(initialValue: "")
             self._password = State(initialValue: "")
             self._useKerberos = State(initialValue: false)
             self._kerberosRealm = State(initialValue: "")
-            self._selectedSymbol = State(initialValue: "person")
+            self._selectedSymbol = State(initialValue: "person.circle")
             self._selectedColor = State(initialValue: .blue)
         }
     }
@@ -510,7 +559,28 @@ struct ProfileEditorView: View {
                     TextField("z.B. UNI-ERLANGEN.DE", text: $kerberosRealm)
                         .textFieldStyle(.roundedBorder)
                 }
-            } else {
+                 // Optionally show username/password fields even for Kerberos if needed for ticket fetching
+                 // Add a comment explaining why they might be needed
+                 Text("Benutzername/Passwort (optional für Kerberos-Ticket Aktualisierung):")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                     VStack(alignment: .leading, spacing: 4) {
+                        Text("Benutzername:")
+                        TextField("Optional", text: $username)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Passwort:")
+                        SecureField("Optional - Nur eingeben zum Ändern", text: $password)
+                            .textFieldStyle(.roundedBorder)
+                            .onChange(of: password) { _, _ in passwordChanged = true }
+                    }
+                }
+                
+            } else { // Standard Username/Password Auth
                 VStack(alignment: .leading, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Benutzername:")
@@ -520,8 +590,10 @@ struct ProfileEditorView: View {
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Passwort:")
-                        SecureField("Passwort eingeben", text: $password)
+                        SecureField(existingProfile == nil ? "Passwort eingeben" : "Neues Passwort eingeben (optional)", text: $password)
                             .textFieldStyle(.roundedBorder)
+                             // Track if password field was changed
+                            .onChange(of: password) { _, _ in passwordChanged = true }
                     }
                 }
             }
@@ -537,25 +609,33 @@ struct ProfileEditorView: View {
                 Spacer()
                 
                 Button("Speichern") {
-                    let profile = AuthProfile(
-                        id: existingProfile?.id ?? UUID(),
-                        name: profileName,
-                        username: username,
-                        password: password,
+                    // Create the profile metadata object
+                    var profileToSave = AuthProfile(
+                        id: existingProfile?.id ?? UUID().uuidString, // Use existing ID or generate new one
+                        displayName: profileName,
+                        username: username.isEmpty ? nil : username, // Store nil if empty
                         useKerberos: useKerberos,
-                        kerberosRealm: kerberosRealm,
+                        kerberosRealm: kerberosRealm.isEmpty ? nil : kerberosRealm, // Store nil if empty
                         symbolName: selectedSymbol,
-                        symbolColor: selectedColor,
-                        hasValidTicket: existingProfile?.hasValidTicket ?? false
+                        symbolColor: selectedColor // This uses the setter which converts to Data
+                        // hasValidTicket is managed elsewhere, not set here
                     )
                     
-                    onSave(profile)
+                    // Determine the password to save: only if changed and not empty
+                    let passwordToSave: String? = (passwordChanged && !password.isEmpty) ? password : nil
+                                        
+                    // Call the adjusted onSave closure
+                    onSave(profileToSave, passwordToSave)
                     isPresented = false
                 }
                 .buttonStyle(.borderedProminent)
+                // Adjust disabled logic
                 .disabled(profileName.isEmpty || 
-                         (useKerberos && kerberosRealm.isEmpty) ||
-                         (!useKerberos && username.isEmpty))
+                         (useKerberos && kerberosRealm.isEmpty) || 
+                         (!useKerberos && username.isEmpty && existingProfile == nil) || // Require username for new non-Kerberos profiles
+                         (!useKerberos && username.isEmpty && password.isEmpty && existingProfile != nil && !existingProfile!.requiresPasswordInKeychain) // Allow saving existing profile without username/password if not needed
+                         // Add more sophisticated validation if needed
+                         )
             }
         }
         .padding(20)

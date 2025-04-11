@@ -195,6 +195,9 @@ actor ShareManager {
             }
         }
         
+        // Read the display name from the dictionary, default to nil if not present
+        let shareDisplayName = shareElement[Defaults.shareDisplayNameKey]
+        
         // Create and return new Share object with configured parameters
         let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
@@ -202,7 +205,8 @@ actor ShareManager {
                                          username: userName,
                                          password: password,
                                          mountPoint: shareElement[Defaults.mountPoint],
-                                         managed: true)
+                                         managed: true,
+                                         shareDisplayName: shareDisplayName)
         return(newShare)
     }
     
@@ -214,7 +218,12 @@ actor ShareManager {
         //
         // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
         let shareRectified = shareElement.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-        let newShare = Share.createShare(networkShare: shareRectified, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+        // Legacy shares don't have a display name, pass nil
+        let newShare = Share.createShare(networkShare: shareRectified, 
+                                         authType: AuthType.krb, 
+                                         mountStatus: MountStatus.unmounted, 
+                                         managed: true, 
+                                         shareDisplayName: nil)
         return(newShare)
     }
     
@@ -246,7 +255,16 @@ actor ShareManager {
         }
         
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Defaults.username], password: password, managed: false)
+        // Read the display name from the dictionary, default to nil if not present
+        let shareDisplayName = shareElement[Defaults.shareDisplayNameKey]
+        
+        let newShare = Share.createShare(networkShare: shareUrlString, 
+                                         authType: shareAuthType, 
+                                         mountStatus: mountStatus, 
+                                         username: shareElement[Defaults.username], 
+                                         password: password, 
+                                         managed: false,
+                                         shareDisplayName: shareDisplayName)
         return(newShare)
     }
     
@@ -410,7 +428,12 @@ actor ShareManager {
         // Fall back to legacy user-defined share format
         else if let nwShares: [String] = userDefaults.array(forKey: Defaults.customSharesKey) as? [String], !nwShares.isEmpty {
             for share in nwShares {
-                addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
+                // Legacy shares don't have a display name, pass nil
+                addShare(Share.createShare(networkShare: share, 
+                                         authType: AuthType.krb, 
+                                         mountStatus: MountStatus.unmounted, 
+                                         managed: false,
+                                         shareDisplayName: nil))
             }
             removeLegacyShareConfigs()
         }
@@ -448,6 +471,9 @@ actor ShareManager {
                 if let username = share.username {
                     shareConfig[Defaults.username] = username
                 }
+                // Add the display name to the config dictionary if it exists
+                shareConfig[Defaults.shareDisplayNameKey] = share.shareDisplayName
+                
                 // shareConfig[Settings.location] = share.location
                 userDefaultsConfigs.append(shareConfig)
             }
