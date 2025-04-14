@@ -32,4 +32,6 @@ extension Logger {
     static let login = Logger(subsystem: subsystem, category: "login")
     static let finderController = Logger(subsystem: subsystem, category: "finderController")
     static let dataModel = Logger(subsystem: subsystem, category: "dataModel")
+    static let authenticationView = Logger(subsystem: subsystem, category: "authenticationView")
+    static let networkSharesView = Logger(subsystem: subsystem, category: "networkSharesView")
 }

@@ -256,14 +256,18 @@ struct NetworkSharesView: View {
             }
         }
         .sheet(isPresented: $showAddSheet) {
-            // TODO: Implement AddShareView properly to work with ShareManager
-            Text("Add Share View Placeholder") // Placeholder until AddShareView is updated
-//            AddShareView(isPresented: $showAddSheet, onSave: { newShare in
-//                // TODO: Replace with call to ShareManager/Mounter to add the share
-//                // shares.append(newShare)
-//                // selectedShareID = newShare.id
-//                Task { await loadShares() } // Reload after potential add
-//            })
+            // Present the new AddShareView, passing dependencies
+            AddShareView(
+                isPresented: $showAddSheet,
+                mounter: mounter,
+                profileManager: AuthProfileManager.shared, // Assuming singleton access is ok here
+                onSave: { 
+                    // Reload shares after the sheet is dismissed and save is potentially complete
+                    Task {
+                        await loadShares()
+                    } 
+                }
+            )
         }
 //        .sheet(isPresented: $showProfileSelector) { // Deactivated for now
 //            if let share = shareToAssignProfile {

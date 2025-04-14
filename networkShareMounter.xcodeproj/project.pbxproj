@@ -21,6 +21,14 @@
 		F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F742ACF52861CB62009864DF /* AppStatistics.swift */; };
 		F7432E722D11A582009B499B /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7432E712D11A582009B499B /* dogeADAuth */; };
 		F7432E752D11A5BF009B499B /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7432E742D11A5BF009B499B /* dogeADAuth */; };
+		F743AC8C2DAC42C100B9312A /* AuthenticationHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC8B2DAC42C100B9312A /* AuthenticationHeaderView.swift */; };
+		F743AC8E2DAC42CA00B9312A /* DetailColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC8D2DAC42CA00B9312A /* DetailColumnView.swift */; };
+		F743AC902DAC42DA00B9312A /* ProfileDetailPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC8F2DAC42DA00B9312A /* ProfileDetailPlaceholderView.swift */; };
+		F743AC922DAC42E300B9312A /* ProfileDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC912DAC42E300B9312A /* ProfileDetailView.swift */; };
+		F743AC942DAC42EB00B9312A /* ProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC932DAC42EB00B9312A /* ProfileEditorView.swift */; };
+		F743AC962DAC42F300B9312A /* ProfileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC952DAC42F300B9312A /* ProfileListView.swift */; };
+		F743AC982DAC42FB00B9312A /* ProfileRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC972DAC42FB00B9312A /* ProfileRowView.swift */; };
+		F743AC9A2DAC4F0E00B9312A /* AddShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F743AC992DAC4F0E00B9312A /* AddShareView.swift */; };
 		F747F8642B6F814A00AC0772 /* AuthType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747F8632B6F814A00AC0772 /* AuthType.swift */; };
 		F747F8662B6F81D400AC0772 /* MountStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747F8652B6F81D400AC0772 /* MountStatus.swift */; };
 		F75964682D13E6CA00916D06 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F75964672D13E6CA00916D06 /* dogeADAuth */; };
@@ -94,10 +102,19 @@
 		F73429F62DA5767C0025985F /* SettingsWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowManager.swift; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
 		F742ACF52861CB62009864DF /* AppStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatistics.swift; sourceTree = "<group>"; };
+		F743AC8B2DAC42C100B9312A /* AuthenticationHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationHeaderView.swift; sourceTree = "<group>"; };
+		F743AC8D2DAC42CA00B9312A /* DetailColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailColumnView.swift; sourceTree = "<group>"; };
+		F743AC8F2DAC42DA00B9312A /* ProfileDetailPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDetailPlaceholderView.swift; sourceTree = "<group>"; };
+		F743AC912DAC42E300B9312A /* ProfileDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDetailView.swift; sourceTree = "<group>"; };
+		F743AC932DAC42EB00B9312A /* ProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorView.swift; sourceTree = "<group>"; };
+		F743AC952DAC42F300B9312A /* ProfileListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileListView.swift; sourceTree = "<group>"; };
+		F743AC972DAC42FB00B9312A /* ProfileRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRowView.swift; sourceTree = "<group>"; };
+		F743AC992DAC4F0E00B9312A /* AddShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddShareView.swift; sourceTree = "<group>"; };
 		F747F8632B6F814A00AC0772 /* AuthType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthType.swift; sourceTree = "<group>"; };
 		F747F8652B6F81D400AC0772 /* MountStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountStatus.swift; sourceTree = "<group>"; };
 		F765D0542A852911001D5116 /* ShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareManager.swift; sourceTree = "<group>"; };
 		F765D0562A852935001D5116 /* Share.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Share.swift; sourceTree = "<group>"; };
+		F76FC9A32DAC350F00B68E4C /* ProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorView.swift; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
@@ -205,12 +222,21 @@
 		F73429F72DA5767C0025985F /* views */ = {
 			isa = PBXGroup;
 			children = (
+				F743AC992DAC4F0E00B9312A /* AddShareView.swift */,
+				F743AC8B2DAC42C100B9312A /* AuthenticationHeaderView.swift */,
 				F73429F12DA5767C0025985F /* AuthenticationView.swift */,
+				F743AC8D2DAC42CA00B9312A /* DetailColumnView.swift */,
 				F73429F22DA5767C0025985F /* GeneralSettingsView.swift */,
 				F73429F32DA5767C0025985F /* NetworkSharesView.swift */,
+				F76FC9A32DAC350F00B68E4C /* ProfileEditorView.swift */,
 				F73429F42DA5767C0025985F /* README.md */,
 				F73429F52DA5767C0025985F /* SettingsView.swift */,
 				F73429F62DA5767C0025985F /* SettingsWindowManager.swift */,
+				F743AC8F2DAC42DA00B9312A /* ProfileDetailPlaceholderView.swift */,
+				F743AC912DAC42E300B9312A /* ProfileDetailView.swift */,
+				F743AC932DAC42EB00B9312A /* ProfileEditorView.swift */,
+				F743AC952DAC42F300B9312A /* ProfileListView.swift */,
+				F743AC972DAC42FB00B9312A /* ProfileRowView.swift */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -376,7 +402,7 @@
 					authType,
 				);
 				LastSwiftUpdateCheck = 1630;
-				LastUpgradeCheck = 1610;
+				LastUpgradeCheck = 1630;
 				ORGANIZATIONNAME = "FAU - Regionales Rechenzentrum Erlangen";
 				TargetAttributes = {
 					F706FED02D8EABCF001C2785 = {
@@ -448,6 +474,8 @@
 				"",
 				"",
 				"",
+				"",
+				"",
 			);
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -465,6 +493,7 @@
 				F7E727AA2B03AA9A0036CF15 /* ShareViewController.swift in Sources */,
 				F79B15C4274E800C00C322A8 /* NetworkShareMounterViewController.swift in Sources */,
 				F7EF65F52B3B5DDC00051D44 /* Data.swift in Sources */,
+				F743AC962DAC42F300B9312A /* ProfileListView.swift in Sources */,
 				F7EF65DC2B3B575C00051D44 /* SRVRecord.swift in Sources */,
 				F7A9B2E62B04FCF600E6E4EA /* HelpPopoverView.swift in Sources */,
 				F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */,
@@ -475,20 +504,24 @@
 				F7EF65F92B3B5E0800051D44 /* URL.swift in Sources */,
 				F7D9404E2C41842700028F9A /* HelpPopoverShareStatusView.swift in Sources */,
 				F7EF65EC2B3B5C8B00051D44 /* PreferenceKeys.swift in Sources */,
+				F743AC9A2DAC4F0E00B9312A /* AddShareView.swift in Sources */,
 				F7EF65EE2B3B5CA700051D44 /* PreferenceManager.swift in Sources */,
 				F7EF65F02B3B5CCD00051D44 /* FAU.swift in Sources */,
 				F765D0552A852911001D5116 /* ShareManager.swift in Sources */,
+				F743AC942DAC42EB00B9312A /* ProfileEditorView.swift in Sources */,
 				F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */,
 				F7EF65E62B3B582F00051D44 /* DogeAccount.swift in Sources */,
 				F7E9A2E42DA9725300AB264F /* AuthProfileManager.swift in Sources */,
 				F72264792CED189200173B18 /* CircleIconView.swift in Sources */,
 				F73429F92DA5767C0025985F /* AuthenticationView.swift in Sources */,
+				F743AC982DAC42FB00B9312A /* ProfileRowView.swift in Sources */,
 				F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */,
 				F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */,
 				F73429FC2DA5767C0025985F /* SettingsWindowManager.swift in Sources */,
 				F73429FE2DA5767C0025985F /* GeneralSettingsView.swift in Sources */,
 				F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
+				F743AC8C2DAC42C100B9312A /* AuthenticationHeaderView.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
 				F7E9A2E22DA9721C00AB264F /* AuthProfile.swift in Sources */,
 				F72B13EA2B332987001BDEEA /* Menu.swift in Sources */,
@@ -500,9 +533,12 @@
 				F7EF65E32B3B57FC00051D44 /* AccountsManager.swift in Sources */,
 				F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */,
 				F7D940502C418B9300028F9A /* MountStatusDescription.swift in Sources */,
+				F743AC902DAC42DA00B9312A /* ProfileDetailPlaceholderView.swift in Sources */,
 				F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */,
 				F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */,
+				F743AC922DAC42E300B9312A /* ProfileDetailView.swift in Sources */,
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
+				F743AC8E2DAC42CA00B9312A /* DetailColumnView.swift in Sources */,
 				F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */,
 				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,
 				F7EF65F32B3B5DBB00051D44 /* String.swift in Sources */,
@@ -805,7 +841,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match Development de.fau.rrze.NetworkShareMounter macos";
-				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;

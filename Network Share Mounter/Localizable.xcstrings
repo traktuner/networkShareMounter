@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "⚠️ Authentication problem..." : {
       "comment" : "Authentication problem",
       "localizations" : {
@@ -114,13 +117,16 @@
         }
       }
     },
-    "Alle trennen" : {
-
-    },
-    "Alle verbinden" : {
+    "Aktives Kerberos-Ticket gefunden" : {
 
     },
     "Anmeldedaten" : {
+
+    },
+    "Anzeigename (optional)" : {
+
+    },
+    "Ausgewähltes Profil entfernen" : {
 
     },
     "authenticate-share-button" : {
@@ -601,10 +607,13 @@
     "Bearbeiten" : {
 
     },
-    "Benutzername eingeben" : {
+    "Benutzername (opt.):" : {
 
     },
     "Benutzername:" : {
+
+    },
+    "Benutzername/Passwort (optional für Kerberos-Ticket Aktualisierung):" : {
 
     },
     "Bezeichnung:" : {
@@ -808,6 +817,9 @@
         }
       }
     },
+    "Diesem Profil sind keine Shares zugeordnet." : {
+
+    },
     "Does not exist" : {
       "comment" : "Does not exist"
     },
@@ -819,6 +831,9 @@
     },
     "Error creating mount directory" : {
       "comment" : "Error creating mount directory"
+    },
+    "Error: Profile to edit not found." : {
+
     },
     "errorOnMount" : {
       "extractionState" : "manual",
@@ -878,6 +893,9 @@
         }
       }
     },
+    "Gespeichert im Schlüsselbund" : {
+
+    },
     "help-auth-error" : {
       "comment" : "Help text shown if some shares are not authenticated"
     },
@@ -917,7 +935,13 @@
     "Invalid mount path" : {
       "comment" : "Invalid mount path"
     },
+    "Kein aktives Kerberos-Ticket gefunden" : {
+
+    },
     "Kein gültiges Ticket" : {
+
+    },
+    "Kein Profil (Standard/System)" : {
 
     },
     "Kein Ticket" : {
@@ -926,10 +950,13 @@
     "Keine Netzwerk-Shares konfiguriert" : {
 
     },
-    "Keine verknüpften Shares" : {
+    "Keine Profile definiert." : {
 
     },
-    "Keines" : {
+    "Keine Shares zugeordnet." : {
+
+    },
+    "Keine weiteren Shares zum Zuordnen verfügbar." : {
 
     },
     "Kerberos authentication error" : {
@@ -1053,9 +1080,6 @@
         }
       }
     },
-    "Name:" : {
-
-    },
     "Network connectivity cannot be tested" : {
       "comment" : "Network connectivity cannot be tested",
       "localizations" : {
@@ -1136,7 +1160,10 @@
     "Network Shares" : {
 
     },
-    "Neuen Network Share hinzufügen" : {
+    "Netzwerkpfad (z.B. smb://server/pfad)" : {
+
+    },
+    "Neuen Share hinzufügen" : {
 
     },
     "Neues Profil erstellen" : {
@@ -1297,9 +1324,6 @@
         }
       }
     },
-    "Passwort eingeben" : {
-
-    },
     "Passwort:" : {
 
     },
@@ -1382,6 +1406,7 @@
     },
     "Preferences" : {
       "comment" : "Preferences",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1415,28 +1440,16 @@
         }
       }
     },
-    "Profil ändern..." : {
-
-    },
-    "Profil auswählen" : {
-
-    },
     "Profil bearbeiten" : {
 
     },
-    "Profil entfernen" : {
-
-    },
-    "Profil zuweisen" : {
-
-    },
-    "Profil zuweisen (optional):" : {
-
-    },
-    "Profil zuweisen..." : {
+    "Profildetails" : {
 
     },
     "Profilzuweisung aufheben" : {
+
+    },
+    "Prüfe..." : {
 
     },
     "queued" : {
@@ -1535,7 +1548,7 @@
         }
       }
     },
-    "Server-URL:" : {
+    "Share Details" : {
 
     },
     "Share does not exist" : {
@@ -1573,6 +1586,9 @@
         }
       }
     },
+    "Share hinzufügen..." : {
+
+    },
     "Share is already mounted" : {
       "comment" : "Share is already mounted",
       "localizations" : {
@@ -1608,7 +1624,7 @@
         }
       }
     },
-    "Shares anzeigen" : {
+    "Shares auswählen" : {
 
     },
     "ShareView-Text" : {
@@ -1651,9 +1667,6 @@
           }
         }
       }
-    },
-    "smb://server.example.com/share" : {
-
     },
     "Software Update" : {
       "comment" : "Software update section title",
@@ -2039,10 +2052,7 @@
     "Verbinden" : {
 
     },
-    "Verknüpfen..." : {
-
-    },
-    "Verknüpfte Network Shares" : {
+    "Verbinden/Trennen" : {
 
     },
     "Version" : {
@@ -2054,16 +2064,19 @@
     "Vorschau:" : {
 
     },
+    "Wählen Sie ein Authentifizierungsprofil aus, das für diesen Share verwendet werden soll. Wenn kein Profil ausgewählt wird, werden Standard-Systemmechanismen (z.B. Kerberos) versucht." : {
+
+    },
     "Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil" : {
 
     },
-    "z.B. Arbeitsdokumente" : {
+    "Zugehöriges Profil:" : {
 
     },
-    "z.B. Büro oder Home-Office" : {
+    "Zugeordnete Shares" : {
 
     },
-    "z.B. UNI-ERLANGEN.DE" : {
+    "Zugeordnete Shares (%lld)" : {
 
     }
   },

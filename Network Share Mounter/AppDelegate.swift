@@ -50,9 +50,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// This provides the app's primary user interface through a context menu.
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     
-    /// The main application window used for displaying preferences.
-    var window = NSWindow()
-    
     /// The path where network shares are mounted.
     /// This path is used as the default location for all mounted shares.
     var mountpath = ""
@@ -188,9 +185,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Synchronize Sparkle settings with current preferences
         synchronizeSparkleSettings()
         
-        // Prevent window from being deallocated when closed
-        window.isReleasedWhenClosed = false
-        
         // Initialize the Mounter instance
         mounter = Mounter()
         
@@ -201,9 +195,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
-        
-        // Set the main window's content view controller
-        window.contentViewController = NetworkShareMounterViewController.newInstance()
         
         // Asynchronously initialize the app
         Task {
@@ -584,36 +575,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.open(openURL)
     }
 
-    /// Shows the preferences window.
-    ///
-    /// This method:
-    /// 1. Configures the window properties (title, style)
-    /// 2. Centers the window on screen
-    /// 3. Activates the app and brings the window to front
-    /// 4. Makes the window the key window to receive keyboard input
-    ///
-    /// - Parameter sender: The object that triggered the action
-    @objc func showWindow(_ sender: Any?) {
-        // Configure window appearance and behavior
-        window.title = NSLocalizedString("Preferences", comment: "Preferences")
-        window.styleMask.insert([.closable])
-        
-        // Position the window at the center of the current display
-        window.center()
-        
-        // Activate the app and bring the window to front
-        NSApp.activate(ignoringOtherApps: true)
-        window.orderFrontRegardless()
-        
-        // Make this window the key window
-        window.makeKey()
-        
-        // MARK: - Potential improvements
-        // TODO: Consider adding a dedicated WindowController for better management
-        // TODO: Evaluate if titlebar transparency is needed: window.titlebarAppearsTransparent = true
-        
-        // NOTE: Window is currently closed using the standard close button
-        // Consider implementing a custom close behavior if needed in the future
+    /// Shows the new SwiftUI settings window.
+    @objc func showSettingsWindowSwiftUI(_ sender: Any?) {
+        SettingsWindowManager.shared.showSettingsWindow()
     }
     
     /// Sets up signal handlers for mounting and unmounting shares.
@@ -683,13 +647,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
                 mounter.errorStatus = .authenticationError
                 menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
-                                        action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+                                        action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
                 menu.addItem(NSMenuItem.separator())
             case .authenticationError:
                 Logger.app.debug("🏗️ Constructing authentication problem menu.")
                 mounter.errorStatus = .authenticationError
                 menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
-                                        action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+                                        action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
                 menu.addItem(NSMenuItem.separator())
                 
             default:
@@ -813,7 +777,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Add "Preferences" menu item
         if let newMenuItem = createMenuItem(title: "Preferences ...",
                                               comment: "Preferences",
-                                              action: #selector(AppDelegate.showWindow(_:)),
+                                              action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)),
                                               keyEquivalent: ",",
                                               preferenceKey: .menuSettings,
                                               prefs: prefs) {

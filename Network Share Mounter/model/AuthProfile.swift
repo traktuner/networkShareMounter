@@ -21,6 +21,9 @@ struct AuthProfile: Identifiable, Codable, Equatable {
     /// The Kerberos realm (e.g., "UNI-ERLANGEN.DE"). Required if `useKerberos` is true.
     var kerberosRealm: String?
     
+    /// List of network share URLs (strings) that this profile should be used for.
+    var associatedNetworkShares: [String]?
+    
     /// SF Symbol name for visual representation in the UI.
     var symbolName: String? = "person.circle" // Default symbol
     

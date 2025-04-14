@@ -80,6 +80,16 @@ class AuthProfileManager: ObservableObject {
         return profiles.first { $0.id == id }
     }
 
+    /// Finds the first profile that lists the given network share URL in its `associatedNetworkShares`.
+    /// - Parameter networkShare: The network share URL string to search for.
+    /// - Returns: The matching `AuthProfile` if found, otherwise `nil`.
+    func findProfile(for networkShare: String) -> AuthProfile? {
+        // Iterate through profiles and check if the networkShare is in their associated list
+        return profiles.first { profile in
+            profile.associatedNetworkShares?.contains(networkShare) ?? false
+        }
+    }
+
     // --- Password Management Coordination ---
 
     /// Saves or updates the password for a given profile in the Keychain.
