@@ -34,25 +34,24 @@ private actor ShellCommandQueue {
 /// Global instance of the shell command queue
 private let shellCommandQueue = ShellCommandQueue()
 
-/// Safely manages a FileHandle by ensuring it is properly closed after use.
-/// - Parameters:
-///   - pipe: The Pipe containing the FileHandle to manage
-///   - operation: The operation to perform with the FileHandle
-/// - Returns: The result of the operation
-/// - Throws: Any error that occurs during the operation
-private func withFileHandle<T>(_ pipe: Pipe, _ operation: (FileHandle) throws -> T) throws -> T {
+/// Safely reads data from a pipe and converts it to a string.
+/// - Parameter pipe: The pipe to read from
+/// - Returns: The string contents of the pipe
+/// - Throws: Error if reading or encoding fails
+private func readPipeContent(_ pipe: Pipe) throws -> String {
     let handle = pipe.fileHandleForReading
     defer {
+        // Wichtig: FileHandle immer schließen, nachdem wir es verwendet haben
         try? handle.close()
     }
     
-    // Versuche die Operation auszuführen
-    do {
-        return try operation(handle)
-    } catch {
-        Logger.tasks.error("Error during file handle operation: \(error.localizedDescription, privacy: .public)")
-        throw error
+    let data = handle.readDataToEndOfFile()
+    guard let output = String(data: data, encoding: .utf8) else {
+        Logger.tasks.error("Failed to encode pipe content")
+        throw ShellCommandError.outputEncodingFailed
     }
+    
+    return output
 }
 
 /// Defines possible errors that can occur during shell command execution
@@ -61,6 +60,7 @@ public enum ShellCommandError: Error, LocalizedError {
     case executionFailed(String, Int32)
     case invalidCommand
     case outputEncodingFailed
+    case fileHandleError(String)
     
     public var errorDescription: String? {
         switch self {
@@ -72,6 +72,8 @@ public enum ShellCommandError: Error, LocalizedError {
             return "Invalid command"
         case .outputEncodingFailed:
             return "Failed to encode command output"
+        case .fileHandleError(let message):
+            return "File handle error: \(message)"
         }
     }
 }
@@ -80,6 +82,7 @@ public enum ShellCommandError: Error, LocalizedError {
 private struct SystemInfoCache {
     static var serialNumber: String?
     static var macAddress: String?
+    static var commandPaths: [String: String] = [:]
 }
 
 /// Executes a shell command and returns its output.
@@ -94,7 +97,7 @@ private struct SystemInfoCache {
 public func cliTask(_ command: String, arguments: [String]? = nil) async throws -> String {
     Logger.tasks.debug("Executing: \(command, privacy: .public) \(arguments?.joined(separator: " ") ?? "", privacy: .public)")
     
-    let (commandLaunchPath, commandPieces) = try validateAndPrepareCommand(command, arguments: arguments)
+    let (commandLaunchPath, commandPieces) = try await validateAndPrepareCommand(command, arguments: arguments)
     return try await executeTaskAsync(launchPath: commandLaunchPath, arguments: commandPieces)
 }
 
@@ -108,28 +111,19 @@ public func cliTaskNoTerm(_ command: String) async throws -> String {
     Logger.tasks.debug("Executing without termination: \(command, privacy: .public)")
     
     return try await shellCommandQueue.execute {
-        let (commandLaunchPath, commandPieces) = try validateAndPrepareCommand(command)
+        let (commandLaunchPath, commandPieces) = try await validateAndPrepareCommand(command)
         
         let task = Process()
         let outputPipe = Pipe()
-        let inputPipe = Pipe()
-        let errorPipe = Pipe()
         
         task.executableURL = URL(fileURLWithPath: commandLaunchPath)
         task.arguments = commandPieces
         task.standardOutput = outputPipe
-        task.standardInput = inputPipe
-        task.standardError = errorPipe
         
         try task.run()
         
-        return try withFileHandle(outputPipe) { handle in
-            let data = handle.readDataToEndOfFile()
-            guard let output = String(data: data, encoding: .utf8) else {
-                throw ShellCommandError.outputEncodingFailed
-            }
-            return output
-        }
+        // Lese nur einmal und schließe dann sofort
+        return try readPipeContent(outputPipe)
     }
 }
 
@@ -168,9 +162,9 @@ public func getSerial() -> String {
         IOObjectRelease(platformExpert)
     }
     
-    guard let serialNumberAsCFString = IORegistryEntryCreateCFProperty(platformExpert, 
-                                                                       kIOPlatformSerialNumberKey as CFString, 
-                                                                       kCFAllocatorDefault, 
+    guard let serialNumberAsCFString = IORegistryEntryCreateCFProperty(platformExpert,
+                                                                       kIOPlatformSerialNumberKey as CFString,
+                                                                       kCFAllocatorDefault,
                                                                        0) else {
         Logger.tasks.error("Failed to read serial number")
         return ""
@@ -221,12 +215,12 @@ public func getMAC() async throws -> String {
 ///   - arguments: Optional command arguments
 /// - Returns: Tuple containing the command path and arguments
 /// - Throws: ShellCommandError if the command is invalid
-private func validateAndPrepareCommand(_ command: String, arguments: [String]? = nil) throws -> (String, [String]) {
+private func validateAndPrepareCommand(_ command: String, arguments: [String]? = nil) async throws -> (String, [String]) {
     if command.isEmpty {
         throw ShellCommandError.invalidCommand
     }
     
-    let (launchPath, args) = prepareCommand(command, arguments: arguments)
+    let (launchPath, args) = try await prepareCommand(command, arguments: arguments)
     
     // Check if command exists
     if launchPath.isEmpty || !FileManager.default.fileExists(atPath: launchPath) {
@@ -242,7 +236,7 @@ private func validateAndPrepareCommand(_ command: String, arguments: [String]? =
 ///   - command: The command to prepare
 ///   - arguments: Optional command arguments
 /// - Returns: Tuple containing the command path and arguments
-private func prepareCommand(_ command: String, arguments: [String]? = nil) -> (String, [String]) {
+private func prepareCommand(_ command: String, arguments: [String]? = nil) async throws -> (String, [String]) {
     var commandLaunchPath: String
     var commandPieces: [String]
     
@@ -270,7 +264,7 @@ private func prepareCommand(_ command: String, arguments: [String]? = nil) -> (S
     
     // Resolve full path if needed
     if !commandLaunchPath.contains("/") {
-        commandLaunchPath = which(commandLaunchPath)
+        commandLaunchPath = try await whichAsync(commandLaunchPath)
     }
     
     return (commandLaunchPath, commandPieces)
@@ -294,31 +288,14 @@ private func executeTaskAsync(launchPath: String, arguments: [String]) async thr
         task.standardOutput = outputPipe
         task.standardError = errorPipe
         
-        // Halte die File Handles zur Verwendung bereit
-        let outputHandle = outputPipe.fileHandleForReading
-        let errorHandle = errorPipe.fileHandleForReading
-        
         try task.run()
         
-        // Lies die Daten VOR dem Warten auf Prozessende
-        let outputData = outputHandle.readDataToEndOfFile()
-        let errorData = errorHandle.readDataToEndOfFile()
-        
-        // Warte erst NACH dem Lesen auf Prozessende
+        // Warte auf Prozessende, bevor wir beginnen zu lesen
         task.waitUntilExit()
         
-        // Schließe die Handles explizit
-        try? outputHandle.close()
-        try? errorHandle.close()
-        
-        // Konvertiere die Daten zu Strings
-        guard let outputString = String(data: outputData, encoding: .utf8) else {
-            throw ShellCommandError.outputEncodingFailed
-        }
-        
-        guard let errorString = String(data: errorData, encoding: .utf8) else {
-            throw ShellCommandError.outputEncodingFailed
-        }
+        // Lese die Ausgaben nur einmal, nachdem der Task beendet ist
+        let outputString = try readPipeContent(outputPipe)
+        let errorString = try readPipeContent(errorPipe)
         
         if task.terminationStatus != 0 {
             Logger.tasks.error("Command failed with exit code \(task.terminationStatus, privacy: .public): \(launchPath, privacy: .public) \(arguments.joined(separator: " "), privacy: .public)")
@@ -328,36 +305,15 @@ private func executeTaskAsync(launchPath: String, arguments: [String]) async thr
     }
 }
 
-/// Asynchronously resolves the full path of a command using the 'which' command.
-///
-/// - Parameter command: The command to resolve
-/// - Returns: The full path to the command
-/// - Throws: ShellCommandError if resolution fails
-private func which(_ command: String) -> String {
-    // Synchronous wrapper for backward compatibility
-    let semaphore = DispatchSemaphore(value: 0)
-    var result = ""
-    
-    Task {
-        do {
-            result = try await whichAsync(command)
-        } catch {
-            Logger.tasks.error("Error in which command: \(error.localizedDescription, privacy: .public)")
-            result = ""
-        }
-        semaphore.signal()
+/// Cached 'which' command lookup
+/// - Parameter command: Command to look up
+/// - Returns: Path to the command or empty string if not found
+private func whichAsync(_ command: String) async throws -> String {
+    // Check cache first
+    if let cachedPath = SystemInfoCache.commandPaths[command], !cachedPath.isEmpty {
+        return cachedPath
     }
     
-    semaphore.wait()
-    return result
-}
-
-/// Asynchronous version of the which command.
-///
-/// - Parameter command: The command to resolve
-/// - Returns: The full path to the command
-/// - Throws: ShellCommandError if resolution fails
-private func whichAsync(_ command: String) async throws -> String {
     return try await shellCommandQueue.execute {
         let task = Process()
         let pipe = Pipe()
@@ -369,18 +325,17 @@ private func whichAsync(_ command: String) async throws -> String {
         try task.run()
         task.waitUntilExit()
         
-        return try withFileHandle(pipe) { handle in
-            let data = handle.readDataToEndOfFile()
-            guard let output = String(data: data, encoding: .utf8) else {
-                throw ShellCommandError.outputEncodingFailed
-            }
-            let result = output.components(separatedBy: "\n").first ?? ""
-            
-            if result.isEmpty {
-                Logger.tasks.error("Binary does not exist: \(command, privacy: .public)")
-            }
-            
-            return result
+        // Lese den Pipe-Inhalt und schließe ihn anschließend
+        let output = try readPipeContent(pipe)
+        let result = output.components(separatedBy: "\n").first ?? ""
+        
+        if result.isEmpty {
+            Logger.tasks.error("Binary does not exist: \(command, privacy: .public)")
+        } else {
+            // Speichere gültigen Pfad im Cache
+            SystemInfoCache.commandPaths[command] = result
         }
+        
+        return result
     }
 }
