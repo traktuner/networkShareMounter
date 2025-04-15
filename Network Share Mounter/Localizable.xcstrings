@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     "⚠️ Authentication problem..." : {
       "comment" : "Authentication problem",
       "localizations" : {
@@ -607,16 +604,10 @@
     "Bearbeiten" : {
 
     },
-    "Benutzername (opt.):" : {
+    "Benutzername" : {
 
     },
     "Benutzername:" : {
-
-    },
-    "Benutzername/Passwort (optional für Kerberos-Ticket Aktualisierung):" : {
-
-    },
-    "Bezeichnung:" : {
 
     },
     "Build Date" : {
@@ -870,10 +861,13 @@
         }
       }
     },
-    "Farbe wählen" : {
+    "Erscheinungsbild" : {
 
     },
-    "Farbe:" : {
+    "Farbe" : {
+
+    },
+    "Farbe wählen" : {
 
     },
     "General" : {
@@ -953,10 +947,10 @@
     "Keine Profile definiert." : {
 
     },
-    "Keine Shares zugeordnet." : {
+    "Keine Shares zugeordnet" : {
 
     },
-    "Keine weiteren Shares zum Zuordnen verfügbar." : {
+    "Keine weiteren Shares verfügbar" : {
 
     },
     "Kerberos authentication error" : {
@@ -965,7 +959,7 @@
     "Kerberos authentication successful" : {
       "comment" : "Kerberos authentication successful"
     },
-    "Kerberos Realm:" : {
+    "Kerberos Realm" : {
 
     },
     "Kerberos-Authentifizierung" : {
@@ -1080,6 +1074,9 @@
         }
       }
     },
+    "Name des Profils eingeben" : {
+
+    },
     "Network connectivity cannot be tested" : {
       "comment" : "Network connectivity cannot be tested",
       "localizations" : {
@@ -1163,7 +1160,13 @@
     "Netzwerkpfad (z.B. smb://server/pfad)" : {
 
     },
+    "Netzwerkshares auswählen" : {
+
+    },
     "Neuen Share hinzufügen" : {
+
+    },
+    "Neues Passwort (leer lassen für keine Änderung)" : {
 
     },
     "Neues Profil erstellen" : {
@@ -1324,6 +1327,9 @@
         }
       }
     },
+    "Passwort" : {
+
+    },
     "Passwort:" : {
 
     },
@@ -1443,7 +1449,7 @@
     "Profil bearbeiten" : {
 
     },
-    "Profildetails" : {
+    "Profilname" : {
 
     },
     "Profilzuweisung aufheben" : {
@@ -1586,9 +1592,6 @@
         }
       }
     },
-    "Share hinzufügen..." : {
-
-    },
     "Share is already mounted" : {
       "comment" : "Share is already mounted",
       "localizations" : {
@@ -1623,9 +1626,6 @@
           }
         }
       }
-    },
-    "Shares auswählen" : {
-
     },
     "ShareView-Text" : {
       "comment" : "Default text to show on ShareView window",
@@ -1774,10 +1774,10 @@
         }
       }
     },
-    "Symbol wählen" : {
+    "Symbol" : {
 
     },
-    "Symbol:" : {
+    "Symbol wählen" : {
 
     },
     "Target host is not reachable" : {
@@ -2061,9 +2061,6 @@
     "Verwalten Sie hier Ihre Authentifizierungsprofile für Netzwerkverbindungen." : {
 
     },
-    "Vorschau:" : {
-
-    },
     "Wählen Sie ein Authentifizierungsprofil aus, das für diesen Share verwendet werden soll. Wenn kein Profil ausgewählt wird, werden Standard-Systemmechanismen (z.B. Kerberos) versucht." : {
 
     },
@@ -2073,7 +2070,7 @@
     "Zugehöriges Profil:" : {
 
     },
-    "Zugeordnete Shares" : {
+    "Zugeordnete Netzwerkshares" : {
 
     },
     "Zugeordnete Shares (%lld)" : {

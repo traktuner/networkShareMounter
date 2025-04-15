@@ -114,7 +114,6 @@
 		F747F8652B6F81D400AC0772 /* MountStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountStatus.swift; sourceTree = "<group>"; };
 		F765D0542A852911001D5116 /* ShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareManager.swift; sourceTree = "<group>"; };
 		F765D0562A852935001D5116 /* Share.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Share.swift; sourceTree = "<group>"; };
-		F76FC9A32DAC350F00B68E4C /* ProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorView.swift; sourceTree = "<group>"; };
 		F77107B6274EC51600556B20 /* Monitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Monitor.swift; sourceTree = "<group>"; };
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
@@ -228,7 +227,6 @@
 				F743AC8D2DAC42CA00B9312A /* DetailColumnView.swift */,
 				F73429F22DA5767C0025985F /* GeneralSettingsView.swift */,
 				F73429F32DA5767C0025985F /* NetworkSharesView.swift */,
-				F76FC9A32DAC350F00B68E4C /* ProfileEditorView.swift */,
 				F73429F42DA5767C0025985F /* README.md */,
 				F73429F52DA5767C0025985F /* SettingsView.swift */,
 				F73429F62DA5767C0025985F /* SettingsWindowManager.swift */,
@@ -470,6 +468,7 @@
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"\"${BUILT_PRODUCTS_DIR}/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/copy-helper-swiftpm.sh\"",
+				"",
 				"",
 				"",
 				"",
