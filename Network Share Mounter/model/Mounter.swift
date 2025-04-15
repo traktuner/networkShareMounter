@@ -85,16 +85,16 @@ class Mounter: ObservableObject {
             return _errorStatus
         }
         set {
-            // Thread-safe update and asynchronous notification
+            // Thread-safe update
             _errorStatusLock.lock()
+            let shouldPostAuthError = newValue == .authenticationError
             _errorStatus = newValue
             _errorStatusLock.unlock()
             
-            // Notifications can be sent asynchronously
-            Task {
-                if newValue == .authenticationError {
-                    NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
-                }
+            // Post notification synchronously after releasing the lock
+            if shouldPostAuthError {
+                NotificationCenter.default.post(name: .nsmNotification, object: nil, 
+                                               userInfo: ["AuthError": MounterError.authenticationError])
             }
         }
     }
