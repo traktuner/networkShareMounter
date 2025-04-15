@@ -3,7 +3,7 @@
 ## Network Share Mounter- Postinstall script
 ############################################
 currentUser=$(/usr/bin/stat -f%Su /dev/console)
-IFS=$'\n' nsm_pids=($(pgrep Network Share Mounter))
+IFS=$'\n' nsm_pids=($(pgrep -f "Network Share Mounter"))
 
 # Restart Network Share Mounter if currently running
 if [[ ! -z $nsm_pids ]]; then
