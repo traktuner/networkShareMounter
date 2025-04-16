@@ -665,7 +665,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         // Add "About" menu item if help URL is valid
-        if prefs.string(for: .helpURL)!.description.isValidURL {
+        if let urlString = prefs.string(for: .helpURL), URL(string: urlString) != nil {
             if let newMenuItem = createMenuItem(title: "About Network Share Mounter",
                                                   comment: "About Network Share Mounter",
                                                   action: #selector(AppDelegate.openHelpURL(_:)),
