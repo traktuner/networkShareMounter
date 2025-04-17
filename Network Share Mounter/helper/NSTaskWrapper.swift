@@ -41,8 +41,12 @@ private let shellCommandQueue = ShellCommandQueue()
 private func readPipeContent(_ pipe: Pipe) throws -> String {
     let handle = pipe.fileHandleForReading
     defer {
-        // Wichtig: FileHandle immer schließen, nachdem wir es verwendet haben
-        try? handle.close()
+        do {
+            try handle.close()
+            Logger.tasks.debug("FileHandle successfully closed.")
+        } catch {
+            Logger.tasks.error("Failed to close FileHandle: \(error.localizedDescription)")
+        }
     }
     
     let data = handle.readDataToEndOfFile()

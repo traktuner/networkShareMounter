@@ -97,6 +97,7 @@ struct ProfileEditorView: View {
                         Text("Bezeichnung:")
                             .gridColumnAlignment(.trailing) // Align labels to the right
                         TextField("", text: $profileName)
+                            .textFieldStyle(.roundedBorder)
                     }
                     
                     GridRow {
@@ -115,8 +116,8 @@ struct ProfileEditorView: View {
                     
                     GridRow {
                          Toggle("Kerberos-Authentifizierung verwenden", isOn: $useKerberos)
-                            .gridCellColumns(2) // Span both columns
-//                            .padding(.bottom) // Add padding below toggle
+                            .gridCellColumns(2)
+                            .padding(.trailing)
                     }
 
                     // Kerberos Realm Row (always present, but conditionally visible)
@@ -187,9 +188,13 @@ struct ProfileEditorView: View {
                 Grid {
                     GridRow {
                         Text("Symbol:")
+                            .gridColumnAlignment(.leading)
                         Text("Farbe:")
+                            .gridColumnAlignment(.leading)
                         Text("Vorschau:")
+                            .gridColumnAlignment(.leading)
                     }
+                    .padding(.top, 8)
                     GridRow {
                         Picker("Symbol wählen", selection: $selectedSymbol) {
                             ForEach(availableSymbols, id: \.self) { symbol in
@@ -199,6 +204,7 @@ struct ProfileEditorView: View {
                         .pickerStyle(.menu)
                         .labelsHidden() // Hide label as we have Text above
                         .frame(width: 120)
+                        .padding(.trailing)
                         Picker("Farbe wählen", selection: $selectedColor) {
                             ForEach(availableColors, id: \.name) { colorOption in
                                 HStack {
@@ -213,67 +219,18 @@ struct ProfileEditorView: View {
                         .pickerStyle(.menu)
                         .labelsHidden()
                         .frame(width: 120)
+                        .padding(.trailing)
+                        Image(systemName: selectedSymbol)
+                            .font(.system(size: 20))
+                            .foregroundColor(.white)
+                            .padding(9)
+                            .background(
+                                Circle()
+                                    .fill(selectedColor)
+                                    .frame(width: 40, height: 40)
+                            )
                     }
-                    Image(systemName: selectedSymbol)
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(
-                            Circle()
-                                .fill(selectedColor)
-                                .frame(width: 40, height: 40)
-                        )
                 }
-//                // Profile visual configuration
-//                HStack(spacing: 20) {
-//                    // Symbol selector
-//                    VStack(alignment: .leading, spacing: 4) {
-//                        Text("Symbol:")
-//                        
-//                        Picker("Symbol wählen", selection: $selectedSymbol) {
-//                            ForEach(availableSymbols, id: \.self) { symbol in
-//                                Image(systemName: symbol).tag(symbol)
-//                            }
-//                        }
-//                        .pickerStyle(.menu)
-//                        .labelsHidden() // Hide label as we have Text above
-//                        .frame(width: 120)
-//                    }
-//                    
-//                    // Color selector
-//                    VStack(alignment: .leading, spacing: 4) {
-//                        Text("Farbe:")
-//                        
-//                        Picker("Farbe wählen", selection: $selectedColor) {
-//                            ForEach(availableColors, id: \.name) { colorOption in
-//                                HStack {
-//                                    Circle()
-//                                        .fill(colorOption.color)
-//                                        .frame(width: 16, height: 16)
-//                                    Text(colorOption.name)
-//                                }
-//                                .tag(colorOption.color)
-//                            }
-//                        }
-//                        .pickerStyle(.menu)
-//                        .labelsHidden()
-//                        .frame(width: 120)
-//                    }
-//                    
-//                    // Preview
-//                    VStack {
-//                        Text("Vorschau:")
-//                        
-//                        Image(systemName: selectedSymbol)
-//                            .foregroundColor(.white)
-//                            .padding(8)
-//                            .background(
-//                                Circle()
-//                                    .fill(selectedColor)
-//                                    .frame(width: 40, height: 40)
-//                            )
-//                    }
-//                    Spacer() // Push preview to the right if needed
-//                }
             }
             header: {
                 Text("Profilbild")
@@ -288,6 +245,7 @@ struct ProfileEditorView: View {
                    isPresented = false
                }
                .keyboardShortcut(.cancelAction)
+               .padding(.bottom)
                
                Spacer() // Push buttons apart
                
@@ -297,6 +255,7 @@ struct ProfileEditorView: View {
                .buttonStyle(.borderedProminent)
                .disabled(isSaveDisabled)
                .keyboardShortcut(.defaultAction)
+               .padding(.bottom)
             }
             .padding(.top) // Add some padding above the buttons
             

@@ -11,7 +11,6 @@
 		F72264792CED189200173B18 /* CircleIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72264782CED189200173B18 /* CircleIconView.swift */; };
 		F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */; };
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
-		F73429F82DA5767C0025985F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F73429F42DA5767C0025985F /* README.md */; };
 		F73429F92DA5767C0025985F /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F12DA5767C0025985F /* AuthenticationView.swift */; };
 		F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F52DA5767C0025985F /* SettingsView.swift */; };
 		F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F32DA5767C0025985F /* NetworkSharesView.swift */; };
@@ -97,7 +96,6 @@
 		F73429F12DA5767C0025985F /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		F73429F22DA5767C0025985F /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		F73429F32DA5767C0025985F /* NetworkSharesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSharesView.swift; sourceTree = "<group>"; };
-		F73429F42DA5767C0025985F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		F73429F52DA5767C0025985F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F73429F62DA5767C0025985F /* SettingsWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowManager.swift; sourceTree = "<group>"; };
 		F739C418275525BC003A3CC5 /* DefaultValues.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultValues.plist; sourceTree = "<group>"; };
@@ -227,7 +225,6 @@
 				F743AC8D2DAC42CA00B9312A /* DetailColumnView.swift */,
 				F73429F22DA5767C0025985F /* GeneralSettingsView.swift */,
 				F73429F32DA5767C0025985F /* NetworkSharesView.swift */,
-				F73429F42DA5767C0025985F /* README.md */,
 				F73429F52DA5767C0025985F /* SettingsView.swift */,
 				F73429F62DA5767C0025985F /* SettingsWindowManager.swift */,
 				F743AC8F2DAC42DA00B9312A /* ProfileDetailPlaceholderView.swift */,
@@ -453,7 +450,6 @@
 			files = (
 				F79B159C274E722100C322A8 /* Assets.xcassets in Resources */,
 				F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */,
-				F73429F82DA5767C0025985F /* README.md in Resources */,
 				F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */,
 				F79B159F274E722100C322A8 /* Main.storyboard in Resources */,
 			);
@@ -468,6 +464,7 @@
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"\"${BUILT_PRODUCTS_DIR}/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/copy-helper-swiftpm.sh\"",
+				"",
 				"",
 				"",
 				"",
