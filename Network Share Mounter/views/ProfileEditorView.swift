@@ -89,10 +89,7 @@ struct ProfileEditorView: View {
     var body: some View {
         // Use a Form for better structure on macOS sheets
         Form {
-            Text(existingProfile == nil ? "Neues Profil erstellen" : "Profil bearbeiten")
-                    .font(.headline)
-
-            Section("Profildetails") {
+            Section {
                 // Replace implicit Form layout with explicit Grid
 //                Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10) {
                 Grid {
@@ -119,7 +116,7 @@ struct ProfileEditorView: View {
                     GridRow {
                          Toggle("Kerberos-Authentifizierung verwenden", isOn: $useKerberos)
                             .gridCellColumns(2) // Span both columns
-                            .padding(.bottom, 5) // Add padding below toggle
+//                            .padding(.bottom) // Add padding below toggle
                     }
 
                     // Kerberos Realm Row (always present, but conditionally visible)
@@ -133,11 +130,15 @@ struct ProfileEditorView: View {
                             .opacity(useKerberos ? 1 : 0)
                     }
                 }
-                .frame(height: 220) // Fixed height for Grid to ensure consistency
             }
+            header: {
+                Text(existingProfile == nil ? "Neues Profil erstellen" : "Profil bearbeiten")
+                    .font(.headline)
+            }
+            .padding(.bottom)
 
             // Section for Associated Shares
-            Section("Zugeordnete Shares") {
+            Section {
                 if isLoadingShares {
                      ProgressView() // Show loading indicator
                          .frame(maxWidth: .infinity, alignment: .center)
@@ -177,15 +178,19 @@ struct ProfileEditorView: View {
                          }
                      }
                 }
+            } header: {
+                Text("Zugeordnete Shares")
+                    .font(.headline)
             }
             
-            Section("Profilbild") {
-                // Profile visual configuration
-                HStack(spacing: 20) {
-                    // Symbol selector
-                    VStack(alignment: .leading, spacing: 4) {
+            Section {
+                Grid {
+                    GridRow {
                         Text("Symbol:")
-                        
+                        Text("Farbe:")
+                        Text("Vorschau:")
+                    }
+                    GridRow {
                         Picker("Symbol wählen", selection: $selectedSymbol) {
                             ForEach(availableSymbols, id: \.self) { symbol in
                                 Image(systemName: symbol).tag(symbol)
@@ -194,12 +199,6 @@ struct ProfileEditorView: View {
                         .pickerStyle(.menu)
                         .labelsHidden() // Hide label as we have Text above
                         .frame(width: 120)
-                    }
-                    
-                    // Color selector
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Farbe:")
-                        
                         Picker("Farbe wählen", selection: $selectedColor) {
                             ForEach(availableColors, id: \.name) { colorOption in
                                 HStack {
@@ -215,22 +214,70 @@ struct ProfileEditorView: View {
                         .labelsHidden()
                         .frame(width: 120)
                     }
-                    
-                    // Preview
-                    VStack {
-                        Text("Vorschau:")
-                        
-                        Image(systemName: selectedSymbol)
-                            .foregroundColor(.white)
-                            .padding(8)
-                            .background(
-                                Circle()
-                                    .fill(selectedColor)
-                                    .frame(width: 40, height: 40)
-                            )
-                    }
-                    Spacer() // Push preview to the right if needed
+                    Image(systemName: selectedSymbol)
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(selectedColor)
+                                .frame(width: 40, height: 40)
+                        )
                 }
+//                // Profile visual configuration
+//                HStack(spacing: 20) {
+//                    // Symbol selector
+//                    VStack(alignment: .leading, spacing: 4) {
+//                        Text("Symbol:")
+//                        
+//                        Picker("Symbol wählen", selection: $selectedSymbol) {
+//                            ForEach(availableSymbols, id: \.self) { symbol in
+//                                Image(systemName: symbol).tag(symbol)
+//                            }
+//                        }
+//                        .pickerStyle(.menu)
+//                        .labelsHidden() // Hide label as we have Text above
+//                        .frame(width: 120)
+//                    }
+//                    
+//                    // Color selector
+//                    VStack(alignment: .leading, spacing: 4) {
+//                        Text("Farbe:")
+//                        
+//                        Picker("Farbe wählen", selection: $selectedColor) {
+//                            ForEach(availableColors, id: \.name) { colorOption in
+//                                HStack {
+//                                    Circle()
+//                                        .fill(colorOption.color)
+//                                        .frame(width: 16, height: 16)
+//                                    Text(colorOption.name)
+//                                }
+//                                .tag(colorOption.color)
+//                            }
+//                        }
+//                        .pickerStyle(.menu)
+//                        .labelsHidden()
+//                        .frame(width: 120)
+//                    }
+//                    
+//                    // Preview
+//                    VStack {
+//                        Text("Vorschau:")
+//                        
+//                        Image(systemName: selectedSymbol)
+//                            .foregroundColor(.white)
+//                            .padding(8)
+//                            .background(
+//                                Circle()
+//                                    .fill(selectedColor)
+//                                    .frame(width: 40, height: 40)
+//                            )
+//                    }
+//                    Spacer() // Push preview to the right if needed
+//                }
+            }
+            header: {
+                Text("Profilbild")
+                    .font(.headline)
             }
             
             Spacer() // Push content upwards
