@@ -87,165 +87,176 @@ struct ProfileEditorView: View {
 
     // Body
     var body: some View {
-        // Use a Form for better structure on macOS sheets
-        Form {
-            Section {
-                // Replace implicit Form layout with explicit Grid
-//                Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10) {
-                Grid {
-                    GridRow {
-                        Text("Bezeichnung:")
-                            .gridColumnAlignment(.trailing) // Align labels to the right
-                        TextField("", text: $profileName)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    
-                    GridRow {
-                        Text("Benutzername:")
-                            .gridColumnAlignment(.trailing)
-                        TextField("", text: $username)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    
-                    GridRow {
-                        Text(passwordLabelText)
-                            .gridColumnAlignment(.trailing)
-                        SecureField("", text: passwordBinding)
-                             .textFieldStyle(.roundedBorder)
-                    }
-                    
-                    GridRow {
-                         Toggle("Kerberos-Authentifizierung verwenden", isOn: $useKerberos)
-                            .gridCellColumns(2)
-                            .padding(.trailing)
-                    }
+        // Wrap Form in a VStack to place buttons outside and at the bottom
+        VStack(spacing: 0) { // Use 0 spacing, let Form and Padding handle spacing
+            // Use a Form for better structure on macOS sheets
+            Form {
+                Section {
+                    // Replace implicit Form layout with explicit Grid
+    //                Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10) {
+                    Grid {
+                        GridRow {
+                            Text("Bezeichnung:")
+                                .gridColumnAlignment(.trailing) // Align labels to the right
+                            TextField("", text: $profileName)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        
+                        GridRow {
+                            Text("Benutzername:")
+                                .gridColumnAlignment(.trailing)
+                            TextField("", text: $username)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        
+                        GridRow {
+                            Text(passwordLabelText)
+                                .gridColumnAlignment(.trailing)
+                            SecureField("", text: passwordBinding)
+                                 .textFieldStyle(.roundedBorder)
+                        }
+                        
+                        GridRow {
+                             Toggle("Kerberos-Authentifizierung verwenden", isOn: $useKerberos)
+                                .gridCellColumns(2)
+                                .padding(.trailing)
+                        }
 
-                    // Kerberos Realm Row (always present, but conditionally visible)
-                    GridRow {
-                        Text("Kerberos Realm:")
-                            .gridColumnAlignment(.trailing)
-                            .opacity(useKerberos ? 1 : 0) // Hide with opacity
-                        TextField("", text: $kerberosRealm)
-                            .textFieldStyle(.roundedBorder)
-                            .disabled(!useKerberos)
-                            .opacity(useKerberos ? 1 : 0)
+                        // Kerberos Realm Row (always present, but conditionally visible)
+                        GridRow {
+                            Text("Kerberos Realm:")
+                                .gridColumnAlignment(.trailing)
+                                .opacity(useKerberos ? 1 : 0) // Hide with opacity
+                            TextField("", text: $kerberosRealm)
+                                .textFieldStyle(.roundedBorder)
+                                .disabled(!useKerberos)
+                                .opacity(useKerberos ? 1 : 0)
+                        }
                     }
                 }
-            }
-            header: {
-                Text(existingProfile == nil ? "Neues Profil erstellen" : "Profil bearbeiten")
-                    .font(.headline)
-            }
-            .padding(.bottom)
+                header: {
+                    Text(existingProfile == nil ? "Neues Profil erstellen" : "Profil bearbeiten")
+                        .font(.headline)
+                }
+                .padding(.bottom)
 
-            // Section for Associated Shares
-            Section {
-                if isLoadingShares {
-                     ProgressView() // Show loading indicator
-                         .frame(maxWidth: .infinity, alignment: .center)
-                         .padding(.vertical)
-                } else {
-                    if editingAssociatedShares.isEmpty {
-                         Text("Keine Shares zugeordnet.")
-                             .foregroundColor(.secondary)
+                // Section for Associated Shares
+                Section {
+                    if isLoadingShares {
+                         ProgressView() // Show loading indicator
                              .frame(maxWidth: .infinity, alignment: .center)
                              .padding(.vertical)
                     } else {
-                         List {
-                             ForEach(editingAssociatedShares, id: \.self) { shareURL in
-                                 HStack {
-                                     // Try to find the display name for the URL
-                                     Text(shareDisplayName(for: shareURL))
-                                     Spacer()
-                                     Button {
-                                         removeAssociatedShare(url: shareURL)
-                                     } label: {
-                                         Image(systemName: "minus.circle.fill")
-                                             .foregroundColor(.red)
+                        if editingAssociatedShares.isEmpty {
+                             Text("Keine Shares zugeordnet.")
+                                 .foregroundColor(.secondary)
+                                 .frame(maxWidth: .infinity, alignment: .center)
+                                 .padding(.vertical)
+                        } else {
+                             List {
+                                 ForEach(editingAssociatedShares, id: \.self) { shareURL in
+                                     HStack {
+                                         // Try to find the display name for the URL
+                                         Text(shareDisplayName(for: shareURL))
+                                         Spacer()
+                                         Button {
+                                             removeAssociatedShare(url: shareURL)
+                                         } label: {
+                                             Image(systemName: "minus.circle.fill")
+                                                 .foregroundColor(.red)
+                                         }
+                                         .buttonStyle(.plain) // Use plain to avoid default button background in list
                                      }
-                                     .buttonStyle(.plain) // Use plain to avoid default button background in list
                                  }
                              }
-                         }
-                         .frame(height: 100) // Fixed height for List
-                    }
-                    
-                    // TODO: Implement Add Share Button and Sheet
-                    HStack {
-                         Spacer()
-                         Button("Share hinzufügen...") {
-                             // Action to open share selection sheet
-                             isShowingShareSelection = true
-                         }
-                     }
-                }
-            } header: {
-                Text("Zugeordnete Shares")
-                    .font(.headline)
-            }
-            
-            Section {
-                Grid {
-                    GridRow {
-                        Text("Symbol:")
-                            .gridColumnAlignment(.leading)
-                        Text("Farbe:")
-                            .gridColumnAlignment(.leading)
-                        Text("Vorschau:")
-                            .gridColumnAlignment(.leading)
-                    }
-                    .padding(.top, 8)
-                    GridRow {
-                        Picker("Symbol wählen", selection: $selectedSymbol) {
-                            ForEach(availableSymbols, id: \.self) { symbol in
-                                Image(systemName: symbol).tag(symbol)
-                            }
+                             .frame(height: 100) // Fixed height for List
                         }
-                        .pickerStyle(.menu)
-                        .labelsHidden() // Hide label as we have Text above
-                        .frame(width: 120)
-                        .padding(.trailing)
-                        Picker("Farbe wählen", selection: $selectedColor) {
-                            ForEach(availableColors, id: \.name) { colorOption in
-                                HStack {
-                                    Circle()
-                                        .fill(colorOption.color)
-                                        .frame(width: 16, height: 16)
-                                    Text(colorOption.name)
+                        
+                        // TODO: Implement Add Share Button and Sheet
+                        HStack {
+                             Spacer()
+                             Button("Share hinzufügen...") {
+                                 // Action to open share selection sheet
+                                 isShowingShareSelection = true
+                             }
+                         }
+                    }
+                } header: {
+                    Text("Zugeordnete Shares")
+                        .font(.headline)
+                }
+                
+                Section {
+                    Grid {
+                        GridRow {
+                            Text("Symbol:")
+                                .gridColumnAlignment(.leading)
+                            Text("Farbe:")
+                                .gridColumnAlignment(.leading)
+                            Text("Vorschau:")
+                                .gridColumnAlignment(.leading)
+                        }
+                        .padding(.top, 8)
+                        GridRow {
+                            Picker("Symbol wählen", selection: $selectedSymbol) {
+                                ForEach(availableSymbols, id: \.self) { symbol in
+                                    Image(systemName: symbol).tag(symbol)
                                 }
-                                .tag(colorOption.color)
                             }
+                            .pickerStyle(.menu)
+                            .labelsHidden() // Hide label as we have Text above
+                            .frame(width: 120)
+                            .padding(.trailing)
+                            Picker("Farbe wählen", selection: $selectedColor) {
+                                ForEach(availableColors, id: \.name) { colorOption in
+                                    HStack {
+                                        Circle()
+                                            .fill(colorOption.color)
+                                            .frame(width: 16, height: 16)
+                                        Text(colorOption.name)
+                                    }
+                                    .tag(colorOption.color)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+                            .frame(width: 120)
+                            .padding(.trailing)
+                            Image(systemName: selectedSymbol)
+                                .font(.system(size: 20))
+                                .foregroundColor(.white)
+                                .padding(9)
+                                .background(
+                                    Circle()
+                                        .fill(selectedColor)
+                                        .frame(width: 40, height: 40)
+                                )
                         }
-                        .pickerStyle(.menu)
-                        .labelsHidden()
-                        .frame(width: 120)
-                        .padding(.trailing)
-                        Image(systemName: selectedSymbol)
-                            .font(.system(size: 20))
-                            .foregroundColor(.white)
-                            .padding(9)
-                            .background(
-                                Circle()
-                                    .fill(selectedColor)
-                                    .frame(width: 40, height: 40)
-                            )
                     }
                 }
-            }
-            header: {
-                Text("Profilbild")
-                    .font(.headline)
-            }
+                header: {
+                    Text("Profilbild")
+                        .font(.headline)
+                }
+                
+                // Spacer() // Removed Spacer from inside the Form
+                
+            } // End of Form
+            // Add padding around the Form content
+            .padding()
+            // Remove padding from Form, manage padding in VStack/HStack
+            // .padding()
             
-            Spacer() // Push content upwards
-            
-            // --- Manual Button Placement --- 
+            Spacer() // Add Spacer in VStack to push buttons down if form content is short
+
+            // --- Buttons placed outside Form, at the bottom of VStack --- 
             HStack {
                 Button("Abbrechen") {
                    isPresented = false
                }
                .keyboardShortcut(.cancelAction)
-               .padding(.bottom)
+               // Remove specific bottom padding, handle with HStack padding
+               // .padding(.bottom)
                
                Spacer() // Push buttons apart
                
@@ -255,13 +266,15 @@ struct ProfileEditorView: View {
                .buttonStyle(.borderedProminent)
                .disabled(isSaveDisabled)
                .keyboardShortcut(.defaultAction)
-               .padding(.bottom)
+               // Remove specific bottom padding, handle with HStack padding
+               // .padding(.bottom)
             }
-            .padding(.top) // Add some padding above the buttons
+            .padding(.horizontal) // Ensure horizontal padding
+            .padding(.bottom, 20)   // Explicitly request standard bottom padding
             
-        } // End of Form
-        .padding() // Add padding around the Form
-        .frame(minWidth: 400, minHeight: 460, maxHeight: 460) // Fixed height for consistent dialog size
+        } // End of VStack
+        .padding(.bottom)
+        .frame(minWidth: 400, minHeight: 460, maxHeight: 460) // Apply frame to the VStack
         .onAppear(perform: loadAllShares) // Load shares when view appears
         // Add the sheet modifier for share selection
         .sheet(isPresented: $isShowingShareSelection) {
