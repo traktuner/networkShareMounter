@@ -34,26 +34,6 @@ private actor ShellCommandQueue {
 /// Global instance of the shell command queue
 private let shellCommandQueue = ShellCommandQueue()
 
-/// Safely reads data from a pipe and converts it to a string.
-/// - Parameter pipe: The pipe to read from
-/// - Returns: The string contents of the pipe
-/// - Throws: Error if reading or encoding fails
-private func readPipeContent(_ pipe: Pipe) throws -> String {
-    let handle = pipe.fileHandleForReading
-    defer {
-        // Wichtig: FileHandle immer schließen, nachdem wir es verwendet haben
-        try? handle.close()
-    }
-    
-    let data = handle.readDataToEndOfFile()
-    guard let output = String(data: data, encoding: .utf8) else {
-        Logger.tasks.error("Failed to encode pipe content")
-        throw ShellCommandError.outputEncodingFailed
-    }
-    
-    return output
-}
-
 /// Defines possible errors that can occur during shell command execution
 public enum ShellCommandError: Error, LocalizedError {
     case commandNotFound(String)
@@ -97,16 +77,19 @@ private struct SystemInfoCache {
 public func cliTask(_ command: String, arguments: [String]? = nil) async throws -> String {
     Logger.tasks.debug("Executing: \(command, privacy: .public) \(arguments?.joined(separator: " ") ?? "", privacy: .public)")
     
-    let (commandLaunchPath, commandPieces) = try await validateAndPrepareCommand(command, arguments: arguments)
-    return try await executeTaskAsync(launchPath: commandLaunchPath, arguments: commandPieces)
+    // Use shellCommandQueue to ensure sequential execution
+    return try await shellCommandQueue.execute {
+        let (commandLaunchPath, commandPieces) = try await validateAndPrepareCommand(command, arguments: arguments)
+        return try await executeTaskAsync(launchPath: commandLaunchPath, arguments: commandPieces)
+    }
 }
 
 /// Executes a shell command without waiting for termination.
-/// This is specifically for commands that don't terminate normally.
+/// Reads currently available data once.
 ///
 /// - Parameter command: The command to execute
-/// - Returns: The command output so far
-/// - Throws: ShellCommandError if execution fails
+/// - Returns: The command output available at the time of reading
+/// - Throws: ShellCommandError if execution fails or reading fails
 public func cliTaskNoTerm(_ command: String) async throws -> String {
     Logger.tasks.debug("Executing without termination: \(command, privacy: .public)")
     
@@ -115,15 +98,37 @@ public func cliTaskNoTerm(_ command: String) async throws -> String {
         
         let task = Process()
         let outputPipe = Pipe()
+        let errorPipe = Pipe() // Also capture stderr
         
         task.executableURL = URL(fileURLWithPath: commandLaunchPath)
         task.arguments = commandPieces
         task.standardOutput = outputPipe
+        task.standardError = errorPipe // Capture stderr as well
         
-        try task.run()
+        // Read available data immediately after launch
+        var outputData = Data()
+        var errorData = Data()
+        let outputHandle = outputPipe.fileHandleForReading
+        let errorHandle = errorPipe.fileHandleForReading
+
+        // We need to close the handles later, use defer carefully
+        defer {
+             try? outputHandle.close()
+             try? errorHandle.close()
+        }
         
-        // Lese nur einmal und schließe dann sofort
-        return try readPipeContent(outputPipe)
+        try task.run() // Launch the process
+
+        // Give the process a very short time to produce initial output
+        try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+
+        outputData = outputHandle.availableData
+        errorData = errorHandle.availableData
+        
+        let outputString = String(data: outputData, encoding: .utf8) ?? ""
+        let errorString = String(data: errorData, encoding: .utf8) ?? ""
+        
+        return outputString + errorString
     }
 }
 
@@ -270,72 +275,151 @@ private func prepareCommand(_ command: String, arguments: [String]? = nil) async
     return (commandLaunchPath, commandPieces)
 }
 
-/// Asynchronously executes a shell command and returns its output.
+/// Asynchronously executes a shell command and returns its combined output (stdout + stderr).
+/// Uses asynchronous reading of pipes.
 ///
 /// - Parameters:
 ///   - launchPath: Path to the executable
 ///   - arguments: Command arguments
-/// - Returns: The command output
+/// - Returns: The combined command output (stdout + stderr)
 /// - Throws: ShellCommandError if execution fails
 private func executeTaskAsync(launchPath: String, arguments: [String]) async throws -> String {
-    return try await shellCommandQueue.execute {
+    
+    try await withCheckedThrowingContinuation { continuation in
         let task = Process()
         let outputPipe = Pipe()
         let errorPipe = Pipe()
+        
+        var outputData = Data()
+        var errorData = Data()
+        
+        let outputHandle = outputPipe.fileHandleForReading
+        let errorHandle = errorPipe.fileHandleForReading
+        
+        // Use DispatchGroup to track completion of reading both pipes
+        let group = DispatchGroup()
         
         task.executableURL = URL(fileURLWithPath: launchPath)
         task.arguments = arguments
         task.standardOutput = outputPipe
         task.standardError = errorPipe
         
-        try task.run()
-        
-        // Warte auf Prozessende, bevor wir beginnen zu lesen
-        task.waitUntilExit()
-        
-        // Lese die Ausgaben nur einmal, nachdem der Task beendet ist
-        let outputString = try readPipeContent(outputPipe)
-        let errorString = try readPipeContent(errorPipe)
-        
-        if task.terminationStatus != 0 {
-            Logger.tasks.error("Command failed with exit code \(task.terminationStatus, privacy: .public): \(launchPath, privacy: .public) \(arguments.joined(separator: " "), privacy: .public)")
+        // Handler for stdout data
+        group.enter() // Enter for stdout reading
+        outputHandle.readabilityHandler = { handle in
+            let data = handle.availableData
+            if data.isEmpty {
+                // EOF reached for stdout
+                outputHandle.readabilityHandler = nil // Remove handler
+                try? handle.close() // Close the handle
+                group.leave() // Signal stdout reading completion
+            } else {
+                outputData.append(data)
+            }
         }
         
-        return outputString + errorString
+        // Handler for stderr data
+        group.enter() // Enter for stderr reading
+        errorHandle.readabilityHandler = { handle in
+            let data = handle.availableData
+            if data.isEmpty {
+                // EOF reached for stderr
+                errorHandle.readabilityHandler = nil // Remove handler
+                try? handle.close() // Close the handle
+                group.leave() // Signal stderr reading completion
+            } else {
+                errorData.append(data)
+            }
+        }
+        
+        // Handler for process termination
+        task.terminationHandler = { process in
+            // Ensure readability handlers are removed and handles closed
+            // (Might be redundant if EOF was reached, but safe)
+            if outputHandle.readabilityHandler != nil {
+                 outputHandle.readabilityHandler = nil
+                 try? outputHandle.close()
+                 group.leave() // Leave if EOF wasn't reached before termination
+            }
+             if errorHandle.readabilityHandler != nil {
+                 errorHandle.readabilityHandler = nil
+                 try? errorHandle.close()
+                 group.leave() // Leave if EOF wasn't reached before termination
+            }
+
+            // Wait for both pipes to finish reading *after* termination
+            group.notify(queue: DispatchQueue.global()) {
+                // All reading done and process terminated
+                let outputString = String(data: outputData, encoding: .utf8) ?? ""
+                let errorString = String(data: errorData, encoding: .utf8) ?? ""
+                
+                if process.terminationStatus == 0 {
+                    // Success
+                    continuation.resume(returning: outputString + errorString)
+                } else {
+                    // Failure
+                    let commandDesc = "\(launchPath) \(arguments.joined(separator: " "))"
+                    Logger.tasks.error("Command failed with exit code \(process.terminationStatus, privacy: .public): \(commandDesc, privacy: .public)\nStderr: \(errorString)")
+                    continuation.resume(throwing: ShellCommandError.executionFailed(commandDesc, process.terminationStatus))
+                }
+            }
+        }
+        
+        // Run the task
+        do {
+            try task.run()
+        } catch {
+            // Clean up handlers and handles immediately if run fails
+            outputHandle.readabilityHandler = nil
+            errorHandle.readabilityHandler = nil
+            try? outputHandle.close()
+            try? errorHandle.close()
+            // Ensure group leaves if entered
+            group.leave()
+            group.leave()
+            Logger.tasks.error("Failed to run command \(launchPath, privacy: .public): \(error.localizedDescription)")
+            continuation.resume(throwing: error)
+        }
     }
 }
 
-/// Cached 'which' command lookup
+/// Cached 'which' command lookup using the refactored executeTaskAsync
 /// - Parameter command: Command to look up
-/// - Returns: Path to the command or empty string if not found
+/// - Returns: Path to the command or throws error if not found
 private func whichAsync(_ command: String) async throws -> String {
     // Check cache first
     if let cachedPath = SystemInfoCache.commandPaths[command], !cachedPath.isEmpty {
         return cachedPath
     }
     
-    return try await shellCommandQueue.execute {
-        let task = Process()
-        let pipe = Pipe()
-        
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/which")
-        task.arguments = [command]
-        task.standardOutput = pipe
-        
-        try task.run()
-        task.waitUntilExit()
-        
-        // Lese den Pipe-Inhalt und schließe ihn anschließend
-        let output = try readPipeContent(pipe)
-        let result = output.components(separatedBy: "\n").first ?? ""
-        
-        if result.isEmpty {
-            Logger.tasks.error("Binary does not exist: \(command, privacy: .public)")
+    // Don't use shellCommandQueue here, as executeTaskAsync handles it internally now via cliTask
+    do {
+        let output = try await cliTask("/usr/bin/which", arguments: [command])
+        let result = output.trimmingCharacters(in: .whitespacesAndNewlines) // More robust trimming
+
+        if result.isEmpty || result.contains("not found") { // Check common 'not found' output
+            Logger.tasks.error("Binary does not exist or 'which' failed: \(command, privacy: .public)")
+            throw ShellCommandError.commandNotFound(command)
         } else {
             // Speichere gültigen Pfad im Cache
             SystemInfoCache.commandPaths[command] = result
+            return result
         }
-        
-        return result
+    } catch let error as ShellCommandError {
+        // Handle specific ShellCommandError cases
+        switch error {
+        case .executionFailed(_, let exitCode) where exitCode == 1:
+            // Common exit code for 'which' not found
+            Logger.tasks.error("Binary does not exist ('which' exit code 1): \(command, privacy: .public)")
+            throw ShellCommandError.commandNotFound(command) // Re-throw as commandNotFound
+        default:
+            // Re-throw other ShellCommandError cases
+            Logger.tasks.error("Error running 'which' for \(command, privacy: .public): \(error.localizedDescription)")
+            throw error
+        }
+    } catch {
+        // Handle other non-ShellCommandError types
+        Logger.tasks.error("Unexpected error running 'which' for \(command, privacy: .public): \(error.localizedDescription)")
+        throw error
     }
 }
