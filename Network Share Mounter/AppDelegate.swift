@@ -190,9 +190,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize the Mounter instance
         mounter = Mounter()
         
-        // Configure app to start at login based on user preferences
-        LaunchAtLogin.isEnabled = prefs.bool(for: .autostart)
-        
         // Set up the status item in the menu bar
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
@@ -210,6 +207,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupSignalHandlers()
         
         activityController = ActivityController(appDelegate: self)
+
+        Task.detached(priority: .background) { [weak self] in
+            guard let self = self else { return }
+            Logger.app.debug("Setting LaunchAtLogin state asynchronously via Task...")
+            // Der eigentliche Aufruf, der blockieren kann
+            LaunchAtLogin.isEnabled = self.prefs.bool(for: .autostart)
+            Logger.app.debug("LaunchAtLogin state set via Task.")
+        }
     }
     
     /// Synchronizes Sparkle settings with current preferences.
