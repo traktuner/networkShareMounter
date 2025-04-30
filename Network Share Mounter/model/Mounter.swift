@@ -85,16 +85,16 @@ class Mounter: ObservableObject {
             return _errorStatus
         }
         set {
-            // Thread-safe update and asynchronous notification
+            // Thread-safe update
             _errorStatusLock.lock()
+            let shouldPostAuthError = newValue == .authenticationError
             _errorStatus = newValue
             _errorStatusLock.unlock()
             
-            // Notifications can be sent asynchronously
-            Task {
-                if newValue == .authenticationError {
-                    NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
-                }
+            // Post notification synchronously after releasing the lock
+            if shouldPostAuthError {
+                NotificationCenter.default.post(name: .nsmNotification, object: nil, 
+                                               userInfo: ["AuthError": MounterError.authenticationError])
             }
         }
     }
@@ -164,7 +164,11 @@ class Mounter: ObservableObject {
                     var homeDirectory = result[0]
                     homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
                     homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                    let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+                    let newShare = Share.createShare(networkShare: homeDirectory, 
+                                                     authType: AuthType.krb, 
+                                                     mountStatus: MountStatus.unmounted, 
+                                                     managed: true,
+                                                     shareDisplayName: "Home")
                     await self.addShare(newShare)
                 }
             } catch {

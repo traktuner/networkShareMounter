@@ -129,12 +129,18 @@ enum PreferenceKeys: String, CaseIterable {
     case disableAutoUpdateFramework = "disableAutoUpdateFramework"
     
     /// Sparkle: Whether to automatically check for updates
-    case SUEnableAutomaticChecks = "SUEnableAutomaticChecks"
+    case automaticallyChecksForUpdates = "automaticallyChecksForUpdates"
     
     /// Sparkle: Whether to automatically install updates
+    case automaticallyDownloadsUpdates = "automaticallyDownloadsUpdates"
+    
+    /// OBSOLETE: Sparkle: Whether to automatically check for updates
+    case SUEnableAutomaticChecks = "SUEnableAutomaticChecks"
+    
+    /// OBSOLETE: Sparkle: Whether to automatically install updates
     case SUAutomaticallyUpdate = "SUAutomaticallyUpdate"
     
-    /// Sparkle: Whether the app has been launched before
+    /// OBSOLETE: Sparkle: Whether the app has been launched before
     case SUHasLaunchedBefore = "SUHasLaunchedBefore"
     
     /// Whether to automatically check for updates

@@ -13,6 +13,47 @@ import Sparkle
 
 class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource, NSPopoverDelegate {
     
+    // MARK: - Vorübergehender Ersatz für UserShare
+    // Diese Klasse dient als Kompilierungshelfer während der Migration zu SwiftUI
+    @objc private class UserShare: NSObject {
+        @objc dynamic var networkShare: String
+        @objc dynamic var authType: String
+        @objc dynamic var username: String?
+        @objc dynamic var password: String?
+        @objc dynamic var mountPoint: String?
+        @objc dynamic var managed: Bool
+        @objc dynamic var mountStatus: String
+        @objc dynamic var mountSymbol: String
+        @objc dynamic var symbolColor: NSColor?
+        
+        init(networkShare: String, authType: String, username: String?, password: String?, mountPoint: String?, managed: Bool, mountStatus: String, mountSymbol: String, symbolColor: NSColor? = nil) {
+            self.networkShare = networkShare
+            self.authType = authType
+            self.username = username
+            self.password = password
+            self.mountPoint = mountPoint
+            self.managed = managed
+            self.mountStatus = mountStatus
+            self.mountSymbol = mountSymbol
+            self.symbolColor = symbolColor
+        }
+        
+        // Hilfsfunktion zum Erstellen eines UserShare aus einem Share
+        static func from(share: Share, mountSymbol: String, symbolColor: NSColor? = nil) -> UserShare {
+            return UserShare(
+                networkShare: share.networkShare,
+                authType: share.authType.rawValue,
+                username: share.username,
+                password: share.password,
+                mountPoint: share.mountPoint,
+                managed: share.managed,
+                mountStatus: share.mountStatus.rawValue,
+                mountSymbol: mountSymbol,
+                symbolColor: symbolColor
+            )
+        }
+    }
+    
     // MARK: - help messages
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("help-show-managed-shares", comment: ""),
@@ -25,7 +66,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
     // prepare an array of type UserShare to store the defined shares while showing this view
-    @objc dynamic var userShares: [UserShare] = []
+    @objc dynamic private var userShares: [UserShare] = []
     
     // swiftlint:disable force_cast
     // appDelegate is used to accesss variables in AppDelegate
@@ -383,26 +424,34 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     ///
     /// provide a method to react to certain events
     @objc func handleErrorNotification(_ notification: NSNotification) {
-        if notification.userInfo?["krbOffDomain"] is Error {
-            DispatchQueue.main.async {
+        // Always dispatch UI updates to the main thread
+        DispatchQueue.main.async {
+            if notification.userInfo?["krbOffDomain"] is Error {
                 self.dogeAuthenticateButton.isEnabled = false
                 self.dogeAuthenticateHelp.isEnabled = false
                 self.dogeAuthenticateButton.title = NSLocalizedString("krb-offdomain-button", comment: "Button text for kerberos authentication")
-            }
-        } else if notification.userInfo?["KrbAuthError"] is Error {
-            DispatchQueue.main.async {
+            } else if notification.userInfo?["KrbAuthError"] is Error {
                 if self.enableKerberos {
                     self.dogeAuthenticateButton.isEnabled = true
                     self.dogeAuthenticateHelp.isEnabled = true
                     self.dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
                 }
-            }
-        } else if notification.userInfo?["krbAuthenticated"] is Error {
-            DispatchQueue.main.async {
+            } else if notification.userInfo?["krbAuthenticated"] is Error {
                 if self.enableKerberos {
                     self.dogeAuthenticateButton.isEnabled = true
                     self.dogeAuthenticateHelp.isEnabled = true
                     self.dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+                }
+            } else if notification.userInfo?["AuthError"] is MounterError {
+                // Update UI for authentication errors
+                Task {
+                    self.refreshUserArray(type: .missingPassword)
+                    self.toggleManagedSwitch.isHidden = true
+                    self.additionalSharesText.isHidden = true
+                    self.additionalSharesHelpButton.isHidden = true
+                    self.modifyShareButton.title = NSLocalizedString("authenticate-share-button", comment: "Button text to change authentication")
+                    self.networShareMounterExplanation.stringValue = NSLocalizedString("help-auth-error", comment: "Help text shown if some shares are not authenticated")
+                    self.tableView.reloadData()
                 }
             }
         }

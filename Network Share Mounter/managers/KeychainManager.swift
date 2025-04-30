@@ -54,6 +54,7 @@ enum KeychainError: Error, Equatable {
     case errorRetrievingPassword
     case errorAccessingPassword
     case errorWithStatus(status: OSStatus)
+    case itemNotFound
 }
 
 class KeychainManager: NSObject {
@@ -197,20 +198,18 @@ class KeychainManager: NSObject {
     /// - Parameter withUsername: ``username`` login for share
     func removeCredential(forShare share: URL, withUsername username: String) throws {
         do {
-            // Check if an entry exists without retrieving the password
-            guard credentialExists(forShare: share, withUsername: username) else {
-                // No entry present, nothing to delete
-                return
-            }
-            
             let query = try makeQuery(share: share, username: username)
             let status = SecItemDelete(query as CFDictionary)
             
-            guard status == errSecSuccess else {
+            // Treat item not found as success for removal
+            guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw KeychainError.errorWithStatus(status: status)
             }
         } catch let error as KeychainError {
-            throw error
+             // Don't re-throw itemNotFound if that was somehow thrown by makeQuery (unlikely)
+            if error != .itemNotFound {
+                 throw error
+            }
         } catch {
             throw KeychainError.errorRemovingEntry
         }
@@ -222,20 +221,18 @@ class KeychainManager: NSObject {
     /// - Parameter accessGroup: ``String`` access group
     func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws {
         do {
-            // Check if an entry exists without retrieving the password
-            guard credentialExists(forUsername: username, andService: service, accessGroup: accessGroup) else {
-                // No entry present, nothing to delete
-                return
-            }
-            
             let query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             let status = SecItemDelete(query as CFDictionary)
             
-            guard status == errSecSuccess else {
+            // Treat item not found as success for removal
+            guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw KeychainError.errorWithStatus(status: status)
             }
         } catch let error as KeychainError {
-            throw error
+             // Don't re-throw itemNotFound if that was somehow thrown by makeQuery (unlikely)
+            if error != .itemNotFound {
+                 throw error
+            }
         } catch {
             throw KeychainError.errorRemovingEntry
         }
@@ -254,6 +251,12 @@ class KeychainManager: NSObject {
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            
+            // Handle item not found specifically
+            if status == errSecItemNotFound {
+                throw KeychainError.itemNotFound
+            }
+            
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
@@ -261,10 +264,12 @@ class KeychainManager: NSObject {
             if let parsedData = ref as? Data {
                 return String(data: parsedData, encoding: .utf8) ?? ""
             }
+        } catch let error as KeychainError {
+            throw error // Re-throw known KeychainErrors
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
-        return nil
+        return nil // Should not be reached if successful
     }
     
     /// retrieve a password from the keychain
@@ -280,6 +285,12 @@ class KeychainManager: NSObject {
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
+
+            // Handle item not found specifically
+            if status == errSecItemNotFound {
+                throw KeychainError.itemNotFound
+            }
+            
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
@@ -287,10 +298,12 @@ class KeychainManager: NSObject {
             if let parsedData = ref as? Data {
                 return String(data: parsedData, encoding: .utf8) ?? ""
             }
+        } catch let error as KeychainError {
+            throw error // Re-throw known KeychainErrors
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
-        return nil
+        return nil // Should not be reached if successful
     }
     
     /// retrieve entries from the keychain
