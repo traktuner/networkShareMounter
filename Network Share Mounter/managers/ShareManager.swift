@@ -161,11 +161,15 @@ actor ShareManager {
         // 3. Local system username
         let userName: String
         if let username = prefs.string(for: .usernameOverride) {
+            // Hinzugefügtes Logging:
+            Logger.shareManager.debug("📝 Setting username via usernameOverride and PreferenceManager: \(username, privacy: .public)")
             userName = username
         } else if let username = shareElement[Defaults.username] {
+            Logger.shareManager.debug("📝 Setting username via usernameOverride and shareElement: \(username, privacy: .public)")
             userName = username
         } else {
             userName = NSUserName()
+            Logger.shareManager.debug("📝 Setting username to local system username: \(userName, privacy: .public)")
         }
         
         // Replace username placeholder in share URL
