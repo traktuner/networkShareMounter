@@ -748,6 +748,7 @@ class Mounter: ObservableObject {
     ///   - basePath: The base path where the share will be mounted
     /// - Returns: The full path where the share will be mounted
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
+        Logger.mounter.debug("🤔 Determining mount directory: Input ShareMP='\\(share.mountPoint ?? "nil", privacy: .public)', URL='\\(url, privacy: .public)', BasePath='\\(basePath, privacy: .public)'")
         var mountDirectory = basePath
         
         if basePath != "/Volumes" {
@@ -769,6 +770,7 @@ class Mounter: ObservableObject {
             mountDirectory += "/" + host
         }
         
+        Logger.mounter.debug("🗺️ Determined mount directory: '\\(mountDirectory, privacy: .public)'")
         return mountDirectory
     }
     
@@ -970,6 +972,7 @@ class Mounter: ObservableObject {
         )
         
         // Perform the mount operation
+        Logger.mounter.info("🚀 Calling NetFSMountURLSync: URL='\\(url, privacy: .public)', realMountPoint='\\(realMountPoint, privacy: .public)', username='\\(share.username ?? "nil", privacy: .public)'")
         // swiftlint:disable force_cast
         let rc = NetFSMountURLSync(url as CFURL,
                                    NSURL(string: realMountPoint),
