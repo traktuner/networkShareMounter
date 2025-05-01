@@ -152,8 +152,15 @@ actor ShareManager {
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
         // Extract network share URL, return nil if not found
         guard let shareUrlString = shareElement[Defaults.networkShare] else {
+            Logger.shareManager.error("❌ MDM Config: Missing 'networkShare' key in share element: \\(shareElement, privacy: .public)")
             return nil
         }
+
+        // Log received MDM share element data
+        let logAuthType = shareElement[Defaults.authType] ?? "(default: krb)"
+        let logUsername = shareElement[Defaults.username] ?? "(not set)"
+        let logMountPoint = shareElement[Defaults.mountPoint] ?? "(not set)"
+        Logger.shareManager.debug("⚙️ Processing MDM Share Config: URL='\\(shareUrlString)', Auth='\\(logAuthType)', User='\\(logUsername)', MountPoint='\\(logMountPoint)'")
 
         // Determine username with following priority:
         // 1. Username override from preferences
@@ -250,7 +257,17 @@ actor ShareManager {
         }
         
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        let newShare = Share.createShare(networkShare: shareUrlString, authType: shareAuthType, mountStatus: mountStatus, username: shareElement[Defaults.username], password: password, managed: false)
+        let mountPoint = shareElement[Defaults.mountPoint]
+
+        let newShare = Share.createShare(
+            networkShare: shareUrlString,
+            authType: shareAuthType,
+            mountStatus: mountStatus,
+            username: shareElement[Defaults.username],
+            password: password,
+            mountPoint: mountPoint,
+            managed: false
+        )
         return(newShare)
     }
     
