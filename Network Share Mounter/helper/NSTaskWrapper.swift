@@ -334,18 +334,15 @@ private func executeTaskAsync(launchPath: String, arguments: [String]) async thr
         
         // Handler for process termination
         task.terminationHandler = { process in
-            // Ensure readability handlers are removed and handles closed
-            // (Might be redundant if EOF was reached, but safe)
-            if outputHandle.readabilityHandler != nil {
-                 outputHandle.readabilityHandler = nil
-                 try? outputHandle.close()
-                 group.leave() // Leave if EOF wasn't reached before termination
-            }
-             if errorHandle.readabilityHandler != nil {
-                 errorHandle.readabilityHandler = nil
-                 try? errorHandle.close()
-                 group.leave() // Leave if EOF wasn't reached before termination
-            }
+            // Defensiv die Handles schließen, falls sie noch offen sind
+            // (kann passieren, wenn Prozess terminiert, bevor EOF gelesen wurde)
+            // Die readabilityHandler sollten sich selbst auf nil setzen.
+            try? outputHandle.close()
+            try? errorHandle.close()
+            
+            // HINWEIS: Die group.leave() Aufrufe wurden hier entfernt.
+            // Die readabilityHandler rufen leave() bei EOF.
+            // group.notify wird ausgelöst, wenn beide leaves erfolgt sind.
 
             // Wait for both pipes to finish reading *after* termination
             group.notify(queue: DispatchQueue.global()) {
