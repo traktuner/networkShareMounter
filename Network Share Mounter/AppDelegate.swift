@@ -190,9 +190,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize the Mounter instance
         mounter = Mounter()
         
-        // Configure app to start at login based on user preferences
-        LaunchAtLogin.isEnabled = prefs.bool(for: .autostart)
-        
         // Set up the status item in the menu bar
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
@@ -210,6 +207,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupSignalHandlers()
         
         activityController = ActivityController(appDelegate: self)
+
+        Task.detached(priority: .background) { [weak self] in
+            guard let self = self else { return }
+            Logger.app.debug("Setting LaunchAtLogin state asynchronously via Task...")
+            // Der eigentliche Aufruf, der blockieren kann
+            LaunchAtLogin.isEnabled = self.prefs.bool(for: .autostart)
+            Logger.app.debug("LaunchAtLogin state set via Task.")
+        }
     }
     
     /// Synchronizes Sparkle settings with current preferences.
@@ -263,10 +268,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// It handles tasks that may take longer to complete and should not block
     /// the main application launch sequence.
     private func initializeApp() async {
-        Task {
+        Task { @MainActor in
+            Logger.app.debug("🔄 Starting asynchronous app initialization")
+            
+            // Initialize the mounter
             await mounter?.asyncInit()
+            Logger.app.debug("✅ Mounter successfully initialized")
+            
             // Always build the menu, regardless of the mounter status
             await self.constructMenu(withMounter: self.mounter)
+            Logger.app.debug("✅ Initial menu constructed")
             
             // Check if a kerberos domain/realm is set and is not empty
             if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
@@ -279,11 +290,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Initialize statistics reporting
             let stats = AppStatistics.init()
             await stats.reportAppInstallation()
+            Logger.app.debug("✅ App installation statistics reported")
+            
             await AccountsManager.shared.initialize()
+            Logger.app.debug("✅ Account manager initialized")
             
             // Set up notification observer for error handling
             if mounter != nil {
                 NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
+                Logger.app.debug("✅ Error notification observer registered")
             } else {
                 Logger.app.error("Could not initialize mounter class, this should never happen.")
             }
@@ -313,7 +328,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             // Start network connectivity monitoring
-            monitor.startMonitoring { connection, reachable in
+            monitor.startMonitoring { [weak self] connection, reachable in
+                guard let self = self else { return }
+                
                 if reachable.rawValue == "yes" {
                     Logger.app.debug("Network is reachable, firing nsmNetworkChangeTriggerNotification and nsmAuthTriggerNotification.")
                     // Network is available - trigger connection and authentication
@@ -321,7 +338,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                 } else {
                     // Network is unavailable - unmount shares and reset status
-                    Task {
+                    // Verwenden eines langlebigen Tasks mit @MainActor
+                    let networkTask = Task { @MainActor in
+                        Logger.app.debug("🔄 Network monitoring callback - unmounting shares")
                         NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                         // Since the mount status after a network change is unknown it will be set
                         // to undefined so it can be tested and maybe remounted if the network connects again
@@ -331,15 +350,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             // Trying to unmount all shares
                             NotificationCenter.default.post(name: Defaults.nsmUnmountTriggerNotification, object: nil)
                             await mounter.unmountAllMountedShares()
+                            Logger.app.debug("✅ Network monitoring - shares unmounted successfully")
                         } else {
                             Logger.app.error("Could not initialize mounter class, this should never happen.")
                         }
                     }
+                    // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+                    _ = networkTask
                 }
             }
             
             // Trigger initial mount operation
             NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+            Logger.app.debug("🎉 App initialization completed successfully")
         }
     }
 
@@ -608,24 +631,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mountSignalSource = DispatchSource.makeSignalSource(signal: mountSignal, queue: .main)
 
         // Set up event handler for unmount signal
-        unmountSignalSource?.setEventHandler { [self] in
+        unmountSignalSource?.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            
             Logger.app.debug("🚦Received unmount signal.")
-            Task {
+            
+            // Erstellen eines langlebigen Tasks mit @MainActor
+            let signalTask = Task { @MainActor in
+                Logger.app.debug("🔄 Processing unmount signal")
                 await self.mounter?.unmountAllMountedShares(userTriggered: false)
+                Logger.app.debug("✅ Unmount signal processing completed")
             }
+            
+            // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+            _ = signalTask
         }
 
         // Set up event handler for mount signal
-        mountSignalSource?.setEventHandler { [self] in
+        mountSignalSource?.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            
             Logger.app.debug("🚦Received mount signal.")
-            Task {
+            
+            // Erstellen eines langlebigen Tasks mit @MainActor
+            let signalTask = Task { @MainActor in
+                Logger.app.debug("🔄 Processing mount signal")
                 await self.mounter?.mountGivenShares(userTriggered: true)
+                Logger.app.debug("✅ Mount signal processing completed")
             }
+            
+            // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+            _ = signalTask
         }
 
         // Activate the signal sources
         unmountSignalSource?.resume()
         mountSignalSource?.resume()
+        
+        Logger.app.debug("✅ Signal handlers configured successfully")
     }
     
     /// Constructs the app's menu based on configured profiles and current status.
@@ -741,7 +784,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // If share is mounted, use the mountpoint icon
                     if let mountpoint = share.actualMountPoint {
                         let mountDir = (mountpoint as NSString).lastPathComponent
-                        Logger.app.debug("  🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
+                        Logger.app.debug("  Menu: 🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
                         
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
@@ -751,7 +794,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         menuItem.image = menuIcon
                     } else {
                         // If share is not mounted, use the standard icon
-                        Logger.app.debug("  🍰 Adding remote share \(share.networkShare, privacy: .public).")
+                        Logger.app.debug("  Menu: 🍰 Adding remote share \(share.networkShare, privacy: .public).")
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),

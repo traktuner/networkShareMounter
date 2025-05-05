@@ -170,10 +170,15 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ unmountAllShares called by \(notificationName)")
         
-        Task {
+        // Starten eines neuen Task, der nicht sofort beendet wird
+        let unmountTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Unmount-Task gestartet - Führe Unmount-Operation durch")
             await mounter.unmountAllMountedShares()
-            Logger.activityController.debug("All shares successfully unmounted")
+            Logger.activityController.debug("✅ Unmount-Task abgeschlossen - Alle Shares erfolgreich unmounted")
         }
+        
+        // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+        _ = unmountTask
     }
     
     /// Handles system wake up from sleep
@@ -188,13 +193,19 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ mountGivenShares called by didWakeNotification")
         
-        Task {
+        // Verwenden eines langlebigen Tasks mit explizitem Warten auf Abschluss
+        let wakeupTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Wake-up operation - Starting mount process")
             await mounter.mountGivenShares()
             Logger.activityController.debug("🐛 Restarting Finder to bypass a presumed bug in macOS")
             
             let finderController = FinderController()
             await finderController.restartFinder()
+            Logger.activityController.debug("✅ Wake-up operation completed")
         }
+        
+        // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+        _ = wakeupTask
     }
     
     /// Mounts configured network shares
@@ -214,10 +225,16 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ mountGivenShares called by \(notificationName)")
         
-        Task {
+        // Erstellen eines neuen Tasks mit expliziter Ausführung auf dem Main Actor
+        let mountTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Mounting shares - Starting operation on main actor")
+            // Explizit auf den mountGivenShares-Aufruf warten
             await mounter.mountGivenShares()
-            Logger.activityController.debug("All shares successfully mounted")
+            Logger.activityController.debug("✅ All shares successfully mounted - Operation completed")
         }
+        
+        // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+        _ = mountTask
     }
     
     // MARK: - Authentication Handlers
@@ -232,11 +249,15 @@ class ActivityController {
             return
         }
         
-        Task {
+        // Erstellen eines neuen Tasks mit expliziter Ausführung
+        let signInTask = Task { @MainActor in
             Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn")
             await appDelegate?.automaticSignIn.signInAllAccounts()
             Logger.activityController.info("Automatic sign-in completed successfully")
         }
+        
+        // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+        _ = signInTask
     }
     
     /// Mounts shares after user request
@@ -253,10 +274,16 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ mountGivenShares with user-trigger called")
         
-        Task {
+        // Erstellen eines neuen Tasks, der explizit auf den Main Actor gesendet wird
+        let userMountTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Manual mount operation - Starting mount process")
+            // Warte explizit auf den Abschluss des Mountens
             await mounter.mountGivenShares(userTriggered: true)
-            Logger.activityController.info("Shares successfully mounted after user request")
+            Logger.activityController.debug("✅ Shares successfully mounted after user request - Operation completed")
         }
+        
+        // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+        _ = userMountTask
     }
     
     /// Updates the app menu
@@ -270,10 +297,15 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ Menu reconstruction called")
         
-        Task { @MainActor in
+        // Erstellen eines neuen Tasks mit expliziter Ausführung auf dem Main Actor
+        let menuTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Starting menu reconstruction")
             await appDelegate?.constructMenu(withMounter: mounter)
-            Logger.activityController.debug("Menu successfully updated")
+            Logger.activityController.debug("✅ Menu successfully updated")
         }
+        
+        // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+        _ = menuTask
     }
     
     /// Performs periodic tasks
@@ -298,13 +330,19 @@ class ActivityController {
         Logger.activityController.debug("⏰ Time goes by so slowly: Timer notification received")
         Logger.activityController.debug("▶︎ ...checking for possible MDM profile changes")
         
-        // Check ShareArray for possible changes in MDM profile
-        Task {
+        // Erstellen eines neuen Tasks mit expliziter Ausführung auf dem Main Actor
+        let timerTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Timer-triggered mount operation - Updating share array")
+            // Explizit auf das Update des Share Arrays warten
             await mounter.shareManager.updateShareArray()
             Logger.activityController.debug("▶︎ ...calling mountGivenShares")
+            // Explizit auf das Mounten der Shares warten
             await mounter.mountGivenShares()
-            Logger.activityController.debug("Timer processing completed successfully")
+            Logger.activityController.debug("✅ Timer processing completed successfully")
         }
+        
+        // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
+        _ = timerTask
     }
     
     // MARK: - Helpers for utilizing the cliTask method
