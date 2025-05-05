@@ -338,7 +338,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                 } else {
                     // Network is unavailable - unmount shares and reset status
-                    // Verwenden eines langlebigen Tasks mit @MainActor
+                    // Using a long-lasting task with @MainActor
                     let networkTask = Task { @MainActor in
                         Logger.app.debug("🔄 Network monitoring callback - unmounting shares")
                         NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
@@ -355,7 +355,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             Logger.app.error("Could not initialize mounter class, this should never happen.")
                         }
                     }
-                    // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
                     _ = networkTask
                 }
             }
@@ -636,14 +635,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             Logger.app.debug("🚦Received unmount signal.")
             
-            // Erstellen eines langlebigen Tasks mit @MainActor
             let signalTask = Task { @MainActor in
                 Logger.app.debug("🔄 Processing unmount signal")
                 await self.mounter?.unmountAllMountedShares(userTriggered: false)
                 Logger.app.debug("✅ Unmount signal processing completed")
             }
             
-            // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
             _ = signalTask
         }
 
@@ -653,14 +650,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             Logger.app.debug("🚦Received mount signal.")
             
-            // Erstellen eines langlebigen Tasks mit @MainActor
             let signalTask = Task { @MainActor in
                 Logger.app.debug("🔄 Processing mount signal")
                 await self.mounter?.mountGivenShares(userTriggered: true)
                 Logger.app.debug("✅ Mount signal processing completed")
             }
             
-            // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
             _ = signalTask
         }
 
