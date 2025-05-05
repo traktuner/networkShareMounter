@@ -1061,7 +1061,12 @@ class Mounter: ObservableObject {
         Logger.mounter.debug("  Prepared mount options. Real mount point target: \(realMountPoint)")
         
         // Perform the mount operation
-        Logger.mounter.info("🚀 Calling NetFSMountURLSync: URL=\(url, privacy: .public), Path=\(realMountPoint, privacy: .public), User=\(share.username ?? "(nil)", privacy: .public), Pwd=\(share.password == nil ? "(nil)" : "(set)", privacy: .public)")
+        Logger.mounter.info("""
+            🚀 Calling NetFSMountURLSync: URL=\(url, privacy: .public),
+                            Path=\(realMountPoint, privacy: .public),
+                            User=\(share.username ?? "(nil)", privacy: .public),
+                            Pwd=\(share.password == nil ? "(nil)" : "(set)", privacy: .public)
+        """)
         
         // Record start time
         let startTime = DispatchTime.now()
