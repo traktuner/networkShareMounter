@@ -168,7 +168,7 @@ class ActivityController {
             .components(separatedBy: " ")
             .last ?? "Unknown"
         
-        Logger.activityController.debug("▶︎ unmountAllShares called by \(notificationName)")
+        Logger.activityController.debug("▶︎ unmountAllShares called by \(notificationName, privacy: .public)")
         
         let unmountTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Unmount-Task gestartet - Führe Unmount-Operation durch")
@@ -219,7 +219,7 @@ class ActivityController {
             .components(separatedBy: " ")
             .last ?? "Unknown"
         
-        Logger.activityController.debug("▶︎ mountGivenShares called by \(notificationName)")
+        Logger.activityController.debug("▶︎ mountGivenShares called by \(notificationName, privacy: .public)")
         
         let mountTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Mounting shares - Starting operation on main actor")
@@ -338,7 +338,7 @@ class ActivityController {
         do {
             return try await cliTask(command)
         } catch {
-            Logger.activityController.error("Command execution failed: \(command), error: \(error.localizedDescription)")
+            Logger.activityController.error("Command execution failed: \(command, privacy: .public), error: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
