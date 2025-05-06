@@ -136,7 +136,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 updaterDelegate: nil,
                 userDriverDelegate: nil)
             
-            Logger.app.debug("Sparkle initialized with: checks=\(enableChecks), auto-update=\(autoUpdate)")
+            Logger.app.debug("Sparkle initialized with: checks=\(enableChecks, privacy: .public), auto-update=\(autoUpdate, privacy: .public)")
         } else {
             // Explicitly disable Sparkle in defaults when auto-updater is disabled
             UserDefaults.standard.set(false, forKey: "SUEnableAutomaticChecks")
@@ -250,7 +250,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         sparkleDefaults.set(autoUpdate, forKey: "SUAutomaticallyUpdate")
         sparkleDefaults.set(hasLaunchedBefore, forKey: "SUHasLaunchedBefore")
         
-        Logger.app.info("Sparkle settings synchronized: enableAutoUpdater=\(autoUpdaterEnabled), enableChecks=\(enableChecks), autoUpdate=\(autoUpdate), hasLaunchedBefore=\(hasLaunchedBefore)")
+        Logger.app.info("Sparkle settings synchronized: ")
+        Logger.app.info("     enableAutoUpdater=\(autoUpdaterEnabled, privacy: .public)")
+        Logger.app.info("     enableChecks=\(enableChecks, privacy: .public)")
+        Logger.app.info("     autoUpdate=\(autoUpdate, privacy: .public)")
+        Logger.app.info("     hasLaunchedBefore=\(hasLaunchedBefore, privacy: .public)")
     }
     
     /// Performs asynchronous initialization tasks for the application.
@@ -308,24 +312,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
             
             // Set up periodic mount timer
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                
-                // Set up periodic mount timer
-                self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
-                    Logger.app.debug("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
-                    NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
-                })
-                
-                // Set up periodic authentication timer
-                self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
-                    Logger.app.debug("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
-                    NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
-                })
-                
-                // Debug log to confirm timers were initialized
-                Logger.app.info("Timer wurden auf dem Hauptthread initialisiert - Mount: \(self.mountTimer.isValid), Auth: \(self.authTimer.isValid)")
-            }
+            self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
+                Logger.app.debug("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
+                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+            })
+            
+            // Set up periodic authentication timer
+            self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
+                Logger.app.debug("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
+                NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+            })
+            
+            // Debug log to confirm timers were initialized
+            Logger.app.info("Timer actualized on main thread - Mount: \(self.mountTimer.isValid, privacy: .public), Auth: \(self.authTimer.isValid, privacy: .public)")
             
             // Start network connectivity monitoring
             monitor.startMonitoring { [weak self] connection, reachable in
@@ -338,7 +337,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                 } else {
                     // Network is unavailable - unmount shares and reset status
-                    // Verwenden eines langlebigen Tasks mit @MainActor
+                    // Using a long-lasting task with @MainActor
                     let networkTask = Task { @MainActor in
                         Logger.app.debug("🔄 Network monitoring callback - unmounting shares")
                         NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
@@ -355,7 +354,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             Logger.app.error("Could not initialize mounter class, this should never happen.")
                         }
                     }
-                    // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
                     _ = networkTask
                 }
             }
@@ -551,7 +549,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// - Parameter sender: Menu item containing the share ID to mount
     @objc func mountSpecificShare(_ sender: NSMenuItem) {
         if let shareID = sender.representedObject as? String {
-            Logger.app.debug("User triggered to mount share with id \(shareID)")
+            Logger.app.debug("User triggered to mount share with id \(shareID, privacy: .public)")
             Task {
                 if let mounter = mounter {
                     await mounter.mountGivenShares(userTriggered: true, forShare: shareID)
@@ -636,14 +634,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             Logger.app.debug("🚦Received unmount signal.")
             
-            // Erstellen eines langlebigen Tasks mit @MainActor
             let signalTask = Task { @MainActor in
                 Logger.app.debug("🔄 Processing unmount signal")
                 await self.mounter?.unmountAllMountedShares(userTriggered: false)
                 Logger.app.debug("✅ Unmount signal processing completed")
             }
             
-            // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
             _ = signalTask
         }
 
@@ -653,14 +649,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             Logger.app.debug("🚦Received mount signal.")
             
-            // Erstellen eines langlebigen Tasks mit @MainActor
             let signalTask = Task { @MainActor in
                 Logger.app.debug("🔄 Processing mount signal")
                 await self.mounter?.mountGivenShares(userTriggered: true)
                 Logger.app.debug("✅ Mount signal processing completed")
             }
             
-            // Speichern der Task-Referenz, um sicherzustellen, dass sie nicht vorzeitig beendet wird
             _ = signalTask
         }
 
