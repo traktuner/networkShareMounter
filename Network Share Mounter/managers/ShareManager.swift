@@ -152,7 +152,7 @@ actor ShareManager {
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
         // Extract network share URL, return nil if not found
         guard let shareUrlString = shareElement[Defaults.networkShare] else {
-            Logger.shareManager.error("❌ MDM Config: Missing 'networkShare' key in share element: \\(shareElement, privacy: .public)")
+            Logger.shareManager.error("❌ MDM Config: Missing 'networkShare' key in share element: \(shareElement, privacy: .public)")
             return nil
         }
 
@@ -160,7 +160,11 @@ actor ShareManager {
         let logAuthType = shareElement[Defaults.authType] ?? "(default: krb)"
         let logUsername = shareElement[Defaults.username] ?? "(not set)"
         let logMountPoint = shareElement[Defaults.mountPoint] ?? "(not set)"
-        Logger.shareManager.debug("⚙️ Processing MDM Share Config: URL='\\(shareUrlString)', Auth='\\(logAuthType)', User='\\(logUsername)', MountPoint='\\(logMountPoint)'")
+        Logger.shareManager.debug("⚙️ Processing MDM Share Config: ")
+        Logger.shareManager.debug("   URL=\(shareUrlString, privacy: .public)")
+        Logger.shareManager.debug("   Auth=\(logAuthType, privacy: .public)")
+        Logger.shareManager.debug("   User=\(logUsername, privacy: .public)")
+        Logger.shareManager.debug("   MountPoint=\(logMountPoint, privacy: .public)")
 
         // Determine username with following priority:
         // 1. Username override from preferences
