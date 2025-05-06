@@ -160,7 +160,11 @@ actor ShareManager {
         let logAuthType = shareElement[Defaults.authType] ?? "(default: krb)"
         let logUsername = shareElement[Defaults.username] ?? "(not set)"
         let logMountPoint = shareElement[Defaults.mountPoint] ?? "(not set)"
-        Logger.shareManager.debug("⚙️ Processing MDM Share Config: URL=\(shareUrlString, privacy: .public), Auth=\(logAuthType, privacy: .public), User=\(logUsername, privacy: .public), MountPoint=\(logMountPoint, privacy: .public)")
+        Logger.shareManager.debug("⚙️ Processing MDM Share Config: ")
+        Logger.shareManager.debug("   URL=\(shareUrlString, privacy: .public)")
+        Logger.shareManager.debug("   Auth=\(logAuthType, privacy: .public)")
+        Logger.shareManager.debug("   User=\(logUsername, privacy: .public)")
+        Logger.shareManager.debug("   MountPoint=\(logMountPoint, privacy: .public)")
 
         // Determine username with following priority:
         // 1. Username override from preferences

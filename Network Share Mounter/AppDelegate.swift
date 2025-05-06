@@ -250,7 +250,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         sparkleDefaults.set(autoUpdate, forKey: "SUAutomaticallyUpdate")
         sparkleDefaults.set(hasLaunchedBefore, forKey: "SUHasLaunchedBefore")
         
-        Logger.app.info("Sparkle settings synchronized: enableAutoUpdater=\(autoUpdaterEnabled, privacy: .public), enableChecks=\(enableChecks, privacy: .public), autoUpdate=\(autoUpdate, privacy: .public), hasLaunchedBefore=\(hasLaunchedBefore, privacy: .public)")
+        Logger.app.info("Sparkle settings synchronized: ")
+        Logger.app.info("     enableAutoUpdater=\(autoUpdaterEnabled, privacy: .public)")
+        Logger.app.info("     enableChecks=\(enableChecks, privacy: .public)")
+        Logger.app.info("     autoUpdate=\(autoUpdate, privacy: .public)")
+        Logger.app.info("     hasLaunchedBefore=\(hasLaunchedBefore, privacy: .public)")
     }
     
     /// Performs asynchronous initialization tasks for the application.
