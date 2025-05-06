@@ -191,7 +191,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
                 // Check if already resumed
                 guard !continuationResumed else {
                     lock.unlock() // Release lock if already resumed
-                    Logger.automaticSignIn.warning("Continuation for SRV query '\(query)' already resumed. Ignoring duplicate callback.")
+                    Logger.automaticSignIn.warning("Continuation for SRV query '\(query, privacy: .public)' already resumed. Ignoring duplicate callback.")
                     return
                 }
                 // Mark as resumed
