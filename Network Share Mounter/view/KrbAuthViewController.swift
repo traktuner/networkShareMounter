@@ -360,17 +360,31 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
         Logger.authUI.debug("Auth succeeded")
         
         do {
+            Logger.authUI.debug("Vor kswitch Ausführung - Principal: \(self.session?.userPrincipal ?? "none")")
             // Wechsel zum Benutzer-Principal
-            let output = try await cliTask("kswitch -p \(self.session?.userPrincipal ?? "")")
+            let output = try await cliTask("/usr/bin/kswitch -p \(self.session?.userPrincipal ?? "")")
             Logger.authUI.debug("kswitch Ausgabe: \(output)")
             
+            Logger.authUI.debug("Nach kswitch - vor userInfo Aufruf")
             await session?.userInfo()
+            Logger.authUI.debug("Nach userInfo Aufruf - vor handleSuccessfulAuthentication")
             await handleSuccessfulAuthentication()
+            Logger.authUI.debug("Nach handleSuccessfulAuthentication")
         } catch {
-            Logger.authUI.warning("Fehler beim Wechseln des Kerberos-Principal: \(error.localizedDescription)")
+            Logger.authUI.warning("⚠️ Fehler beim Wechseln des Kerberos-Principal: \(error.localizedDescription)")
+            // Detaillierte Fehlerinformationen
+            Logger.authUI.debug("Fehlertyp: \(type(of: error))")
+            if let nsError = error as NSError? {
+                Logger.authUI.debug("NSError Code: \(nsError.code), Domain: \(nsError.domain)")
+                Logger.authUI.debug("UserInfo: \(nsError.userInfo)")
+            }
+            
+            Logger.authUI.debug("Trotz Fehler bei kswitch - versuche mit userInfo fortzufahren")
             // Trotzdem mit Authentifizierung fortfahren, da der primäre Auth-Prozess erfolgreich war
             await session?.userInfo()
+            Logger.authUI.debug("Nach userInfo Aufruf im catch-Block")
             await handleSuccessfulAuthentication()
+            Logger.authUI.debug("Nach handleSuccessfulAuthentication im catch-Block")
         }
     }
     
@@ -400,13 +414,18 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
     }
     
     func dogeADUserInformation(user: ADUserRecord) {
-        Logger.authUI.debug("User info: \(user.userPrincipal, privacy: .public)")
+        Logger.authUI.debug("User info erhalten: \(user.userPrincipal, privacy: .public)")
         
-//        Task { @MainActor in
-//            prefs.setADUserInfo(user: user)
-//            stopOperations()
-//            NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
-//            self.closeWindow()
-//        }
+        Task { @MainActor in
+            Logger.authUI.debug("Beginn des @MainActor-Tasks in dogeADUserInformation")
+            prefs.setADUserInfo(user: user)
+            Logger.authUI.debug("Nach prefs.setADUserInfo")
+            stopOperations()
+            Logger.authUI.debug("Nach stopOperations")
+            NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
+            Logger.authUI.debug("Nach Notification-Post, vor closeWindow")
+            self.closeWindow()
+            Logger.authUI.debug("Nach closeWindow")
+        }
     }
 }

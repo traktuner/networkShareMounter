@@ -61,7 +61,7 @@ class Migrator: dogeADUserSessionDelegate {
         }
         
         do {
-            let result = try await cliTask("kswitch -p \(principal)")
+            let result = try await cliTask("/usr/bin/kswitch -p \(principal)")
             Logger.login.debug("Principal switch result: \(result, privacy: .public)")
         } catch {
             Logger.login.error("Failed to switch principal: \(error.localizedDescription, privacy: .public)")
