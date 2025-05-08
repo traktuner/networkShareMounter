@@ -242,13 +242,18 @@ class ActivityController {
             return
         }
         
-        let signInTask = Task { @MainActor in
+        // Use Task directly without storing reference - more reliable than storing in a property
+        Task { @MainActor in
             Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn")
-            await appDelegate?.automaticSignIn.signInAllAccounts()
-            Logger.activityController.info("Automatic sign-in completed successfully")
+            
+            do {
+                Logger.activityController.debug("🔄 Starting automatic sign-in task")
+                await appDelegate?.automaticSignIn.signInAllAccounts()
+                Logger.activityController.info("✅ Automatic sign-in completed successfully")
+            } catch {
+                Logger.activityController.error("❌ Automatic sign-in failed with error: \(error.localizedDescription)")
+            }
         }
-        
-        _ = signInTask
     }
     
     /// Mounts shares after user request
