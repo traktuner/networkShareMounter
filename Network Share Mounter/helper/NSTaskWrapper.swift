@@ -402,13 +402,23 @@ public func getSerial() -> String {
     while service != 0 {
         // Get the serial number property from the service object
         // The property is a CFString (bridged to String)
-        let cfProp = IORegistryEntryCreateCFProperty(service, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0)
+        let propertyRef = IORegistryEntryCreateCFProperty(service, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0)
         
-        if let cfProp = cfProp, CFGetTypeID(cfProp.takeUnretainedValue()) == CFStringGetTypeID() {
-            serialNumber = cfProp.takeRetainedValue() as! String
-            Logger.tasks.debug("getSerial: Found serial number: \(serialNumber, privacy: .public)")
+        if let actualPropertyUnmanaged = propertyRef {
+            let actualProperty = actualPropertyUnmanaged.takeRetainedValue() // Übernimm Ownership
+            if CFGetTypeID(actualProperty) == CFStringGetTypeID() { // Prüfe den Typ des übernommenen Wertes
+                if let sn = actualProperty as? String { // Sicherer Conditional Cast
+                    serialNumber = sn
+                    Logger.tasks.debug("getSerial: Found serial number: \(serialNumber, privacy: .public)")
+                } else {
+                    // Dieser Fall wäre sehr unerwartet, wenn CFGetTypeID CFString bestätigt hat
+                    Logger.tasks.warning("getSerial: Value was CFString type according to CFGetTypeID, but could not be cast to Swift String.")
+                }
+            } else {
+                Logger.tasks.warning("getSerial: kIOPlatformSerialNumberKey was not a CFString. Actual TypeID: \(CFGetTypeID(actualProperty))")
+            }
         } else {
-            Logger.tasks.warning("getSerial: Failed to get kIOPlatformSerialNumberKey or it was not a CFString.")
+            Logger.tasks.warning("getSerial: Failed to get kIOPlatformSerialNumberKey (IORegistryEntryCreateCFProperty returned nil).")
         }
         
         // Release the service object
