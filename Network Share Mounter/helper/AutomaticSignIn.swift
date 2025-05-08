@@ -89,10 +89,10 @@ actor AutomaticSignIn {
             let accountsCount = accounts.count
             Logger.automaticSignIn.debug("🔍 Retrieved \(accountsCount) accounts")
             
-            if accounts.isEmpty {
-                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
-                return
-            }
+//            if accounts.isEmpty {
+//                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
+//                return
+//            }
             
             for (index, account) in accounts.enumerated() {
                 Logger.automaticSignIn.debug("🔍 Processing account \(index+1)/\(accountsCount): \(account.upn, privacy: .public)")
@@ -119,7 +119,7 @@ actor AutomaticSignIn {
             if let defPrinc = defaultPrinc {
                 do {
                     Logger.automaticSignIn.debug("🔍 Switching back to default principal: \(defPrinc, privacy: .public)")
-                    let output = try await cliTask("kswitch -p \(defPrinc)")
+                    let output = try await cliTask("/usr/bin/kswitch -p \(defPrinc)")
                     Logger.automaticSignIn.debug("🔍 kswitch output: \(output, privacy: .public)")
                 } catch {
                     Logger.automaticSignIn.error("❌ Error switching to default principal: \(error.localizedDescription, privacy: .public)")
@@ -356,7 +356,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         do {
             // Switch to user principal
             Logger.automaticSignIn.debug("🔍 [Worker] Executing kswitch for principal: \(self.session.userPrincipal)")
-            let output = try await cliTask("kswitch -p \(session.userPrincipal)")
+            let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
             Logger.automaticSignIn.debug("🔍 [Worker] kswitch output: \(output, privacy: .public)")
             
             // Retrieve user data
@@ -378,7 +378,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         
         do {
             Logger.automaticSignIn.debug("🔍 [Delegate] Switching to authenticated user")
-            let output = try await cliTask("kswitch -p \(session.userPrincipal)")
+            let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
             Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
             
             Logger.automaticSignIn.debug("🔍 [Delegate] Posting success notification")
