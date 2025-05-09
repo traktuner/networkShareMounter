@@ -61,10 +61,10 @@ class Migrator: dogeADUserSessionDelegate {
         }
         
         do {
-            let result = try await cliTask("kswitch -p \(principal)")
-            Logger.login.debug("Principal switch result: \(result)")
+            let result = try await cliTask("/usr/bin/kswitch -p \(principal)")
+            Logger.login.debug("Principal switch result: \(result, privacy: .public)")
         } catch {
-            Logger.login.error("Failed to switch principal: \(error.localizedDescription)")
+            Logger.login.error("Failed to switch principal: \(error.localizedDescription, privacy: .public)")
             // Continue despite error, as authentication still succeeded
         }
         
@@ -83,7 +83,7 @@ class Migrator: dogeADUserSessionDelegate {
     ///   - error: The error that occurred during authentication
     ///   - description: Description of the error
     func dogeADAuthenticationFailed(error: dogeADAuth.dogeADSessionError, description: String) {
-        Logger.FAU.error("Authentication failed after FAU user migration: \(description)")
+        Logger.FAU.error("Authentication failed after FAU user migration: \(description, privacy: .public)")
     }
     
     /// Called when user information is retrieved
@@ -144,7 +144,7 @@ class Migrator: dogeADUserSessionDelegate {
                 Logger.FAU.error("FAU user migration failed")
             }
         } catch {
-            Logger.FAU.error("Keychain access failed: \(error.localizedDescription)")
+            Logger.FAU.error("Keychain access failed: \(error.localizedDescription, privacy: .public)")
         }
     }
     
@@ -185,7 +185,7 @@ class Migrator: dogeADUserSessionDelegate {
             
             return true
         } catch {
-            Logger.FAU.error("Could not save migrated keychain entry: \(error.localizedDescription)")
+            Logger.FAU.error("Could not save migrated keychain entry: \(error.localizedDescription, privacy: .public)")
             return false
         }
     }

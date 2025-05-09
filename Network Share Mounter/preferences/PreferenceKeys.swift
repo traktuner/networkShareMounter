@@ -245,7 +245,7 @@ enum PreferenceKeys: String, CaseIterable {
         
         for key in PreferenceKeys.allCases {
             guard let value = defaults.object(forKey: key.rawValue) else {
-                Logger.preferences.debug("\(key.rawValue): Unset")
+                Logger.preferences.debug("\(key.rawValue, privacy: .public): Unset")
                 continue
             }
             
@@ -277,9 +277,9 @@ enum PreferenceKeys: String, CaseIterable {
             
             // Log the key and its value
             if defaults.objectIsForced(forKey: key.rawValue) {
-                Logger.preferences.debug("\(key.rawValue): \(formattedValue) (Forced)")
+                Logger.preferences.debug("\(key.rawValue, privacy: .public): \(formattedValue, privacy: .public) (Forced)")
             } else {
-                Logger.preferences.debug("\(key.rawValue): \(formattedValue)")
+                Logger.preferences.debug("\(key.rawValue, privacy: .public): \(formattedValue, privacy: .public)")
             }
         }
     }
