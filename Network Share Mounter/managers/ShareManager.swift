@@ -152,8 +152,19 @@ actor ShareManager {
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
         // Extract network share URL, return nil if not found
         guard let shareUrlString = shareElement[Defaults.networkShare] else {
+            Logger.shareManager.error("❌ MDM Config: Missing 'networkShare' key in share element: \(shareElement, privacy: .public)")
             return nil
         }
+
+        // Log received MDM share element data
+        let logAuthType = shareElement[Defaults.authType] ?? "(default: krb)"
+        let logUsername = shareElement[Defaults.username] ?? "(not set)"
+        let logMountPoint = shareElement[Defaults.mountPoint] ?? "(not set)"
+        Logger.shareManager.debug("⚙️ Processing MDM Share Config: ")
+        Logger.shareManager.debug("   URL=\(shareUrlString, privacy: .public)")
+        Logger.shareManager.debug("   Auth=\(logAuthType, privacy: .public)")
+        Logger.shareManager.debug("   User=\(logUsername, privacy: .public)")
+        Logger.shareManager.debug("   MountPoint=\(logMountPoint, privacy: .public)")
 
         // Determine username with following priority:
         // 1. Username override from preferences
@@ -161,11 +172,15 @@ actor ShareManager {
         // 3. Local system username
         let userName: String
         if let username = prefs.string(for: .usernameOverride) {
+            // Hinzugefügtes Logging:
+            Logger.shareManager.debug("📝 Setting username via usernameOverride and PreferenceManager: \(username, privacy: .public)")
             userName = username
         } else if let username = shareElement[Defaults.username] {
+            Logger.shareManager.debug("📝 Setting username via usernameOverride and shareElement: \(username, privacy: .public)")
             userName = username
         } else {
             userName = NSUserName()
+            Logger.shareManager.debug("📝 Setting username to local system username: \(userName, privacy: .public)")
         }
         
         // Replace username placeholder in share URL
@@ -195,9 +210,6 @@ actor ShareManager {
             }
         }
         
-        // Read the display name from the dictionary, default to nil if not present
-        let shareDisplayName = shareElement[Defaults.shareDisplayNameKey]
-        
         // Create and return new Share object with configured parameters
         let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
@@ -205,8 +217,7 @@ actor ShareManager {
                                          username: userName,
                                          password: password,
                                          mountPoint: shareElement[Defaults.mountPoint],
-                                         managed: true,
-                                         shareDisplayName: shareDisplayName)
+                                         managed: true)
         return(newShare)
     }
     
@@ -218,12 +229,7 @@ actor ShareManager {
         //
         // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
         let shareRectified = shareElement.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
-        // Legacy shares don't have a display name, pass nil
-        let newShare = Share.createShare(networkShare: shareRectified, 
-                                         authType: AuthType.krb, 
-                                         mountStatus: MountStatus.unmounted, 
-                                         managed: true, 
-                                         shareDisplayName: nil)
+        let newShare = Share.createShare(networkShare: shareRectified, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
         return(newShare)
     }
     
@@ -255,16 +261,17 @@ actor ShareManager {
         }
         
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        // Read the display name from the dictionary, default to nil if not present
-        let shareDisplayName = shareElement[Defaults.shareDisplayNameKey]
-        
-        let newShare = Share.createShare(networkShare: shareUrlString, 
-                                         authType: shareAuthType, 
-                                         mountStatus: mountStatus, 
-                                         username: shareElement[Defaults.username], 
-                                         password: password, 
-                                         managed: false,
-                                         shareDisplayName: shareDisplayName)
+        let mountPoint = shareElement[Defaults.mountPoint]
+
+        let newShare = Share.createShare(
+            networkShare: shareUrlString,
+            authType: shareAuthType,
+            mountStatus: mountStatus,
+            username: shareElement[Defaults.username],
+            password: password,
+            mountPoint: mountPoint,
+            managed: false
+        )
         return(newShare)
     }
     
@@ -428,12 +435,7 @@ actor ShareManager {
         // Fall back to legacy user-defined share format
         else if let nwShares: [String] = userDefaults.array(forKey: Defaults.customSharesKey) as? [String], !nwShares.isEmpty {
             for share in nwShares {
-                // Legacy shares don't have a display name, pass nil
-                addShare(Share.createShare(networkShare: share, 
-                                         authType: AuthType.krb, 
-                                         mountStatus: MountStatus.unmounted, 
-                                         managed: false,
-                                         shareDisplayName: nil))
+                addShare(Share.createShare(networkShare: share, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: false))
             }
             removeLegacyShareConfigs()
         }
@@ -471,9 +473,6 @@ actor ShareManager {
                 if let username = share.username {
                     shareConfig[Defaults.username] = username
                 }
-                // Add the display name to the config dictionary if it exists
-                shareConfig[Defaults.shareDisplayNameKey] = share.shareDisplayName
-                
                 // shareConfig[Settings.location] = share.location
                 userDefaultsConfigs.append(shareConfig)
             }
