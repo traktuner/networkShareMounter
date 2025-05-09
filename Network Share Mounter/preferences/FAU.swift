@@ -186,6 +186,8 @@ class Migrator: dogeADUserSessionDelegate {
             return true
         } catch {
             Logger.FAU.error("Could not save migrated keychain entry: \(error.localizedDescription, privacy: .public)")
+            Logger.FAU.error("...but setting migration flag anyway")
+            prefs.set(for: .keyChainPrefixManagerMigration, value: true)
             return false
         }
     }
