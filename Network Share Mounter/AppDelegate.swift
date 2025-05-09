@@ -12,6 +12,7 @@ import LaunchAtLogin
 import OSLog
 import Sparkle
 import Sentry
+import dogeADAuth
 
 /// A delegate that manages the application lifecycle and network share mounting functionality.
 ///
@@ -287,6 +288,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
                 Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
                 self.enableKerberos = true
+                
+                // Check for existing valid Kerberos tickets
+                let klist = KlistUtil()
+                let principals = await klist.klist()
+                if !principals.isEmpty {
+                    Logger.app.info("Found existing Kerberos tickets, updating menu icon.")
+                    DispatchQueue.main.async {
+                        if let button = self.statusItem.button {
+                            button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                        }
+                    }
+                }
             } else {
                 Logger.app.info("No Kerberos Realm found.")
             }
