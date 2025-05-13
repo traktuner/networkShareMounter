@@ -383,26 +383,34 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     ///
     /// provide a method to react to certain events
     @objc func handleErrorNotification(_ notification: NSNotification) {
-        if notification.userInfo?["krbOffDomain"] is Error {
-            DispatchQueue.main.async {
+        // Always dispatch UI updates to the main thread
+        DispatchQueue.main.async {
+            if notification.userInfo?["krbOffDomain"] is Error {
                 self.dogeAuthenticateButton.isEnabled = false
                 self.dogeAuthenticateHelp.isEnabled = false
                 self.dogeAuthenticateButton.title = NSLocalizedString("krb-offdomain-button", comment: "Button text for kerberos authentication")
-            }
-        } else if notification.userInfo?["KrbAuthError"] is Error {
-            DispatchQueue.main.async {
+            } else if notification.userInfo?["KrbAuthError"] is Error {
                 if self.enableKerberos {
                     self.dogeAuthenticateButton.isEnabled = true
                     self.dogeAuthenticateHelp.isEnabled = true
                     self.dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
                 }
-            }
-        } else if notification.userInfo?["krbAuthenticated"] is Error {
-            DispatchQueue.main.async {
+            } else if notification.userInfo?["krbAuthenticated"] is Error {
                 if self.enableKerberos {
                     self.dogeAuthenticateButton.isEnabled = true
                     self.dogeAuthenticateHelp.isEnabled = true
                     self.dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+                }
+            } else if notification.userInfo?["AuthError"] is MounterError {
+                // Update UI for authentication errors
+                Task {
+                    self.refreshUserArray(type: .missingPassword)
+                    self.toggleManagedSwitch.isHidden = true
+                    self.additionalSharesText.isHidden = true
+                    self.additionalSharesHelpButton.isHidden = true
+                    self.modifyShareButton.title = NSLocalizedString("authenticate-share-button", comment: "Button text to change authentication")
+                    self.networShareMounterExplanation.stringValue = NSLocalizedString("help-auth-error", comment: "Help text shown if some shares are not authenticated")
+                    self.tableView.reloadData()
                 }
             }
         }

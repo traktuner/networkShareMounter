@@ -12,6 +12,7 @@ import LaunchAtLogin
 import OSLog
 import Sparkle
 import Sentry
+import dogeADAuth
 
 /// A delegate that manages the application lifecycle and network share mounting functionality.
 ///
@@ -136,7 +137,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 updaterDelegate: nil,
                 userDriverDelegate: nil)
             
-            Logger.app.debug("Sparkle initialized with: checks=\(enableChecks), auto-update=\(autoUpdate)")
+            Logger.app.debug("Sparkle initialized with: checks=\(enableChecks, privacy: .public), auto-update=\(autoUpdate, privacy: .public)")
         } else {
             // Explicitly disable Sparkle in defaults when auto-updater is disabled
             UserDefaults.standard.set(false, forKey: "SUEnableAutomaticChecks")
@@ -190,9 +191,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize the Mounter instance
         mounter = Mounter()
         
-        // Configure app to start at login based on user preferences
-        LaunchAtLogin.isEnabled = prefs.bool(for: .autostart)
-        
         // Set up the status item in the menu bar
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
@@ -210,6 +208,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupSignalHandlers()
         
         activityController = ActivityController(appDelegate: self)
+
+        Task.detached(priority: .background) { [weak self] in
+            guard let self = self else { return }
+            Logger.app.debug("Setting LaunchAtLogin state asynchronously via Task...")
+            // Der eigentliche Aufruf, der blockieren kann
+            LaunchAtLogin.isEnabled = self.prefs.bool(for: .autostart)
+            Logger.app.debug("LaunchAtLogin state set via Task.")
+        }
     }
     
     /// Synchronizes Sparkle settings with current preferences.
@@ -245,7 +251,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         sparkleDefaults.set(autoUpdate, forKey: "SUAutomaticallyUpdate")
         sparkleDefaults.set(hasLaunchedBefore, forKey: "SUHasLaunchedBefore")
         
-        Logger.app.info("Sparkle settings synchronized: enableAutoUpdater=\(autoUpdaterEnabled), enableChecks=\(enableChecks), autoUpdate=\(autoUpdate), hasLaunchedBefore=\(hasLaunchedBefore)")
+        Logger.app.info("Sparkle settings synchronized: ")
+        Logger.app.info("     enableAutoUpdater=\(autoUpdaterEnabled, privacy: .public)")
+        Logger.app.info("     enableChecks=\(enableChecks, privacy: .public)")
+        Logger.app.info("     autoUpdate=\(autoUpdate, privacy: .public)")
+        Logger.app.info("     hasLaunchedBefore=\(hasLaunchedBefore, privacy: .public)")
     }
     
     /// Performs asynchronous initialization tasks for the application.
@@ -263,15 +273,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// It handles tasks that may take longer to complete and should not block
     /// the main application launch sequence.
     private func initializeApp() async {
-        Task {
+        Task { @MainActor in
+            Logger.app.debug("🔄 Starting asynchronous app initialization")
+            
+            // Initialize the mounter
             await mounter?.asyncInit()
+            Logger.app.debug("✅ Mounter successfully initialized")
+            
             // Always build the menu, regardless of the mounter status
             await self.constructMenu(withMounter: self.mounter)
+            Logger.app.debug("✅ Initial menu constructed")
             
             // Check if a kerberos domain/realm is set and is not empty
             if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
                 Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
                 self.enableKerberos = true
+                
+                // Check for existing valid Kerberos tickets
+                let klist = KlistUtil()
+                let principals = await klist.klist()
+                if !principals.isEmpty {
+                    Logger.app.info("Found existing Kerberos tickets, updating menu icon.")
+                    DispatchQueue.main.async {
+                        if let button = self.statusItem.button {
+                            button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                        }
+                    }
+                }
             } else {
                 Logger.app.info("No Kerberos Realm found.")
             }
@@ -279,11 +307,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Initialize statistics reporting
             let stats = AppStatistics.init()
             await stats.reportAppInstallation()
+            Logger.app.debug("✅ App installation statistics reported")
+            
             await AccountsManager.shared.initialize()
+            Logger.app.debug("✅ Account manager initialized")
             
             // Set up notification observer for error handling
             if mounter != nil {
                 NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
+                Logger.app.debug("✅ Error notification observer registered")
             } else {
                 Logger.app.error("Could not initialize mounter class, this should never happen.")
             }
@@ -293,27 +325,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
             
             // Set up periodic mount timer
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                
-                // Set up periodic mount timer
-                self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
-                    Logger.app.debug("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
-                    NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
-                })
-                
-                // Set up periodic authentication timer
-                self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
-                    Logger.app.debug("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
-                    NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
-                })
-                
-                // Debug log to confirm timers were initialized
-                Logger.app.info("Timer wurden auf dem Hauptthread initialisiert - Mount: \(self.mountTimer.isValid), Auth: \(self.authTimer.isValid)")
-            }
+            self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
+                Logger.app.debug("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
+                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+            })
+            
+            // Set up periodic authentication timer
+            self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
+                Logger.app.debug("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
+                NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+            })
+            
+            // Debug log to confirm timers were initialized
+            Logger.app.info("Timer actualized on main thread - Mount: \(self.mountTimer.isValid, privacy: .public), Auth: \(self.authTimer.isValid, privacy: .public)")
             
             // Start network connectivity monitoring
-            monitor.startMonitoring { connection, reachable in
+            monitor.startMonitoring { [weak self] connection, reachable in
+                guard let self = self else { return }
+                
                 if reachable.rawValue == "yes" {
                     Logger.app.debug("Network is reachable, firing nsmNetworkChangeTriggerNotification and nsmAuthTriggerNotification.")
                     // Network is available - trigger connection and authentication
@@ -321,7 +350,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                 } else {
                     // Network is unavailable - unmount shares and reset status
-                    Task {
+                    // Using a long-lasting task with @MainActor
+                    let networkTask = Task { @MainActor in
+                        Logger.app.debug("🔄 Network monitoring callback - unmounting shares")
                         NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
                         // Since the mount status after a network change is unknown it will be set
                         // to undefined so it can be tested and maybe remounted if the network connects again
@@ -331,15 +362,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             // Trying to unmount all shares
                             NotificationCenter.default.post(name: Defaults.nsmUnmountTriggerNotification, object: nil)
                             await mounter.unmountAllMountedShares()
+                            Logger.app.debug("✅ Network monitoring - shares unmounted successfully")
                         } else {
                             Logger.app.error("Could not initialize mounter class, this should never happen.")
                         }
                     }
+                    _ = networkTask
                 }
             }
             
             // Trigger initial mount operation
             NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+            Logger.app.debug("🎉 App initialization completed successfully")
         }
     }
 
@@ -528,7 +562,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// - Parameter sender: Menu item containing the share ID to mount
     @objc func mountSpecificShare(_ sender: NSMenuItem) {
         if let shareID = sender.representedObject as? String {
-            Logger.app.debug("User triggered to mount share with id \(shareID)")
+            Logger.app.debug("User triggered to mount share with id \(shareID, privacy: .public)")
             Task {
                 if let mounter = mounter {
                     await mounter.mountGivenShares(userTriggered: true, forShare: shareID)
@@ -608,24 +642,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mountSignalSource = DispatchSource.makeSignalSource(signal: mountSignal, queue: .main)
 
         // Set up event handler for unmount signal
-        unmountSignalSource?.setEventHandler { [self] in
+        unmountSignalSource?.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            
             Logger.app.debug("🚦Received unmount signal.")
-            Task {
+            
+            let signalTask = Task { @MainActor in
+                Logger.app.debug("🔄 Processing unmount signal")
                 await self.mounter?.unmountAllMountedShares(userTriggered: false)
+                Logger.app.debug("✅ Unmount signal processing completed")
             }
+            
+            _ = signalTask
         }
 
         // Set up event handler for mount signal
-        mountSignalSource?.setEventHandler { [self] in
+        mountSignalSource?.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            
             Logger.app.debug("🚦Received mount signal.")
-            Task {
+            
+            let signalTask = Task { @MainActor in
+                Logger.app.debug("🔄 Processing mount signal")
                 await self.mounter?.mountGivenShares(userTriggered: true)
+                Logger.app.debug("✅ Mount signal processing completed")
             }
+            
+            _ = signalTask
         }
 
         // Activate the signal sources
         unmountSignalSource?.resume()
         mountSignalSource?.resume()
+        
+        Logger.app.debug("✅ Signal handlers configured successfully")
     }
     
     /// Constructs the app's menu based on configured profiles and current status.
@@ -672,7 +722,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         // Add "About" menu item if help URL is valid
-        if prefs.string(for: .helpURL)!.description.isValidURL {
+        if let urlString = prefs.string(for: .helpURL), URL(string: urlString) != nil {
             if let newMenuItem = createMenuItem(title: "About Network Share Mounter",
                                                   comment: "About Network Share Mounter",
                                                   action: #selector(AppDelegate.openHelpURL(_:)),
@@ -741,7 +791,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     // If share is mounted, use the mountpoint icon
                     if let mountpoint = share.actualMountPoint {
                         let mountDir = (mountpoint as NSString).lastPathComponent
-                        Logger.app.debug("  🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
+                        Logger.app.debug("  Menu: 🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
                         
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
@@ -751,7 +801,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         menuItem.image = menuIcon
                     } else {
                         // If share is not mounted, use the standard icon
-                        Logger.app.debug("  🍰 Adding remote share \(share.networkShare, privacy: .public).")
+                        Logger.app.debug("  Menu: 🍰 Adding remote share \(share.networkShare, privacy: .public).")
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
                         menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),

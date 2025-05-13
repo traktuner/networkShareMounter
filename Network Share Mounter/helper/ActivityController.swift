@@ -168,12 +168,15 @@ class ActivityController {
             .components(separatedBy: " ")
             .last ?? "Unknown"
         
-        Logger.activityController.debug("▶︎ unmountAllShares called by \(notificationName)")
+        Logger.activityController.debug("▶︎ unmountAllShares called by \(notificationName, privacy: .public)")
         
-        Task {
+        let unmountTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Unmount-Task gestartet - Führe Unmount-Operation durch")
             await mounter.unmountAllMountedShares()
-            Logger.activityController.debug("All shares successfully unmounted")
+            Logger.activityController.debug("✅ Unmount-Task abgeschlossen - Alle Shares erfolgreich unmounted")
         }
+        
+        _ = unmountTask
     }
     
     /// Handles system wake up from sleep
@@ -188,13 +191,17 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ mountGivenShares called by didWakeNotification")
         
-        Task {
+        let wakeupTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Wake-up operation - Starting mount process")
             await mounter.mountGivenShares()
             Logger.activityController.debug("🐛 Restarting Finder to bypass a presumed bug in macOS")
             
             let finderController = FinderController()
             await finderController.restartFinder()
+            Logger.activityController.debug("✅ Wake-up operation completed")
         }
+        
+        _ = wakeupTask
     }
     
     /// Mounts configured network shares
@@ -212,12 +219,15 @@ class ActivityController {
             .components(separatedBy: " ")
             .last ?? "Unknown"
         
-        Logger.activityController.debug("▶︎ mountGivenShares called by \(notificationName)")
+        Logger.activityController.debug("▶︎ mountGivenShares called by \(notificationName, privacy: .public)")
         
-        Task {
+        let mountTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Mounting shares - Starting operation on main actor")
             await mounter.mountGivenShares()
-            Logger.activityController.debug("All shares successfully mounted")
+            Logger.activityController.debug("✅ All shares successfully mounted - Operation completed")
         }
+        
+        _ = mountTask
     }
     
     // MARK: - Authentication Handlers
@@ -232,10 +242,17 @@ class ActivityController {
             return
         }
         
-        Task {
+        // Use Task directly without storing reference - more reliable than storing in a property
+        Task { @MainActor in
             Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn")
-            await appDelegate?.automaticSignIn.signInAllAccounts()
-            Logger.activityController.info("Automatic sign-in completed successfully")
+            
+            do {
+                Logger.activityController.debug("🔄 Starting automatic sign-in task")
+                await appDelegate?.automaticSignIn.signInAllAccounts()
+                Logger.activityController.info("✅ Automatic sign-in completed successfully")
+            } catch {
+                Logger.activityController.error("❌ Automatic sign-in failed with error: \(error.localizedDescription)")
+            }
         }
     }
     
@@ -253,10 +270,13 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ mountGivenShares with user-trigger called")
         
-        Task {
+        let userMountTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Manual mount operation - Starting mount process")
             await mounter.mountGivenShares(userTriggered: true)
-            Logger.activityController.info("Shares successfully mounted after user request")
+            Logger.activityController.debug("✅ Shares successfully mounted after user request - Operation completed")
         }
+        
+        _ = userMountTask
     }
     
     /// Updates the app menu
@@ -270,10 +290,13 @@ class ActivityController {
         
         Logger.activityController.debug("▶︎ Menu reconstruction called")
         
-        Task { @MainActor in
+        let menuTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Starting menu reconstruction")
             await appDelegate?.constructMenu(withMounter: mounter)
-            Logger.activityController.debug("Menu successfully updated")
+            Logger.activityController.debug("✅ Menu successfully updated")
         }
+        
+        _ = menuTask
     }
     
     /// Performs periodic tasks
@@ -298,13 +321,15 @@ class ActivityController {
         Logger.activityController.debug("⏰ Time goes by so slowly: Timer notification received")
         Logger.activityController.debug("▶︎ ...checking for possible MDM profile changes")
         
-        // Check ShareArray for possible changes in MDM profile
-        Task {
+        let timerTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Timer-triggered mount operation - Updating share array")
             await mounter.shareManager.updateShareArray()
             Logger.activityController.debug("▶︎ ...calling mountGivenShares")
             await mounter.mountGivenShares()
-            Logger.activityController.debug("Timer processing completed successfully")
+            Logger.activityController.debug("✅ Timer processing completed successfully")
         }
+        
+        _ = timerTask
     }
     
     // MARK: - Helpers for utilizing the cliTask method
@@ -318,7 +343,7 @@ class ActivityController {
         do {
             return try await cliTask(command)
         } catch {
-            Logger.activityController.error("Command execution failed: \(command), error: \(error.localizedDescription)")
+            Logger.activityController.error("Command execution failed: \(command, privacy: .public), error: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }
