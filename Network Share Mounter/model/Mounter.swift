@@ -85,16 +85,16 @@ class Mounter: ObservableObject {
             return _errorStatus
         }
         set {
-            // Thread-safe update and asynchronous notification
+            // Thread-safe update
             _errorStatusLock.lock()
+            let shouldPostAuthError = newValue == .authenticationError
             _errorStatus = newValue
             _errorStatusLock.unlock()
             
-            // Notifications can be sent asynchronously
-            Task {
-                if newValue == .authenticationError {
-                    NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["AuthError": MounterError.authenticationError])
-                }
+            // Post notification synchronously after releasing the lock
+            if shouldPostAuthError {
+                NotificationCenter.default.post(name: .nsmNotification, object: nil, 
+                                               userInfo: ["AuthError": MounterError.authenticationError])
             }
         }
     }
@@ -276,7 +276,7 @@ class Mounter: ObservableObject {
             }
         } catch {
             Logger.mounter.error("❌ Error creating mount folder: \(mountPath, privacy: .public):")
-            Logger.mounter.error("\(error.localizedDescription)")
+            Logger.mounter.error("\(error.localizedDescription, privacy: .public)")
             exit(2)
         }
     }
@@ -571,6 +571,7 @@ class Mounter: ObservableObject {
     /// - Can mount a specific share (by ID) or all configured shares
     /// - Creates concurrent tasks for mounting multiple shares simultaneously
     /// - Handles mount failures and updates share status accordingly
+    /// - Implements timeout protection for mount operations
     ///
     /// - Parameters:
     ///   - userTriggered: Whether the mount operation was initiated by user
@@ -582,99 +583,160 @@ class Mounter: ObservableObject {
         // Verify network connectivity before attempting mount operations
         let netConnection = Monitor.shared
         
-        if netConnection.netOn {
-            let allShares = await self.shareManager.allShares
-            if allShares.isEmpty {
-                Logger.mounter.info("No shares configured.")
+        guard netConnection.netOn else {
+            Logger.mounter.warning("⚠️ No network connection available, connection type is \(netConnection.connType.rawValue, privacy: .public). Skipping mount operation.")
+            return
+        }
+        
+        Logger.mounter.debug("🌐 Network is available, preparing to mount shares")
+        let allShares = await self.shareManager.allShares
+        if allShares.isEmpty {
+            Logger.mounter.info("ℹ️ No shares configured. Nothing to mount.")
+            return
+        }
+        
+        var sharesToMount: [Share]
+        
+        // Filter shares based on provided shareID
+        if let shareID = shareID {
+            Logger.mounter.debug("🎯 Mounting single share with ID: \(shareID, privacy: .public)")
+            if let specificShare = allShares.first(where: { $0.id == shareID }) {
+                sharesToMount = [specificShare]
+                Logger.mounter.debug("Found share to mount: \(specificShare.networkShare, privacy: .public)")
+            } else {
+                Logger.mounter.error("❌ Share with ID \(shareID, privacy: .public) not found.")
                 return
             }
-            
-            // Clean up authentication agent if mount was user-triggered
-            // TODO: Consider more graceful cleanup approach
-            if userTriggered {
+        } else {
+            sharesToMount = allShares
+            Logger.mounter.debug("🔄 Preparing to mount \(sharesToMount.count, privacy: .public) shares in parallel")
+        }
+        
+        Logger.mounter.debug("📋 Shares to mount: \(sharesToMount.map { $0.networkShare }.joined(separator: ", "), privacy: .public)")
+        
+        // Create concurrent mount tasks for each share
+        var localMountTasks: [Task<Void, Never>] = []
+        
+        for share in sharesToMount {
+            let mountTask = Task {
+                Logger.mounter.debug("--- [Task Start] Processing share: \(share.networkShare, privacy: .public) ---")
+                
                 do {
-                    try await cliTask("killall NetAuthSysAgent")
-                    Logger.mounter.debug("killall NetAuthSysAgent")
-                } catch {
-                    Logger.mounter.debug("Error killing NetAuthSysAgent: \(error.localizedDescription)")
-                }
-            }
-            
-            var sharesToMount: [Share]
-            
-            // Filter shares based on provided shareID
-            if let shareID = shareID {
-                // Mount single specified share
-                if let specificShare = allShares.first(where: { $0.id == shareID }) {
-                    sharesToMount = [specificShare]
-                } else {
-                    Logger.mounter.error("Share with ID \(shareID) not found.")
-                    return
-                }
-            } else {
-                // Mount all available shares
-                sharesToMount = allShares
-            }
-            
-            // Create concurrent mount tasks for each share
-            var localMountTasks: [Task<Void, Never>] = []
-            for share in sharesToMount {
-                let mountTask = Task {
-                    do {
-                        // Reset mount status for user-triggered mounts
-                        if userTriggered {
-                            await updateShare(mountStatus: .undefined, for: share)
+                    // Reset mount status for user-triggered mounts or if specifically mounting this share
+                    if userTriggered || shareID == share.id {
+                        Logger.mounter.debug("🔄 Resetting mount status for \(share.networkShare, privacy: .public)")
+                        await updateShare(mountStatus: .undefined, for: share)
+                    }
+                    
+                    // Attempt to mount the share with timeout protection
+                    let mountResult = try await withThrowingTaskGroup(of: String.self) { group -> String in
+                        group.addTask {
+                            // The actual mount operation
+                            return try await self.mountShare(forShare: share,
+                                                           atPath: self.defaultMountPath,
+                                                           userTriggered: userTriggered)
                         }
                         
-                        // Attempt to mount share and update status
-                        let actualMountpoint = try await mountShare(forShare: share,
-                                                                    atPath: defaultMountPath,
-                                                                    userTriggered: userTriggered)
-                        await updateShare(actualMountPoint: actualMountpoint, for: share)
-                        await updateShare(mountStatus: .mounted, for: share)
-                    } catch {
-                        // Handle various mount failure scenarios
-                        switch error {
-                        case MounterError.doesNotExist:
-                            await updateShare(mountStatus: .errorOnMount, for: share)
-                        case MounterError.timedOutHost, MounterError.hostIsDown, MounterError.noRouteToHost:
-                            await updateShare(mountStatus: .unreachable, for: share)
-                        case MounterError.authenticationError:
-                            if share.authType != .krb {
-                                // Direct update of errorStatus through the thread-safe setter
-                                errorStatus = .authenticationError
-                                // Notification is sent by the setter
-                            }
-                            await updateShare(mountStatus: .invalidCredentials, for: share)
-                        case MounterError.shareDoesNotExist:
-                            await updateShare(mountStatus: .errorOnMount, for: share)
-                        case MounterError.mountIsQueued:
-                            await updateShare(mountStatus: .queued, for: share)
-                        case MounterError.userUnmounted:
-                            await updateShare(mountStatus: .userUnmounted, for: share)
-                        case MounterError.obstructingDirectory:
-                            await updateShare(mountStatus: .obstructingDirectory, for: share)
-                        default:
-                            await updateShare(mountStatus: .unreachable, for: share)
+                        // Wait for the first result or timeout
+                        guard let result = try await group.next() else {
+                            throw MounterError.timedOutHost
                         }
+                        
+                        // Cancel any remaining tasks
+                        group.cancelAll()
+                        return result
                     }
+                    
+                    // Success Case - Mount successful
+                    Logger.mounter.debug("✅ Mount call finished successfully for \(share.networkShare, privacy: .public)")
+                    await updateShare(actualMountPoint: mountResult, for: share)
+                    await updateShare(mountStatus: .mounted, for: share)
+                    Logger.mounter.info("📊 Share mount complete: \(share.networkShare, privacy: .public) -> \(mountResult, privacy: .public)")
+                    
+                } catch {
+                    // Failure Case - Mount failed
+                    Logger.mounter.error("❌ Mount failed for \(share.networkShare, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                    await handleMountError(error, for: share)
                 }
-                localMountTasks.append(mountTask)
+                
+                Logger.mounter.debug("--- [Task End] Finished processing share: \(share.networkShare, privacy: .public) ---")
             }
             
-            // Thread-safe task collection update
-            await taskController.setTasks(localMountTasks)
-            
-            // Wait for all mount tasks to complete
-            await withTaskGroup(of: Void.self) { group in
-                for task in localMountTasks {
-                    group.addTask {
-                        await task.value
-                    }
+            localMountTasks.append(mountTask)
+        }
+        
+        // Thread-safe task collection update
+        await taskController.setTasks(localMountTasks)
+        
+        // Wait for all mount tasks to complete
+        Logger.mounter.info("⏳ Waiting for all mount operations to complete...")
+        
+        await withTaskGroup(of: Void.self) { group in
+            for task in localMountTasks {
+                group.addTask {
+                    await task.value
                 }
             }
-        } else {
-            Logger.mounter.warning("⚠️ No network connection available, connection type is \(netConnection.connType.rawValue, privacy: .public)")
+        }
+        
+        // Log final mount status for all shares
+        Logger.mounter.info("📊 Parallel mount process finished. Final mount status summary:")
+        for share in await shareManager.allShares {
+            if let mountPoint = share.actualMountPoint {
+                Logger.mounter.info("  ✅ \(share.networkShare, privacy: .public) → mounted at: \(mountPoint, privacy: .public)")
+            } else {
+                Logger.mounter.info("  ❌ \(share.networkShare, privacy: .public) → not mounted (status: \(share.mountStatus.rawValue, privacy: .public))")
+            }
+        }
+        
+        Logger.mounter.debug("🏁 mountGivenShares operation completed")
+    }
+    
+    /// Helper function to handle errors during the mount process and update share status.
+    /// - Parameters:
+    ///   - error: The error encountered during mounting.
+    ///   - share: The share that failed to mount.
+    private func handleMountError(_ error: Error, for share: Share) async {
+        switch error {
+        case MounterError.doesNotExist:
+            Logger.mounter.debug("❌ Share does not exist: \(share.networkShare, privacy: .public)")
+            await updateShare(mountStatus: .errorOnMount, for: share)
+        case MounterError.timedOutHost, MounterError.hostIsDown, MounterError.noRouteToHost:
+            Logger.mounter.debug("❌ Host unreachable: \(share.networkShare, privacy: .public)")
+            await updateShare(mountStatus: .unreachable, for: share)
+        case MounterError.authenticationError:
+            Logger.mounter.debug("❌ Authentication error: \(share.networkShare, privacy: .public)")
+            if share.authType != .krb {
+                // Direct update of errorStatus through the thread-safe setter
+                errorStatus = .authenticationError
+                // Notification is sent by the setter
+            }
+            await updateShare(mountStatus: .invalidCredentials, for: share)
+        case MounterError.shareDoesNotExist:
+            Logger.mounter.debug("❌ Share does not exist on server: \(share.networkShare, privacy: .public)")
+            await updateShare(mountStatus: .errorOnMount, for: share)
+        case MounterError.mountIsQueued:
+            // This state should ideally not be reached in sequential processing, but handle defensively
+            Logger.mounter.debug("⏳ Mount was previously queued (unexpected in sequential): \(share.networkShare, privacy: .public)")
+            await updateShare(mountStatus: .queued, for: share)
+        case MounterError.userUnmounted:
+            Logger.mounter.debug("👤 Share was previously user unmounted: \(share.networkShare, privacy: .public)")
+            await updateShare(mountStatus: .userUnmounted, for: share)
+        case MounterError.obstructingDirectory:
+            Logger.mounter.debug("🚫 Obstructing directory prevented mount: \(share.networkShare, privacy: .public)")
+            await updateShare(mountStatus: .obstructingDirectory, for: share)
+        case MounterError.permissionDenied:
+             Logger.mounter.debug("🚫 Permission denied for mount: \(share.networkShare, privacy: .public)")
+             await updateShare(mountStatus: .errorOnMount, for: share)
+        case MounterError.targetNotReachable:
+             Logger.mounter.debug("🚫 Target not reachable (pre-mount check): \(share.networkShare, privacy: .public)")
+             await updateShare(mountStatus: .unreachable, for: share)
+         case MounterError.otherError:
+             Logger.mounter.debug("❓ Other pre-mount check error: \(share.networkShare, privacy: .public)")
+             await updateShare(mountStatus: .errorOnMount, for: share) // Or a more specific error status
+        default:
+            Logger.mounter.debug("❓ Unknown error mounting \(share.networkShare, privacy: .public): \(error, privacy: .public)")
+            await updateShare(mountStatus: .unreachable, for: share) // Default to unreachable for unknown errors
         }
     }
     
@@ -748,6 +810,7 @@ class Mounter: ObservableObject {
     ///   - basePath: The base path where the share will be mounted
     /// - Returns: The full path where the share will be mounted
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
+        Logger.mounter.debug("🤔 Determining mount directory: Input ShareMP=\(share.mountPoint ?? "(using share dir)", privacy: .public)', URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
         var mountDirectory = basePath
         
         if basePath != "/Volumes" {
@@ -769,6 +832,7 @@ class Mounter: ObservableObject {
             mountDirectory += "/" + host
         }
         
+        Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
         return mountDirectory
     }
     
@@ -845,21 +909,36 @@ class Mounter: ObservableObject {
         
         if basePath == "/Volumes" {
             mountOptions = Defaults.mountOptionsForSystemMountDir
-            realMountPoint = basePath
+            realMountPoint = basePath // For /Volumes, NetFS handles the final path component
+            Logger.mounter.debug("📂 Using /Volumes base path, realMountPoint set to base: \(realMountPoint, privacy: .public)")
         } else {
-            // Create the directory as mount point
-            try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
-            // Hide the mount directory until mount is complete
-            do {
-                try await cliTask("/usr/bin/chflags hidden \(escapePath(mountDirectory))")
-            } catch {
-                Logger.mounter.debug("Error setting hidden flag: \(error.localizedDescription)")
+            // Create the directory as mount point only if it doesn't exist
+            if !fm.fileExists(atPath: mountDirectory) {
+                Logger.mounter.debug("📂 Creating mount directory: \(mountDirectory, privacy: .public)")
+                try fm.createDirectory(atPath: mountDirectory, withIntermediateDirectories: true)
+                
+                // Verify directory was actually created
+                guard fm.fileExists(atPath: mountDirectory) else {
+                    Logger.mounter.error("❌ Failed to create directory at \(mountDirectory, privacy: .public) - directory does not exist after creation")
+                    throw MounterError.errorCheckingMountDir
+                }
+                
+                // Directory exists, now try to hide it
+                do {
+                    try await cliTask("/usr/bin/chflags hidden '\(mountDirectory)'")
+                    Logger.mounter.debug("👁️ Successfully hidden mount directory: \(mountDirectory, privacy: .public)")
+                } catch {
+                    Logger.mounter.warning("⚠️ Could not hide mount directory \(mountDirectory, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                }
+            } else {
+                Logger.mounter.debug("📂 Mount directory already exists: \(mountDirectory, privacy: .public)")
             }
         }
         
         // Use guest authentication options if specified
         if share.authType == .guest {
             openOptions = Defaults.openOptionsGuest
+            Logger.mounter.debug("👤 Using guest authentication options for \(share.networkShare, privacy: .public)")
         }
         
         return (mountOptions, openOptions, realMountPoint)
@@ -877,46 +956,60 @@ class Mounter: ObservableObject {
         switch rc {
         case 0:
             Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
-            // Unhide the directory for the successfully mounted share
-            do {
-                try await cliTask("/usr/bin/chflags nohidden \(escapePath(mountDirectory))")
-            } catch {
-                Logger.mounter.debug("Error removing hidden flag: \(error.localizedDescription)")
+            
+            // Make the directory visible after successful mount
+            if mountDirectory != "/Volumes" {
+                do {
+                    try await cliTask("/usr/bin/chflags nohidden '\(mountDirectory)'")
+                    Logger.mounter.debug("👁️ Successfully unhidden mount directory: \(mountDirectory, privacy: .public)")
+                } catch {
+                    Logger.mounter.warning("⚠️ Could not unhide mount directory \(mountDirectory, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                }
             }
+            
             return mountDirectory
+            
         case 2:
-            Logger.mounter.info("❌ \(url, privacy: .public): does not exist")
+            Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.doesNotExist
+            
         case 13:
-            Logger.mounter.info("❌ \(url, privacy: .public): permission denied")
+            Logger.mounter.info("❌ \(url, privacy: .public): permission denied (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.permissionDenied
+            
         case 17:
-            Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public)")
+            Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public) (rc=\(rc))")
             return mountDirectory
+            
         case 60:
-            Logger.mounter.info("🚫 \(url, privacy: .public): timeout reaching host")
+            Logger.mounter.info("🚫 \(url, privacy: .public): timeout reaching host (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.timedOutHost
+            
         case 64:
-            Logger.mounter.info("🚫 \(url, privacy: .public): host is down")
+            Logger.mounter.info("🚫 \(url, privacy: .public): host is down (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.hostIsDown
+            
         case 65:
-            Logger.mounter.info("🚫 \(url, privacy: .public): no route to host")
+            Logger.mounter.info("🚫 \(url, privacy: .public): no route to host (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.noRouteToHost
+            
         case 80:
-            Logger.mounter.info("❌ \(url, privacy: .public): authentication error")
+            Logger.mounter.info("❌ \(url, privacy: .public): authentication error (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.authenticationError
+            
         case -6003, -1073741275:
-            Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc == -1073741275 ? rc.description : "", privacy: .public)")
+            Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc == -1073741275 ? "(" + rc.description + ")" : "", privacy: .public) (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.shareDoesNotExist
+            
         default:
-            Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public)")
+            Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public) (rc=\(rc))")
             removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
             throw MounterError.unknownReturnCode
         }
@@ -938,28 +1031,36 @@ class Mounter: ObservableObject {
     /// - Returns: The actual mount point path where the share was mounted
     /// - Throws: MounterError if the mount operation fails
     func mountShare(forShare share: Share, atPath mountPath: String, userTriggered: Bool = false) async throws -> String {
+        Logger.mounter.debug("--- Starting mountShare for: \(share.networkShare, privacy: .public) --- ")
         // Validate the share URL and get host
         let (url, host) = try await validateShareURL(share)
+        Logger.mounter.debug("  Validated URL: \(url, privacy: .public), Host: \(host, privacy: .public)")
         
         // Check network connectivity
         try await checkNetworkConnectivity(toHost: host, forShare: share)
+        Logger.mounter.debug("  Network connectivity OK for host: \(host, privacy: .public)")
         
         // Validate the mount component
         try await validateMountComponent(forShare: share)
+        Logger.mounter.debug("  Mount component validated")
         
         // Determine the mount directory path
         let mountDirectory = determineMountDirectory(forShare: share, url: url, basePath: mountPath)
+        Logger.mounter.debug("  Determined mount directory: \(mountDirectory, privacy: .public)")
         
         // Check if directory can be used as mount point
         if try checkMountDirectory(mountDirectory, forURL: url) {
+            Logger.mounter.info("  ℹ️ Share \(url) seems already mounted at \(mountDirectory, privacy: .public). Returning existing path.")
             return mountDirectory
         }
+        Logger.mounter.debug("  Mount directory check passed (not already mounted here)")
         
-        // Check if mounting should be attempted
+        // Check if mounting should be attempted based on current status (unless user triggered)
         try checkMountingCondition(forShare: share, url: url, userTriggered: userTriggered)
+        Logger.mounter.debug("  Mounting condition check passed")
         
         // Prepare for mount
-        Logger.mounter.debug("🤙 Called mount of \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
+        Logger.mounter.debug("🤙 Preparing mount operation for \(url, privacy: .public) on path \(mountDirectory, privacy: .public)")
         await updateShare(mountStatus: .queued, for: share)
         
         // Set up mount options
@@ -968,19 +1069,34 @@ class Mounter: ObservableObject {
             basePath: mountPath, 
             share: share
         )
+        Logger.mounter.debug("  Prepared mount options. Real mount point target: \(realMountPoint, privacy: .public)")
         
         // Perform the mount operation
+        Logger.mounter.info("""
+            🚀 Calling NetFSMountURLSync: URL=\(url, privacy: .public),
+                            Path=\(realMountPoint, privacy: .public),
+                            User=\(share.username ?? "(nil)", privacy: .public),
+                            Pwd=\(share.password == nil ? "(nil)" : "(set)", privacy: .public)
+        """)
+        
+        
         // swiftlint:disable force_cast
         let rc = NetFSMountURLSync(url as CFURL,
-                                   NSURL(string: realMountPoint),
+                                   // Use fileURLWithPath for the mount point path
+                                   URL(fileURLWithPath: realMountPoint) as CFURL, 
                                    share.username as CFString?,
                                    share.password as CFString?,
-                                   openOptions as! CFMutableDictionary,
+                                   openOptions as! CFMutableDictionary, 
                                    mountOptions as! CFMutableDictionary,
-                                   nil)
+                                   nil) // Resulting mount path (we don't use this directly)
+        
+        // Record end time and calculate duration
+        Logger.mounter.info("🏁 NetFSMountURLSync finished for \(url, privacy: .public) with return code: \(rc, privacy: .public))")
+        // swiftlint:enable force_cast
         
         // Process the mount result
-        // swiftlint:enable force_cast
-        return try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, url: url)
+        let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, url: url)
+        Logger.mounter.debug("--- Finished mountShare successfully for: \(share.networkShare, privacy: .public) at \(finalMountPoint, privacy: .public) --- ")
+        return finalMountPoint
     }
 }
