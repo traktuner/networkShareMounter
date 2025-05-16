@@ -141,27 +141,30 @@ extension Monitor {
     ///   - reachable: The current reachability state
     ///   - callBack: The callback to trigger after the settling period
     private func handleNetworkSettlingPeriod(path: NWPath, reachable: Reachable, callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void) {
-        // Invalidate existing timer if there is one
+        // Bestehenden Timer invalidieren
         self.networkUpdateTimer?.invalidate()
+        self.networkUpdateTimer = nil
         
-        // Wait to settle network before firing callbacks
-        if !self.networkUpdatePending {
-            Logger.networkMonitor.debug(" ▶︎ Waiting \(Int(self.networkSettleTime), privacy: .public) seconds to settle network...")
+        Logger.networkMonitor.debug(" ▶︎ Waiting \(Int(self.networkSettleTime), privacy: .public) seconds to settle network...")
+        
+        // Timer erstellen mit starker Selbstreferenz
+        let timer = Timer(timeInterval: self.networkSettleTime, repeats: false) { [self] _ in
+            Logger.networkMonitor.debug(" ▶︎ Timer fired! About to execute callback...")
             
-            self.networkUpdateTimer = Timer.scheduledTimer(withTimeInterval: self.networkSettleTime, repeats: false) { [weak self] _ in
-                guard let self = self else { return }
-                
-                self.networkUpdatePending = false
+            let connectionType = self.determineConnectionType(path: path)
+            
+            // Auf dem Main Thread ausführen
+            DispatchQueue.main.async {
                 Logger.networkMonitor.debug(" ▶︎ Firing network change callbacks")
-                
-                let connectionType = self.determineConnectionType(path: path)
-                DispatchQueue.main.async {
-                    callBack(connectionType, reachable)
-                }
+                callBack(connectionType, reachable)
             }
-            
-            self.networkUpdatePending = true
         }
+        
+        // Timer explizit zum Main RunLoop hinzufügen und Referenz halten
+        RunLoop.main.add(timer, forMode: .common)
+        self.networkUpdateTimer = timer
+        
+        Logger.networkMonitor.debug(" ▶︎ Timer successfully scheduled on main RunLoop")
     }
     
     /// Determines the specific connection type from a network path
