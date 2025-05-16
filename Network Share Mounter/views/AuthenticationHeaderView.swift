@@ -26,10 +26,10 @@ struct AuthenticationHeaderView: View {
             }
             Spacer()
         }
-        .padding(12) // Internal padding
+        .padding(10) // Changed to 10 to match other header views
         .background(.quaternary.opacity(0.4))
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .padding(10) // External padding
+        // Removed external padding as this will be handled by the parent view
     }
 }
 

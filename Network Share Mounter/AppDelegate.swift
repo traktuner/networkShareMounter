@@ -272,7 +272,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         sparkleDefaults.set(hasLaunchedBefore, forKey: "SUHasLaunchedBefore")
         
         Logger.app.info("Sparkle settings synchronized: ")
-        Logger.app.info("     enableAutoUpdater=\(autoUpdaterEnabled, privacy: .public)")
         Logger.app.info("     enableChecks=\(enableChecks, privacy: .public)")
         Logger.app.info("     autoUpdate=\(autoUpdate, privacy: .public)")
         Logger.app.info("     hasLaunchedBefore=\(hasLaunchedBefore, privacy: .public)")

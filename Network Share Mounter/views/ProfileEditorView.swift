@@ -137,6 +137,7 @@ struct ProfileEditorView: View {
                 header: {
                     Text(existingProfile == nil ? "Neues Profil erstellen" : "Profil bearbeiten")
                         .font(.headline)
+                        .padding(.bottom, 4) // Add consistent padding to match other views
                 }
                 .padding(.bottom)
 
@@ -184,6 +185,7 @@ struct ProfileEditorView: View {
                 } header: {
                     Text("Zugeordnete Shares")
                         .font(.headline)
+                        .padding(.bottom, 4) // Add consistent padding to match other views
                 }
                 
                 Section {
@@ -237,13 +239,14 @@ struct ProfileEditorView: View {
                 header: {
                     Text("Profilbild")
                         .font(.headline)
+                        .padding(.bottom, 4) // Add consistent padding to match other views
                 }
                 
                 // Spacer() // Removed Spacer from inside the Form
                 
             } // End of Form
             // Add padding around the Form content
-            .padding()
+            .padding(20) // Use consistent 20pt padding like other views 
             // Remove padding from Form, manage padding in VStack/HStack
             // .padding()
             
@@ -274,7 +277,7 @@ struct ProfileEditorView: View {
             
         } // End of VStack
         .padding(.bottom)
-        .frame(minWidth: 400, minHeight: 460, maxHeight: 460) // Apply frame to the VStack
+        .frame(minWidth: 450, minHeight: 500, maxHeight: 500) // Increased dimensions
         .onAppear(perform: loadAllShares) // Load shares when view appears
         // Add the sheet modifier for share selection
         .sheet(isPresented: $isShowingShareSelection) {

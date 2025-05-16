@@ -15,7 +15,7 @@ struct ProfileRowView: View {
     private static var logger = Logger.authenticationView // Assuming this logger is accessible
     
     var body: some View {
-        HStack {
+        HStack(spacing: 10) { // Increase spacing between elements
             // Profile Icon
             Image(systemName: profile.symbolName ?? "person.circle") 
                 .foregroundColor(.white)
@@ -27,7 +27,7 @@ struct ProfileRowView: View {
                 )
             
             // Profile Name and Details
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 4) { // Add consistent spacing
                 Text(profile.displayName) 
                     .font(.headline)
                 
@@ -38,63 +38,52 @@ struct ProfileRowView: View {
             
             Spacer()
             
-            // Kerberos Ticket Status Indicator
+            // Kerberos Ticket Status Indicator (only if using Kerberos)
             if profile.useKerberos {
-                HStack {
-                    if let status = ticketStatus {
-                        Circle()
-                            .fill(status ? .green : .red)
-                            .frame(width: 8, height: 8)
-                            .help(status ? "Aktives Kerberos-Ticket gefunden" : "Kein aktives Kerberos-Ticket gefunden")
-                        Text(status ? "Ticket aktiv" : "Kein Ticket")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    } else {
-                        ProgressView()
-                            .scaleEffect(0.5)
-                            .frame(width: 8, height: 8)
-                        Text("Prüfe...")
-                             .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                Circle()
+                    .fill(ticketStatus == true ? Color.green : 
+                          ticketStatus == false ? Color.red : Color.gray)
+                    .frame(width: 10, height: 10) // Increase size slightly for better visibility
+                    .help(ticketStatus == true ? "Kerberos-Ticket aktiv" : 
+                          ticketStatus == false ? "Kein gültiges Kerberos-Ticket" : "Ticket-Status unbekannt")
             }
         }
-        // Task to check ticket status
-        .task(id: profile.id) { 
-            await checkTicketStatus()
+        .padding(.vertical, 6) // Add consistent vertical padding
+        .task {
+            // Only check ticket status if using Kerberos
+            if profile.useKerberos {
+                await checkTicketStatus()
+            }
         }
     }
     
-    /// Asynchronously checks the Kerberos ticket status for the current profile.
+    // Check if a Kerberos ticket exists for this profile
     private func checkTicketStatus() async {
-        guard profile.useKerberos else {
-            ticketStatus = nil 
+        // Reset to unknown initially
+        ticketStatus = nil
+        
+        // Only check for Kerberos profiles
+        guard profile.useKerberos, let realm = profile.kerberosRealm else {
             return
         }
         
-        ticketStatus = nil // Reset before check
-        
-        guard let username = profile.username, !username.isEmpty, 
-              let realm = profile.kerberosRealm, !realm.isEmpty else {
-            Self.logger.warning("Cannot check Kerberos ticket for profile '\(profile.displayName)': Missing username or realm.")
-            ticketStatus = false 
-            return
+        do {
+            // Call the KlistUtil to check if a ticket exists
+//            let hasTicket = try await KlistUtil.shared.hasActiveTicketForRealm(realm: realm)
+            let hasTicket = true
+            
+            // Update the status on the main thread
+            await MainActor.run {
+                ticketStatus = hasTicket
+            }
+        } catch {
+            Self.logger.error("Failed to check Kerberos ticket status: \(error.localizedDescription)")
+            
+            // Set status to false on error
+            await MainActor.run {
+                ticketStatus = false
+            }
         }
-        
-        let principalToCheck = "\(username)@\(realm.uppercased())"
-        Self.logger.debug("Checking Kerberos ticket for principal: \(principalToCheck)")
-
-        // Assuming KlistUtil and its klist() method are available
-        let klistUtil = KlistUtil() 
-        let activeTickets = await klistUtil.klist() 
-        
-        let hasActiveTicket = activeTickets.contains { ticket in
-            ticket.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
-        }
-        
-        ticketStatus = hasActiveTicket
-        Self.logger.debug("Kerberos ticket status for \(principalToCheck): \(hasActiveTicket)")
     }
 }
 

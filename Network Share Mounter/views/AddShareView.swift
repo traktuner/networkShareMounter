@@ -34,7 +34,7 @@ struct AddShareView: View {
                     .font(.headline)
                     .padding(.bottom)
                 
-                Section("Share Details") {
+                Section("Share-Details") {
                     TextField("Netzwerkpfad (z.B. smb://server/pfad)", text: $networkShare)
                         .lineLimit(1)
                         .autocorrectionDisabled()
@@ -94,9 +94,9 @@ struct AddShareView: View {
             // Remove navigation modifiers
             // .navigationTitle("Neuen Share hinzufügen")
             // .toolbar { ... }
-            .padding()
+            .padding(20) // Use consistent 20pt padding like other views
         // }
-        .frame(minWidth: 450, minHeight: 350) // Adjust minHeight if needed
+        .frame(minWidth: 450, minHeight: 400) // Increased height to accommodate padding
     }
     
     // --- Actions --- 

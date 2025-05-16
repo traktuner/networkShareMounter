@@ -85,6 +85,7 @@
     },
     "About" : {
       "comment" : "About section title",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -102,6 +103,7 @@
     },
     "Adjust general application settings here." : {
       "comment" : "General settings description",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -120,13 +122,16 @@
     "Aktives Kerberos-Ticket gefunden" : {
 
     },
+    "Allgemein" : {
+
+    },
     "Anmeldedaten" : {
 
     },
-    "Anzeigename (optional)" : {
+    "Anonyme Diagnosedaten senden" : {
 
     },
-    "Ausgewähltes Profil entfernen" : {
+    "Anzeigename (optional)" : {
 
     },
     "authenticate-share-button" : {
@@ -572,6 +577,7 @@
     },
     "Automatically Check for Updates" : {
       "comment" : "Automatically check for updates toggle label",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -589,6 +595,7 @@
     },
     "Automatically Install Updates" : {
       "comment" : "Automatically install updates toggle label",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -604,7 +611,13 @@
         }
       }
     },
+    "Automatisch nach Updates suchen" : {
+
+    },
     "Bearbeiten" : {
+
+    },
+    "Beim Anmelden starten" : {
 
     },
     "Benutzername:" : {
@@ -779,6 +792,7 @@
     },
     "Check for Updates Now" : {
       "comment" : "Check for updates button label",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -794,8 +808,12 @@
         }
       }
     },
+    "Diagnosedaten" : {
+
+    },
     "Diagnostics" : {
       "comment" : "Diagnostics section title",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -810,6 +828,9 @@
           }
         }
       }
+    },
+    "Die Verwaltung der Software-Aktualisierungen ist durch eine MDM-Richtlinie deaktiviert." : {
+
     },
     "Diesem Profil sind keine Shares zugeordnet." : {
 
@@ -872,6 +893,7 @@
     },
     "General" : {
       "comment" : "General settings title",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -929,16 +951,19 @@
     "Invalid mount path" : {
       "comment" : "Invalid mount path"
     },
+    "Jetzt nach Updates suchen" : {
+
+    },
     "Kein aktives Kerberos-Ticket gefunden" : {
+
+    },
+    "Kein gültiges Kerberos-Ticket" : {
 
     },
     "Kein gültiges Ticket" : {
 
     },
     "Kein Profil (Standard/System)" : {
-
-    },
-    "Kein Ticket" : {
 
     },
     "Keine Netzwerk-Shares konfiguriert" : {
@@ -966,6 +991,15 @@
 
     },
     "Kerberos-Authentifizierung verwenden" : {
+
+    },
+    "Kerberos-Ticket aktiv" : {
+
+    },
+    "Kerberos-Ticket aktualisieren" : {
+
+    },
+    "Klicken Sie auf '+', um ein neues Profil zu erstellen." : {
 
     },
     "Klicken Sie auf '+', um einen neuen Share hinzuzufügen" : {
@@ -1151,7 +1185,7 @@
         }
       }
     },
-    "Network Shares" : {
+    "Netzwerk-Shares" : {
 
     },
     "Netzwerkpfad (z.B. smb://server/pfad)" : {
@@ -1161,9 +1195,6 @@
 
     },
     "Neues Profil erstellen" : {
-
-    },
-    "Neues Profil hinzufügen" : {
 
     },
     "no error occured" : {
@@ -1318,6 +1349,9 @@
         }
       }
     },
+    "Passen Sie hier allgemeine Einstellungen der Anwendung an." : {
+
+    },
     "Passwort:" : {
 
     },
@@ -1437,10 +1471,19 @@
     "Profil bearbeiten" : {
 
     },
+    "Profil entfernen" : {
+
+    },
+    "Profil hinzufügen" : {
+
+    },
     "Profilbild" : {
 
     },
     "Profilzuweisung aufheben" : {
+
+    },
+    "Programmstart" : {
 
     },
     "Prüfe..." : {
@@ -1527,6 +1570,7 @@
     },
     "Send Anonymous Diagnostic Data" : {
       "comment" : "Send diagnostic data toggle label",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1541,9 +1585,6 @@
           }
         }
       }
-    },
-    "Share Details" : {
-
     },
     "Share does not exist" : {
       "comment" : "Share does not exist",
@@ -1618,6 +1659,9 @@
         }
       }
     },
+    "Share-Details" : {
+
+    },
     "Shares auswählen" : {
 
     },
@@ -1664,6 +1708,7 @@
     },
     "Software Update" : {
       "comment" : "Software update section title",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1681,6 +1726,7 @@
     },
     "Software update management is disabled by an MDM policy." : {
       "comment" : "MDM update disabled info text",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1695,6 +1741,9 @@
           }
         }
       }
+    },
+    "Software-Aktualisierung" : {
+
     },
     "Sorry, no help available" : {
       "comment" : "this should not happen",
@@ -1736,6 +1785,7 @@
     },
     "Start at Login" : {
       "comment" : "Start at login toggle label",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1753,6 +1803,7 @@
     },
     "Startup" : {
       "comment" : "Startup section title",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1844,13 +1895,13 @@
         }
       }
     },
-    "Ticket aktiv" : {
-
-    },
     "Ticket aktualisieren" : {
 
     },
     "Ticket gültig" : {
+
+    },
+    "Ticket-Status unbekannt" : {
 
     },
     "Timeout on reaching host" : {
@@ -1889,6 +1940,9 @@
       }
     },
     "Trennen" : {
+
+    },
+    "Über" : {
 
     },
     "unknown" : {
@@ -2007,6 +2061,9 @@
           }
         }
       }
+    },
+    "Updates automatisch installieren" : {
+
     },
     "User-mounted share" : {
       "comment" : "CoUser-mounted sharemment",

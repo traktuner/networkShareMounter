@@ -37,8 +37,15 @@ struct DetailColumnView: View {
                     ProfileDetailPlaceholderView()
                 }
             }
+            .padding(20) // Move the padding to the content inside the ScrollView
         }
-        .padding(20) // Apply padding around the ScrollView content area
+        // Add a subtle background to match styling in other views
+        .background(Color(.controlBackgroundColor))
+        // Add a subtle border for consistent styling
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
         // Make the column take available space
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

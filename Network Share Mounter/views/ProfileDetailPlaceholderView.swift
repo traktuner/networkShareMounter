@@ -5,15 +5,20 @@ import SwiftUI
 // Placeholder view shown when no profile is selected in the detail column
 struct ProfileDetailPlaceholderView: View {
     var body: some View {
-        VStack(alignment: .center) { 
+        VStack(alignment: .center, spacing: 12) { 
+            // Add icon for better visual appeal
+            Image(systemName: "person.badge.key.fill")
+                .font(.system(size: 32))
+                .foregroundColor(.secondary.opacity(0.6))
+                .padding(.bottom, 8)
+                
             Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
                 .foregroundColor(.secondary)
-                // Optional: Center placeholder text vertically if needed
-                // .frame(maxHeight: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
         }
-        // Give the placeholder some padding and make it fill width
-        .frame(maxWidth: .infinity, alignment: .center)
-        .padding(20) 
+        // Center content both horizontally and vertically
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
 

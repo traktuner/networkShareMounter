@@ -37,7 +37,7 @@ class SettingsWindowManager: NSObject, NSWindowDelegate {
         
         // Create a new window
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 750, height: 520),
+            contentRect: NSRect(x: 0, y: 0, width: 850, height: 520),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
@@ -51,8 +51,8 @@ class SettingsWindowManager: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.delegate = self
         
-        // Set minimum size to ensure good layout
-        window.minSize = NSSize(width: 650, height: 400)
+        // Set minimum size to match the constraints in SettingsView
+        window.minSize = NSSize(width: 850, height: 500)
         
         // Use Core Animation for smooth transitions
         window.animationBehavior = .documentWindow

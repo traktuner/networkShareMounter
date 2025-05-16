@@ -27,16 +27,17 @@ struct ProfileDetailView: View {
             profileHeader
             
             Divider()
+                .padding(.vertical, 8) // Add more space around this divider
             
             // Authentication Information Section
             authInfoSection
             
             Divider()
+                .padding(.vertical, 8) // Add more space around this divider
             
             // Associated Shares Section
             associatedSharesSection
         }
-        .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         // Task to check ticket status
         .task(id: profile.id) { 
@@ -47,24 +48,28 @@ struct ProfileDetailView: View {
     // MARK: Subviews for Body
     
     private var profileHeader: some View {
-        HStack {
-            Image(systemName: profile.symbolName ?? "person.circle")
-                .foregroundColor(.white)
-                .padding(8)
-                .background(
-                    Circle()
-                        .fill(profile.symbolColor)
-                        .frame(width: 40, height: 40)
-                )
-            
-            Text(profile.displayName)
-                .font(.title2)
-                .fontWeight(.semibold)
-            
-            Spacer()
-            
-            Button("Bearbeiten") {
-                onEditProfile()
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: profile.symbolName ?? "person.circle")
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(
+                        Circle()
+                            .fill(profile.symbolColor)
+                            .frame(width: 40, height: 40)
+                    )
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profile.displayName)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                }
+                
+                Spacer()
+                
+                Button("Bearbeiten") {
+                    onEditProfile()
+                }
             }
         }
     }
@@ -73,6 +78,7 @@ struct ProfileDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Anmeldedaten")
                 .font(.headline)
+                .padding(.bottom, 4) // Add consistent spacing with shares section
             
             if profile.useKerberos {
                  HStack {
@@ -85,8 +91,10 @@ struct ProfileDetailView: View {
                     Spacer()
                     kerberosStatusView // Extracted Kerberos status
                 }
+                .padding(.horizontal, 4) // Add consistent horizontal padding
             } else {
                 standardAuthView // Extracted standard auth info
+                    .padding(.horizontal, 4) // Add consistent horizontal padding
             }
         }
     }
@@ -171,13 +179,13 @@ struct ProfileDetailView: View {
             Spacer()
             Circle()
                  .fill(mountStatusColor(for: share.mountStatus))
-                 .frame(width: 8, height: 8)
+                 .frame(width: 10, height: 10)
                  .help(share.mountStatus.rawValue) // Add tooltip for status
             Text(share.mountStatus.rawValue)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
         .contextMenu {
             Button(share.mountStatus == .mounted ? "Trennen" : "Verbinden") {
                 handleMountToggle(for: share)

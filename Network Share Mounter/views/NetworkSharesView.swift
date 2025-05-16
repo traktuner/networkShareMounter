@@ -40,7 +40,7 @@ struct NetworkSharesView: View {
                     .frame(width: 32, height: 32) // Overall smaller icon frame
                     
                 VStack(alignment: .leading) {
-                    Text("Network Shares") // Title
+                    Text("Netzwerk-Shares") // Updated to match tab label
                         .font(.headline) // Smaller title font
                         .fontWeight(.medium) // Adjusted weight
                     Text("Konfigurieren Sie hier die Netzwerk-Shares und deren Verbindungseinstellungen.") // Description
@@ -159,19 +159,27 @@ struct NetworkSharesView: View {
                 }
                 
                 if shares.isEmpty {
-                    VStack(spacing: 8) {
+                    VStack(alignment: .center, spacing: 12) {
+                        // Add icon for better visual appeal
+                        Image(systemName: "externaldrive.connected.to.line.below.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.secondary.opacity(0.6))
+                            .padding(.bottom, 8)
+                            
                         Text("Keine Netzwerk-Shares konfiguriert")
                             .font(.headline)
                             .foregroundColor(.secondary)
                         
                         Text("Klicken Sie auf '+', um einen neuen Share hinzuzufügen")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.secondary.opacity(0.8))
+                            .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity, minHeight: 100)
-                    .padding()
+                    .padding(.vertical, 20) // Increase vertical padding for better centering
                 }
             }
+            .padding(.top, 8)
             .background(Color(.controlBackgroundColor))
             .cornerRadius(6)
             .overlay(
@@ -232,7 +240,7 @@ struct NetworkSharesView: View {
                         }
                     }
                 }) {
-                    HStack {
+                    HStack(spacing: 6) {
                         Image(systemName: "arrow.up.arrow.down")
                         if let selectedID = selectedShareID,
                            let share = shares.first(where: { $0.id == selectedID }) {
@@ -244,10 +252,11 @@ struct NetworkSharesView: View {
                 }
                 .disabled(selectedShareID == nil)
             }
+            .padding(8) // Make toolbar padding consistent with other views
+            .background(Color(.controlBackgroundColor)) // Add a subtle background to match other toolbars
             .padding(.top, 8)
         }
-        // Apply padding only to horizontal and bottom edges
-//        .padding([.horizontal, .bottom], 20)
+        // Apply consistent outer padding to the entire view (20pt on all sides)
         .padding(20)
         // Load shares when the view appears
         .onAppear {

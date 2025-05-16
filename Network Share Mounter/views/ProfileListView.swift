@@ -21,22 +21,39 @@ struct ProfileListView: View {
             List(selection: $selectedProfileID) {
                 // Check if profiles are empty
                 if profileManager.profiles.isEmpty {
-                    Text("Keine Profile definiert.")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
+                    VStack(alignment: .center, spacing: 12) {
+                        // Add icon for better visual appeal
+                        Image(systemName: "person.badge.key.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.secondary.opacity(0.6))
+                            .padding(.bottom, 8)
+                        
+                        Text("Keine Profile definiert.")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                            
+                        Text("Klicken Sie auf '+', um ein neues Profil zu erstellen.")
+                            .font(.caption)
+                            .foregroundColor(.secondary.opacity(0.8))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 150, alignment: .center)
+                    .padding()
                 } else {
+                    // Generate rows for each profile
                     ForEach(profileManager.profiles) { profile in
                         ProfileRowView(profile: profile)
                             .tag(profile.id)
+                            .padding(.vertical, 1) // Add consistent row spacing
                             .contextMenu {
                                 Button("Bearbeiten") {
                                     onEditProfile(profile)
                                 }
+                                
                                 Button("Löschen") {
-                                    // Removal is handled by parent via onRemoveProfile closure
                                     onRemoveProfile(profile)
                                 }
+                                
                                 if profile.useKerberos {
                                     Divider()
                                     Button("Ticket aktualisieren") {
@@ -47,40 +64,56 @@ struct ProfileListView: View {
                     }
                 }
             }
-            // Use standard list style for macOS
-            .listStyle(.inset(alternatesRowBackgrounds: true))
+            .listStyle(.bordered) // Use bordered style for better appearance
+            .frame(minHeight: 100) // Ensure list has a minimum height
             
-            Divider() // Add a divider above the toolbar
-            
-            // Toolbar for Add/Remove buttons
+            // Bottom toolbar with actions
             HStack {
-                Button {
-                    onAddProfile()
-                } label: {
+                Button(action: onAddProfile) {
                     Image(systemName: "plus")
                 }
-                .help("Neues Profil hinzufügen")
-                .buttonStyle(.borderless) // Use borderless for toolbar look
+                .help("Profil hinzufügen")
                 
                 Button {
                     if let selectedID = selectedProfileID,
-                       let profileToRemove = profileManager.profiles.first(where: { $0.id == selectedID }) {
+                       let profileToRemove = profileManager.getProfile(by: selectedID) {
                         onRemoveProfile(profileToRemove)
                     }
                 } label: {
                     Image(systemName: "minus")
                 }
-                .help("Ausgewähltes Profil entfernen")
+                .help("Profil entfernen")
                 .disabled(selectedProfileID == nil)
-                .buttonStyle(.borderless)
                 
                 Spacer()
+                
+                // Refresh button for Kerberos tickets
+                Button {
+                    if let selectedID = selectedProfileID,
+                       let profile = profileManager.getProfile(by: selectedID),
+                       profile.useKerberos {
+                        onRefreshTicket(profile)
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .help("Kerberos-Ticket aktualisieren")
+                .disabled(selectedProfileID == nil || 
+                           (selectedProfileID != nil && 
+                            profileManager.getProfile(by: selectedProfileID!)?.useKerberos != true))
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            // Add a subtle background to the toolbar area
-            .background(.bar)
+            .padding(8)
+            .background(Color(.controlBackgroundColor))
         }
+        // Add background to match DetailColumnView
+        .background(Color(.controlBackgroundColor))
+        // Add a subtle border for consistent styling
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
+        // Add a small amount of padding to the right side to match the DetailColumnView spacing
+        .padding(.trailing, 1)
     }
 }
 

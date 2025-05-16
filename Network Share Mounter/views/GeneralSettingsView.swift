@@ -88,47 +88,50 @@ struct GeneralSettingsView: View {
                         .frame(width: 32, height: 32)
                         
                     VStack(alignment: .leading) {
-                        Text("General") // Title - Use English key
+                        Text("Allgemein") // Updated to German
                             .font(.headline)
                             .fontWeight(.medium)
-                        Text("Adjust general application settings here.") // Description - Use English key
+                        Text("Passen Sie hier allgemeine Einstellungen der Anwendung an.") // Updated to German
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     Spacer()
                 }
-                .padding(12)
+                .padding(10)
                 .background(.quaternary.opacity(0.4))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 
                 // MARK: - Startup Section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Startup") // Use English key
+                    Text("Programmstart") // Updated to German
                         .font(.headline)
-                    Toggle("Start at Login", isOn: $startAtLogin) // Use English key
+                    Toggle("Beim Anmelden starten", isOn: $startAtLogin) // Updated to German
                         .disabled(!prefs.bool(for: .canChangeAutostart))
                 }
+                .padding(.top, 8) // Add consistent spacing between header and first section
+                .padding(.bottom, 8) // Add bottom spacing for consistency
                 
                 // MARK: - Diagnostic Data Section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Diagnostics") // Use English key
+                    Text("Diagnosedaten") // Updated to German
                         .font(.headline)
-                    Toggle("Send Anonymous Diagnostic Data", isOn: $sendDiagnosticData) // Use English key
+                    Toggle("Anonyme Diagnosedaten senden", isOn: $sendDiagnosticData) // Updated to German
                 }
+                .padding(.vertical, 8) // Add vertical spacing around the section
                 
                 // MARK: - Update Section
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Software Update") // Use English key
+                    Text("Software-Aktualisierung") // Updated to German
                         .font(.headline)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         // Toggle for enabling automatic update checks.
-                        Toggle("Automatically Check for Updates", isOn: $automaticallyChecksForUpdates) // Use English key
+                        Toggle("Automatisch nach Updates suchen", isOn: $automaticallyChecksForUpdates) // Updated to German
                             .disabled(isUpdateFrameworkDisabled)
                             .padding(.leading, 20)
                         
                         // Toggle for enabling automatic update downloads/installs.
-                        Toggle("Automatically Install Updates", isOn: $automaticallyDownloadsUpdates) // Use English key
+                        Toggle("Updates automatisch installieren", isOn: $automaticallyDownloadsUpdates) // Updated to German
                             .disabled(isUpdateFrameworkDisabled || !automaticallyChecksForUpdates)
                             .padding(.leading, 20)
                                                 
@@ -145,7 +148,7 @@ struct GeneralSettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "arrow.clockwise")
-                                    Text("Check for Updates Now") // Use English key
+                                    Text("Jetzt nach Updates suchen") // Updated to German
                                 }
                             }
                             .disabled(isUpdateFrameworkDisabled)
@@ -156,30 +159,33 @@ struct GeneralSettingsView: View {
                     
                     // Informational text shown when updates are disabled by MDM.
                     if isUpdateFrameworkDisabled {
-                         Text("Software update management is disabled by an MDM policy.") // Use English key
+                         Text("Die Verwaltung der Software-Aktualisierungen ist durch eine MDM-Richtlinie deaktiviert.") // Updated to German
                              .font(.caption)
                              .foregroundColor(.secondary)
                              .padding(.top, 5)
                     }
                 }
+                .padding(.vertical, 8) // Add vertical spacing
                 
                 // MARK: - Version Info Section
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("About") // Use English key
+                    Text("Über") // Updated to German
                         .font(.headline)
                     
                     HStack {
-                        Text("Version")
+                        Text("Version") // Keep as is (same in German)
                         Spacer()
                         // Display dynamic version and build number
                         Text(appVersion + " (" + buildNumber + ")")
                             .foregroundColor(.secondary)
                     }
                 }
+                .padding(.vertical, 8) // Add vertical spacing
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(20) // Consistent padding for the ScrollView
+        // Apply consistent 20pt padding to the entire view, matching other views
+        .padding(20)
         .onAppear { 
             // Load initial state from UserDefaults when the view appears.
             startAtLogin = prefs.bool(for: .autostart)

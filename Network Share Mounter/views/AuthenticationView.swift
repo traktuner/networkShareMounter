@@ -42,8 +42,10 @@ struct AuthenticationView: View {
                     onRefreshTicket: handleRefreshTicket 
                 )
                 .frame(width: 300)
+                .cornerRadius(6) // Add corner radius to match other views
                 
                 Divider()
+                    .padding(.horizontal, 0.5) // Add very slight padding around divider
                 
                 DetailColumnView(
                     selectedProfileID: selectedProfileID,
@@ -52,8 +54,13 @@ struct AuthenticationView: View {
                     onEditProfile: handleEditProfile, 
                     onRefreshTicket: handleRefreshTicket 
                 )
-            } 
-        } 
+                .cornerRadius(6) // Add corner radius to match other views
+            }
+            // Add spacing between header and content to match other views
+            .padding(.top, 8)
+        }
+        // Add consistent outer padding to match NetworkSharesView and GeneralSettingsView
+        .padding(20)
         .task(id: selectedProfileID) {
             await loadAssociatedShares(for: selectedProfileID)
         }
