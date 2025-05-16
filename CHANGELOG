@@ -1,3 +1,7 @@
+# 3.1.5
+### Improvements
+* Improve the management of network changes
+
 # 3.1.4
 ### Bugfixes
 * Fixed several minor bugs, including one related to hidden shares
