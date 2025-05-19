@@ -170,4 +170,6 @@ struct Defaults {
     
     /// Current key for user-defined shares
     static let userNetworkShares = "userNetworkShares"
+    
+    static let authProfileKey = "authProfile"
 }

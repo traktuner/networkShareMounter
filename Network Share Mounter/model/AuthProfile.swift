@@ -56,13 +56,6 @@ struct AuthProfile: Identifiable, Codable, Equatable {
 
 // MARK: - Color <-> Data Conversion Helper
 
-// Logger definition needed for Color extension, assuming a general logger exists
-// If not, define a basic one or ensure Logger.dataModel is accessible globally/imported.
-// For simplicity here, we might need to refine logger access if this causes issues.
-private enum LoggerPlaceholder {
-    static let dataModel = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.example.placeholder", category: "DataModel")
-}
-
 extension Color {
     /// Converts SwiftUI Color to Data for storing in Codable structs.
     func toData() -> Data? {
@@ -73,7 +66,7 @@ extension Color {
             let data = try NSKeyedArchiver.archivedData(withRootObject: nsColor, requiringSecureCoding: false)
             return data
         } catch {
-            LoggerPlaceholder.dataModel.error("Failed to archive NSColor to Data: \(error.localizedDescription)")
+            Logger.authProfile.error("Failed to archive NSColor to Data: \(error.localizedDescription)")
             return nil
         }
     }
@@ -86,11 +79,11 @@ extension Color {
                 // Initialize SwiftUI Color from NSColor
                 self.init(nsColor: nsColor)
             } else {
-                LoggerPlaceholder.dataModel.error("Failed to unarchive NSColor from Data.")
+                Logger.authProfile.error("Failed to unarchive NSColor from Data.")
                 return nil
             }
         } catch {
-            LoggerPlaceholder.dataModel.error("Failed to unarchive NSColor from Data: \(error.localizedDescription)")
+            Logger.authProfile.error("Failed to unarchive NSColor from Data: \(error.localizedDescription)")
             return nil
         }
     }

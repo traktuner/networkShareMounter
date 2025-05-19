@@ -191,7 +191,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Set up the status item in the menu bar
         if let button = statusItem.button {
-            button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+            button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
         }
         
         // Asynchronously initialize the app
@@ -315,7 +315,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     Logger.app.info("Found existing Kerberos tickets, updating menu icon.")
                     DispatchQueue.main.async {
                         if let button = self.statusItem.button {
-                            button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                            button.image = NSImage(named: NSImage.Name(MenuImageName.green.imageName))
                         }
                     }
                 }
@@ -434,7 +434,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if notification.userInfo?["KrbAuthError"] is Error {
             DispatchQueue.main.async {
                 if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.red.imageName))
                     Task { @MainActor in
                         await self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
                     }
@@ -445,7 +445,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         else if notification.userInfo?["AuthError"] is Error {
             DispatchQueue.main.async {
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.yellow.imageName))
                     Task { @MainActor in
                         await self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
                     }
@@ -457,7 +457,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 // Change the color of the menu symbol to default
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
                     Task { @MainActor in
                         await self.constructMenu(withMounter: self.mounter)
                     }
@@ -468,7 +468,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         else if notification.userInfo?["krbAuthenticated"] is Error {
             DispatchQueue.main.async {
                 if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.green.imageName))
                 }
             }
         }
@@ -476,7 +476,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         else if notification.userInfo?["FailError"] is Error {
             DispatchQueue.main.async {
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.red.imageName))
+                    // button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
                 }
             }
         }
@@ -485,7 +486,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 // Change the color of the menu symbol to default when off domain
                 if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
                 }
             }
         }

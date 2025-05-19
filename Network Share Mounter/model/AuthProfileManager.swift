@@ -11,7 +11,7 @@ class AuthProfileManager: ObservableObject {
     static let shared = AuthProfileManager()
     
     /// The key used to store profile metadata in UserDefaults.
-    private let userDefaultsKey = "com.example.NetworkShareMounter.AuthProfiles"
+//    private let userDefaultsKey = "com.example.NetworkShareMounter.AuthProfiles"
     
     /// The published array of authentication profiles. Views can subscribe to this.
     @Published var profiles: [AuthProfile] = []
@@ -151,7 +151,7 @@ class AuthProfileManager: ObservableObject {
 
     /// Loads profiles from UserDefaults.
     private func loadProfiles() {
-        guard let data = UserDefaults.standard.data(forKey: userDefaultsKey) else {
+        guard let data = UserDefaults.standard.data(forKey: Defaults.authProfileKey) else {
             Logger.dataModel.info("No profile data found in UserDefaults.")
             self.profiles = [] // Start with empty array if no data
             return
@@ -172,7 +172,7 @@ class AuthProfileManager: ObservableObject {
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(profiles)
-            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+            UserDefaults.standard.set(data, forKey: Defaults.authProfileKey)
             Logger.dataModel.debug("Successfully saved \(self.profiles.count) profiles to UserDefaults.")
         } catch {
             Logger.dataModel.error("Failed to encode profiles for UserDefaults: \(error.localizedDescription)")
