@@ -55,13 +55,15 @@ final class ShareManagerTests: XCTestCase {
     ///   - username: Optional username
     ///   - password: Optional password
     ///   - managed: Whether the share is managed
+    ///   - shareDisplayName: Optional display name for the share
     /// - Returns: A Share object for testing
     private func createTestShare(
         networkShare: String = "smb://testserver.example.com/testshare",
         authType: AuthType = .krb,
         username: String? = "testuser",
         password: String? = nil,
-        managed: Bool = false
+        managed: Bool = false,
+        shareDisplayName: String? = nil
     ) -> Share {
         return Share.createShare(
             networkShare: networkShare,
@@ -69,7 +71,8 @@ final class ShareManagerTests: XCTestCase {
             mountStatus: .unmounted,
             username: username,
             password: password,
-            managed: managed
+            managed: managed,
+            shareDisplayName: shareDisplayName
         )
     }
     
@@ -174,7 +177,8 @@ final class ShareManagerTests: XCTestCase {
             authType: .pwd,
             username: "newuser",
             password: "newpassword",
-            managed: true
+            managed: true,
+            shareDisplayName: "Updated Share"
         )
         
         // When
@@ -185,6 +189,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(shares[0].authType, .pwd, "Share's auth type should be updated")
         XCTAssertEqual(shares[0].username, "newuser", "Share's username should be updated")
         XCTAssertEqual(shares[0].managed, true, "Share's managed status should be updated")
+        XCTAssertEqual(shares[0].shareDisplayName, "Updated Share", "Share's display name should be updated")
     }
     
     /// Test: Trying to update a share at an invalid index
@@ -219,7 +224,8 @@ final class ShareManagerTests: XCTestCase {
             Defaults.networkShare: testShare1,
             Defaults.authType: AuthType.krb.rawValue,
             Defaults.username: testUsername,
-            Defaults.mountPoint: "/Volumes/Test"
+            Defaults.mountPoint: "/Volumes/Test",
+            Defaults.shareDisplayNameKey: "MDM Test Share"
         ]
         
         // When
@@ -232,6 +238,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(resultShare?.username, testUsername, "Username should match")
         XCTAssertEqual(resultShare?.mountPoint, "/Volumes/Test", "Mount point should match")
         XCTAssertEqual(resultShare?.managed, true, "Share should be marked as managed")
+        XCTAssertEqual(resultShare?.shareDisplayName, "MDM Test Share", "Display name should match")
     }
     
     /// Test: Processing legacy share configuration
@@ -247,6 +254,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(resultShare?.networkShare, testShare1, "Network share URL should match")
         XCTAssertEqual(resultShare?.authType, .krb, "Auth type should be Kerberos by default")
         XCTAssertEqual(resultShare?.managed, true, "Share should be marked as managed")
+        XCTAssertNil(resultShare?.shareDisplayName, "Legacy shares should have nil display name")
     }
     
     /// Test: Processing user share configuration
@@ -255,7 +263,8 @@ final class ShareManagerTests: XCTestCase {
         let shareConfig: [String: String] = [
             Defaults.networkShare: testShare1,
             Defaults.authType: AuthType.pwd.rawValue,
-            Defaults.username: testUsername
+            Defaults.username: testUsername,
+            Defaults.shareDisplayNameKey: "User Test Share"
         ]
         
         // When
@@ -267,6 +276,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(resultShare?.authType, .pwd, "Auth type should match")
         XCTAssertEqual(resultShare?.username, testUsername, "Username should match")
         XCTAssertEqual(resultShare?.managed, false, "Share should be marked as unmanaged")
+        XCTAssertEqual(resultShare?.shareDisplayName, "User Test Share", "Display name should match")
     }
     
     /// Test: Processing user share configuration with invalid URL

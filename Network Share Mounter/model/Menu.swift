@@ -9,7 +9,17 @@
 import Foundation
 
 enum MenuImageName: String {
-    case normal = "networkShareMounter"
-    case alert = "networkShareMounterMenuYellow"
-    case error = "networkShareMounterMenuRed"
+    case normal = "networkShareMounterMenu"
+    case green = "networkShareMounterMenuGreen"
+    case yellow = "networkShareMounterMenuYellow"
+    case red = "networkShareMounterMenuRed"
+    
+    var imageName: String {
+        #if DEBUG
+        // Im Debug-Modus einen Suffix oder Präfix anhängen
+        return self.rawValue + "Debug"
+        #else
+        return self.rawValue
+        #endif
+    }
 }

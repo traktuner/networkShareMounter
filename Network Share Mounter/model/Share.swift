@@ -32,6 +32,7 @@ struct Share: Identifiable {
     var mountPoint: String?
     var actualMountPoint: String?
     var managed: Bool
+    var shareDisplayName: String?
     var id = UUID().uuidString
     
     /// Lock for thread-safe access to Share properties
@@ -81,7 +82,7 @@ struct Share: Identifiable {
     }
     
     /// factory-method, to create a new Share object
-    static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true) -> Share {
-        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, id: UUID().uuidString)
+    static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true, shareDisplayName: String? = nil) -> Share {
+        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, shareDisplayName: shareDisplayName, id: UUID().uuidString)
     }
 }
