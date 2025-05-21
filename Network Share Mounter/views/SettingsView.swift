@@ -15,7 +15,7 @@ struct SettingsView: View {
     
     /// Enum representing the available settings tabs
     enum SettingsTab: String, CaseIterable, Identifiable {
-        case networkShares = "Network Shares"
+        case networkShares = "Netzwerk-Shares"
         case authentication = "Authentifizierung"
         case general = "Allgemein"
         
@@ -90,6 +90,7 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Einstellungen")
+        // Set appropriate minimum dimensions for consistent layout of all views
         .frame(minWidth: 850, minHeight: 500)
     }
 }

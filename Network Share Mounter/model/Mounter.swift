@@ -164,7 +164,11 @@ class Mounter: ObservableObject {
                     var homeDirectory = result[0]
                     homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
                     homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                    let newShare = Share.createShare(networkShare: homeDirectory, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
+                    let newShare = Share.createShare(networkShare: homeDirectory, 
+                                                     authType: AuthType.krb, 
+                                                     mountStatus: MountStatus.unmounted, 
+                                                     managed: true,
+                                                     shareDisplayName: "Home")
                     await self.addShare(newShare)
                 }
             } catch {

@@ -89,7 +89,6 @@ lane :commonTasks do
         "Network Share Mounter/Extensions/URL.swift",
         "Network Share Mounter/Extensions/String.swift",
         "Network Share Mounter/Extensions/SetupSession.swift",
-        "Network Share Mounter/model/UserShare.swift",
         "Network Share Mounter/model/Errorcodes.swift",
         "Network Share Mounter/model/DisplayShareTypes.swift",
         "Network Share Mounter/model/Mounter.swift",

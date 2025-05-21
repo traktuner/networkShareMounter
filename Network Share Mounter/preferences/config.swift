@@ -162,9 +162,14 @@ struct Defaults {
     /// Optional username to use on mount
     static let username = "username"
     
+    /// Optional display name for the share
+    static let shareDisplayNameKey = "shareDisplayName"
+    
     /// Legacy key for user-defined shares
     static let customSharesKey = "customNetworkShares"
     
     /// Current key for user-defined shares
     static let userNetworkShares = "userNetworkShares"
+    
+    static let authProfileKey = "authProfile"
 }
