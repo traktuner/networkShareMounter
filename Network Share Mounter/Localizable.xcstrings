@@ -885,9 +885,6 @@
         }
       }
     },
-    "Farbe wählen" : {
-
-    },
     "Farbe:" : {
 
     },
@@ -1478,6 +1475,9 @@
 
     },
     "Profilbild" : {
+
+    },
+    "Profilfarbe auswählen" : {
 
     },
     "Profilzuweisung aufheben" : {
@@ -2119,6 +2119,9 @@
 
     },
     "Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil" : {
+
+    },
+    "Wählen Sie eine Farbe für das Profilsymbol" : {
 
     },
     "Zugehöriges Profil:" : {

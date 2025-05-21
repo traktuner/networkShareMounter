@@ -91,9 +91,15 @@ struct AuthenticationView: View {
                                 if let pwd = password, !pwd.isEmpty {
                                     try await profileManager.savePassword(for: updatedProfile, password: pwd)
                                 }
+                                // Ensure UI updates happen on the main thread
+                                await MainActor.run {
+                                    // Force a refresh of the selected profile
+                                    if selectedProfileID == updatedProfile.id {
+                                        selectedProfileID = nil
+                                        selectedProfileID = updatedProfile.id
+                                    }
+                                }
                                 logger.info("Successfully updated profile '\(updatedProfile.displayName)'.")
-                                // Clear profileToEdit after successful save
-                                profileToEdit = nil
                             } catch {
                                 logger.error("Failed to update profile '\(updatedProfile.displayName)': \(error.localizedDescription)")
                                 // TODO: Show error alert to user
@@ -102,8 +108,13 @@ struct AuthenticationView: View {
                     }
                 )
             } else {
-//                logger.error("Attempted to edit with nil profile.")
-                 Text("Error: Profile to edit not found.") // Fallback view
+                Text("Error: Profile to edit not found.") // Fallback view
+            }
+        }
+        .onChange(of: isEditingProfile) { isEditing in
+            // Clear profileToEdit when sheet is dismissed
+            if !isEditing {
+                profileToEdit = nil
             }
         }
         .onAppear {

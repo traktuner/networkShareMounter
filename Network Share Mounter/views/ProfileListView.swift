@@ -19,7 +19,6 @@ struct ProfileListView: View {
         VStack(spacing: 0) { // Use spacing 0 to connect List and Toolbar visually
             // Profile List
             List(selection: $selectedProfileID) {
-                // Check if profiles are empty
                 if profileManager.profiles.isEmpty {
                     VStack(alignment: .center, spacing: 12) {
                         // Add icon for better visual appeal
@@ -42,7 +41,7 @@ struct ProfileListView: View {
                 } else {
                     // Generate rows for each profile
                     ForEach(profileManager.profiles) { profile in
-                        ProfileRowView(profile: profile)
+                        ProfileRowView(profileManager: profileManager, profileId: profile.id)
                             .tag(profile.id)
                             .padding(.vertical, 1) // Add consistent row spacing
                             .contextMenu {

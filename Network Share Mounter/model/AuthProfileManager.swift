@@ -57,7 +57,10 @@ class AuthProfileManager: ObservableObject {
             return
         }
         
-        profiles[index] = profile
+        await MainActor.run {
+            profiles[index] = profile
+            objectWillChange.send()
+        }
         saveProfiles() // Save metadata changes
         Logger.dataModel.info("Updated profile '\(profile.displayName)' (ID: \(profile.id))")
     }

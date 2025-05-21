@@ -34,6 +34,27 @@ struct ProfileEditorView: View {
     // State to control the presentation of the share selection sheet
     @State private var isShowingShareSelection = false
     
+    // Add preference manager for accessing MDM settings
+    private let prefs = PreferenceManager()
+    
+    /// Loads the Kerberos realm from available sources
+    private func loadKerberosRealm() -> String {
+        // First try to get realm from MDM preferences
+        if let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty {
+            Logger.dataModel.debug("Using Kerberos realm from MDM: \(mdmRealm)")
+            return mdmRealm
+        }
+        
+        // If no MDM realm, use FAU realm if configured
+        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
+            Logger.dataModel.debug("Using FAU Kerberos realm: \(FAU.kerberosRealm)")
+            return FAU.kerberosRealm
+        }
+        
+        // Return empty string if no realm found
+        return ""
+    }
+    
     // Computed binding to handle password changes
     private var passwordBinding: Binding<String> {
         Binding<String>(
@@ -59,7 +80,8 @@ struct ProfileEditorView: View {
             self._username = State(initialValue: profile.username ?? "")
             self._password = State(initialValue: "") // Start with empty password field for existing profiles
             self._useKerberos = State(initialValue: profile.useKerberos)
-            self._kerberosRealm = State(initialValue: profile.kerberosRealm ?? "")
+            // Use existing realm or load from preferences if empty
+            self._kerberosRealm = State(initialValue: profile.kerberosRealm ?? PreferenceManager().string(for: .kerberosRealm) ?? "")
             self._selectedSymbol = State(initialValue: profile.symbolName ?? "person.circle")
             self._selectedColor = State(initialValue: profile.symbolColor)
             // Initialize associated shares for editing
@@ -70,7 +92,8 @@ struct ProfileEditorView: View {
             self._username = State(initialValue: "")
             self._password = State(initialValue: "")
             self._useKerberos = State(initialValue: false)
-            self._kerberosRealm = State(initialValue: "")
+            // Load Kerberos realm from preferences for new profiles
+            self._kerberosRealm = State(initialValue: PreferenceManager().string(for: .kerberosRealm) ?? "")
             self._selectedSymbol = State(initialValue: "person.circle")
             self._selectedColor = State(initialValue: .blue)
             self._editingAssociatedShares = State(initialValue: []) // Start empty for new profile
@@ -80,10 +103,6 @@ struct ProfileEditorView: View {
     // Constants for pickers
     let availableSymbols = ["person", "building.2", "house", "briefcase", "desktopcomputer",
                             "laptopcomputer", "server.rack", "network", "folder", "graduationcap", "popcorn"]
-    let availableColors: [(name: String, color: Color)] = [
-        ("Blau", .blue), ("Grün", .green), ("Rot", .red), ("Orange", .orange),
-        ("Lila", .purple), ("Pink", .pink), ("Gelb", .yellow), ("Grau", .gray)
-    ]
 
     // Body
     var body: some View {
@@ -209,21 +228,12 @@ struct ProfileEditorView: View {
                             .labelsHidden() // Hide label as we have Text above
                             .frame(width: 120)
                             .padding(.trailing)
-                            Picker("Farbe wählen", selection: $selectedColor) {
-                                ForEach(availableColors, id: \.name) { colorOption in
-                                    HStack {
-                                        Circle()
-                                            .fill(colorOption.color)
-                                            .frame(width: 16, height: 16)
-                                        Text(colorOption.name)
-                                    }
-                                    .tag(colorOption.color)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .labelsHidden()
-                            .frame(width: 120)
-                            .padding(.trailing)
+                            ColorPicker("Profilfarbe auswählen", selection: $selectedColor, supportsOpacity: false)
+                                .labelsHidden()
+                                .frame(width: 120)
+                                .padding(.trailing)
+                                .help("Wählen Sie eine Farbe für das Profilsymbol")
+                                .accessibilityLabel("Profilfarbe auswählen")
                             Image(systemName: selectedSymbol)
                                 .font(.system(size: 20))
                                 .foregroundColor(.white)

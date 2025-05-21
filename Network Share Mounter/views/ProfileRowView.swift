@@ -6,7 +6,14 @@ import dogeADAuth // For KlistUtil - Assuming it's here
 
 /// View for displaying a single row in the profile list.
 struct ProfileRowView: View {
-    let profile: AuthProfile
+    // Dependencies
+    @ObservedObject var profileManager: AuthProfileManager
+    let profileId: String
+    
+    // Computed property to get the current profile
+    private var profile: AuthProfile {
+        profileManager.getProfile(by: profileId) ?? AuthProfile(displayName: "Unbekannt")
+    }
     
     // State to hold the result of the Kerberos ticket check
     @State private var ticketStatus: Bool? = nil // nil: unknown, true: active, false: inactive
@@ -90,18 +97,25 @@ struct ProfileRowView: View {
 // MARK: - Preview
 
 struct ProfileRowView_Previews: PreviewProvider {
+    static let mockProfileManager = AuthProfileManager.shared
     static let profile1 = AuthProfile(displayName: "Test Profile 1", username: "test1")
     static let profile2 = AuthProfile(displayName: "Test Profile 2", username: "test2", useKerberos: true, kerberosRealm: "EXAMPLE.COM")
     
     static var previews: some View {
         // Preview for non-Kerberos profile
-        ProfileRowView(profile: profile1)
+        ProfileRowView(profileManager: mockProfileManager, profileId: profile1.id)
             .padding()
             .previewDisplayName("Standard Profile")
+            .onAppear {
+                mockProfileManager.profiles = [profile1]
+            }
 
         // Preview for Kerberos profile
-        ProfileRowView(profile: profile2)
+        ProfileRowView(profileManager: mockProfileManager, profileId: profile2.id)
             .padding()
             .previewDisplayName("Kerberos Profile")
+            .onAppear {
+                mockProfileManager.profiles = [profile2]
+            }
     }
 }
