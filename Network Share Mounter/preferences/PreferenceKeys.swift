@@ -208,9 +208,6 @@ enum PreferenceKeys: String, CaseIterable {
     /// Comment for keychain entries
     case keyChainComment = "keyChainComment"
     
-    /// Whether keychain migration from Prefix Manager is done
-    case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
-    
     // MARK: - Menu Items
     
     /// Whether to show Quit menu item
