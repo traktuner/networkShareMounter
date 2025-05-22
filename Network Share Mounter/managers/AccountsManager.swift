@@ -32,14 +32,6 @@ actor AccountsManager {
     func initialize() async {
         guard !isInitialized else { return }
         
-        // Perform FAU-specific tasks if the Kerberos realm matches.
-        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
-            if !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator()
-                await migrator.migrate()
-            }
-        }
-        
         // Load accounts from persistent storage.
         loadAccounts()
         
