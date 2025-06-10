@@ -271,35 +271,35 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     private func resolveSRVRecords() async throws -> SRVResult {
         Logger.automaticSignIn.debug("🔍 [Worker] resolveSRVRecords started")
         
-        // Flag to ensure the continuation is only resumed once
-        var continuationResumed = false
-        let lock = NSLock() // Use a lock for thread safety
-
         return try await withCheckedThrowingContinuation { continuation in
             let query = "_ldap._tcp." + domain.lowercased()
             Logger.automaticSignIn.debug("🔍 [Worker] Resolving SRV records for query: \(query, privacy: .public)")
 
-            resolver.resolve(query: query) { result in
-                lock.lock() // Acquire lock before checking/modifying the flag
-                // Check if already resumed
-                guard !continuationResumed else {
-                    lock.unlock() // Release lock if already resumed
-                    Logger.automaticSignIn.warning("⚠️ [Worker] Continuation for SRV query '\(query, privacy: .public)' already resumed. Ignoring duplicate callback.")
-                    return
-                }
-                // Mark as resumed
-                continuationResumed = true
-                lock.unlock() // Release lock after modifying the flag
-
-                Logger.automaticSignIn.debug("🔍 [Worker] SRV resolver returned for query: \(query, privacy: .public)")
+            // Wrap the resolver call in a Task to handle concurrency properly
+            Task {
+                var hasResumed = false
+                let lock = NSLock()
                 
-                switch result {
-                case .success(let records):
-                    Logger.automaticSignIn.debug("✅ [Worker] SRV resolution successful with \(records.SRVRecords.count) records")
-                    continuation.resume(returning: records)
-                case .failure(let error):
-                    Logger.automaticSignIn.error("❌ [Worker] SRV resolution failed: \(error.localizedDescription, privacy: .public)")
-                    continuation.resume(throwing: error)
+                await resolver.resolve(query: query) { result in
+                    lock.lock()
+                    defer { lock.unlock() }
+                    
+                    guard !hasResumed else {
+                        Logger.automaticSignIn.warning("⚠️ [Worker] Continuation for SRV query '\(query, privacy: .public)' already resumed. Ignoring duplicate callback.")
+                        return
+                    }
+                    hasResumed = true
+
+                    Logger.automaticSignIn.debug("🔍 [Worker] SRV resolver returned for query: \(query, privacy: .public)")
+                    
+                    switch result {
+                    case .success(let records):
+                        Logger.automaticSignIn.debug("✅ [Worker] SRV resolution successful with \(records.SRVRecords.count) records")
+                        continuation.resume(returning: records)
+                    case .failure(let error):
+                        Logger.automaticSignIn.error("❌ [Worker] SRV resolution failed: \(error.localizedDescription, privacy: .public)")
+                        continuation.resume(throwing: error)
+                    }
                 }
             }
             

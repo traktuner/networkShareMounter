@@ -167,8 +167,7 @@ class Mounter: ObservableObject {
                     let newShare = Share.createShare(networkShare: homeDirectory,
                                                      authType: AuthType.krb,
                                                      mountStatus: MountStatus.unmounted,
-                                                     managed: true,
-                                                     shareDisplayName: "Home")
+                                                     managed: true)
                     await self.addShare(newShare)
                 }
             } catch {

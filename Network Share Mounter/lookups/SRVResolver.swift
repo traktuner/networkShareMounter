@@ -27,19 +27,11 @@ public typealias SRVResolverResult = Result<SRVResult, SRVResolverError>
 public typealias SRVResolverCompletion = (SRVResolverResult) -> Void
 
 /// Class responsible for resolving SRV records.
-/// 
+///
 /// This class handles DNS-SRV record resolution using the dnssd framework.
 /// It provides asynchronous resolution with timeout handling and proper resource cleanup.
 class SRVResolver {
-    /// Dispatch queue for handling DNS operations
-    private let queue = DispatchQueue(label: "SRVResolution")
-    
-    /// Source for reading from the DNS socket
-    private var dispatchSourceRead: DispatchSourceRead?
-    
-    /// Timer for handling timeouts
-    private var timeoutTimer: DispatchSourceTimer?
-    
+
     /// Reference to the DNS service
     private var serviceRef: DNSServiceRef?
     
@@ -58,73 +50,11 @@ class SRVResolver {
     /// Completion handler for the resolution process
     var completion: SRVResolverCompletion?
     
-    /// Callback function for processing DNS results
-    private let queryCallback: DNSServiceQueryRecordReply = { (sdRef, flags, interfaceIndex, errorCode, fullname, rrtype, rrclass, rdlen, rdata, ttl, context) -> Void in
-        guard let context = context else { return }
-        
-        let resolver: SRVResolver = SRVResolver.bridge(context)
-        
-        if let data = rdata?.assumingMemoryBound(to: UInt8.self),
-           let record = SRVRecord(data: Data(bytes: data, count: Int(rdlen))) {
-            resolver.results.append(record)
-        }
-        
-        if (flags & kDNSServiceFlagsMoreComing) == 0 {
-            resolver.success()
-        }
-    }
-    
-    /// Bridges an Objective-C object to a Swift pointer
-    /// - Parameter obj: The object to bridge
-    /// - Returns: An UnsafeMutableRawPointer containing the bridged object
-    private static func bridge<T: AnyObject>(_ obj: T) -> UnsafeMutableRawPointer {
-        return Unmanaged.passUnretained(obj).toOpaque()
-    }
-    
-    /// Bridges a Swift pointer back to an Objective-C object
-    /// - Parameter ptr: The pointer to bridge
-    /// - Returns: The bridged object
-    private static func bridge<T: AnyObject>(_ ptr: UnsafeMutableRawPointer) -> T {
-        return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
-    }
-    
-    /// Handles a failed SRV resolution
-    private func fail() {
-        stopQuery()
-        completion?(.failure(.unableToComplete))
-    }
-    
-    /// Handles a successful SRV resolution
-    private func success() {
-        stopQuery()
-        let result = SRVResult(SRVRecords: results, query: query ?? "Unknown Query")
-        completion?(.success(result))
-    }
-    
-    /// Stops the DNS query and cleans up resources
-    private func stopQuery() {
-        timeoutTimer?.cancel()
-        timeoutTimer = nil
-        
-        dispatchSourceRead?.cancel()
-        dispatchSourceRead = nil
-        
-        if let serviceRef = serviceRef {
-            DNSServiceRefDeallocate(serviceRef)
-            self.serviceRef = nil
-        }
-        
-        if socket != -1 {
-            close(socket)
-            socket = -1
-        }
-    }
-    
     /// Initiates the SRV resolution process
     /// - Parameters:
     ///   - query: The DNS query string
     ///   - completion: The completion handler to call when the resolution is complete
-    func resolve(query: String, completion: @escaping SRVResolverCompletion) {
+    func resolve(query: String, completion: @escaping SRVResolverCompletion) async {
         self.completion = completion
         self.query = query
         
@@ -158,49 +88,80 @@ class SRVResolver {
                 return
             }
             
-            setupDispatchSource(for: sdRef)
-            setupTimeoutTimer()
+            await processResult(for: sdRef)
             
         default:
             completion(.failure(.serviceError))
         }
     }
     
-    /// Sets up the dispatch source for reading from the socket
+    /// Processes the DNS service result using async
     /// - Parameter sdRef: The DNS service reference
-    private func setupDispatchSource(for sdRef: DNSServiceRef) {
-        dispatchSourceRead = DispatchSource.makeReadSource(fileDescriptor: socket, queue: queue)
-        
-        dispatchSourceRead?.setEventHandler { [weak self] in
-            guard let self = self else { return }
-            let res = DNSServiceProcessResult(sdRef)
-            if res != kDNSServiceErr_NoError {
-                self.fail()
+    private func processResult(for sdRef: DNSServiceRef) async {
+        await withCheckedContinuation { continuation in
+            Task {
+                let result = DNSServiceProcessResult(sdRef)
+                
+                if result != kDNSServiceErr_NoError {
+                    self.fail()
+                }
+                
+                self.stopQuery()
             }
+            
+            continuation.resume()
         }
-        
-        dispatchSourceRead?.setCancelHandler { [weak self] in
-            guard let self = self else { return }
-            if let serviceRef = self.serviceRef {
-                DNSServiceRefDeallocate(serviceRef)
-            }
-        }
-        
-        dispatchSourceRead?.resume()
     }
     
-    /// Sets up the timeout timer
-    private func setupTimeoutTimer() {
-        timeoutTimer = DispatchSource.makeTimerSource(flags: [], queue: queue)
-        
-        timeoutTimer?.setEventHandler { [weak self] in
-            guard let self = self else { return }
-            self.completion?(.failure(.timeout))
-            self.stopQuery()
+    /// Handles a failed SRV resolution
+    private func fail() {
+        stopQuery()
+        completion?(.failure(.unableToComplete))
+    }
+    
+    /// Stops the DNS query and cleans up resources
+    private func stopQuery() {
+        if let serviceRef = serviceRef {
+            DNSServiceRefDeallocate(serviceRef)
+            self.serviceRef = nil
         }
         
-        let deadline = DispatchTime.now() + timeout
-        timeoutTimer?.schedule(deadline: deadline, repeating: .infinity, leeway: .never)
-        timeoutTimer?.resume()
+        if socket != -1 {
+            close(socket)
+            socket = -1
+        }
+    }
+    
+    /// Callback function for processing DNS results
+    private let queryCallback: DNSServiceQueryRecordReply = { (sdRef, flags, interfaceIndex, errorCode, fullname, rrtype, rrclass, rdlen, rdata, ttl, context) -> Void in
+        guard let context = context else { return }
+        
+        let resolver: SRVResolver = SRVResolver.bridge(context)
+        
+        if let data = rdata?.assumingMemoryBound(to: UInt8.self),
+           let record = SRVRecord(data: Data(bytes: data, count: Int(rdlen))) {
+            resolver.results.append(record)
+        }
+        
+        if (flags & kDNSServiceFlagsMoreComing) == 0 {
+            resolver.success()
+        }
+    }
+    
+    /// Handles a successful SRV resolution
+    private func success() {
+        stopQuery()
+        let result = SRVResult(SRVRecords: results, query: query ?? "Unknown Query")
+        completion?(.success(result))
+    }
+
+    /// Bridges an Objective-C object to a Swift pointer
+    private static func bridge<T: AnyObject>(_ obj: T) -> UnsafeMutableRawPointer {
+        return Unmanaged.passUnretained(obj).toOpaque()
+    }
+    
+    /// Bridges a Swift pointer back to an Objective-C object
+    private static func bridge<T: AnyObject>(_ ptr: UnsafeMutableRawPointer) -> T {
+        return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
     }
 }
