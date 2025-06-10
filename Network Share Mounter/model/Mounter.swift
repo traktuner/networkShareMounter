@@ -973,12 +973,12 @@ class Mounter: ObservableObject {
             
         case 2:
             Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.doesNotExist
             
         case 13:
             Logger.mounter.info("❌ \(url, privacy: .public): permission denied (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.permissionDenied
             
         case 17:
@@ -987,32 +987,32 @@ class Mounter: ObservableObject {
             
         case 60:
             Logger.mounter.info("🚫 \(url, privacy: .public): timeout reaching host (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.timedOutHost
             
         case 64:
             Logger.mounter.info("🚫 \(url, privacy: .public): host is down (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.hostIsDown
             
         case 65:
             Logger.mounter.info("🚫 \(url, privacy: .public): no route to host (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.noRouteToHost
             
         case 80:
             Logger.mounter.info("❌ \(url, privacy: .public): authentication error (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.authenticationError
             
         case -6003, -1073741275:
             Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc == -1073741275 ? "(" + rc.description + ")" : "", privacy: .public) (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.shareDoesNotExist
             
         default:
             Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public) (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.unknownReturnCode
         }
     }
