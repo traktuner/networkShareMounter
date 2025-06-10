@@ -26,37 +26,31 @@ public typealias SRVResolverResult = Result<SRVResult, SRVResolverError>
 /// Type alias for the completion handler used in SRV resolution.
 public typealias SRVResolverCompletion = (SRVResolverResult) -> Void
 
-/// Class responsible for resolving SRV records.
+/// Simplified class for SRV record resolution
 ///
-/// This class handles DNS-SRV record resolution using the dnssd framework.
-/// It provides asynchronous resolution with timeout handling and proper resource cleanup.
+/// Provides basic DNS-SRV lookup functionality with callback-based completion
 class SRVResolver {
 
     /// Reference to the DNS service
     private var serviceRef: DNSServiceRef?
     
-    /// Socket file descriptor
-    private var socket: dnssd_sock_t = -1
-    
-    /// The current DNS query string
-    private var query: String?
-    
-    /// Default timeout for DNS lookups in seconds
-    private let timeout: TimeInterval = 5
-    
     /// Array to store resolved SRV records
-    var results = [SRVRecord]()
+    private var results = [SRVRecord]()
     
     /// Completion handler for the resolution process
-    var completion: SRVResolverCompletion?
+    private var completion: SRVResolverCompletion?
+    
+    /// The current DNS query string (for result reporting)
+    private var currentQuery: String?
     
     /// Initiates the SRV resolution process
     /// - Parameters:
     ///   - query: The DNS query string
     ///   - completion: The completion handler to call when the resolution is complete
-    func resolve(query: String, completion: @escaping SRVResolverCompletion) async {
+    func resolve(query: String, completion: @escaping SRVResolverCompletion) {
         self.completion = completion
-        self.query = query
+        self.currentQuery = query
+        self.results.removeAll()
         
         guard let namec = query.cString(using: .utf8) else {
             completion(.failure(.invalidQuery))
@@ -74,61 +68,29 @@ class SRVResolver {
             SRVResolver.bridge(self)
         )
         
-        switch result {
-        case DNSServiceErrorType(kDNSServiceErr_NoError):
-            guard let sdRef = serviceRef else {
-                completion(.failure(.serviceError))
-                return
-            }
-            
-            socket = DNSServiceRefSockFD(sdRef)
-            
-            guard socket != -1 else {
-                completion(.failure(.socketError))
-                return
-            }
-            
-            await processResult(for: sdRef)
-            
-        default:
+        guard result == kDNSServiceErr_NoError else {
+            completion(.failure(.serviceError))
+            return
+        }
+        
+        guard let sdRef = serviceRef else {
+            completion(.failure(.serviceError))
+            return
+        }
+        
+        // Process the result
+        let processResult = DNSServiceProcessResult(sdRef)
+        if processResult != kDNSServiceErr_NoError {
+            cleanup()
             completion(.failure(.serviceError))
         }
     }
     
-    /// Processes the DNS service result using async
-    /// - Parameter sdRef: The DNS service reference
-    private func processResult(for sdRef: DNSServiceRef) async {
-        await withCheckedContinuation { continuation in
-            Task {
-                let result = DNSServiceProcessResult(sdRef)
-                
-                if result != kDNSServiceErr_NoError {
-                    self.fail()
-                }
-                
-                self.stopQuery()
-            }
-            
-            continuation.resume()
-        }
-    }
-    
-    /// Handles a failed SRV resolution
-    private func fail() {
-        stopQuery()
-        completion?(.failure(.unableToComplete))
-    }
-    
-    /// Stops the DNS query and cleans up resources
-    private func stopQuery() {
+    /// Cleans up DNS service resources
+    private func cleanup() {
         if let serviceRef = serviceRef {
             DNSServiceRefDeallocate(serviceRef)
             self.serviceRef = nil
-        }
-        
-        if socket != -1 {
-            close(socket)
-            socket = -1
         }
     }
     
@@ -150,8 +112,8 @@ class SRVResolver {
     
     /// Handles a successful SRV resolution
     private func success() {
-        stopQuery()
-        let result = SRVResult(SRVRecords: results, query: query ?? "Unknown Query")
+        cleanup()
+        let result = SRVResult(SRVRecords: results, query: currentQuery ?? "Unknown Query")
         completion?(.success(result))
     }
 
