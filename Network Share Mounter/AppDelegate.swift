@@ -165,20 +165,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Logger.app.debug("Initializing sentry SDK...")
             SentrySDK.start { options in
                 options.dsn = Defaults.sentryDSN
-                options.debug = true // Enabling debug when first installing is always helpful
+                options.debug = false
                 
                 // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
                 // We recommend adjusting this value in production.
-                options.tracesSampleRate = 1.0
+                options.tracesSampleRate = 0.1
             }
             // Manually call startProfiler and stopProfiler
             // to profile the code in between
-            SentrySDK.startProfiler()
+            //SentrySDK.startProfiler()
             // this code will be profiled
             //
             // Calls to stopProfiler are optional - if you don't stop the profiler, it will keep profiling
             // your application until the process exits or stopProfiler is called.
-            SentrySDK.stopProfiler()
+            //SentrySDK.stopProfiler()
         }
 #endif
         
