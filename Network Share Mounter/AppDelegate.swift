@@ -170,6 +170,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
                 // We recommend adjusting this value in production.
                 options.tracesSampleRate = 0.1
+                // When enabled, the SDK reports SIGTERM signals to Sentry.
+                options.enableSigtermReporting = true
             }
             // Manually call startProfiler and stopProfiler
             // to profile the code in between
