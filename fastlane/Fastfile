@@ -121,6 +121,7 @@ lane :commonTasks do
     type: "developer_id",
     # type: "developer_id",
     readonly: is_ci,
+    # readonly:  true,
     platform: "macos",
     app_identifier: 'de.fau.rrze.NetworkShareMounter',
     additional_cert_types: ["mac_installer_distribution"]

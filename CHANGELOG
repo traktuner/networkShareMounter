@@ -1,4 +1,9 @@
 # 3.1.5
+### Bugfixes
+* fixed a race condition
+* improved directory and file handling (using FileManager instead of calling shell commands)
+
+# 3.1.5
 ### Improvements
 * Improve the management of network changes
 
