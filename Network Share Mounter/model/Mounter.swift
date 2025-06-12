@@ -926,8 +926,11 @@ class Mounter: ObservableObject {
                 }
                 
                 // Directory exists, now try to hide it
+                var url = URL(fileURLWithPath: mountDirectory)
+                var resourceValues = URLResourceValues()
+                resourceValues.isHidden = true
                 do {
-                    try await cliTask("/usr/bin/chflags hidden '\(mountDirectory)'")
+                    try url.setResourceValues(resourceValues)
                     Logger.mounter.debug("👁️ Successfully hidden mount directory: \(mountDirectory, privacy: .public)")
                 } catch {
                     Logger.mounter.warning("⚠️ Could not hide mount directory \(mountDirectory, privacy: .public): \(error.localizedDescription, privacy: .public)")
@@ -961,8 +964,11 @@ class Mounter: ObservableObject {
             
             // Make the directory visible after successful mount
             if mountDirectory != "/Volumes" {
+                var url = URL(fileURLWithPath: mountDirectory)
+                var resourceValues = URLResourceValues()
+                resourceValues.isHidden = false
                 do {
-                    try await cliTask("/usr/bin/chflags nohidden '\(mountDirectory)'")
+                    try url.setResourceValues(resourceValues)
                     Logger.mounter.debug("👁️ Successfully unhidden mount directory: \(mountDirectory, privacy: .public)")
                 } catch {
                     Logger.mounter.warning("⚠️ Could not unhide mount directory \(mountDirectory, privacy: .public): \(error.localizedDescription, privacy: .public)")
@@ -1102,3 +1108,4 @@ class Mounter: ObservableObject {
         return finalMountPoint
     }
 }
+
