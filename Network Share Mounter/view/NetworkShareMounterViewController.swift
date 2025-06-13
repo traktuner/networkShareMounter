@@ -258,39 +258,47 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
 
     
     @IBAction func tableViewClicked(_ sender: NSTabView) {
-        if tableView.clickedRow >= 0 {
-            if tableView.clickedColumn == 0 {
-                // swiftlint:disable force_cast
-                let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController"))
-                    as! HelpPopoverShareStatusViewController
-                // swiftlint:enable force_cast
-                let popover = NSPopover()
-                popover.contentViewController = HelpPopoverShareStatusViewController
-//                helpPopoverViewController.helpText = helpText[(sender as AnyObject).tag]
-                popover.animates = true
-                popover.behavior = .transient
-                let rowRect = tableView.rect(ofRow: tableView.clickedRow)
-                popover.show(relativeTo: rowRect, of: sender, preferredEdge: NSRectEdge.maxY)
-            } else {
-                // if share is not managed
-                removeShareButton.isEnabled = false
-                modifyShareButton.isEnabled = false
-                usersNewShare.stringValue=""
-                if !self.userShares[tableView.selectedRow].managed ||
-                    // or authType for share is password
-                    self.userShares[tableView.selectedRow].authType == AuthType.pwd.rawValue {
-                    
-                    removeShareButton.isEnabled = true
-                    modifyShareButton.isEnabled = true
-                    usersNewShare.stringValue =  self.userShares[tableView.selectedRow].networkShare
-                    if self.userShares[tableView.selectedRow].managed {
-                        removeShareButton.isEnabled = false
-                    }
-                }
-            }
-        } else {
+        let clickedRow = tableView.clickedRow
+        
+        guard clickedRow >= 0 && clickedRow < userShares.count else {
+            // Invalid row or array bounds - disable buttons
             removeShareButton.isEnabled = false
             modifyShareButton.isEnabled = false
+            return
+        }
+        
+        if tableView.clickedColumn == 0 {
+            // swiftlint:disable force_cast
+            let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController"))
+                as! HelpPopoverShareStatusViewController
+            // swiftlint:enable force_cast
+            let popover = NSPopover()
+            popover.contentViewController = HelpPopoverShareStatusViewController
+//                helpPopoverViewController.helpText = helpText[(sender as AnyObject).tag]
+            popover.animates = true
+            popover.behavior = .transient
+            let rowRect = tableView.rect(ofRow: clickedRow)
+            popover.show(relativeTo: rowRect, of: sender, preferredEdge: NSRectEdge.maxY)
+        } else {
+            // Use clickedRow consistently instead of selectedRow
+            let selectedShare = userShares[clickedRow]
+            
+            // if share is not managed
+            removeShareButton.isEnabled = false
+            modifyShareButton.isEnabled = false
+            usersNewShare.stringValue = ""
+            
+            if !selectedShare.managed ||
+                // or authType for share is password
+                selectedShare.authType == AuthType.pwd.rawValue {
+                
+                removeShareButton.isEnabled = true
+                modifyShareButton.isEnabled = true
+                usersNewShare.stringValue = selectedShare.networkShare
+                if selectedShare.managed {
+                    removeShareButton.isEnabled = false
+                }
+            }
         }
     }
     /// IBAction function called if removeShare button is pressed.

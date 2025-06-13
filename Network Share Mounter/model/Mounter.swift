@@ -93,7 +93,7 @@ class Mounter: ObservableObject {
             
             // Post notification synchronously after releasing the lock
             if shouldPostAuthError {
-                NotificationCenter.default.post(name: .nsmNotification, object: nil, 
+                NotificationCenter.default.post(name: .nsmNotification, object: nil,
                                                userInfo: ["AuthError": MounterError.authenticationError])
             }
         }
@@ -110,7 +110,7 @@ class Mounter: ObservableObject {
     }
         
     /// Performs asynchronous initialization of the Mounter
-    /// 
+    ///
     /// This method:
     /// - Configures the localized directory names based on preferences
     /// - Sets up the default mount path
@@ -312,32 +312,31 @@ class Mounter: ObservableObject {
         return "'\(path.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
     
-    /// Removes a directory using the system shell `rmdir` command
+    /// Removes a directory using FileManager
     ///
-    /// This method removes a directory at the specified path.
-    /// For safety, it will not remove directories located in /Volumes.
+    /// This method safely removes directories using Swift's FileManager API,
+    /// with built-in protection against removing directories in /Volumes to
+    /// prevent accidental deletion of mounted volumes.
     ///
     /// - Parameter atPath: Full path of the directory to remove
     func removeDirectory(atPath: String) {
         // Do not remove directories located at /Volumes
-        if atPath.hasPrefix("/Volumes") {
+        guard !atPath.hasPrefix("/Volumes") else {
             Logger.mounter.debug("No directories located /Volumes can be removed (called for \(atPath, privacy: .public))")
-        } else {
-            let task = Process()
-            task.launchPath = "/bin/rmdir"
-            // Process handles argument escaping
-            task.arguments = [atPath]
-            let pipe = Pipe()
-            task.standardOutput = pipe
-            // Launch the task
-            task.launch()
-            // Get the data
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            if let output = String(data: data, encoding: String.Encoding.utf8) {
-                Logger.mounter.info("⌫ Deleting directory \(atPath, privacy: .public): \(output.isEmpty ? "done" : output, privacy: .public)")
-            } else {
-                Logger.mounter.info("❔ Unknown status deleting directory \(atPath, privacy: .public)")
-            }
+            return
+        }
+        
+        do {
+            try fm.removeItem(atPath: atPath)
+            Logger.mounter.info("⌫ Successfully deleted directory \(atPath, privacy: .public)")
+        } catch CocoaError.fileNoSuchFile {
+            Logger.mounter.debug("Directory \(atPath, privacy: .public) does not exist (already removed)")
+        } catch CocoaError.fileWriteNoPermission {
+            Logger.mounter.warning("⚠️ No permission to delete directory \(atPath, privacy: .public)")
+        } catch let posixError as POSIXError where posixError.code == .ENOTEMPTY {
+            Logger.mounter.warning("⚠️ Directory \(atPath, privacy: .public) is not empty and cannot be removed")
+        } catch {
+            Logger.mounter.warning("⚠️ Could not delete directory \(atPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
         }
     }
     
@@ -756,7 +755,7 @@ class Mounter: ObservableObject {
     // MARK: - Share Mounting Private Helpers
     
     /// Validates the network share URL and extracts the host
-    /// 
+    ///
     /// - Parameter share: The share to validate
     /// - Returns: A tuple containing the URL and host
     /// - Throws: MounterError if URL is invalid or host cannot be determined
@@ -774,7 +773,7 @@ class Mounter: ObservableObject {
     }
     
     /// Checks the network connectivity to a host
-    /// 
+    ///
     /// - Parameter host: The hostname to check
     /// - Parameter share: The share being checked (for status updates)
     /// - Throws: MounterError if host is unreachable
@@ -794,7 +793,7 @@ class Mounter: ObservableObject {
     }
     
     /// Validates that the share path has a valid mount component
-    /// 
+    ///
     /// - Parameter share: The share to validate
     /// - Throws: MounterError if the mount component cannot be determined
     private func validateMountComponent(forShare share: Share) async throws {
@@ -807,7 +806,7 @@ class Mounter: ObservableObject {
     }
     
     /// Determines the mount directory path for a share
-    /// 
+    ///
     /// - Parameters:
     ///   - share: The share to mount
     ///   - url: The validated URL of the share
@@ -841,7 +840,7 @@ class Mounter: ObservableObject {
     }
     
     /// Checks if a directory can be used as a mount point
-    /// 
+    ///
     /// - Parameters:
     ///   - directory: The directory path to check
     ///   - url: The share URL (for logging)
@@ -866,7 +865,7 @@ class Mounter: ObservableObject {
     }
     
     /// Determines if mounting should be attempted based on share status
-    /// 
+    ///
     /// - Parameters:
     ///   - share: The share to check
     ///   - url: The validated URL of the share
@@ -899,7 +898,7 @@ class Mounter: ObservableObject {
     }
     
     /// Prepares the mount point directory and options
-    /// 
+    ///
     /// - Parameters:
     ///   - mountDirectory: The directory where the share will be mounted
     ///   - basePath: The base mounting path
@@ -928,8 +927,11 @@ class Mounter: ObservableObject {
                 }
                 
                 // Directory exists, now try to hide it
+                var url = URL(fileURLWithPath: mountDirectory)
+                var resourceValues = URLResourceValues()
+                resourceValues.isHidden = true
                 do {
-                    try await cliTask("/usr/bin/chflags hidden '\(mountDirectory)'")
+                    try url.setResourceValues(resourceValues)
                     Logger.mounter.debug("👁️ Successfully hidden mount directory: \(mountDirectory, privacy: .public)")
                 } catch {
                     Logger.mounter.warning("⚠️ Could not hide mount directory \(mountDirectory, privacy: .public): \(error.localizedDescription, privacy: .public)")
@@ -949,7 +951,7 @@ class Mounter: ObservableObject {
     }
     
     /// Processes the result of a mount operation
-    /// 
+    ///
     /// - Parameters:
     ///   - returnCode: The return code from NetFSMountURLSync
     ///   - mountDirectory: The directory where the share was mounted
@@ -963,8 +965,11 @@ class Mounter: ObservableObject {
             
             // Make the directory visible after successful mount
             if mountDirectory != "/Volumes" {
+                var url = URL(fileURLWithPath: mountDirectory)
+                var resourceValues = URLResourceValues()
+                resourceValues.isHidden = false
                 do {
-                    try await cliTask("/usr/bin/chflags nohidden '\(mountDirectory)'")
+                    try url.setResourceValues(resourceValues)
                     Logger.mounter.debug("👁️ Successfully unhidden mount directory: \(mountDirectory, privacy: .public)")
                 } catch {
                     Logger.mounter.warning("⚠️ Could not unhide mount directory \(mountDirectory, privacy: .public): \(error.localizedDescription, privacy: .public)")
@@ -975,12 +980,12 @@ class Mounter: ObservableObject {
             
         case 2:
             Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.doesNotExist
             
         case 13:
             Logger.mounter.info("❌ \(url, privacy: .public): permission denied (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.permissionDenied
             
         case 17:
@@ -989,32 +994,32 @@ class Mounter: ObservableObject {
             
         case 60:
             Logger.mounter.info("🚫 \(url, privacy: .public): timeout reaching host (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.timedOutHost
             
         case 64:
             Logger.mounter.info("🚫 \(url, privacy: .public): host is down (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.hostIsDown
             
         case 65:
             Logger.mounter.info("🚫 \(url, privacy: .public): no route to host (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.noRouteToHost
             
         case 80:
             Logger.mounter.info("❌ \(url, privacy: .public): authentication error (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.authenticationError
             
         case -6003, -1073741275:
             Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc == -1073741275 ? "(" + rc.description + ")" : "", privacy: .public) (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.shareDoesNotExist
             
         default:
             Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public) (rc=\(rc))")
-            removeDirectory(atPath: URL(string: mountDirectory)!.relativePath)
+            removeDirectory(atPath: mountDirectory)
             throw MounterError.unknownReturnCode
         }
     }
@@ -1069,8 +1074,8 @@ class Mounter: ObservableObject {
         
         // Set up mount options
         let (mountOptions, openOptions, realMountPoint) = try await prepareMountOperation(
-            mountDirectory: mountDirectory, 
-            basePath: mountPath, 
+            mountDirectory: mountDirectory,
+            basePath: mountPath,
             share: share
         )
         Logger.mounter.debug("  Prepared mount options. Real mount point target: \(realMountPoint, privacy: .public)")
@@ -1087,10 +1092,10 @@ class Mounter: ObservableObject {
         // swiftlint:disable force_cast
         let rc = NetFSMountURLSync(url as CFURL,
                                    // Use fileURLWithPath for the mount point path
-                                   URL(fileURLWithPath: realMountPoint) as CFURL, 
+                                   URL(fileURLWithPath: realMountPoint) as CFURL,
                                    share.username as CFString?,
                                    share.password as CFString?,
-                                   openOptions as! CFMutableDictionary, 
+                                   openOptions as! CFMutableDictionary,
                                    mountOptions as! CFMutableDictionary,
                                    nil) // Resulting mount path (we don't use this directly)
         
@@ -1104,3 +1109,4 @@ class Mounter: ObservableObject {
         return finalMountPoint
     }
 }
+
