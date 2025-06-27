@@ -485,4 +485,85 @@ actor ShareManager {
         userDefaults.removeObject(forKey: Defaults.customSharesKey)
         // synchronize() is deprecated and unnecessary
     }
+    
+    // MARK: - Profile-based Credential Support
+    
+    /// Get credentials for a share - supports hybrid profile system
+    /// - Kerberos profiles: Reference existing share-based keychain entries
+    /// - Password profiles: Use new profile-based keychain structure
+    /// - Legacy fallback: Direct share-based keychain lookup
+    func getCredentialsForShare(_ share: Share) async -> (username: String?, password: String?) {
+        // Try profile-based credentials first
+        if let profile = AuthProfileManager.shared.findProfile(for: share.networkShare) {
+            if profile.useKerberos {
+                // Kerberos profile - reference existing share-based keychain entry
+                return getKerberosCredentials(for: share, profile: profile)
+            } else {
+                // Password profile - use new profile-based keychain structure
+                return await getProfileCredentials(for: profile)
+            }
+        }
+        
+        // Fall back to legacy share-based credentials
+        return getLegacyCredentials(for: share)
+    }
+    
+    /// Get credentials from Kerberos profile (references existing share-based keychain entries)
+    private func getKerberosCredentials(for share: Share, profile: AuthProfile) -> (username: String?, password: String?) {
+        guard let url = URL(string: share.networkShare) else {
+            Logger.shareManager.warning("Invalid share URL for Kerberos profile: \(share.networkShare, privacy: .public)")
+            return (profile.username, nil)
+        }
+        
+        guard let username = profile.username else {
+            Logger.shareManager.warning("Kerberos profile has no username for \(share.networkShare, privacy: .public)")
+            return (nil, nil)
+        }
+        
+        let keychainManager = KeychainManager()
+        do {
+            // Try to get password from existing share-based keychain entry
+            let password = try keychainManager.retrievePassword(forShare: url, withUsername: username)
+            Logger.shareManager.debug("✅ Retrieved Kerberos credentials from existing keychain for \(share.networkShare, privacy: .public)")
+            return (username, password)
+        } catch KeychainError.itemNotFound {
+            // For Kerberos, missing password is normal (ticket-based auth)
+            Logger.shareManager.debug("🎫 Kerberos profile for \(share.networkShare, privacy: .public) - no password needed")
+            return (username, nil)
+        } catch {
+            Logger.shareManager.warning("Failed to get Kerberos credentials for \(share.networkShare, privacy: .public): \(error)")
+            return (username, nil)
+        }
+    }
+    
+    /// Get credentials from password profile (uses new profile-based keychain structure)
+    private func getProfileCredentials(for profile: AuthProfile) async -> (username: String?, password: String?) {
+        do {
+            let password = try await AuthProfileManager.shared.retrievePassword(for: profile)
+            let usernameLog = profile.username ?? "unknown"
+            Logger.shareManager.debug("✅ Retrieved profile credentials for user \(usernameLog, privacy: .public)")
+            return (profile.username, password)
+        } catch {
+            let usernameLog = profile.username ?? "unknown"
+            Logger.shareManager.warning("Failed to get profile credentials for \(usernameLog, privacy: .public): \(error)")
+            return (profile.username, nil)
+        }
+    }
+    
+    /// Get legacy share-based credentials from keychain
+    private func getLegacyCredentials(for share: Share) -> (username: String?, password: String?) {
+        guard let username = share.username,
+              let url = URL(string: share.networkShare) else {
+            return (nil, nil)
+        }
+        
+        let keychainManager = KeychainManager()
+        do {
+            let password = try keychainManager.retrievePassword(forShare: url, withUsername: username)
+            return (username, password)
+        } catch {
+            Logger.shareManager.warning("Failed to get legacy credentials for \(share.networkShare, privacy: .public): \(error)")
+            return (username, nil)
+        }
+    }
 }

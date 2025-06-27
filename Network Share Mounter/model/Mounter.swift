@@ -121,8 +121,8 @@ class Mounter: ObservableObject {
         // Determine whether to use localized folder names based on preference
         // FIXME: temporary removed feature, the following line is the final one :-D
         //                                                              g.
-//        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: false) {
-        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: true) {
+        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: false) {
+//        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: true) {
             // Use language-specific folder name if preference is enabled
             self.localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
             Logger.mounter.debug("Using localized folder name: \(self.localizedFolder, privacy: .public)")

@@ -74,22 +74,13 @@ struct ProfileRowView: View {
             return
         }
         
-        do {
-            // Call the KlistUtil to check if a ticket exists
-//            let hasTicket = try await KlistUtil.shared.hasActiveTicketForRealm(realm: realm)
-            let hasTicket = true
-            
-            // Update the status on the main thread
-            await MainActor.run {
-                ticketStatus = hasTicket
-            }
-        } catch {
-            Self.logger.error("Failed to check Kerberos ticket status: \(error.localizedDescription)")
-            
-            // Set status to false on error
-            await MainActor.run {
-                ticketStatus = false
-            }
+        // Call the KlistUtil to check if a ticket exists
+        // let hasTicket = try await KlistUtil.shared.hasActiveTicketForRealm(realm: realm)
+        let hasTicket = true
+
+        // Update the status on the main thread
+        await MainActor.run {
+            ticketStatus = hasTicket
         }
     }
 }
@@ -119,3 +110,4 @@ struct ProfileRowView_Previews: PreviewProvider {
             }
     }
 }
+

@@ -333,6 +333,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await AccountsManager.shared.initialize()
             Logger.app.debug("✅ Account manager initialized")
             
+            // Perform one-time migration from legacy credentials to profiles
+            let migrationKey = "AuthProfileMigrationCompleted_v3.2"
+            if !UserDefaults.standard.bool(forKey: migrationKey) {
+                do {
+                    try await AuthProfileManager.shared.migrateFromLegacyCredentials()
+                    UserDefaults.standard.set(true, forKey: migrationKey)
+                    Logger.app.info("✅ Profile migration completed successfully")
+                } catch {
+                    Logger.app.error("❌ Profile migration failed: \(error)")
+                }
+            } else {
+                Logger.app.debug("Profile migration already completed, skipping")
+            }
+            
             // Set up notification observer for error handling
             if mounter != nil {
                 NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
