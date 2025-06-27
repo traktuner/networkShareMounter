@@ -125,7 +125,7 @@ struct AddShareView: View {
         do {
             // 3. Add share via ShareManager
             // Assuming addShare handles duplicate checks internally
-            try await mounter.shareManager.addShare(newShare)
+            await mounter.shareManager.addShare(newShare)
             logger.info("Successfully added share '\(newShare.networkShare)' to ShareManager.")
 
             // 4. Update profile if one was selected

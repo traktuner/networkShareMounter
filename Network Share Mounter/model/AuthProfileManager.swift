@@ -189,6 +189,161 @@ class AuthProfileManager: ObservableObject {
         // Using the bundle identifier makes it unique to this application.
         return Bundle.main.bundleIdentifier ?? "com.example.NetworkShareMounter.AuthProfilePasswords"
     }
+    
+    // MARK: - Hybrid Migration
+    
+    /// Performs a hybrid migration from legacy share-based credentials to profiles
+    /// - Kerberos credentials: Create profiles that reference existing keychain entries
+    /// - Username/Password credentials: Migrate to new profile-based keychain structure
+    /// This preserves FAU shared keychain entries while eliminating share-based duplicates
+    func migrateFromLegacyCredentials() async throws {
+        Logger.dataModel.info("🔄 Starting hybrid credential migration")
+        
+        // Get all existing share-based credentials  
+        let shareCredentials = try keychainManager.retrieveAllShareBasedCredentials()
+        guard !shareCredentials.isEmpty else {
+            Logger.dataModel.info("No legacy credentials found, skipping migration")
+            return
+        }
+        
+        Logger.dataModel.info("📋 Found \(shareCredentials.count) legacy credentials to migrate")
+        
+        // Get Kerberos realm from preferences
+        let prefs = PreferenceManager()
+        let kerberosRealm = prefs.string(for: .kerberosRealm)
+        
+        // Get existing DogeAccounts (Kerberos accounts)
+        let accountsManager = AccountsManager.shared
+        let dogeAccounts = await accountsManager.accounts
+        
+        // Separate credentials into Kerberos and Username/Password groups
+        var kerberosGroups: [String: (username: String, shares: [String], kerberosRealm: String?)] = [:]
+        var passwordGroups: [String: (username: String, password: String, shares: [String])] = [:]
+        
+        for credential in shareCredentials {
+            let groupKey = credential.username.lowercased()
+            
+            // Check if this credential belongs to a Kerberos account
+            let isKerberos = isKerberosCredential(username: credential.username, 
+                                                  kerberosRealm: kerberosRealm, 
+                                                  dogeAccounts: dogeAccounts)
+            
+            if isKerberos {
+                // Kerberos credential - create profile that references existing keychain entry
+                let realm = extractKerberosRealm(username: credential.username, 
+                                                 kerberosRealm: kerberosRealm, 
+                                                 dogeAccounts: dogeAccounts)
+                
+                if var existing = kerberosGroups[groupKey] {
+                    existing.shares.append(credential.shareURL)
+                    kerberosGroups[groupKey] = existing
+                } else {
+                    kerberosGroups[groupKey] = (
+                        username: credential.username,
+                        shares: [credential.shareURL],
+                        kerberosRealm: realm
+                    )
+                }
+            } else {
+                // Username/Password credential - migrate to new profile structure
+                if var existing = passwordGroups[groupKey] {
+                    existing.shares.append(credential.shareURL)
+                    passwordGroups[groupKey] = existing
+                } else {
+                    passwordGroups[groupKey] = (
+                        username: credential.username,
+                        password: credential.password,
+                        shares: [credential.shareURL]
+                    )
+                }
+            }
+        }
+        
+        Logger.dataModel.info("📊 Creating \(kerberosGroups.count) Kerberos profiles and \(passwordGroups.count) password profiles")
+        
+        // Create Kerberos profiles (reference existing keychain entries)
+        for (_, group) in kerberosGroups {
+            let profileId = UUID().uuidString
+            
+            let profile = AuthProfile(
+                id: profileId,
+                displayName: group.username,
+                username: group.username,
+                useKerberos: true,
+                kerberosRealm: group.kerberosRealm,
+                associatedNetworkShares: group.shares,
+                symbolName: "ticket"
+            )
+            
+            do {
+                // Add profile WITHOUT password - Kerberos profiles reference existing keychain entries
+                try await addProfile(profile, password: nil)
+                Logger.dataModel.info("✅ Created Kerberos profile '\(group.username)' for \(group.shares.count) shares (references existing keychain)")
+            } catch {
+                Logger.dataModel.error("❌ Failed to create Kerberos profile '\(group.username)': \(error)")
+            }
+        }
+        
+        // Create Username/Password profiles (migrate to new structure)
+        for (_, group) in passwordGroups {
+            let profileId = UUID().uuidString
+            
+            let profile = AuthProfile(
+                id: profileId,
+                displayName: group.username,
+                username: group.username,
+                useKerberos: false,
+                kerberosRealm: nil,
+                associatedNetworkShares: group.shares,
+                symbolName: "person.circle"
+            )
+            
+            do {
+                // Add profile WITH password - migrates to new profile-based keychain structure
+                try await addProfile(profile, password: group.password)
+                Logger.dataModel.info("✅ Created password profile '\(group.username)' for \(group.shares.count) shares (migrated to new keychain)")
+            } catch {
+                Logger.dataModel.error("❌ Failed to create password profile '\(group.username)': \(error)")
+            }
+        }
+        
+        Logger.dataModel.info("🎉 Hybrid migration completed successfully")
+        Logger.dataModel.info("📋 Summary: \(kerberosGroups.count) Kerberos profiles (reference existing), \(passwordGroups.count) password profiles (migrated)")
+    }
+    
+    /// Determines if a credential belongs to a Kerberos account
+    private func isKerberosCredential(username: String, kerberosRealm: String?, dogeAccounts: [DogeAccount]) -> Bool {
+        // Method 1: Check if username matches any DogeAccount UPN
+        for account in dogeAccounts {
+            if account.upn.lowercased() == username.lowercased() {
+                Logger.dataModel.debug("✅ Kerberos credential detected via DogeAccount: \(username)")
+                return true
+            }
+        }
+        
+        // Method 2: Check if username domain matches configured Kerberos realm
+        if let realm = kerberosRealm, !realm.isEmpty,
+           let userDomain = username.userDomain() {
+            if userDomain.lowercased() == realm.lowercased() {
+                Logger.dataModel.debug("✅ Kerberos credential detected via realm match: \(username)")
+                return true
+            }
+        }
+        
+        Logger.dataModel.debug("🔍 Standard credential: \(username)")
+        return false
+    }
+    
+    /// Extracts the Kerberos realm for a credential
+    private func extractKerberosRealm(username: String, kerberosRealm: String?, dogeAccounts: [DogeAccount]) -> String? {
+        // Try to get realm from username domain
+        if let userDomain = username.userDomain() {
+            return userDomain
+        }
+        
+        // Fall back to configured realm
+        return kerberosRealm
+    }
 }
 
 // MARK: - Logger Extension

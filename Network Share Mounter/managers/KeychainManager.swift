@@ -388,6 +388,67 @@ class KeychainManager: NSObject {
             return false
         }
     }
+    
+    // MARK: - Migration Support
+    
+    /// Retrieves all share-based credentials from keychain for migration
+    /// These are stored with Internet Password items where the server is the share URL
+    func retrieveAllShareBasedCredentials() throws -> [(username: String, password: String, shareURL: String)] {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassInternetPassword,
+            kSecReturnData as String: kCFBooleanTrue!,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecReturnAttributes as String: kCFBooleanTrue!,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+        ]
+        
+        var ref: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &ref)
+        
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.errorWithStatus(status: status)
+        }
+        
+        guard status != errSecItemNotFound else {
+            return [] // No existing credentials found
+        }
+        
+        guard let items = ref as? [[String: Any]] else {
+            return []
+        }
+        
+        return items.compactMap { item -> (username: String, password: String, shareURL: String)? in
+            guard let username = item[kSecAttrAccount as String] as? String,
+                  let server = item[kSecAttrServer as String] as? String,
+                  let passwordData = item[kSecValueData as String] as? Data,
+                  let password = String(data: passwordData, encoding: .utf8) else {
+                return nil
+            }
+            
+            // Reconstruct the full share URL from keychain attributes
+            let path = item[kSecAttrPath as String] as? String ?? ""
+            let protocolValue = item[kSecAttrProtocol as String] as? String
+            
+            var scheme = "smb" // Default to SMB
+            if let proto = protocolValue {
+                switch proto {
+                case String(kSecAttrProtocolSMB):
+                    scheme = "smb"
+                case String(kSecAttrProtocolAFP):
+                    scheme = "afp"
+                case String(kSecAttrProtocolHTTPS):
+                    scheme = "https"
+                default:
+                    scheme = "smb"
+                }
+            }
+            
+            // Build the full share URL
+            let shareURL = path.isEmpty ? "\(scheme)://\(server)" : "\(scheme)://\(server)/\(path)"
+            
+            return (username: username, password: password, shareURL: shareURL)
+        }
+    }
 }
 
 

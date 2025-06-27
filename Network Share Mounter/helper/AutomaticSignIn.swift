@@ -107,8 +107,6 @@ actor AutomaticSignIn {
                     do {
                         await worker.checkUser()
                         Logger.automaticSignIn.debug("🔍 checkUser completed for: \(account.upn, privacy: .public)")
-                    } catch {
-                        Logger.automaticSignIn.error("❌ Error in checkUser for account \(account.upn, privacy: .public): \(error.localizedDescription)")
                     }
                 } else {
                     Logger.automaticSignIn.debug("🔍 Skipping account due to single user mode: \(account.upn, privacy: .public)")
@@ -127,8 +125,6 @@ actor AutomaticSignIn {
             }
             
             Logger.automaticSignIn.info("🔍 [END] Automatic sign-in process completed")
-        } catch {
-            Logger.automaticSignIn.error("❌ Unexpected error in signInAllAccounts: \(error.localizedDescription)")
         }
     }
 }
@@ -363,3 +359,4 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         Logger.automaticSignIn.debug("🔍 [Delegate] User information saved to preferences")
     }
 }
+
