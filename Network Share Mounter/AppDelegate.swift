@@ -297,7 +297,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             Logger.app.debug("🔄 Starting asynchronous app initialization")
             
-            // Initialize the mounter
+            // Perform one-time migration from legacy credentials to profiles BEFORE mounter init
+            let migrationKey = "AuthProfileMigrationCompleted_v3.0"
+            if !UserDefaults.standard.bool(forKey: migrationKey) {
+                do {
+                    try await AuthProfileManager.shared.migrateFromLegacyCredentials()
+                    UserDefaults.standard.set(true, forKey: migrationKey)
+                    Logger.app.info("✅ Profile migration completed successfully")
+                } catch {
+                    Logger.app.error("❌ Profile migration failed: \(error)")
+                }
+            } else {
+                Logger.app.debug("Profile migration already completed, skipping")
+            }
+            
+            // Initialize the mounter AFTER migration
             await mounter?.asyncInit()
             Logger.app.debug("✅ Mounter successfully initialized")
             
@@ -333,18 +347,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await AccountsManager.shared.initialize()
             Logger.app.debug("✅ Account manager initialized")
             
-            // Perform one-time migration from legacy credentials to profiles
-            let migrationKey = "AuthProfileMigrationCompleted_v3.2"
-            if !UserDefaults.standard.bool(forKey: migrationKey) {
-                do {
-                    try await AuthProfileManager.shared.migrateFromLegacyCredentials()
-                    UserDefaults.standard.set(true, forKey: migrationKey)
-                    Logger.app.info("✅ Profile migration completed successfully")
-                } catch {
-                    Logger.app.error("❌ Profile migration failed: \(error)")
-                }
-            } else {
-                Logger.app.debug("Profile migration already completed, skipping")
+            // Create default realm profile if needed (always check on startup)
+            do {
+                try await AuthProfileManager.shared.createDefaultRealmProfileIfNeeded()
+                Logger.app.debug("✅ Default realm profile check completed")
+            } catch {
+                Logger.app.error("❌ Default realm profile creation failed: \(error)")
             }
             
             // Set up notification observer for error handling

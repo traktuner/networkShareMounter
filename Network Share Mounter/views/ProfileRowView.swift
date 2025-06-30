@@ -15,6 +15,11 @@ struct ProfileRowView: View {
         profileManager.getProfile(by: profileId) ?? AuthProfile(displayName: "Unbekannt")
     }
     
+    // Check if this is a default realm profile
+    private var isDefaultProfile: Bool {
+        profileManager.isDefaultRealmProfile(profile)
+    }
+    
     // State to hold the result of the Kerberos ticket check
     @State private var ticketStatus: Bool? = nil // nil: unknown, true: active, false: inactive
 
@@ -35,12 +40,37 @@ struct ProfileRowView: View {
             
             // Profile Name and Details
             VStack(alignment: .leading, spacing: 4) { // Add consistent spacing
-                Text(profile.displayName) 
-                    .font(.headline)
+                HStack {
+                    Text(profile.displayName) 
+                        .font(.headline)
+                    
+                    // Show indicator for default realm profile
+                    if isDefaultProfile {
+                        Image(systemName: "lock.fill")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .help("Standard-Kerberos-Profil (nicht löschbar)")
+                    }
+                }
                 
-                Text(profile.useKerberos ? "Kerberos: \(profile.kerberosRealm ?? "N/A")" : profile.username ?? "N/A")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if profile.useKerberos {
+                    HStack(spacing: 4) {
+                        Text("Kerberos:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(profile.kerberosRealm ?? "N/A")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(Color(.controlBackgroundColor))
+                            .cornerRadius(3)
+                    }
+                } else {
+                    Text(profile.username ?? "N/A")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             
             Spacer()

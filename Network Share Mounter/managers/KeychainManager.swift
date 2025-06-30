@@ -8,6 +8,7 @@
 
 import Foundation
 import Security
+import OSLog
 
 /// Description of the CFDictionary for a new keychain entry
 ///
@@ -391,62 +392,52 @@ class KeychainManager: NSObject {
     
     // MARK: - Migration Support
     
-    /// Retrieves all share-based credentials from keychain for migration
-    /// These are stored with Internet Password items where the server is the share URL
-    func retrieveAllShareBasedCredentials() throws -> [(username: String, password: String, shareURL: String)] {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassInternetPassword,
-            kSecReturnData as String: kCFBooleanTrue!,
-            kSecMatchLimit as String: kSecMatchLimitAll,
-            kSecReturnAttributes as String: kCFBooleanTrue!,
-            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
-        ]
-        
-        var ref: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &ref)
-        
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw KeychainError.errorWithStatus(status: status)
+    /// Retrieves all entries from FAU shared keychain for Kerberos migration
+    /// Uses the same pattern as retrieveAllEntries but with FAU access group
+    func retrieveAllFAUSharedCredentials() throws -> [(username: String, password: String)] {
+        // Check if FAU access group is configured
+        let fauAccessGroup = Defaults.keyChainAccessGroup
+        guard !fauAccessGroup.isEmpty else {
+            Logger.keychain.info("No FAU access group configured")
+            return [] // No FAU access group configured
         }
         
-        guard status != errSecItemNotFound else {
-            return [] // No existing credentials found
-        }
-        
-        guard let items = ref as? [[String: Any]] else {
-            return []
-        }
-        
-        return items.compactMap { item -> (username: String, password: String, shareURL: String)? in
-            guard let username = item[kSecAttrAccount as String] as? String,
-                  let server = item[kSecAttrServer as String] as? String,
-                  let passwordData = item[kSecValueData as String] as? Data,
-                  let password = String(data: passwordData, encoding: .utf8) else {
-                return nil
+        do {
+            // Query for FAU shared credentials with specific service and access group
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: "de.fau.rrze.faucredentials", // FAU specific service
+                kSecAttrAccessGroup as String: fauAccessGroup,
+                kSecReturnData as String: kCFBooleanTrue,
+                kSecMatchLimit as String: kSecMatchLimitAll,
+                kSecReturnAttributes as String: kCFBooleanTrue,
+                kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+            ]
+            
+            var ref: AnyObject? = nil
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            
+            // Handle no items found gracefully
+            if status == errSecItemNotFound {
+                Logger.keychain.info("No FAU shared credentials found")
+                return []
             }
             
-            // Reconstruct the full share URL from keychain attributes
-            let path = item[kSecAttrPath as String] as? String ?? ""
-            let protocolValue = item[kSecAttrProtocol as String] as? String
-            
-            var scheme = "smb" // Default to SMB
-            if let proto = protocolValue {
-                switch proto {
-                case String(kSecAttrProtocolSMB):
-                    scheme = "smb"
-                case String(kSecAttrProtocolAFP):
-                    scheme = "afp"
-                case String(kSecAttrProtocolHTTPS):
-                    scheme = "https"
-                default:
-                    scheme = "smb"
-                }
+            guard status == errSecSuccess else {
+                Logger.keychain.warning("Error retrieving FAU credentials: \(status)")
+                return [] // Return empty array instead of throwing
             }
             
-            // Build the full share URL
-            let shareURL = path.isEmpty ? "\(scheme)://\(server)" : "\(scheme)://\(server)/\(path)"
+            let array = ref as! CFArray
+            let dict: [[String: Any]] = array.toSwiftArray()
+            let pairs = dict.compactMap { $0.accountPasswordPair }
             
-            return (username: username, password: password, shareURL: shareURL)
+            Logger.keychain.info("Retrieved \(pairs.count) FAU shared credentials")
+            return pairs
+            
+        } catch {
+            Logger.keychain.warning("Error in FAU credentials query: \(error)")
+            return [] // Return empty array instead of throwing
         }
     }
 }

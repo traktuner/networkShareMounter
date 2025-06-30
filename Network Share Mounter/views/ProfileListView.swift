@@ -49,8 +49,17 @@ struct ProfileListView: View {
                                     onEditProfile(profile)
                                 }
                                 
-                                Button("Löschen") {
-                                    onRemoveProfile(profile)
+                                // Only show delete option if it's not a default realm profile
+                                if !profileManager.isDefaultRealmProfile(profile) {
+                                    Button("Löschen") {
+                                        onRemoveProfile(profile)
+                                    }
+                                } else {
+                                    Button("Löschen") {
+                                        // Disabled button with explanation
+                                    }
+                                    .disabled(true)
+                                    .help("Standard-Kerberos-Profile können nicht gelöscht werden")
                                 }
                                 
                                 if profile.useKerberos {
@@ -81,8 +90,21 @@ struct ProfileListView: View {
                 } label: {
                     Image(systemName: "minus")
                 }
-                .help("Profil entfernen")
-                .disabled(selectedProfileID == nil)
+                .help({
+                    guard let selectedID = selectedProfileID,
+                          let profile = profileManager.getProfile(by: selectedID) else {
+                        return "Profil entfernen"
+                    }
+                    return profileManager.isDefaultRealmProfile(profile) ? 
+                           "Standard-Kerberos-Profile können nicht gelöscht werden" : "Profil entfernen"
+                }())
+                .disabled({
+                    guard let selectedID = selectedProfileID,
+                          let profile = profileManager.getProfile(by: selectedID) else {
+                        return true
+                    }
+                    return profileManager.isDefaultRealmProfile(profile)
+                }())
                 
                 Spacer()
                 

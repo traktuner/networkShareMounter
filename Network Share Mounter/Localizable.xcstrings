@@ -125,6 +125,9 @@
     "Allgemein" : {
 
     },
+    "Änderungen speichern" : {
+
+    },
     "Anmeldedaten" : {
 
     },
@@ -617,6 +620,9 @@
     "Bearbeiten" : {
 
     },
+    "Bearbeiten..." : {
+
+    },
     "Beim Anmelden starten" : {
 
     },
@@ -996,6 +1002,9 @@
     "Kerberos-Ticket aktualisieren" : {
 
     },
+    "Kerberos:" : {
+
+    },
     "Klicken Sie auf '+', um ein neues Profil zu erstellen." : {
 
     },
@@ -1186,9 +1195,6 @@
 
     },
     "Netzwerkpfad (z.B. smb://server/pfad)" : {
-
-    },
-    "Neuen Share hinzufügen" : {
 
     },
     "Neues Profil erstellen" : {
@@ -1475,6 +1481,9 @@
 
     },
     "Profilbild" : {
+
+    },
+    "Profile werden geladen..." : {
 
     },
     "Profilfarbe auswählen" : {
@@ -1781,6 +1790,12 @@
       }
     },
     "Speichern" : {
+
+    },
+    "Standard-Kerberos-Profil (nicht löschbar)" : {
+
+    },
+    "Standard-Kerberos-Profile können nicht gelöscht werden" : {
 
     },
     "Start at Login" : {

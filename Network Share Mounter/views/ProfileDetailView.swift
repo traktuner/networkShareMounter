@@ -211,7 +211,9 @@ struct ProfileDetailView: View {
             ticketStatus = false 
             return
         }
-        let principalToCheck = "\(username)@\(realm.uppercased())"
+        // Ensure username doesn't already contain the realm
+        let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
+        let principalToCheck = "\(baseUsername)@\(realm.uppercased())"
         Self.logger.debug("(DetailView) Checking Kerberos ticket for principal: \(principalToCheck)")
         let klistUtil = KlistUtil() 
         let activeTickets = await klistUtil.klist() 

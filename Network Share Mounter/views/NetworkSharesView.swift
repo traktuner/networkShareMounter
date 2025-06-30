@@ -16,13 +16,18 @@ let appDelegate = NSApplication.shared.delegate as! AppDelegate
 struct NetworkSharesView: View {
     // Replace static demo data with state for real data
     @State private var shares: [Share] = []
-    @State private var selectedShareID: String?
+    @State private var selectedNetworkShare: String?
     @State private var showAddSheet = false
+    @State private var shareToEdit: Share? = nil
+    @State private var isDataLoaded = false
     // @State private var showProfileSelector = false // Deactivated for now
     // @State private var shareToAssignProfile: Share? // Deactivated for now
     
     // Access the Mounter to interact with shares
     private let mounter = appDelegate.mounter!
+    
+    // Access the ProfileManager for share-profile associations
+    @ObservedObject private var profileManager = AuthProfileManager.shared
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -104,7 +109,7 @@ struct NetworkSharesView: View {
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        selectedShareID = share.id
+                        selectedNetworkShare = share.networkShare
                     }
                     .contextMenu {
                         // Button to Mount/Unmount the selected share
@@ -120,6 +125,14 @@ struct NetworkSharesView: View {
                             }
                         }
                         
+                        // Add edit button for non-managed shares
+                        if !share.managed {
+                            Divider()
+                            Button("Bearbeiten...") {
+                                handleEditShare(share)
+                            }
+                        }
+                        
                         // TODO: Integrate profile actions later
 //                        Button(share.profileName == nil ? "Profil zuweisen..." : "Profil ändern...") {
 //                            shareToAssignProfile = share
@@ -128,7 +141,7 @@ struct NetworkSharesView: View {
 //                        
 //                        if share.profileName != nil {
 //                            Button("Profilzuweisung aufheben") {
-//                                if let index = shares.firstIndex(where: { $0.id == share.id }) {
+//                                if let index = shares.firstIndex(where: { $0.networkShare == share.networkShare }) {
 //                                    // TODO: Implement profile removal logic
 //                                }
 //                            }
@@ -142,8 +155,8 @@ struct NetworkSharesView: View {
                             Button("Löschen") {
                                 Task {
                                     await mounter.removeShare(for: share)
-                                    if selectedShareID == share.id {
-                                        selectedShareID = nil
+                                    if selectedNetworkShare == share.networkShare {
+                                        selectedNetworkShare = nil
                                     }
                                     // Reload shares after deletion
                                     await loadShares()
@@ -151,9 +164,9 @@ struct NetworkSharesView: View {
                             }
                         }
                     }
-                    .background(selectedShareID == share.id ? Color.accentColor.opacity(0.1) : Color.clear)
+                    .background(selectedNetworkShare == share.networkShare ? Color.accentColor.opacity(0.1) : Color.clear)
                     
-                    if share.id != shares.last?.id {
+                    if share.networkShare != shares.last?.networkShare {
                         Divider()
                     }
                 }
@@ -196,11 +209,11 @@ struct NetworkSharesView: View {
                 
                 Button(action: {
                     Task {
-                        if let selectedID = selectedShareID,
-                           let shareToRemove = shares.first(where: { $0.id == selectedID }),
+                        if let currentSelection = selectedNetworkShare,
+                           let shareToRemove = shares.first(where: { $0.networkShare == currentSelection }),
                            !shareToRemove.managed { // Only allow removing unmanaged shares
                                 await mounter.removeShare(for: shareToRemove)
-                                selectedShareID = nil
+                                selectedNetworkShare = nil
                                 await loadShares() // Reload after removal
                         }
                     }
@@ -209,12 +222,20 @@ struct NetworkSharesView: View {
                 }
                 .help("Entfernen")
                 // Disable if no share is selected or if the selected share is managed
-                .disabled(selectedShareID == nil || shares.first(where: { $0.id == selectedShareID })?.managed ?? true)
+                .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
+                
+                // Edit button
+                Button(action: handleToolbarEdit) {
+                    Image(systemName: "pencil")
+                }
+                .help("Bearbeiten")
+                // Disable if no share is selected or if the selected share is managed
+                .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
                 
                 // TODO: Re-enable profile assignment later
 //                Button(action: {
-//                    if let selectedID = selectedShareID,
-//                       let share = shares.first(where: { $0.id == selectedID }) {
+//                    if let selectedNetworkShare = selectedNetworkShare,
+//                       let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
 //                        shareToAssignProfile = share
 //                        showProfileSelector = true
 //                    }
@@ -222,15 +243,15 @@ struct NetworkSharesView: View {
 //                    Image(systemName: "person.badge.key")
 //                }
 //                .help("Profil zuweisen")
-//                .disabled(selectedShareID == nil)
+//                .disabled(selectedNetworkShare == nil)
                 
                 Spacer()
                 
                 // Mount/Unmount button
                 Button(action: {
                     Task {
-                        if let selectedID = selectedShareID,
-                           let share = shares.first(where: { $0.id == selectedID }) {
+                        if let selectedNetworkShare = selectedNetworkShare,
+                           let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
                             if share.mountStatus == .mounted {
                                 await mounter.unmountShare(for: share)
                             } else {
@@ -242,15 +263,15 @@ struct NetworkSharesView: View {
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.up.arrow.down")
-                        if let selectedID = selectedShareID,
-                           let share = shares.first(where: { $0.id == selectedID }) {
+                        if let selectedNetworkShare = selectedNetworkShare,
+                           let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
                             Text(share.mountStatus == .mounted ? "Trennen" : "Verbinden")
                         } else {
                             Text("Verbinden/Trennen")
                         }
                     }
                 }
-                .disabled(selectedShareID == nil)
+                .disabled(selectedNetworkShare == nil)
             }
             .padding(8) // Make toolbar padding consistent with other views
             .background(Color(.controlBackgroundColor)) // Add a subtle background to match other toolbars
@@ -258,32 +279,37 @@ struct NetworkSharesView: View {
         }
         // Apply consistent outer padding to the entire view (20pt on all sides)
         .padding(20)
-        // Load shares when the view appears
+        // Load all data when the view appears
         .onAppear {
             Task {
-                await loadShares()
+                Logger.networkSharesView.info("📱 NetworkSharesView appearing - starting data load")
+                await loadAllData()
             }
         }
         .sheet(isPresented: $showAddSheet) {
-            // Present the new AddShareView, passing dependencies
-            AddShareView(
-                isPresented: $showAddSheet,
-                mounter: mounter,
-                profileManager: AuthProfileManager.shared, // Assuming singleton access is ok here
-                onSave: { 
-                    // Reload shares after the sheet is dismissed and save is potentially complete
-                    Task {
-                        await loadShares()
-                    } 
-                }
-            )
+            addShareSheet
         }
+        .sheet(item: $shareToEdit, content: { editingShare in
+            AddShareView(
+                isPresented: Binding(
+                    get: { shareToEdit != nil },
+                    set: { newValue in if !newValue { shareToEdit = nil } }
+                ),
+                mounter: mounter,
+                profileManager: profileManager,
+                existingShare: editingShare,
+                onSave: handleEditSave
+            )
+            .onAppear {
+                Logger.networkSharesView.info("📋 Edit sheet opening for share: \(editingShare.networkShare)")
+            }
+        })
 //        .sheet(isPresented: $showProfileSelector) { // Deactivated for now
 //            if let share = shareToAssignProfile {
 //                ProfileSelectorView(
 //                    isPresented: $showProfileSelector,
 //                    onProfileSelected: { profileName, profileSymbol, profileColor in
-//                        if let index = shares.firstIndex(where: { $0.id == share.id }) {
+//                        if let index = shares.firstIndex(where: { $0.networkShare == share.networkShare }) {
 //                            // TODO: Implement profile assignment logic
 //                        }
 //                    }
@@ -292,12 +318,33 @@ struct NetworkSharesView: View {
 //        }
     }
     
+    /// Loads all required data including shares and ensures profile manager is ready
+    private func loadAllData() async {
+        Logger.networkSharesView.info("🔄 Loading all data for NetworkSharesView")
+        
+        // Load shares first
+        await loadShares()
+        
+        // Ensure profile manager data is available
+        Logger.networkSharesView.debug("🔄 ProfileManager has \(profileManager.profiles.count) profiles")
+        
+        // Mark data as loaded
+        await MainActor.run {
+            isDataLoaded = true
+            Logger.networkSharesView.info("✅ All data loaded - shares: \(shares.count), profiles: \(profileManager.profiles.count)")
+        }
+    }
+    
     /// Asynchronously loads shares from the ShareManager.
     private func loadShares() async {
+        Logger.networkSharesView.debug("🔄 Loading shares from ShareManager")
         self.shares = await mounter.shareManager.allShares
+        Logger.networkSharesView.debug("✅ Loaded \(shares.count) shares")
+        
         // If the selected share no longer exists, deselect it
-        if let selectedID = selectedShareID, !shares.contains(where: { $0.id == selectedID }) {
-            selectedShareID = nil
+        if let currentSelection = selectedNetworkShare, !shares.contains(where: { $0.networkShare == currentSelection }) {
+            selectedNetworkShare = nil
+            Logger.networkSharesView.debug("🔄 Deselected share \(currentSelection) as it no longer exists")
         }
     }
     
@@ -312,6 +359,58 @@ struct NetworkSharesView: View {
             return .red
         case .unknown, .undefined:
             return .orange
+        }
+    }
+    
+    // MARK: - Sheet Views
+    
+    /// Sheet for adding new shares
+    @ViewBuilder
+    private var addShareSheet: some View {
+        AddShareView(
+            isPresented: $showAddSheet,
+            mounter: mounter,
+            profileManager: profileManager,
+            onSave: handleAddSave
+        )
+        .onAppear {
+            Logger.networkSharesView.info("➕ Add sheet opening")
+        }
+    }
+    
+    /// Handles save action from add sheet
+    private func handleAddSave() {
+        Logger.networkSharesView.info("💾 Add sheet saved - reloading data")
+        Task {
+            await loadShares()
+        }
+    }
+    
+    /// Handles save action from edit sheet
+    private func handleEditSave() {
+        Logger.networkSharesView.info("💾 Edit sheet saved - reloading data")
+        Task {
+            await loadShares()
+        }
+    }
+    
+    /// Handles edit share action
+    private func handleEditShare(_ share: Share) {
+        Logger.networkSharesView.info("🔧 Starting edit for share: \(share.networkShare)")
+        Logger.networkSharesView.debug("🔧 Current shareToEdit state: \(shareToEdit?.networkShare ?? "nil")")
+        Logger.networkSharesView.debug("🔧 Data loaded state: \(isDataLoaded)")
+        Logger.networkSharesView.debug("🔧 ProfileManager profiles count: \(profileManager.profiles.count)")
+        
+        // Store the Share object directly to avoid race conditions
+        shareToEdit = share
+    }
+    
+    /// Handles toolbar edit button
+    private func handleToolbarEdit() {
+        if let networkShare = selectedNetworkShare,
+           let selectedShare = shares.first(where: { $0.networkShare == networkShare }),
+           !selectedShare.managed {
+            handleEditShare(selectedShare)
         }
     }
 }
