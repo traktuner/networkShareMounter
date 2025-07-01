@@ -252,16 +252,20 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
                 Logger.automaticSignIn.debug("🔍 [Worker] Calling session.authenticate()")
                 await session.authenticate()
                 Logger.automaticSignIn.debug("🔍 [Worker] session.authenticate() returned")
+                // NOTE: Authentication result will be posted by delegate methods
+                // Do NOT post success notification here - delegate handles success/failure
             } else {
                 Logger.automaticSignIn.warning("⚠️ [Worker] No password found in keychain for: \(username, privacy: .public)")
                 account.hasKeychainEntry = false
                 Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification")
+                Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification")
                 NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
             }
         } catch {
             Logger.automaticSignIn.error("❌ [Worker] Error accessing keychain: \(error.localizedDescription, privacy: .public)")
             account.hasKeychainEntry = false
             Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification due to keychain error")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification due to keychain error")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
         }
         
@@ -302,6 +306,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
             
             Logger.automaticSignIn.debug("🔍 [Delegate] Posting success notification")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbAuthenticated notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
             
             Logger.automaticSignIn.debug("🔍 [Delegate] Retrieving user information")
@@ -323,8 +328,9 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         Logger.automaticSignIn.warning("⚠️ [Delegate] Authentication failed for: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         
         switch error {
-        case .AuthenticationFailure, .PasswordExpired:
+        case .AuthenticationFailure, .PasswordExpired, .KerbError:
             Logger.automaticSignIn.debug("🔍 [Delegate] Handling authentication failure or expired password")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
             
             Logger.automaticSignIn.info("🔍 [Delegate] Removing invalid password from Keychain")
@@ -338,10 +344,13 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             
         case .OffDomain:
             Logger.automaticSignIn.info("🔍 [Delegate] Outside the Kerberos Realm network")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbOffDomain notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
             
         default:
             Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error: \(error, privacy: .public)")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification for unhandled error")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
         }
         
         Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationFailed completed")

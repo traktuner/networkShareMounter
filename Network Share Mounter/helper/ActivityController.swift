@@ -171,9 +171,9 @@ class ActivityController {
         Logger.activityController.debug("▶︎ unmountAllShares called by \(notificationName, privacy: .public)")
         
         let unmountTask = Task { @MainActor in
-            Logger.activityController.debug("🔄 Unmount-Task gestartet - Führe Unmount-Operation durch")
+            Logger.activityController.debug("🔄 Unmount task started - Executing unmount operation")
             await mounter.unmountAllMountedShares()
-            Logger.activityController.debug("✅ Unmount-Task abgeschlossen - Alle Shares erfolgreich unmounted")
+            Logger.activityController.debug("✅ Unmount task completed - All shares successfully unmounted.")
         }
         
         _ = unmountTask
@@ -242,12 +242,28 @@ class ActivityController {
             return
         }
         
-        // Use Task directly without storing reference - more reliable than storing in a property
+        // Prevent too frequent authentication attempts.
+        let lastAuthAttempt = UserDefaults.standard.object(forKey: "lastKrbAuthAttempt") as? Date ?? Date.distantPast
+        let timeSinceLastAttempt = Date().timeIntervalSince(lastAuthAttempt)
+        
+        // wait at least 30 seconds between authentication attempts
+        guard timeSinceLastAttempt > 30 else {
+            Logger.activityController.debug("Skipping auth attempt - too soon since last attempt (\(timeSinceLastAttempt, privacy: .public)s)")
+            return
+        }
+        
+        UserDefaults.standard.set(Date(), forKey: "lastKrbAuthAttempt")
+        
         Task { @MainActor in
             Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn")
-            Logger.activityController.debug("🔄 Starting automatic sign-in task")
-            await appDelegate?.automaticSignIn.signInAllAccounts()
-            Logger.activityController.info("✅ Automatic sign-in completed successfully")
+            
+            do {
+                Logger.activityController.debug("🔄 Starting automatic sign-in task")
+                await appDelegate?.automaticSignIn.signInAllAccounts()
+                Logger.activityController.info("✅ Automatic sign-in completed successfully")
+            } catch {
+                Logger.activityController.error("❌ Automatic sign-in failed with error: \(error.localizedDescription, privacy: .public)")
+            }
         }
     }
     
