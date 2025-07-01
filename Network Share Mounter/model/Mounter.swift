@@ -27,6 +27,14 @@ class Mounter: ObservableObject {
     var prefs = PreferenceManager()
     @Published var shareManager = ShareManager()
     
+    /// Published error status that automatically notifies observers
+    @Published private var _errorStatus: MounterError = .noError
+    
+    /// Current error status with automatic SwiftUI updates
+    var errorStatus: MounterError {
+        _errorStatus
+    }
+    
     /// Convenience reference to the default FileManager
     private let fm = FileManager.default
     
@@ -71,30 +79,35 @@ class Mounter: ObservableObject {
     /// Thread-safety lock for error status access
     private let _errorStatusLock = NSRecursiveLock()
     
-    /// Internal storage for error status with thread-safe access
-    private var _errorStatus: MounterError = .noError
-    
-    /// Current error status with thread-safe access.
-    /// This property is synchronized to prevent race conditions when
-    /// accessed from multiple threads or asynchronous contexts.
-    var errorStatus: MounterError {
-        get {
-            // Thread-safe synchronous access via lock
-            _errorStatusLock.lock()
-            defer { _errorStatusLock.unlock() }
-            return _errorStatus
-        }
-        set {
-            // Thread-safe update
-            _errorStatusLock.lock()
-            let shouldPostAuthError = newValue == .authenticationError
-            _errorStatus = newValue
-            _errorStatusLock.unlock()
+    /// Sets the error status and handles notifications
+    /// - Parameter newValue: The new error status to set
+    @MainActor
+    func setErrorStatus(_ newValue: MounterError) {
+        let oldValue = _errorStatus
+        
+        // Check if there is a switch to an authentication error (from a non-authentication error)
+        let isNewAuthError = (newValue == .authenticationError || newValue == .krbAuthenticationError)
+        let wasNotAuthError = (oldValue != .authenticationError && oldValue != .krbAuthenticationError)
+        let shouldPostAuthError = isNewAuthError && wasNotAuthError
+        
+        _errorStatus = newValue
+        
+        if shouldPostAuthError {
+            Logger.mounter.debug("🔔 First auth error occurred: changed from \(oldValue, privacy: .public) to \(newValue, privacy: .public)")
             
-            // Post notification synchronously after releasing the lock
-            if shouldPostAuthError {
-                NotificationCenter.default.post(name: .nsmNotification, object: nil,
-                                               userInfo: ["AuthError": MounterError.authenticationError])
+            // Send the appropriate notification based on the type of error
+            if newValue == .authenticationError {
+                NotificationCenter.default.post(
+                    name: .nsmNotification,
+                    object: nil,
+                    userInfo: ["AuthError": MounterError.authenticationError]
+                )
+            } else if newValue == .krbAuthenticationError {
+                NotificationCenter.default.post(
+                    name: .nsmNotification,
+                    object: nil,
+                    userInfo: ["KrbAuthError": MounterError.krbAuthenticationError]
+                )
             }
         }
     }
@@ -725,10 +738,13 @@ class Mounter: ObservableObject {
             await updateShare(mountStatus: .unreachable, for: share)
         case MounterError.authenticationError:
             Logger.mounter.debug("❌ Authentication error: \(share.networkShare, privacy: .public)")
-            if share.authType != .krb {
-                // Direct update of errorStatus through the thread-safe setter
-                errorStatus = .authenticationError
-                // Notification is sent by the setter
+            // Distinguish between Kerberos SSO errors and username/password errors
+            if share.authType == .krb {
+                Logger.mounter.debug("🔑 Kerberos authentication error for: \(share.networkShare, privacy: .public)")
+                await setErrorStatus(.krbAuthenticationError)
+            } else {
+                Logger.mounter.debug("👤 Username/Password authentication error for: \(share.networkShare, privacy: .public)")
+                await setErrorStatus(.authenticationError)
             }
             await updateShare(mountStatus: .invalidCredentials, for: share)
         case MounterError.shareDoesNotExist:
