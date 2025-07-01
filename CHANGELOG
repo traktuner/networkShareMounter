@@ -1,3 +1,9 @@
+# 3.1.7
+### Bugfixes
+* fixed a bug where shares mounted at various levels could result in the removal of directories
+* Removed a race condition that resulted in recursive notifications calls, causing high load and constanty rebuilding the app menu
+* Minor fix in displaying authentication errors by changing the menu app icon color
+
 # 3.1.6
 ### Bugfixes
 * fixed a race condition
