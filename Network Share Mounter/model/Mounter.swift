@@ -311,11 +311,11 @@ class Mounter: ObservableObject {
         return "'\(path.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
     
-    /// Removes a directory using FileManager
+    /// Removes a directory using FileManager (only if empty, like rmdir)
     ///
     /// This method safely removes directories using Swift's FileManager API,
-    /// with built-in protection against removing directories in /Volumes to
-    /// prevent accidental deletion of mounted volumes.
+    /// with built-in protection against removing directories in /Volumes and
+    /// additional check to only remove empty directories (like shell rmdir command).
     ///
     /// - Parameter atPath: Full path of the directory to remove
     func removeDirectory(atPath: String) {
@@ -326,8 +326,24 @@ class Mounter: ObservableObject {
         }
         
         do {
+            // First check if directory exists and is actually a directory
+            var isDirectory: ObjCBool = false
+            guard fm.fileExists(atPath: atPath, isDirectory: &isDirectory), isDirectory.boolValue else {
+                Logger.mounter.debug("Path \(atPath, privacy: .public) does not exist or is not a directory")
+                return
+            }
+            
+            // Check if directory is empty (like rmdir command)
+            let contents = try fm.contentsOfDirectory(atPath: atPath)
+            guard contents.isEmpty else {
+                Logger.mounter.warning("⚠️ Directory \(atPath, privacy: .public) is not empty (contains \(contents.count) items) and cannot be removed")
+                return
+            }
+            
+            // Directory is empty, safe to remove
             try fm.removeItem(atPath: atPath)
-            Logger.mounter.info("⌫ Successfully deleted directory \(atPath, privacy: .public)")
+            Logger.mounter.info("⌫ Successfully deleted empty directory \(atPath, privacy: .public)")
+            
         } catch CocoaError.fileNoSuchFile {
             Logger.mounter.debug("Directory \(atPath, privacy: .public) does not exist (already removed)")
         } catch CocoaError.fileWriteNoPermission {
@@ -338,6 +354,7 @@ class Mounter: ObservableObject {
             Logger.mounter.warning("⚠️ Could not delete directory \(atPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
         }
     }
+
     
     /// Deletes unwanted files and empty directories in mount locations
     ///
