@@ -149,6 +149,10 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// The domain of the user account
     let domain: String
     
+    /// Flag to distinguish between authentication and user info retrieval modes
+    /// When true, we're only retrieving user info and server unavailability should not be treated as auth failure
+    var isInUserInfoMode: Bool = false
+    
     /// Initializes a new worker with a user account
     /// 
     /// - Parameter account: The user account for sign-in
@@ -277,20 +281,35 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Switches to the user principal and retrieves detailed information
     func getUserInfo() async {
         Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo started for user: \(self.account.upn, privacy: .public)")
+        
+        // Set flag to indicate we're in user info mode (not authentication mode)
+        isInUserInfoMode = true
+        
         do {
             // Switch to user principal
             Logger.automaticSignIn.debug("🔍 [Worker] Executing kswitch for principal: \(self.session.userPrincipal)")
             let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
             Logger.automaticSignIn.debug("🔍 [Worker] kswitch output: \(output, privacy: .public)")
             
-            // Retrieve user data
-            Logger.automaticSignIn.debug("🔍 [Worker] Setting delegate and retrieving user info")
+            // Since we have a valid ticket (verified by klist), post success notification
+            Logger.automaticSignIn.debug("🔍 [Worker] Valid ticket confirmed, posting success notification")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification for valid ticket")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
+            
+            // Retrieve user data (best effort - failure won't affect authentication status)
+            Logger.automaticSignIn.debug("🔍 [Worker] Setting delegate and retrieving user info (best effort)")
             session.delegate = self
             await session.userInfo()
             Logger.automaticSignIn.debug("🔍 [Worker] userInfo() call completed")
         } catch {
             Logger.automaticSignIn.error("❌ [Worker] Error retrieving user information: \(error.localizedDescription, privacy: .public)")
+            // Even if kswitch fails, we know we had a valid ticket, so post success
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification despite kswitch error")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
         }
+        
+        // Reset flag when done
+        isInUserInfoMode = false
         Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo completed for user: \(self.account.upn, privacy: .public)")
     }
     
@@ -327,6 +346,15 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
         Logger.automaticSignIn.warning("⚠️ [Delegate] Authentication failed for: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         
+        // If we're in user info mode (we already have a valid ticket), don't treat server unavailability as auth failure
+        if isInUserInfoMode {
+            Logger.automaticSignIn.info("ℹ️ [Delegate] In user info mode - treating server error as availability issue, not auth failure")
+            Logger.automaticSignIn.debug("🔍 [Delegate] Error type: \(error, privacy: .public), Description: \(description, privacy: .public)")
+            // Don't post any error notifications - we already posted success notification in getUserInfo()
+            Logger.automaticSignIn.debug("🔍 [Delegate] Ignoring error since we already have valid ticket")
+            return
+        }
+        
         switch error {
         case .AuthenticationFailure, .PasswordExpired, .KerbError:
             Logger.automaticSignIn.debug("🔍 [Delegate] Handling authentication failure or expired password")
@@ -348,7 +376,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
             
         default:
-            Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error: \(error, privacy: .public)")
+            Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error in auth mode: \(error, privacy: .public)")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification for unhandled error")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
         }
