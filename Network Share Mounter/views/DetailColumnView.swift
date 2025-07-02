@@ -10,6 +10,7 @@ struct DetailColumnView: View {
     let selectedProfileID: String?
     @ObservedObject var profileManager: AuthProfileManager // Needs AuthProfile definition
     let currentAssociatedShares: [Share] // Needs Share definition
+    let ticketRefreshStatus: [String: TicketRefreshStatus]
     
     // Actions passed down to ProfileDetailView
     var onEditProfile: (AuthProfile) -> Void
@@ -29,6 +30,7 @@ struct DetailColumnView: View {
                     ProfileDetailView(
                         profile: profile,
                         associatedShares: currentAssociatedShares,
+                        ticketRefreshStatus: ticketRefreshStatus[profile.id] ?? .idle,
                         onEditProfile: { onEditProfile(profile) }, 
                         onRefreshTicket: { onRefreshTicket(profile) } 
                     )
@@ -75,6 +77,7 @@ struct DetailColumnView_Previews: PreviewProvider {
             selectedProfileID: profile1.id,
             profileManager: mockProfileManager,
             currentAssociatedShares: [share1, share2],
+            ticketRefreshStatus: [:],
             onEditProfile: { _ in print("Preview Edit") },
             onRefreshTicket: { _ in print("Preview Refresh") }
         )
@@ -89,6 +92,7 @@ struct DetailColumnView_Previews: PreviewProvider {
             selectedProfileID: nil,
             profileManager: mockProfileManager,
             currentAssociatedShares: [],
+            ticketRefreshStatus: [:],
             onEditProfile: { _ in print("Preview Edit") },
             onRefreshTicket: { _ in print("Preview Refresh") }
         )

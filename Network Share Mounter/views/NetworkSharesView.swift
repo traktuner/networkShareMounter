@@ -116,7 +116,7 @@ struct NetworkSharesView: View {
                         Button(share.mountStatus == .mounted ? "Trennen" : "Verbinden") {
                             Task {
                                 if share.mountStatus == .mounted {
-                                    await mounter.unmountShare(for: share)
+                                    await mounter.unmountShare(for: share, userTriggered: true)
                                 } else {
                                     await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
                                 }
@@ -226,7 +226,7 @@ struct NetworkSharesView: View {
                 
                 // Edit button
                 Button(action: handleToolbarEdit) {
-                    Image(systemName: "pencil")
+                    Image(systemName: "square.and.pencil")
                 }
                 .help("Bearbeiten")
                 // Disable if no share is selected or if the selected share is managed
@@ -244,6 +244,20 @@ struct NetworkSharesView: View {
 //                }
 //                .help("Profil zuweisen")
 //                .disabled(selectedNetworkShare == nil)
+                
+                // MDM hint for managed shares
+                if let selectedNetworkShare = selectedNetworkShare,
+                   let selectedShare = shares.first(where: { $0.networkShare == selectedNetworkShare }),
+                   selectedShare.managed {
+                    HStack {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                        Text("Durch MDM-Richtlinie vorgegeben")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 
                 Spacer()
                 

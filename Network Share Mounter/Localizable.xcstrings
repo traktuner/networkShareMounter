@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     "⚠️ Authentication problem..." : {
       "comment" : "Authentication problem",
       "localizations" : {
@@ -119,7 +116,7 @@
         }
       }
     },
-    "Aktives Kerberos-Ticket gefunden" : {
+    "Alle verfügbaren Shares sind bereits diesem oder anderen Profilen zugeordnet." : {
 
     },
     "Allgemein" : {
@@ -134,7 +131,7 @@
     "Anonyme Diagnosedaten senden" : {
 
     },
-    "Anzeigename (optional)" : {
+    "Anzeigename:" : {
 
     },
     "authenticate-share-button" : {
@@ -620,10 +617,16 @@
     "Bearbeiten" : {
 
     },
+    "Bearbeiten Sie die Einstellungen für diesen Netzwerk-Share." : {
+
+    },
     "Bearbeiten..." : {
 
     },
     "Beim Anmelden starten" : {
+
+    },
+    "Benutzername" : {
 
     },
     "Benutzername:" : {
@@ -841,8 +844,14 @@
     "Diesem Profil sind keine Shares zugeordnet." : {
 
     },
+    "Dieser Share wird zentral verwaltet und kann nicht geändert werden." : {
+
+    },
     "Does not exist" : {
       "comment" : "Does not exist"
+    },
+    "Durch MDM-Richtlinie vorgegeben" : {
+
     },
     "Einstellungen" : {
 
@@ -891,7 +900,16 @@
         }
       }
     },
-    "Farbe:" : {
+    "Erstellen Sie ein Authentifizierungsprofil für Ihre Netzwerk-Shares." : {
+
+    },
+    "Farbe" : {
+
+    },
+    "Fügen Sie einen neuen Netzwerk-Share hinzu." : {
+
+    },
+    "Fügen Sie Netzwerk-Shares hinzu, die mit diesem Profil authentifiziert werden sollen." : {
 
     },
     "General" : {
@@ -911,9 +929,6 @@
           }
         }
       }
-    },
-    "Gespeichert im Schlüsselbund" : {
-
     },
     "help-auth-error" : {
       "comment" : "Help text shown if some shares are not authenticated"
@@ -939,6 +954,9 @@
     "Hinzufügen" : {
 
     },
+    "Hinzufügen (%lld)" : {
+
+    },
     "Host is down" : {
       "comment" : "Host is down"
     },
@@ -957,16 +975,7 @@
     "Jetzt nach Updates suchen" : {
 
     },
-    "Kein aktives Kerberos-Ticket gefunden" : {
-
-    },
-    "Kein gültiges Kerberos-Ticket" : {
-
-    },
-    "Kein gültiges Ticket" : {
-
-    },
-    "Kein Profil (Standard/System)" : {
+    "Kein Profil (Standard-System)" : {
 
     },
     "Keine Netzwerk-Shares konfiguriert" : {
@@ -975,10 +984,10 @@
     "Keine Profile definiert." : {
 
     },
-    "Keine Shares zugeordnet." : {
+    "Keine Shares zugeordnet" : {
 
     },
-    "Keine weiteren Shares zum Zuordnen verfügbar." : {
+    "Keine weiteren Shares verfügbar" : {
 
     },
     "Kerberos authentication error" : {
@@ -994,9 +1003,6 @@
 
     },
     "Kerberos-Authentifizierung verwenden" : {
-
-    },
-    "Kerberos-Ticket aktiv" : {
 
     },
     "Kerberos-Ticket aktualisieren" : {
@@ -1019,6 +1025,9 @@
     },
     "krb-offdomain-button" : {
       "comment" : "Button text for kerberos authentication"
+    },
+    "Lade verfügbare Shares..." : {
+
     },
     "Löschen" : {
 
@@ -1194,7 +1203,7 @@
     "Netzwerk-Shares" : {
 
     },
-    "Netzwerkpfad (z.B. smb://server/pfad)" : {
+    "Netzwerkpfad:" : {
 
     },
     "Neues Profil erstellen" : {
@@ -1276,6 +1285,12 @@
         }
       }
     },
+    "Ohne Profil werden Standard-Systemmechanismen (z.B. Kerberos) verwendet." : {
+
+    },
+    "Optional" : {
+
+    },
     "Other error" : {
       "comment" : "Other error",
       "localizations" : {
@@ -1355,7 +1370,7 @@
     "Passen Sie hier allgemeine Einstellungen der Anwendung an." : {
 
     },
-    "Passwort:" : {
+    "Passwort" : {
 
     },
     "Permission denied" : {
@@ -1471,6 +1486,9 @@
         }
       }
     },
+    "Profil auswählen" : {
+
+    },
     "Profil bearbeiten" : {
 
     },
@@ -1478,6 +1496,9 @@
 
     },
     "Profil hinzufügen" : {
+
+    },
+    "Profil Name" : {
 
     },
     "Profilbild" : {
@@ -1540,6 +1561,9 @@
       }
     },
     "Realm: %@" : {
+
+    },
+    "REALM.COM" : {
 
     },
     "Save" : {
@@ -1630,6 +1654,9 @@
         }
       }
     },
+    "Share entfernen" : {
+
+    },
     "Share hinzufügen..." : {
 
     },
@@ -1714,6 +1741,9 @@
           }
         }
       }
+    },
+    "smb://server/pfad" : {
+
     },
     "Software Update" : {
       "comment" : "Software update section title",
@@ -1834,10 +1864,10 @@
         }
       }
     },
-    "Symbol wählen" : {
+    "Symbol" : {
 
     },
-    "Symbol:" : {
+    "Symbol wählen" : {
 
     },
     "Target host is not reachable" : {
@@ -1911,12 +1941,6 @@
       }
     },
     "Ticket aktualisieren" : {
-
-    },
-    "Ticket gültig" : {
-
-    },
-    "Ticket-Status unbekannt" : {
 
     },
     "Timeout on reaching host" : {
@@ -2127,10 +2151,13 @@
     "Verwalten Sie hier Ihre Authentifizierungsprofile für Netzwerkverbindungen." : {
 
     },
-    "Vorschau:" : {
+    "Vorschau" : {
 
     },
-    "Wählen Sie ein Authentifizierungsprofil aus, das für diesen Share verwendet werden soll. Wenn kein Profil ausgewählt wird, werden Standard-Systemmechanismen (z.B. Kerberos) versucht." : {
+    "Wählen Sie die Netzwerk-Shares aus, die Sie diesem Profil zuordnen möchten." : {
+
+    },
+    "Wählen Sie ein Authentifizierungsprofil für diesen Share aus." : {
 
     },
     "Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil" : {
@@ -2139,10 +2166,7 @@
     "Wählen Sie eine Farbe für das Profilsymbol" : {
 
     },
-    "Zugehöriges Profil:" : {
-
-    },
-    "Zugeordnete Shares" : {
+    "Zugehöriges Profil" : {
 
     },
     "Zugeordnete Shares (%lld)" : {

@@ -36,98 +36,176 @@ struct AddShareView: View {
     }
 
     var body: some View {
-        // Remove NavigationView, manage title and buttons manually
-        // NavigationView {
-            Form {
-                // Manual Title
-                Text(windowTitle)
-                    .font(.headline)
-                    .padding(.bottom)
-                
-                Section("Share-Details") {
-                    TextField("Netzwerkpfad (z.B. smb://server/pfad)", text: $networkShare)
-                        .lineLimit(1)
-                        .autocorrectionDisabled()
-                        .disabled(isEditing && (existingShare?.managed == true)) // Disable editing for managed shares
-                        // Add more modifiers as needed (text content type, etc.)
+        VStack(spacing: 0) {
+            // Scrollable content area
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(windowTitle)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        
+                        Text(isEditing ? "Bearbeiten Sie die Einstellungen für diesen Netzwerk-Share." : "Fügen Sie einen neuen Netzwerk-Share hinzu.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    TextField("Anzeigename (optional)", text: $shareDisplayName)
-                        .lineLimit(1)
-                }
-                
-                Section("Authentifizierung") {
-                    if profileManager.profiles.isEmpty && !isEditing {
-                        // Show loading state for new shares if no profiles are loaded yet
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text("Profile werden geladen...")
-                                .foregroundColor(.secondary)
+                    // Share Details Section
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 16) {
+                            shareDetailsFields
                         }
-                        .padding(.vertical, 8)
-                    } else {
-                        Picker("Zugehöriges Profil:", selection: $selectedProfileID) {
-                            // Add "None" option
-                            Text("Kein Profil (Standard/System)").tag(String?.none) // Tag nil
-                            
-                            // List available profiles
-                            ForEach(profileManager.profiles) { profile in
-                                HStack {
-                                    Image(systemName: profile.symbolName ?? "person.circle")
-                                        .foregroundColor(profile.symbolColor)
-                                    Text(profile.displayName)
-                                }
-                                .tag(profile.id as String?) // Tag optional ID
-                            }
-                        }
-                        // Allow the picker to take more horizontal space
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                    } label: {
+                        Label("Share-Details", systemImage: "externaldrive")
+                            .font(.headline)
                     }
                     
-                    // Add help text if needed
-                    Text("Wählen Sie ein Authentifizierungsprofil aus, das für diesen Share verwendet werden soll. Wenn kein Profil ausgewählt wird, werden Standard-Systemmechanismen (z.B. Kerberos) versucht.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer() // Push buttons to the bottom if Form is scrollable
-                
-                // Manual Buttons
-                HStack {
-                    Button("Abbrechen") {
-                        dismiss()
-                    }
-                    .keyboardShortcut(.cancelAction)
-                    
-                    Spacer()
-                    
-                    Button(isEditing ? "Änderungen speichern" : "Speichern") {
-                        Task {
-                            if isEditing {
-                                await handleUpdateChanges()
-                            } else {
-                                await handleSaveChanges()
-                            }
+                    // Authentication Section
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 16) {
+                            authenticationSection
                         }
+                        .padding(16)
+                    } label: {
+                        Label("Authentifizierung", systemImage: "person.badge.key")
+                            .font(.headline)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(networkShare.isEmpty) 
-                    .keyboardShortcut(.defaultAction)
                 }
-                .padding(.top)
-                
+                .padding(24)
             }
-            // Remove navigation modifiers
-            // .navigationTitle("Neuen Share hinzufügen")
-            // .toolbar { ... }
-            .padding(20) // Use consistent 20pt padding like other views
-        // }
-        .frame(minWidth: 450, minHeight: 400) // Increased height to accommodate padding
+            
+            // Bottom buttons bar
+            Divider()
+            
+            HStack {
+                Button("Abbrechen") {
+                    dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+                
+                Spacer()
+                
+                Button(isEditing ? "Änderungen speichern" : "Speichern") {
+                    Task {
+                        if isEditing {
+                            await handleUpdateChanges()
+                        } else {
+                            await handleSaveChanges()
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(networkShare.isEmpty) 
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(20)
+        }
+        .frame(minWidth: 500, minHeight: 450)
         .onAppear {
             setupForEditing()
         }
     }
     
+    // MARK: - UI Components
+    
+    @ViewBuilder
+    private var shareDetailsFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Netzwerkpfad:")
+                    .frame(width: 100, alignment: .trailing)
+                TextField("smb://server/pfad", text: $networkShare)
+                    .textFieldStyle(.roundedBorder)
+                    .autocorrectionDisabled()
+                    .disabled(isEditing && (existingShare?.managed == true))
+            }
+            
+            HStack {
+                Text("Anzeigename:")
+                    .frame(width: 100, alignment: .trailing)
+                TextField("Optional", text: $shareDisplayName)
+                    .textFieldStyle(.roundedBorder)
+            }
+            
+            if isEditing && (existingShare?.managed == true) {
+                HStack {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                    Text("Dieser Share wird zentral verwaltet und kann nicht geändert werden.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var authenticationSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if profileManager.profiles.isEmpty && !isEditing {
+                // Loading state
+                HStack {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("Profile werden geladen...")
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 20)
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Zugehöriges Profil")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Picker("Profil auswählen", selection: $selectedProfileID) {
+                        // Add "None" option
+                        Label("Kein Profil (Standard-System)", systemImage: "gear")
+                            .tag(String?.none)
+                        
+                        if !profileManager.profiles.isEmpty {
+                            Divider()
+                            
+                            // List available profiles
+                            ForEach(profileManager.profiles) { profile in
+                                Label {
+                                    Text(profile.displayName)
+                                } icon: {
+                                    Image(systemName: profile.symbolName ?? "person.circle")
+                                        .foregroundColor(.white)
+                                        .font(.caption)
+                                        .frame(width: 16, height: 16)
+                                        .background(
+                                            Circle()
+                                                .fill(profile.symbolColor)
+                                        )
+                                }
+                                .tag(profile.id as String?)
+                            }
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // Help text
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Wählen Sie ein Authentifizierungsprofil für diesen Share aus.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Ohne Profil werden Standard-Systemmechanismen (z.B. Kerberos) verwendet.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
     // --- Setup Methods ---
     
     /// Sets up the form fields when editing an existing share

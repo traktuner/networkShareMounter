@@ -91,7 +91,7 @@ struct SettingsView: View {
         }
         .navigationTitle("Einstellungen")
         // Set appropriate minimum dimensions for consistent layout of all views
-        .frame(minWidth: 850, minHeight: 500)
+        .frame(minWidth: 1000, minHeight: 550)
     }
 }
 

@@ -21,7 +21,7 @@ struct ProfileRowView: View {
     }
     
     // State to hold the result of the Kerberos ticket check
-    @State private var ticketStatus: Bool? = nil // nil: unknown, true: active, false: inactive
+    @State private var ticketStatus: TicketStatus = .unknown
 
     // Logger
     private static var logger = Logger.authenticationView // Assuming this logger is accessible
@@ -78,40 +78,29 @@ struct ProfileRowView: View {
             // Kerberos Ticket Status Indicator (only if using Kerberos)
             if profile.useKerberos {
                 Circle()
-                    .fill(ticketStatus == true ? Color.green : 
-                          ticketStatus == false ? Color.red : Color.gray)
+                    .fill(ticketStatus.color)
                     .frame(width: 10, height: 10) // Increase size slightly for better visibility
-                    .help(ticketStatus == true ? "Kerberos-Ticket aktiv" : 
-                          ticketStatus == false ? "Kein gültiges Kerberos-Ticket" : "Ticket-Status unbekannt")
+                    .help(ticketStatus.helpText)
             }
         }
         .padding(.vertical, 6) // Add consistent vertical padding
-        .task {
-            // Only check ticket status if using Kerberos
-            if profile.useKerberos {
-                await checkTicketStatus()
-            }
+        .task(id: profile.id) {
+            // Check ticket status for this profile
+            await checkTicketStatus()
         }
     }
     
     // Check if a Kerberos ticket exists for this profile
     private func checkTicketStatus() async {
-        // Reset to unknown initially
-        ticketStatus = nil
+        // Use the global ticket status checker
+        let status = await checkKerberosTicketStatus(for: profile)
         
-        // Only check for Kerberos profiles
-        guard profile.useKerberos, let realm = profile.kerberosRealm else {
-            return
-        }
-        
-        // Call the KlistUtil to check if a ticket exists
-        // let hasTicket = try await KlistUtil.shared.hasActiveTicketForRealm(realm: realm)
-        let hasTicket = true
-
         // Update the status on the main thread
         await MainActor.run {
-            ticketStatus = hasTicket
+            ticketStatus = status
         }
+        
+        Self.logger.debug("(RowView) Ticket status for profile '\(profile.displayName)': \(status.displayText)")
     }
 }
 

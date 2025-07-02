@@ -55,6 +55,15 @@ struct ProfileEditorView: View {
         return ""
     }
     
+    /// Checks if this is an MDM-configured Kerberos profile
+    private var isMDMKerberosProfile: Bool {
+        // Check if MDM has configured a Kerberos realm
+        if let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty {
+            return true
+        }
+        return false
+    }
+    
     // Computed binding to handle password changes
     private var passwordBinding: Binding<String> {
         Binding<String>(
@@ -88,12 +97,15 @@ struct ProfileEditorView: View {
             self._editingAssociatedShares = State(initialValue: profile.associatedNetworkShares ?? [])
         } else {
             // Defaults for new profile
+            let prefs = PreferenceManager()
+            let hasMDMKerberos = prefs.string(for: .kerberosRealm) != nil && !prefs.string(for: .kerberosRealm)!.isEmpty
+            
             self._profileName = State(initialValue: "")
             self._username = State(initialValue: "")
             self._password = State(initialValue: "")
-            self._useKerberos = State(initialValue: false)
+            self._useKerberos = State(initialValue: hasMDMKerberos) // Auto-enable if MDM configured
             // Load Kerberos realm from preferences for new profiles
-            self._kerberosRealm = State(initialValue: PreferenceManager().string(for: .kerberosRealm) ?? "")
+            self._kerberosRealm = State(initialValue: prefs.string(for: .kerberosRealm) ?? "")
             self._selectedSymbol = State(initialValue: "person.circle")
             self._selectedColor = State(initialValue: .blue)
             self._editingAssociatedShares = State(initialValue: []) // Start empty for new profile
@@ -106,189 +118,102 @@ struct ProfileEditorView: View {
 
     // Body
     var body: some View {
-        // Wrap Form in a VStack to place buttons outside and at the bottom
-        VStack(spacing: 0) { // Use 0 spacing, let Form and Padding handle spacing
-            // Use a Form for better structure on macOS sheets
-            Form {
-                Section {
-                    // Replace implicit Form layout with explicit Grid
-    //                Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10) {
-                    Grid {
-                        GridRow {
-                            Text("Bezeichnung:")
-                                .gridColumnAlignment(.trailing) // Align labels to the right
-                            TextField("", text: $profileName)
-                                .textFieldStyle(.roundedBorder)
-                        }
+        VStack(spacing: 0) {
+            // Scrollable content area
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(existingProfile == nil ? "Neues Profil erstellen" : "Profil bearbeiten")
+                            .font(.title2)
+                            .fontWeight(.semibold)
                         
-                        GridRow {
-                            Text("Benutzername:")
-                                .gridColumnAlignment(.trailing)
-                            TextField("", text: $username)
-                                .textFieldStyle(.roundedBorder)
-                        }
-                        
-                        GridRow {
-                            Text(passwordLabelText)
-                                .gridColumnAlignment(.trailing)
-                            SecureField("", text: passwordBinding)
-                                 .textFieldStyle(.roundedBorder)
-                        }
-                        
-                        GridRow {
-                             Toggle("Kerberos-Authentifizierung verwenden", isOn: $useKerberos)
-                                .gridCellColumns(2)
-                                .padding(.trailing)
-                        }
-
-                        // Kerberos Realm Row (always present, but conditionally visible)
-                        GridRow {
-                            Text("Kerberos Realm:")
-                                .gridColumnAlignment(.trailing)
-                                .opacity(useKerberos ? 1 : 0) // Hide with opacity
-                            TextField("", text: $kerberosRealm)
-                                .textFieldStyle(.roundedBorder)
-                                .disabled(!useKerberos)
-                                .opacity(useKerberos ? 1 : 0)
-                        }
+                        Text("Erstellen Sie ein Authentifizierungsprofil für Ihre Netzwerk-Shares.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                }
-                header: {
-                    Text(existingProfile == nil ? "Neues Profil erstellen" : "Profil bearbeiten")
-                        .font(.headline)
-                        .padding(.bottom, 4) // Add consistent padding to match other views
-                }
-                .padding(.bottom)
-
-                // Section for Associated Shares
-                Section {
-                    if isLoadingShares {
-                         ProgressView() // Show loading indicator
-                             .frame(maxWidth: .infinity, alignment: .center)
-                             .padding(.vertical)
-                    } else {
-                        if editingAssociatedShares.isEmpty {
-                             Text("Keine Shares zugeordnet.")
-                                 .foregroundColor(.secondary)
-                                 .frame(maxWidth: .infinity, alignment: .center)
-                                 .padding(.vertical)
-                        } else {
-                             List {
-                                 ForEach(editingAssociatedShares, id: \.self) { shareURL in
-                                     HStack {
-                                         // Try to find the display name for the URL
-                                         Text(shareDisplayName(for: shareURL))
-                                         Spacer()
-                                         Button {
-                                             removeAssociatedShare(url: shareURL)
-                                         } label: {
-                                             Image(systemName: "minus.circle.fill")
-                                                 .foregroundColor(.red)
-                                         }
-                                         .buttonStyle(.plain) // Use plain to avoid default button background in list
-                                     }
-                                 }
-                             }
-                             .frame(height: 100) // Fixed height for List
-                        }
-                        
-                        // TODO: Implement Add Share Button and Sheet
-                        HStack {
-                             Spacer()
-                             Button("Share hinzufügen...") {
-                                 // Action to open share selection sheet
-                                 isShowingShareSelection = true
-                             }
-                         }
-                    }
-                } header: {
-                    Text("Zugeordnete Shares")
-                        .font(.headline)
-                        .padding(.bottom, 4) // Add consistent padding to match other views
-                }
-                
-                Section {
-                    Grid {
-                        GridRow {
-                            Text("Symbol:")
-                                .gridColumnAlignment(.leading)
-                            Text("Farbe:")
-                                .gridColumnAlignment(.leading)
-                            Text("Vorschau:")
-                                .gridColumnAlignment(.leading)
-                        }
-                        .padding(.top, 8)
-                        GridRow {
-                            Picker("Symbol wählen", selection: $selectedSymbol) {
-                                ForEach(availableSymbols, id: \.self) { symbol in
-                                    Image(systemName: symbol).tag(symbol)
-                                }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // Basic Information Section
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 16) {
+                            basicInfoFields
+                            
+                            Divider()
+                            
+                            kerberosToggleSection
+                            
+                            if useKerberos {
+                                kerberosRealmField
                             }
-                            .pickerStyle(.menu)
-                            .labelsHidden() // Hide label as we have Text above
-                            .frame(width: 120)
-                            .padding(.trailing)
-                            ColorPicker("Profilfarbe auswählen", selection: $selectedColor, supportsOpacity: false)
-                                .labelsHidden()
-                                .frame(width: 120)
-                                .padding(.trailing)
-                                .help("Wählen Sie eine Farbe für das Profilsymbol")
-                                .accessibilityLabel("Profilfarbe auswählen")
-                            Image(systemName: selectedSymbol)
-                                .font(.system(size: 20))
-                                .foregroundColor(.white)
-                                .padding(9)
-                                .background(
-                                    Circle()
-                                        .fill(selectedColor)
-                                        .frame(width: 40, height: 40)
-                                )
                         }
+                        .padding(16)
+                    } label: {
+                        Label("Anmeldedaten", systemImage: "person.circle")
+                            .font(.headline)
+                    }
+                    
+                    // Associated Shares Section
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 16) {
+                            if isLoadingShares {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text("Lade verfügbare Shares...")
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.vertical)
+                            } else {
+                                associatedSharesList
+                            }
+                        }
+                        .padding(16)
+                    } label: {
+                        Label("Zugeordnete Shares (\(editingAssociatedShares.count))", systemImage: "externaldrive")
+                            .font(.headline)
+                    }
+                    
+                    // Profile Appearance Section
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 16) {
+                            profileAppearanceSection
+                        }
+                        .padding(16)
+                    } label: {
+                        Label("Profilbild", systemImage: "paintbrush")
+                            .font(.headline)
                     }
                 }
-                header: {
-                    Text("Profilbild")
-                        .font(.headline)
-                        .padding(.bottom, 4) // Add consistent padding to match other views
-                }
-                
-                // Spacer() // Removed Spacer from inside the Form
-                
-            } // End of Form
-            // Add padding around the Form content
-            .padding(20) // Use consistent 20pt padding like other views 
-            // Remove padding from Form, manage padding in VStack/HStack
-            // .padding()
+                .padding(24)
+            }
             
-            Spacer() // Add Spacer in VStack to push buttons down if form content is short
-
-            // --- Buttons placed outside Form, at the bottom of VStack --- 
+            // Bottom buttons bar
+            Divider()
+            
             HStack {
                 Button("Abbrechen") {
-                   isPresented = false
-               }
-               .keyboardShortcut(.cancelAction)
-               // Remove specific bottom padding, handle with HStack padding
-               // .padding(.bottom)
-               
-               Spacer() // Push buttons apart
-               
-               Button("Speichern") {
-                   saveChanges()
-               }
-               .buttonStyle(.borderedProminent)
-               .disabled(isSaveDisabled)
-               .keyboardShortcut(.defaultAction)
-               // Remove specific bottom padding, handle with HStack padding
-               // .padding(.bottom)
+                    isPresented = false
+                }
+                .keyboardShortcut(.cancelAction)
+                
+                Spacer()
+                
+                Button("Speichern") {
+                    saveChanges()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isSaveDisabled)
+                .keyboardShortcut(.defaultAction)
             }
-            .padding(.horizontal) // Ensure horizontal padding
-            .padding(.bottom, 20)   // Explicitly request standard bottom padding
-            
-        } // End of VStack
-        .padding(.bottom)
-        .frame(minWidth: 450, minHeight: 500, maxHeight: 500) // Increased dimensions
-        .onAppear(perform: loadAllShares) // Load shares when view appears
+            .padding(20)
+        }
+        .frame(minWidth: 600, minHeight: 700) // Ensure buttons are always visible
+        .onAppear {
+            loadAllShares() // Load shares when view appears
+            loadExistingPassword() // Load password for existing profiles
+        }
         // Add the sheet modifier for share selection
         .sheet(isPresented: $isShowingShareSelection) {
             // Pass available shares, already associated shares, and the callback
@@ -308,6 +233,187 @@ struct ProfileEditorView: View {
         }
     } // End of body
 
+    // MARK: - UI Components
+    
+    @ViewBuilder
+    private var basicInfoFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Bezeichnung:")
+                    .frame(width: 100, alignment: .trailing)
+                TextField("Profil Name", text: $profileName)
+                    .textFieldStyle(.roundedBorder)
+            }
+            
+            HStack {
+                Text("Benutzername:")
+                    .frame(width: 100, alignment: .trailing)
+                TextField("Benutzername", text: $username)
+                    .textFieldStyle(.roundedBorder)
+            }
+            
+            HStack {
+                Text(passwordLabelText)
+                    .frame(width: 100, alignment: .trailing)
+                SecureField("Passwort", text: passwordBinding)
+                    .textFieldStyle(.roundedBorder)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var kerberosToggleSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle("Kerberos-Authentifizierung verwenden", isOn: $useKerberos)
+                .disabled(isMDMKerberosProfile)
+            
+            if isMDMKerberosProfile {
+                HStack {
+                    Image(systemName: "gearshape.fill")
+                        .foregroundColor(.orange)
+                        .font(.caption)
+                    Text("Durch MDM-Richtlinie vorgegeben")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var kerberosRealmField: some View {
+        HStack {
+            Text("Kerberos Realm:")
+                .frame(width: 100, alignment: .trailing)
+            VStack(alignment: .leading, spacing: 4) {
+                TextField("REALM.COM", text: $kerberosRealm)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(isMDMKerberosProfile)
+                
+                if isMDMKerberosProfile {
+                    HStack {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(.orange)
+                            .font(.caption2)
+                        Text("Durch MDM-Richtlinie vorgegeben")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var associatedSharesList: some View {
+        if editingAssociatedShares.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "externaldrive")
+                    .font(.largeTitle)
+                    .foregroundColor(.secondary)
+                
+                Text("Keine Shares zugeordnet")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                Text("Fügen Sie Netzwerk-Shares hinzu, die mit diesem Profil authentifiziert werden sollen.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(editingAssociatedShares, id: \.self) { shareURL in
+                    HStack {
+                        Image(systemName: "externaldrive")
+                            .foregroundColor(.blue)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(shareDisplayName(for: shareURL))
+                                .font(.subheadline)
+                            Text(shareURL)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Button {
+                            removeAssociatedShare(url: shareURL)
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Share entfernen")
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 8)
+                    .background(Color(NSColor.controlBackgroundColor))
+                    .cornerRadius(6)
+                }
+            }
+        }
+        
+        HStack {
+            Spacer()
+            Button("Share hinzufügen...") {
+                isShowingShareSelection = true
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(.top, 8)
+    }
+    
+    @ViewBuilder
+    private var profileAppearanceSection: some View {
+        HStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Symbol")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Picker("Symbol wählen", selection: $selectedSymbol) {
+                    ForEach(availableSymbols, id: \.self) { symbol in
+                        Image(systemName: symbol).tag(symbol)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 120)
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Farbe")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                ColorPicker("Profilfarbe auswählen", selection: $selectedColor, supportsOpacity: false)
+                    .labelsHidden()
+                    .frame(width: 120)
+                    .help("Wählen Sie eine Farbe für das Profilsymbol")
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .center, spacing: 8) {
+                Text("Vorschau")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Image(systemName: selectedSymbol)
+                    .font(.system(size: 24))
+                    .foregroundColor(.white)
+                    .frame(width: 48, height: 48)
+                    .background(
+                        Circle()
+                            .fill(selectedColor)
+                    )
+            }
+        }
+    }
+
     // --- Helper Functions ---
 
     /// Loads all available shares from the ShareManager.
@@ -318,6 +424,26 @@ struct ProfileEditorView: View {
             isLoadingShares = false
             // Log or handle potential errors during loading if ShareManager throws
             print("Loaded \(allAvailableShares.count) available shares.")
+        }
+    }
+    
+    /// Loads the existing password for profile editing (the Apple way).
+    private func loadExistingPassword() {
+        guard let profile = existingProfile else { return }
+        
+        Task {
+            do {
+                let profileManager = AuthProfileManager.shared
+                if let savedPassword = try await profileManager.retrievePassword(for: profile) {
+                    await MainActor.run {
+                        self.password = savedPassword
+                        // Don't set passwordChanged to true - this is the original password
+                    }
+                }
+            } catch {
+                print("Could not load existing password for profile '\(profile.displayName)': \(error.localizedDescription)")
+                // Leave password empty if we can't load it
+            }
         }
     }
     
@@ -367,10 +493,10 @@ struct ProfileEditorView: View {
     /// Computed property to determine if the Save button should be disabled.
     private var isSaveDisabled: Bool {
         // Basic validation: Profile name must not be empty.
-        // Kerberos requires realm.
+        // Kerberos requires realm (but MDM-configured realm is always valid).
         // Non-Kerberos requires username for *new* profiles.
         return profileName.isEmpty ||
-               (useKerberos && kerberosRealm.isEmpty) ||
+               (useKerberos && kerberosRealm.isEmpty && !isMDMKerberosProfile) ||
                (!useKerberos && username.isEmpty && existingProfile == nil)
         // Add more sophisticated validation if needed
     }
@@ -385,6 +511,8 @@ struct ProfileEditorView: View {
             return existingProfile == nil ? "Passwort:" : "Neues Passwort:"
         }
     }
+    
+
 }
 
 // MARK: - Share Selection Sheet
@@ -398,8 +526,8 @@ struct ShareSelectionSheet: View {
     // Environment for dismissal
     @Environment(\.dismiss) var dismiss
 
-    // State for managing selections within the sheet - Use Share.ID
-    @State private var selections: Set<Share.ID> = []
+    // State for managing selections within the sheet
+    @State private var selectedShareURLs: Set<String> = []
 
     // Filtered list of shares that are not already associated
     private var availableSharesToSelect: [Share] {
@@ -407,73 +535,120 @@ struct ShareSelectionSheet: View {
     }
 
     var body: some View {
-        NavigationView { // Use NavigationView for title and buttons
-            VStack {
-                if availableSharesToSelect.isEmpty {
-                    Text("Keine weiteren Shares zum Zuordnen verfügbar.")
+        VStack(spacing: 0) {
+            // Header
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Shares auswählen")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Wählen Sie die Netzwerk-Shares aus, die Sie diesem Profil zuordnen möchten.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 16)
+            
+            Divider()
+            
+            // Content
+            if availableSharesToSelect.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "externaldrive")
+                        .font(.system(size: 48))
                         .foregroundColor(.secondary)
-                        .padding()
-                    Spacer()
-                } else {
-                    // Use List with multi-selection binding for macOS
-                    List(availableSharesToSelect, selection: $selections) {
-                         share in
-                         HStack {
-                             Image(systemName: "externaldrive") // Or a more specific icon?
-                                 .foregroundColor(.secondary)
-                             Text(share.shareDisplayName ?? share.networkShare)
-                             Spacer()
-                             // Remove manual checkmark - rely on standard selection highlight
-                             /*
-                             if selections.contains(share.networkShare) {
-                                 Image(systemName: "checkmark")
-                                     .foregroundColor(.blue)
-                             }
-                             */
-                         }
-                         // Remove .tag and .onTapGesture
-                         // .tag(share.networkShare) // Tag for selection
-                         // .contentShape(Rectangle())
-                         // .onTapGesture {
-                         //     toggleSelection(for: share.networkShare)
-                         // }
+                    
+                    Text("Keine weiteren Shares verfügbar")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("Alle verfügbaren Shares sind bereits diesem oder anderen Profilen zugeordnet.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(24)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(availableSharesToSelect, id: \.id) { share in
+                            shareSelectionRow(share)
+                        }
                     }
-                    // Remove .environment for editMode
-                    // .environment(\.editMode, .constant(.active)) // Enable multi-select UI
+                    .padding(24)
                 }
             }
-            .navigationTitle("Shares auswählen")
-            /* // Temporarily comment out the toolbar in the sheet to test ambiguity
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") {
-                        dismiss()
-                    }
+            
+            // Bottom buttons
+            Divider()
+            
+            HStack {
+                Button("Abbrechen") {
+                    dismiss()
                 }
-                ToolbarItem(placement: .confirmationAction) { // Use confirmationAction here is fine for the sheet's purpose
-                    Button("Hinzufügen") {
-                        onAddShares(Array(selections))
-                        dismiss()
-                    }
-                    .disabled(selections.isEmpty)
+                .keyboardShortcut(.cancelAction)
+                
+                Spacer()
+                
+                Button("Hinzufügen (\(selectedShareURLs.count))") {
+                    onAddShares(Array(selectedShareURLs))
+                    dismiss()
                 }
+                .buttonStyle(.borderedProminent)
+                .disabled(selectedShareURLs.isEmpty)
+                .keyboardShortcut(.defaultAction)
             }
-            */
+            .padding(20)
         }
-        .frame(width: 400, height: 500) // Adjust size as needed
+        .frame(width: 500, height: 600)
     }
-
-    // Remove toggleSelection helper function
-    /*
-    /// Toggles the selection state for a given share URL.
+    
+    @ViewBuilder
+    private func shareSelectionRow(_ share: Share) -> some View {
+        let isSelected = selectedShareURLs.contains(share.networkShare)
+        
+        HStack(spacing: 12) {
+            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(isSelected ? .blue : .secondary)
+                .font(.title2)
+            
+            Image(systemName: "externaldrive")
+                .foregroundColor(.blue)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(share.shareDisplayName ?? "Unbenannt")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Text(share.networkShare)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(
+            isSelected ? Color.blue.opacity(0.15) : Color(NSColor.controlBackgroundColor)
+        )
+        .cornerRadius(6)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            toggleSelection(for: share.networkShare)
+        }
+    }
+    
     private func toggleSelection(for shareURL: String) {
-        if selections.contains(shareURL) {
-            selections.remove(shareURL)
+        if selectedShareURLs.contains(shareURL) {
+            selectedShareURLs.remove(shareURL)
         } else {
-            selections.insert(shareURL)
+            selectedShareURLs.insert(shareURL)
         }
     }
-    */
 }
 
 // MARK: - Preview
