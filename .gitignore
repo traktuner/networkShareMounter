@@ -72,7 +72,7 @@ Carthage/Build
 *.cer
 *.p12
 *.certSigningRequest
-*.provisioningprofile
+*.provisionprofile
 Package.resolved
 /swiftlint.result
 .vscode
