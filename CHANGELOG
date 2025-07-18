@@ -1,3 +1,7 @@
+# 3.1.8
+### Bugfixes
+* Fixed a race condition during app startup that caused issues with obtaining Kerberos tickets
+
 # 3.1.7
 ### Bugfixes
 * fixed a bug where shares mounted at various levels could result in the removal of directories
