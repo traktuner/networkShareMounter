@@ -25,6 +25,9 @@ class ActivityController {
     /// Reference to AppDelegate for accessing important app components
     private weak var appDelegate: AppDelegate?
     
+    /// Flag to prevent double authentication triggers during app startup
+    private var isInStartupPhase = true
+    
     // MARK: - Initialization
     
     /// Initializes the controller and starts monitoring system events
@@ -33,6 +36,13 @@ class ActivityController {
     init(appDelegate: AppDelegate) {
         self.appDelegate = appDelegate
         startMonitoring()
+        
+        // Reset startup flag after a short delay to allow normal timer operations
+        Task {
+            try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+            isInStartupPhase = false
+            Logger.activityController.debug("✅ Startup phase completed - timer-based auth triggers now enabled")
+        }
     }
     
     // MARK: - Observer Management
@@ -323,7 +333,13 @@ class ActivityController {
     /// Those who run seem to have all the fun
     /// I'm caught up, I don't know what to do
     @objc func timeGoesBySoSlowly() {
-        NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+        // Only trigger auth during timer calls if we're past the startup phase
+        if !isInStartupPhase {
+            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+        } else {
+            Logger.activityController.debug("⏰ Skipping auth trigger during startup phase to prevent double authentication")
+        }
+        
         guard let mounter = appDelegate?.mounter else {
             Logger.activityController.error("Timer processing failed: Mounter not available")
             return

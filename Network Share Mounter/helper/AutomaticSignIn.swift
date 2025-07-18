@@ -87,12 +87,12 @@ actor AutomaticSignIn {
             // Retrieve accounts and determine sign-in strategy
             let accounts = await accountsManager.accounts
             let accountsCount = accounts.count
-            Logger.automaticSignIn.debug("🔍 Retrieved \(accountsCount) accounts")
+            Logger.automaticSignIn.debug("🔍 Retrieved \(accountsCount) accounts: \(accounts.map { $0.upn }, privacy: .public)")
             
-//            if accounts.isEmpty {
-//                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
-//                return
-//            }
+            if accounts.isEmpty {
+                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
+                return
+            }
             
             for (index, account) in accounts.enumerated() {
                 Logger.automaticSignIn.debug("🔍 Processing account \(index+1)/\(accountsCount): \(account.upn, privacy: .public)")
@@ -347,7 +347,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// - Parameters:
     ///   - error: Error type
     ///   - description: Error description
-    func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
+    func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {
         Logger.automaticSignIn.warning("⚠️ [Delegate] Authentication failed for: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         
         // If we're in user info mode (we already have a valid ticket), don't treat server unavailability as auth failure
@@ -391,7 +391,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Called when user information was successfully retrieved
     /// 
     /// - Parameter user: Retrieved user information
-    func dogeADUserInformation(user: ADUserRecord) {
+    func dogeADUserInformation(user: ADUserRecord) async {
         Logger.automaticSignIn.debug("🔍 [Delegate] User information received for: \(user.userPrincipal, privacy: .public)")
         
         // Save user information in PreferenceManager
