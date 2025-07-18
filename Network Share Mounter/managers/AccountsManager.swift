@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import OSLog
 
 /// Protocol defining the methods for updating account information.
 protocol AccountUpdate: AnyObject {
@@ -43,7 +44,47 @@ actor AccountsManager {
         // Load accounts from persistent storage.
         loadAccounts()
         
+        // If no accounts found, try to create them from existing keychain entries
+        if accounts.isEmpty {
+            await createAccountsFromKeychain()
+        }
+        
         isInitialized = true
+    }
+    
+    /// Creates accounts from existing keychain entries when no accounts are found
+    private func createAccountsFromKeychain() async {
+        Logger.accountsManager.debug("No accounts found, attempting to create from keychain entries")
+        
+        let keyUtil = KeychainManager()
+        
+        do {
+            // Try to get all entries from the default service
+            let keychainEntries = try keyUtil.retrieveAllEntries(forService: Defaults.keyChainService)
+            
+            for entry in keychainEntries {
+                let username = entry.username
+                
+                // Create DogeAccount from keychain entry
+                let newAccount = DogeAccount(
+                    displayName: username,
+                    upn: username,
+                    hasKeychainEntry: true
+                )
+                
+                accounts.append(newAccount)
+                Logger.accountsManager.debug("Created account from keychain: \(username, privacy: .public)")
+            }
+            
+            // Save the newly created accounts
+            if !accounts.isEmpty {
+                saveAccounts()
+                Logger.accountsManager.info("Created \(self.accounts.count) accounts from keychain entries")
+            }
+            
+        } catch {
+            Logger.accountsManager.error("Failed to retrieve keychain entries: \(error.localizedDescription)")
+        }
     }
     
     /// Loads accounts from UserDefaults and updates the internal accounts list.

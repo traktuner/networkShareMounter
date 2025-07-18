@@ -413,7 +413,7 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
         }
     }
     
-    func dogeADUserInformation(user: ADUserRecord) {
+    func dogeADUserInformation(user: ADUserRecord) async {
         Logger.authUI.debug("User info received: \(user.userPrincipal, privacy: .public)")
         
         Task { @MainActor in
