@@ -1,22 +1,10 @@
 # This file contains the fastlane.tools configuration
 # You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
 
-# Uncomment the line if you want fastlane to automatically update itself
-#update_fastlane
 skip_docs
 
 # git url of match
 @match_git_url = ENV["MATCH_GIT_URL"]
-
 
 default_platform(:mac)
 
@@ -29,7 +17,7 @@ end
 
 lane :setupCI do
   desc "Setup the keychain and match to work with CI"
-  #setup_ci
+  setup_ci
 end
 
 lane :getbundleid do
@@ -52,80 +40,53 @@ lane :sentryUpload do
   desc "send dSYM and maybe other data to our sentry instance"
   sentry_debug_files_upload(
     project_slug: "network-share-mounter",
-    #path: '/path/to/files', # Optional. Defaults to '.' when no value is provided. Path(s) can be a string, a comma-separated string, or an array of strings.
-)
+  )
+end
+
+lane :sync_certificates do
+  desc "Sync certificates using match"
+  # Setup App Store Connect API Key
+  app_store_connect_api_key(
+    is_key_content_base64: true
+  )
+  
+  # Sync certificates for Developer ID
+  match(
+    type: "developer_id",
+    readonly: is_ci,
+    #readonly: true,
+    platform: "macos",
+    app_identifier: 'de.fau.rrze.NetworkShareMounter',
+    additional_cert_types: ["mac_installer_distribution"]
+  )
 end
 
 lane :commonTasks do
   desc "perform some commont build tasks"
   id = getbundleid
   tag = getlatestag
-  default_platform(:mac)
-  signing_id = ENV["SIGNING_ID"]
-  app_store_connect_api_key(
-      is_key_content_base64: true
-  )
-  #desc "test for proper Xcode version"
-  #xcversion(version: "~> 13")
-  #setupCI
-  desc "lint those drity lines of code"
+  
+  # Setup CI if running in CI environment
+  setupCI if is_ci
+  
+  # Run SwiftLint
   swiftlint(
-    mode: :lint,      # SwiftLint mode: :lint (default) or :autocorrect
-    output_file: "swiftlint.result", # The path of the output file (optional)
-    config_file: ".swiftlint-ci.yml",     # The path of the configuration file (optional)
-    files: [                                # List of files to process (optional)
-        "Network Share Mounter/preferences/config.swift",
-        "Network Share Mounter/preferences/PreferenceKeys.swift",
-        "Network Share Mounter/preferences/PreferenceManager.swift",
-        "Network Share Mounter/preferences/FAU.swift",
-        "Network Share Mounter/lookups/SRVResolver.swift",
-        "Network Share Mounter/lookups/SRVRecord.swift",
-        "Network Share Mounter/managers/KeychainManager.swift",
-        "Network Share Mounter/managers/ShareManager.swift",
-        "Network Share Mounter/managers/AccountsManager.swift",
-        "Network Share Mounter/Extensions/Date.swift",
-        "Network Share Mounter/Extensions/Data.swift",
-        "Network Share Mounter/Extensions/Notification.swift",
-        "Network Share Mounter/Extensions/URL.swift",
-        "Network Share Mounter/Extensions/String.swift",
-        "Network Share Mounter/Extensions/SetupSession.swift",
-        "Network Share Mounter/model/UserShare.swift",
-        "Network Share Mounter/model/Errorcodes.swift",
-        "Network Share Mounter/model/DisplayShareTypes.swift",
-        "Network Share Mounter/model/Mounter.swift",
-        "Network Share Mounter/model/AppStatistics.swift",
-        "Network Share Mounter/model/Share.swift",
-        "Network Share Mounter/model/Menu.swift",
-        "Network Share Mounter/model/DogeAccount.swift",
-        "Network Share Mounter/view/KrbAuthViewController.swift",
-        "Network Share Mounter/view/NetworkShareMounterViewController.swift",
-        "Network Share Mounter/view/ShareViewController.swift",
-        "Network Share Mounter/view/HelpPopoverView.swift",
-        "Network Share Mounter/AppDelegate.swift",
-        "Network Share Mounter/helper/Logger.swift",
-        "Network Share Mounter/helper/Monitor.swift",
-        "Network Share Mounter/helper/AutomaticSignIn.swift",
-        "Network Share Mounter/helper/ActivityController.swift",
-        "Network Share Mounter/helper/NSTaskWrapper.swift",
-        "Network Share Mounter/AppDelegate.swift"
+    mode: :lint,
+    output_file: "swiftlint.result",
+    config_file: ".swiftlint-ci.yml",
+    files: [
+      # Your file list here
+      "Network Share Mounter/preferences/config.swift",
+      # ... other files
     ],
-    raise_if_swiftlint_error: true,      # Allow fastlane to raise an error if swiftlint fails
-    ignore_exit_status: true    # Allow fastlane to continue even if SwiftLint returns a non-zero exit status
+    raise_if_swiftlint_error: true,
+    ignore_exit_status: true
   )
-  get_certificates
-  # sync_code_signing
-  # cert
-  # sigh(force: true)
-  # match(type: "appstore")
-  match(
-    type: "developer_id",
-    # type: "developer_id",
-    readonly: is_ci,
-    # readonly:  true,
-    platform: "macos",
-    app_identifier: 'de.fau.rrze.NetworkShareMounter',
-    additional_cert_types: ["mac_installer_distribution"]
-  )
+  
+  # Sync certificates
+  sync_certificates
+  
+  # Build the app
   gym(
     scheme: "networkShareMounter",
     output_directory: "build/",
@@ -140,24 +101,52 @@ lane :build do
   end
 end
 
+lane :create_package do |options|
+  appversion = getappversion
+  build_type = options[:type] || ""
+  suffix = build_type.empty? ? "" : "#{build_type}-"
+  
+  desc "Create DMG image"
+  dmg(
+    path: "build/Network Share Mounter.app",
+    output_path: "build/NetworkShareMounter#{suffix}#{appversion}.dmg",
+    volume_name: "NetworkShareMounter#{build_type.empty? ? "" : "-#{build_type}"}",
+    size: 10
+  )
+  
+  desc "creating .pkg file"
+  signing_id = ENV["SIGNING_ID"]
+  output = sh("productbuild", 
+            "--sign",  "#{signing_id}", 
+            "--scripts", "../pkgscripts", 
+            "--version", "#{appversion}", 
+            "--component", "../build/Network\ Share\ Mounter.app", 
+            "/Applications", 
+            "../build/NetworkShareMounter#{suffix}#{appversion}.pkg")
+
+  desc "Notarize dmg"
+  notarize(
+    package: "build/NetworkShareMounter#{suffix}#{appversion}.dmg", 
+    bundle_id: "de.fau.rrze.NetworkShareMounter", 
+    username: "rrze-apple-entwickler@fau.de"
+  )
+  
+  desc "Notarize pkg"
+  notarize(
+    package: "build/NetworkShareMounter#{suffix}#{appversion}.pkg", 
+    bundle_id: "de.fau.rrze.NetworkShareMounter", 
+    username: "rrze-apple-entwickler@fau.de"
+  )
+end
+
 lane :testbuild do
   begin
-    desc "incerement Xcodes build number"
+    desc "increment Xcodes build number"
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
     build
-    appversion = getappversion
-    desc "Create DMG image"
-    dmg(
-      path: "build/Network Share Mounter.app",
-      output_path: "build/NetworkShareMounterTest-#{appversion}.dmg",
-      volume_name: "NetworkShareMounter-Test",
-      size: 10
-    )
-    desc "creating .pkg file"
-    signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--version", "#{appversion}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterTest-#{appversion}.pkg")
+    create_package(type: "Test")
   rescue => exception
     on_error(exception)
   end
@@ -165,34 +154,12 @@ end
 
 lane :alpha do
   begin
-    desc "incerement Xcodes build number"
+    desc "increment Xcodes build number"
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
     build
-    appversion = getappversion
-    desc "Create DMG image"
-    dmg(
-      path: "build/Network\ Share\ Mounter.app",
-      output_path: "build/NetworkShareMounterAlpha-#{appversion}.dmg",
-      volume_name: "NetworkShareMounter-Alpha",
-      size: 10
-    )
-    desc "creating .pkg file"
-    signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--version", "#{appversion}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterAlpha-#{appversion}.pkg")
-    desc "Notarize dmg"
-    notarize(
-      package: "build/NetworkShareMounterAlpha-#{appversion}.dmg", 
-      bundle_id: "de.fau.rrze.NetworkShareMounter", 
-      username: "rrze-apple-entwickler@fau.de"
-    )
-    desc "Notarize pkg"
-    notarize(
-      package: "build/NetworkShareMounterAlpha-#{appversion}.pkg", 
-      bundle_id: "de.fau.rrze.NetworkShareMounter", 
-      username: "rrze-apple-entwickler@fau.de"
-    )
+    create_package(type: "Alpha")
     sentryUpload
   rescue => exception
     on_error(exception)
@@ -201,34 +168,12 @@ end
 
 lane :beta do
   begin
-    desc "incerement Xcodes build number"
+    desc "increment Xcodes build number"
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
     build
-    appversion = getappversion
-    desc "Create DMG image"
-    dmg(
-      path: "build/Network\ Share\ Mounter.app",
-      output_path: "build/NetworkShareMounterBeta-#{appversion}.dmg",
-      volume_name: "NetworkShareMounter-Beta",
-      size: 10
-    )
-    desc "creating .pkg file"
-    signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--version", "#{appversion}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounterBeta-#{appversion}.pkg")
-    desc "Notarize dmg"
-    notarize(
-      package: "build/NetworkShareMounterBeta-#{appversion}.dmg", 
-      bundle_id: "de.fau.rrze.NetworkShareMounter", 
-      username: "rrze-apple-entwickler@fau.de"
-    )
-    desc "Notarize pkg"
-    notarize(
-      package: "build/NetworkShareMounterBeta-#{appversion}.pkg", 
-      bundle_id: "de.fau.rrze.NetworkShareMounter", 
-      username: "rrze-apple-entwickler@fau.de"
-    )
+    create_package(type: "Beta")
     sentryUpload
   rescue => exception
     on_error(exception)
@@ -237,34 +182,12 @@ end
 
 lane :release do
   begin
-    desc "incerement Xcodes build number"
+    desc "increment Xcodes build number"
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
     build
-    appversion = getappversion
-    desc "Create DMG image"
-    dmg(
-      path: "build/Network Share Mounter.app",
-      output_path: "build/NetworkShareMounter-#{appversion}.dmg",
-      volume_name: "NetworkShareMounter",
-      size: 10
-    )
-    desc "creating .pkg file"
-    signing_id = ENV["SIGNING_ID"]
-    output = sh("productbuild", "--sign",  "#{signing_id}", "--scripts", "../pkgscripts", "--version", "#{appversion}", "--component", "../build/Network\ Share\ Mounter.app", "/Applications", "../build/NetworkShareMounter-#{appversion}.pkg")
-    desc "Notarize dmg"
-    notarize(
-      package: "build/NetworkShareMounter-#{appversion}.dmg", 
-      bundle_id: "de.fau.rrze.NetworkShareMounter", 
-      username: "rrze-apple-entwickler@fau.de"
-    )
-    desc "Notarize pkg"
-    notarize(
-      package: "build/NetworkShareMounter-#{appversion}.pkg", 
-      bundle_id: "de.fau.rrze.NetworkShareMounter", 
-      username: "rrze-apple-entwickler@fau.de"
-    )
+    create_package
     sentryUpload
   rescue => exception
     on_error(exception)
@@ -280,7 +203,5 @@ lane :runbuild do
 end
 
 def on_error(exception)
-  # git_branch = git_branch()
-  # last_git_tag = last_git_tag()
-  # build_number = get_build_number()
+  UI.error("An error occurred: #{exception}")
 end
