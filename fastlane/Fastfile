@@ -109,7 +109,7 @@ lane :create_package do |options|
   desc "Create DMG image"
   dmg(
     path: "build/Network Share Mounter.app",
-    output_path: "build/NetworkShareMounter#{suffix}#{appversion}.dmg",
+    output_path: "build/NetworkShareMounter-#{suffix}#{appversion}.dmg",
     volume_name: "NetworkShareMounter#{build_type.empty? ? "" : "-#{build_type}"}",
     size: 10
   )
@@ -122,18 +122,18 @@ lane :create_package do |options|
             "--version", "#{appversion}", 
             "--component", "../build/Network\ Share\ Mounter.app", 
             "/Applications", 
-            "../build/NetworkShareMounter#{suffix}#{appversion}.pkg")
+            "../build/NetworkShareMounter-#{suffix}#{appversion}.pkg")
 
   desc "Notarize dmg"
   notarize(
-    package: "build/NetworkShareMounter#{suffix}#{appversion}.dmg", 
+    package: "build/NetworkShareMounter-#{suffix}#{appversion}.dmg", 
     bundle_id: "de.fau.rrze.NetworkShareMounter", 
     username: "rrze-apple-entwickler@fau.de"
   )
   
   desc "Notarize pkg"
   notarize(
-    package: "build/NetworkShareMounter#{suffix}#{appversion}.pkg", 
+    package: "build/NetworkShareMounter-#{suffix}#{appversion}.pkg", 
     bundle_id: "de.fau.rrze.NetworkShareMounter", 
     username: "rrze-apple-entwickler@fau.de"
   )
