@@ -70,10 +70,14 @@ Carthage/Build
 #
 #
 *.cer
+*.p12
+*.certSigningRequest
+*.provisionprofile
 Package.resolved
 /swiftlint.result
 .vscode
 .cursor
+.cursorrules
 .swp
 .idea
 .env
