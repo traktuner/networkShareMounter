@@ -201,7 +201,7 @@ struct GeneralSettingsView: View {
                  prefs.set(for: .autostart, value: newValue)
              } else {
                  // Revert UI if change is disallowed by MDM.
-                 DispatchQueue.main.async { startAtLogin = prefs.bool(for: .autostart) }
+                 Task { @MainActor in startAtLogin = prefs.bool(for: .autostart) }
              }
         }
         .onChange(of: sendDiagnosticData) { newValue in
@@ -222,7 +222,7 @@ struct GeneralSettingsView: View {
                 }
             } else {
                  // Revert UI if change is disallowed by MDM.
-                 DispatchQueue.main.async { 
+                 Task { @MainActor in 
                      automaticallyChecksForUpdates = prefs.bool(for: .SUEnableAutomaticChecks)
                  }
             }
@@ -233,7 +233,7 @@ struct GeneralSettingsView: View {
                  prefs.set(for: .SUAutomaticallyUpdate, value: newValue)
             } else {
                  // Revert UI if change is disallowed by MDM or checks are disabled.
-                 DispatchQueue.main.async { 
+                 Task { @MainActor in 
                      automaticallyDownloadsUpdates = prefs.bool(for: .SUAutomaticallyUpdate)
                  }
             }

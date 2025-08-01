@@ -343,7 +343,8 @@ struct AuthenticationView: View {
                     }
                     
                     // Clear success status after 3 seconds
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(3))
                         ticketRefreshStatus[profile.id] = .idle
                     }
                     return
@@ -378,7 +379,8 @@ struct AuthenticationView: View {
                             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
                             
                             // Clear success status after 3 seconds
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(3))
                                 ticketRefreshStatus[profile.id] = .idle
                             }
                         } else {
@@ -389,7 +391,8 @@ struct AuthenticationView: View {
                             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
                             
                             // Clear error status after 5 seconds
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(5))
                                 ticketRefreshStatus[profile.id] = .idle
                             }
                         }
@@ -409,7 +412,8 @@ struct AuthenticationView: View {
                     NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
                     
                     // Clear error status after 5 seconds
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(5))
                         ticketRefreshStatus[profile.id] = .idle
                     }
                 }

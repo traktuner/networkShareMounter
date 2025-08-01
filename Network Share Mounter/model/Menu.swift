@@ -16,7 +16,7 @@ enum MenuImageName: String {
     
     var imageName: String {
         #if DEBUG
-        // Im Debug-Modus einen Suffix oder Präfix anhängen
+        // In debug-mode append suffix
         return self.rawValue + "Debug"
         #else
         return self.rawValue
