@@ -132,10 +132,7 @@ class Mounter: ObservableObject {
     /// - Attempts to add the user's home directory (if in AD/Kerberos environment)
     func asyncInit() async {
         // Determine whether to use localized folder names based on preference
-        // FIXME: temporary removed feature, the following line is the final one :-D
-        //                                                              g.
-//        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: false) {
-        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: true) {
+        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: false) {
             // Use language-specific folder name if preference is enabled
             self.localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
             Logger.mounter.debug("Using localized folder name: \(self.localizedFolder, privacy: .public)")
@@ -162,31 +159,6 @@ class Mounter: ObservableObject {
         
         // Initialize the shareArray containing MDM and user defined shares
         await shareManager.createShareArray()
-        
-        // Try to get SMBHomeDirectory (only possible in AD/Kerberos environments)
-        // and add the home-share to `shares`
-        await Task.detached(priority: .background) {
-            do {
-                let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-                // swiftlint:disable force_cast
-                let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
-                                        matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
-                                        maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
-                // swiftlint:enable force_cast
-                if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
-                    var homeDirectory = result[0]
-                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
-                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                    let newShare = Share.createShare(networkShare: homeDirectory,
-                                                     authType: AuthType.krb,
-                                                     mountStatus: MountStatus.unmounted,
-                                                     managed: true)
-                    await self.addShare(newShare)
-                }
-            } catch {
-                Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
-            }
-        }.value
     }
     
     /// Adds a share to the list of managed shares
