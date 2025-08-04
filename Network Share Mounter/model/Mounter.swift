@@ -159,31 +159,6 @@ class Mounter: ObservableObject {
         
         // Initialize the shareArray containing MDM and user defined shares
         await shareManager.createShareArray()
-        
-        // Try to get SMBHomeDirectory (only possible in AD/Kerberos environments)
-        // and add the home-share to `shares`
-        await Task.detached(priority: .background) {
-            do {
-                let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-                // swiftlint:disable force_cast
-                let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
-                                        matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
-                                        maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
-                // swiftlint:enable force_cast
-                if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
-                    var homeDirectory = result[0]
-                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
-                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                    let newShare = Share.createShare(networkShare: homeDirectory,
-                                                     authType: AuthType.krb,
-                                                     mountStatus: MountStatus.unmounted,
-                                                     managed: true)
-                    await self.addShare(newShare)
-                }
-            } catch {
-                Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
-            }
-        }.value
     }
     
     /// Adds a share to the list of managed shares

@@ -203,6 +203,9 @@ class ActivityController {
         
         let wakeupTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Wake-up operation - Starting mount process")
+            // Update SMBHome from AD/OpenDirectory on network/domain changes
+            await mounter.shareManager.updateSMBHome()
+            
             await mounter.mountGivenShares()
             Logger.activityController.debug("🐛 Restarting Finder to bypass a presumed bug in macOS")
             
@@ -232,6 +235,8 @@ class ActivityController {
         Logger.activityController.debug("▶︎ mountGivenShares called by \(notificationName, privacy: .public)")
         
         let mountTask = Task { @MainActor in
+            // Update SMBHome from AD/OpenDirectory on network/domain changes
+            await mounter.shareManager.updateSMBHome()
             Logger.activityController.debug("🔄 Mounting shares - Starting operation on main actor")
             await mounter.mountGivenShares()
             Logger.activityController.debug("✅ All shares successfully mounted - Operation completed")
@@ -293,6 +298,10 @@ class ActivityController {
         
         let userMountTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Manual mount operation - Starting mount process")
+            
+            // Update SMBHome from AD/OpenDirectory on network/domain changes
+            await mounter.shareManager.updateSMBHome()
+            
             await mounter.mountGivenShares(userTriggered: true)
             Logger.activityController.debug("✅ Shares successfully mounted after user request - Operation completed")
         }
@@ -351,6 +360,8 @@ class ActivityController {
         let timerTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Timer-triggered mount operation - Updating share array")
             await mounter.shareManager.updateShareArray()
+            Logger.activityController.debug("🔄 Timer-triggered mount operation - checking for SMBhome shares")
+            await mounter.shareManager.updateSMBHome()
             Logger.activityController.debug("▶︎ ...calling mountGivenShares")
             await mounter.mountGivenShares()
             Logger.activityController.debug("✅ Timer processing completed successfully")

@@ -8,6 +8,7 @@
 
 import Foundation
 import OSLog
+import OpenDirectory
 
 enum ShareError: Error {
     case invalidIndex(Int)
@@ -484,5 +485,42 @@ actor ShareManager {
     private func removeLegacyShareConfigs() {
         userDefaults.removeObject(forKey: Defaults.customSharesKey)
         // synchronize() is deprecated and unnecessary
+    }
+    
+    /// Updates SMBHome share from Active Directory/OpenDirectory
+    ///
+    /// This method queries the current user's SMBHome attribute from AD/OD
+    /// and adds it as a managed share if available. This is called dynamically
+    /// when network changes occur to handle domain switches.
+    func updateSMBHome() async {
+        Logger.shareManager.debug("🏠 Checking for SMBHome attribute in AD/OpenDirectory")
+        
+        await Task.detached(priority: .background) {
+            do {
+                let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
+                // swiftlint:disable force_cast
+                let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
+                                        matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
+                                        maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+                // swiftlint:enable force_cast
+                if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
+                    var homeDirectory = result[0]
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
+                    Logger.shareManager.info("🏠 Found SMBHome: \(homeDirectory, privacy: .public)")
+                    
+                    let newShare = Share.createShare(networkShare: homeDirectory,
+                                                     authType: AuthType.krb,
+                                                     mountStatus: MountStatus.unmounted,
+                                                     managed: true)
+                    await self.addShare(newShare)
+                    Logger.shareManager.debug("✅ SMBHome share added successfully")
+                } else {
+                    Logger.shareManager.debug("ℹ️ No SMBHome attribute found for current user")
+                }
+            } catch {
+                Logger.shareManager.info("⚠️ Couldn't query SMBHome from AD/OpenDirectory: \(error.localizedDescription)")
+            }
+        }.value
     }
 }
