@@ -1,3 +1,7 @@
+# 3.1.9
+### Bugfixes
+* Ignore spaces at the beginning and end of shares in profiles (#223)
+
 # 3.1.8
 ### Bugfixes
 * Fixed a race condition during app startup that caused issues with obtaining Kerberos tickets

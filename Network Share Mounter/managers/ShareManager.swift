@@ -151,7 +151,7 @@ actor ShareManager {
     /// - Note: Handles username resolution, password retrieval from keychain, and share URL expansion
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
         // Extract network share URL, return nil if not found
-        guard let shareUrlString = shareElement[Defaults.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare]?.trim() else {
             Logger.shareManager.error("❌ MDM Config: Missing 'networkShare' key in share element: \(shareElement, privacy: .public)")
             return nil
         }
@@ -175,7 +175,7 @@ actor ShareManager {
             // Hinzugefügtes Logging:
             Logger.shareManager.debug("📝 Setting username via usernameOverride and PreferenceManager: \(username, privacy: .public)")
             userName = username
-        } else if let username = shareElement[Defaults.username] {
+        } else if let username = shareElement[Defaults.username]?.trim() {
             Logger.shareManager.debug("📝 Setting username via usernameOverride and shareElement: \(username, privacy: .public)")
             userName = username
         } else {
@@ -187,7 +187,7 @@ actor ShareManager {
         let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
         
         // Configure authentication type, defaulting to Kerberos if not specified
-        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
         var password: String?
         var mountStatus = MountStatus.unmounted
         
@@ -216,7 +216,7 @@ actor ShareManager {
                                          mountStatus: mountStatus,
                                          username: userName,
                                          password: password,
-                                         mountPoint: shareElement[Defaults.mountPoint],
+                                         mountPoint: shareElement[Defaults.mountPoint]?.trim(),
                                          managed: true)
         return(newShare)
     }
@@ -237,13 +237,13 @@ actor ShareManager {
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
     /// - Returns: optional `Share?` element
     func getUserShareConfigs(forShare shareElement: [String: String]) -> Share? {
-        guard let shareUrlString = shareElement[Defaults.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare]?.trim() else {
             return nil
         }
         var password: String?
         var mountStatus = MountStatus.unmounted
         
-        if let username = shareElement[Defaults.username] {
+        if let username = shareElement[Defaults.username]?.trim() {
             guard let url = URL(string: shareUrlString) else {
                 Logger.shareManager.error("🛑 Invalid share URL: \(shareUrlString, privacy: .public)")
                 return nil
@@ -260,14 +260,14 @@ actor ShareManager {
             }
         }
         
-        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        let mountPoint = shareElement[Defaults.mountPoint]
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let mountPoint = shareElement[Defaults.mountPoint]?.trim()
 
         let newShare = Share.createShare(
             networkShare: shareUrlString,
             authType: shareAuthType,
             mountStatus: mountStatus,
-            username: shareElement[Defaults.username],
+            username: shareElement[Defaults.username]?.trim(),
             password: password,
             mountPoint: mountPoint,
             managed: false
