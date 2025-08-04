@@ -74,6 +74,7 @@ Package.resolved
 /swiftlint.result
 .vscode
 .cursor
+.cursorrules
 .swp
 .idea
 .env
