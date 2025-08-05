@@ -207,10 +207,11 @@ class ActivityController {
             await mounter.shareManager.updateSMBHome()
             
             await mounter.mountGivenShares()
-            Logger.activityController.debug("🐛 Restarting Finder to bypass a presumed bug in macOS")
+            Logger.activityController.debug("🔄 Refreshing Finder view to ensure mounted shares are visible")
             
             let finderController = FinderController()
-            await finderController.restartFinder()
+            let mountPaths = await finderController.getActualMountPaths(from: mounter)
+            await finderController.refreshFinder(forPaths: mountPaths)
             Logger.activityController.debug("✅ Wake-up operation completed")
         }
         

@@ -41,4 +41,58 @@ extension FileManager {
         }
         return false
     }
+    
+    /// Checks if a given directory is within a mounted filesystem (but not necessarily a mount point itself)
+    /// 
+    /// This method protects against accidental deletion of subdirectories within mounted shares
+    /// by checking if any parent directory is a mount point. This prevents data loss when cleanup 
+    /// operations run on subdirectories of mounted SMB shares.
+    ///
+    /// - Parameter atPath: The directory path to check
+    /// - Returns: `true` if any parent directory is a mount point, `false` if not
+    func isDirectoryWithinFilesystemMount(atPath: String) -> Bool {
+        var currentPath = URL(fileURLWithPath: atPath).deletingLastPathComponent().path
+        
+        // Iterate from parent path up to root directory (skip the target directory itself)
+        while currentPath != "/" && !currentPath.isEmpty {
+            do {
+                let systemAttributes = try attributesOfItem(atPath: currentPath)
+                if let fileSystemFileNumber = systemAttributes[.systemFileNumber] as? NSNumber {
+                    // Filesystem mount points have systemFileNumber 2
+                    if fileSystemFileNumber == FileManager.filesystemMountNumber {
+                        Logger.mounter.debug("🛡️ Mount protection: \(atPath, privacy: .public) is within mounted filesystem at \(currentPath, privacy: .public)")
+                        return true
+                    }
+                }
+            } catch {
+                Logger.mounter.debug("Error checking mount status for \(currentPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                // Continue checking parent directories even if current fails
+            }
+            
+            // Move up one directory level
+            let parentURL = URL(fileURLWithPath: currentPath).deletingLastPathComponent()
+            let parentPath = parentURL.path
+            
+            // Prevent infinite loop if path doesn't change
+            if parentPath == currentPath {
+                break
+            }
+            currentPath = parentPath
+        }
+        
+        Logger.mounter.debug("🔍 Mount check: \(atPath, privacy: .public) is not within any mounted filesystem")
+        return false
+    }
+    
+    /// Comprehensive mount protection check for cleanup operations
+    /// 
+    /// This method combines both checks: it returns true if the directory is either
+    /// a mount point itself OR within a mounted filesystem. Use this for cleanup
+    /// operations where you want maximum protection.
+    ///
+    /// - Parameter atPath: The directory path to check
+    /// - Returns: `true` if directory should be protected from deletion, `false` if safe to delete
+    func shouldProtectFromDeletion(atPath: String) -> Bool {
+        return isDirectoryFilesystemMount(atPath: atPath) || isDirectoryWithinFilesystemMount(atPath: atPath)
+    }
 }
