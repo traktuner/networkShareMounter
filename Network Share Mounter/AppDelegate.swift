@@ -172,6 +172,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 options.tracesSampleRate = 0.1
                 // When enabled, the SDK reports SIGTERM signals to Sentry.
                 //options.enableSigtermReporting = true
+//                options.configureProfiling = {
+//                    $0.lifecycle = .trace
+//                    $0.sessionSampleRate = 1
+//                }
             }
             // Manually call startProfiler and stopProfiler
             // to profile the code in between
@@ -608,7 +612,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if let mounter = mounter {
                     await mounter.mountGivenShares(userTriggered: true, forShare: shareID)
                     let finderController = FinderController()
-                    await finderController.restartFinder()
+                    let mountPaths = await finderController.getActualMountPaths(from: mounter)
+                    await finderController.refreshFinder(forPaths: mountPaths)
                 } else {
                     Logger.app.error("Could not initialize mounter class, this should never happen.")
                 }
