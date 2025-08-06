@@ -360,7 +360,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         }
         
         switch error {
-        case .AuthenticationFailure, .PasswordExpired, .KerbError:
+        case .AuthenticationFailure, .PasswordExpired, .KerbError, .unknownPrincipal, .wrongRealm:
             Logger.automaticSignIn.debug("🔍 [Delegate] Handling authentication failure or expired password")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
@@ -378,7 +378,12 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.info("🔍 [Delegate] Outside the Kerberos Realm network")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbOffDomain notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
-            
+    
+        case .SiteError, .StateError, .UnAuthenticated:
+            Logger.automaticSignIn.debug("🔍 [Delegate] Handling network/reachability error")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbUnreachable notification")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbUnreachable": MounterError.offDomain])
+
         default:
             Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error in auth mode: \(error, privacy: .public)")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification for unhandled error")
