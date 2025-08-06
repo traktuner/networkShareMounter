@@ -132,7 +132,7 @@ class Mounter: ObservableObject {
     /// - Attempts to add the user's home directory (if in AD/Kerberos environment)
     func asyncInit() async {
         // Determine whether to use localized folder names based on preference
-        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: false) {
+        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: true) {
             // Use language-specific folder name if preference is enabled
             self.localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
             Logger.mounter.debug("Using localized folder name: \(self.localizedFolder, privacy: .public)")

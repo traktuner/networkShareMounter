@@ -208,7 +208,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
     
-    @IBOutlet weak var sendDiagnosticsRadioButton: NSButton!
+    @IBOutlet weak var sendDiagnosticsCheckbox: NSButton!
     
     @IBOutlet weak var tableView: NSTableView!
     

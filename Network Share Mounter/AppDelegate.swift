@@ -300,7 +300,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let principals = await klist.klist()
                 if !principals.isEmpty {
                     Logger.app.info("Found existing Kerberos tickets, updating menu icon.")
-                    DispatchQueue.main.async {
+                    Task { @MainActor in
                         if let button = self.statusItem.button {
                             button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
                         }
@@ -431,14 +431,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
                 
                 Logger.app.debug("🔔 [DEBUG] No mounted shares - proceeding with Kerberos error handling")
-                DispatchQueue.main.async {
-                    if let button = self.statusItem.button, self.enableKerberos {
-                        button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
-                        Task { @MainActor in
-                            self.mounter?.setErrorStatus(.krbAuthenticationError)
-                            await self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
-                        }
-                    }
+                if let button = statusItem.button, enableKerberos {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
+                    mounter?.setErrorStatus(.krbAuthenticationError)
+                    await constructMenu(withMounter: mounter, andStatus: .krbAuthenticationError)
                 }
             }
         }
@@ -466,52 +462,57 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Handle error clearance
         else if notification.userInfo?["ClearError"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing ClearError path")
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 // Change the color of the menu symbol to default
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
-                    Task { @MainActor in
-                        self.mounter?.setErrorStatus(.noError)
-                        await self.constructMenu(withMounter: self.mounter)
-                    }
+                    self.mounter?.setErrorStatus(.noError)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
         // Handle successful Kerberos authentication
         else if notification.userInfo?["krbAuthenticated"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing krbAuthenticated path")
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
-                    Task { @MainActor in
-                        self.mounter?.setErrorStatus(.noError)
-                        await self.constructMenu(withMounter: self.mounter)
-                    }
+                    self.mounter?.setErrorStatus(.noError)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
         // Handle general failure
         else if notification.userInfo?["FailError"] is Error {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
-                    Task { @MainActor in
-                        self.mounter?.setErrorStatus(.otherError)
-                        await self.constructMenu(withMounter: self.mounter)
-                    }
+                    self.mounter?.setErrorStatus(.otherError)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
         // Handle Kerberos off-domain status
         else if notification.userInfo?["krbOffDomain"] is Error {
-            DispatchQueue.main.async {
+            Logger.app.debug("🔔 [DEBUG] Processing krbOffDomain path")
+            Task { @MainActor in
                 // Change the color of the menu symbol to default when off domain
-                if let button = self.statusItem.button, self.enableKerberos {
+                if let button = statusItem.button, enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
-                    Task { @MainActor in
-                        self.mounter?.setErrorStatus(.offDomain)
-                        await self.constructMenu(withMounter: self.mounter)
-                    }
+                    mounter?.setErrorStatus(.offDomain)
+                    await constructMenu(withMounter: mounter)
+                }
+            }
+        }
+        
+        // Handle Kerberos unreachable (KDC/Network issues)
+        else if notification.userInfo?["krbUnreachable"] is Error {
+            Logger.app.debug("🔔 [DEBUG] Processing krbUnreachable path")
+            Task { @MainActor in
+                if let button = statusItem.button, enableKerberos {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounter")) // Farblos
+                    mounter?.setErrorStatus(.offDomain)
+                    await constructMenu(withMounter: mounter)
                 }
             }
         }
