@@ -12,6 +12,7 @@ import OSLog
 
 actor FinderController {
     private var isRestarting = false
+    private var isGentlyRefreshing = false
     
     /// Refresh Finder view with different strategies for mount vs unmount operations
     ///
@@ -24,9 +25,9 @@ actor FinderController {
     ///   - forceRestart: If true, skips native methods and goes straight to killall Finder
     ///   - isUnmountOperation: If true, indicates this refresh is for an unmount operation (uses killall)
     func refreshFinder(forPaths mountPaths: [String]? = nil, forceRestart: Bool = false, isUnmountOperation: Bool = false) async {
-        guard !isRestarting else { 
+        guard !isRestarting else {
             Logger.finderController.debug("⏸️ Finder restart in progress, skipping refresh")
-            return 
+            return
         }
         
         if forceRestart || isUnmountOperation {
@@ -199,29 +200,41 @@ actor FinderController {
         return finalPaths
     }
     
-    /// Gentle Finder restart alternative (middle ground approach)
+    /// Gentle Finder refresh alternative (middle ground approach)
     ///
     /// This method tries a gentler approach than killall by:
     /// 1. Hiding and showing Finder
     /// 2. Forcing window refresh
     func gentleFinderRefresh() async {
+        guard !isGentlyRefreshing else {
+            Logger.finderController.debug("⏸️ Gentle Finder refresh already in progress, skipping")
+            return
+        }
+        isGentlyRefreshing = true
+        defer { isGentlyRefreshing = false }
+        
         Logger.finderController.info("🔄 Attempting gentle Finder refresh")
         
         await MainActor.run {
+            guard let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first else {
+                Logger.finderController.debug("ℹ️ Finder not running, skipping gentle refresh")
+                return
+            }
+            finder.hide()
+        }
+        
+        // Keep timing predictable and avoid DispatchQueue.main.asyncAfter
+        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2s
+        
+        await MainActor.run {
             if let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first {
-                // Method 1: Hide and show Finder (forces refresh)
-                finder.hide()
-                
-                // Small delay and then unhide + activate
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    finder.unhide()
-                    finder.activate(options: [.activateIgnoringOtherApps])
-                }
+                finder.unhide()
+                finder.activate(options: [.activateIgnoringOtherApps])
             }
         }
         
-        // Wait for the hide/unhide cycle to complete
-        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+        // Small additional delay to allow windows to redraw
+        try? await Task.sleep(nanoseconds: 150_000_000) // 0.15s
         
         Logger.finderController.info("✅ Gentle Finder refresh completed")
     }
