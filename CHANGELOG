@@ -1,3 +1,7 @@
+# 3.1.10
+### Bugfixes
+* Resolved "App hanging" reported by sentry (#232)
+
 # 3.1.9
 ### Bugfixes
 * Ignore spaces at the beginning and end of shares in profiles (#223)
