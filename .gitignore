@@ -78,6 +78,7 @@ Package.resolved
 .vscode
 .cursor
 .cursorrules
+CLAUDE.md
 .swp
 .idea
 .env

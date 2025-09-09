@@ -104,12 +104,8 @@ actor AutomaticSignIn {
                     let worker = AutomaticSignInWorker(account: account)
                     Logger.automaticSignIn.debug("🔍 Worker created, calling checkUser")
                     
-                    do {
-                        await worker.checkUser()
-                        Logger.automaticSignIn.debug("🔍 checkUser completed for: \(account.upn, privacy: .public)")
-                    } catch {
-                        Logger.automaticSignIn.error("❌ Error in checkUser for account \(account.upn, privacy: .public): \(error.localizedDescription)")
-                    }
+                    await worker.checkUser()
+                    Logger.automaticSignIn.debug("🔍 checkUser completed for: \(account.upn, privacy: .public)")
                 } else {
                     Logger.automaticSignIn.debug("🔍 Skipping account due to single user mode: \(account.upn, privacy: .public)")
                 }

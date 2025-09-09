@@ -200,45 +200,6 @@ actor FinderController {
         return finalPaths
     }
     
-    /// Gentle Finder refresh alternative (middle ground approach)
-    ///
-    /// This method tries a gentler approach than killall by:
-    /// 1. Hiding and showing Finder
-    /// 2. Forcing window refresh
-    func gentleFinderRefresh() async {
-        guard !isGentlyRefreshing else {
-            Logger.finderController.debug("⏸️ Gentle Finder refresh already in progress, skipping")
-            return
-        }
-        isGentlyRefreshing = true
-        defer { isGentlyRefreshing = false }
-        
-        Logger.finderController.info("🔄 Attempting gentle Finder refresh")
-        
-        await MainActor.run {
-            guard let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first else {
-                Logger.finderController.debug("ℹ️ Finder not running, skipping gentle refresh")
-                return
-            }
-            finder.hide()
-        }
-        
-        // Keep timing predictable and avoid DispatchQueue.main.asyncAfter
-        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2s
-        
-        await MainActor.run {
-            if let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first {
-                finder.unhide()
-                finder.activate(options: [.activateIgnoringOtherApps])
-            }
-        }
-        
-        // Small additional delay to allow windows to redraw
-        try? await Task.sleep(nanoseconds: 150_000_000) // 0.15s
-        
-        Logger.finderController.info("✅ Gentle Finder refresh completed")
-    }
-    
     /// Nuclear option: Force Finder restart (the reliable approach)
     ///
     /// This is the killall Finder approach - proven to work when native methods fail
