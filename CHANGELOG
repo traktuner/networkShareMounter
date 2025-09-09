@@ -1,3 +1,7 @@
+# 3.1.11
+### Improvements
+* Some minor improvements in responsiveness
+
 # 3.1.10
 ### Bugfixes
 * Resolved "App hanging" reported by sentry (#232)
