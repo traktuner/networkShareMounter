@@ -132,10 +132,7 @@ class Mounter: ObservableObject {
     /// - Attempts to add the user's home directory (if in AD/Kerberos environment)
     func asyncInit() async {
         // Determine whether to use localized folder names based on preference
-        // FIXME: temporary removed feature, the following line is the final one :-D
-        //                                                              g.
-        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: false) {
-//        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: true) {
+        if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: true) {
             // Use language-specific folder name if preference is enabled
             self.localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
             Logger.mounter.debug("Using localized folder name: \(self.localizedFolder, privacy: .public)")
@@ -162,32 +159,6 @@ class Mounter: ObservableObject {
         
         // Initialize the shareArray containing MDM and user defined shares
         await shareManager.createShareArray()
-        
-        // Try to get SMBHomeDirectory (only possible in AD/Kerberos environments)
-        // and add the home-share to `shares`
-        await Task.detached(priority: .background) {
-            do {
-                let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
-                // swiftlint:disable force_cast
-                let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
-                                        matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
-                                        maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
-                // swiftlint:enable force_cast
-                if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
-                    var homeDirectory = result[0]
-                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
-                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
-                    let newShare = Share.createShare(networkShare: homeDirectory, 
-                                                     authType: AuthType.krb, 
-                                                     mountStatus: MountStatus.unmounted, 
-                                                     managed: true,
-                                                     shareDisplayName: "Home")
-                    await self.addShare(newShare)
-                }
-            } catch {
-                Logger.mounter.info("⚠️ Couldn't add user's home directory to the list of shares to mount.")
-            }
-        }.value
     }
     
     /// Adds a share to the list of managed shares
@@ -298,19 +269,7 @@ class Mounter: ObservableObject {
         }
     }
     
-    /// Restarts the Finder application
-    ///
-    /// This is needed to work around a presumed bug in macOS where
-    /// Finder may not immediately recognize newly mounted or unmounted shares.
-    func restartFinder() {
-        let task = Process()
-        task.launchPath = "/usr/bin/killall"
-        task.arguments = ["Finder"]
-        let pipe = Pipe()
-        task.standardOutput = pipe
-        // Launch the task
-        task.launch()
-    }
+
     
     /// Safely escapes a path for use in shell commands
     ///
@@ -325,48 +284,40 @@ class Mounter: ObservableObject {
         return "'\(path.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
     
-    /// Removes a directory using FileManager (only if empty, like rmdir)
+    /// Removes a directory using Swift 6 Actor-based atomic operations
     ///
-    /// This method safely removes directories using Swift's FileManager API,
-    /// with built-in protection against removing directories in /Volumes and
-    /// additional check to only remove empty directories (like shell rmdir command).
+    /// This method uses the DirectoryManager actor to ensure true serialization
+    /// of directory removal operations, preventing race conditions with mount
+    /// operations through Swift 6's actor-based concurrency model.
     ///
     /// - Parameter atPath: Full path of the directory to remove
     func removeDirectory(atPath: String) {
-        // Do not remove directories located at /Volumes
-        guard !atPath.hasPrefix("/Volumes") else {
-            Logger.mounter.debug("No directories located /Volumes can be removed (called for \(atPath, privacy: .public))")
-            return
+        Task {
+            let success = await DirectoryManager.shared.safeRemoveDirectory(atPath: atPath, using: fm)
+            if !success {
+                Logger.mounter.debug("Directory removal failed or was protected: \(atPath, privacy: .public)")
+            }
+        }
+    }
+    
+    /// Synchronous version of removeDirectory for cases where async is not suitable
+    ///
+    /// This method blocks the current thread until the directory removal is complete.
+    /// Use only when you need synchronous behavior and cannot use async/await.
+    ///
+    /// - Parameter atPath: Full path of the directory to remove
+    /// - Returns: True if directory was removed, false if protected or failed
+    func removeDirectorySync(atPath: String) -> Bool {
+        let semaphore = DispatchSemaphore(value: 0)
+        var result = false
+        
+        Task {
+            result = await DirectoryManager.shared.safeRemoveDirectory(atPath: atPath, using: fm)
+            semaphore.signal()
         }
         
-        do {
-            // First check if directory exists and is actually a directory
-            var isDirectory: ObjCBool = false
-            guard fm.fileExists(atPath: atPath, isDirectory: &isDirectory), isDirectory.boolValue else {
-                Logger.mounter.debug("Path \(atPath, privacy: .public) does not exist or is not a directory")
-                return
-            }
-            
-            // Check if directory is empty (like rmdir command)
-            let contents = try fm.contentsOfDirectory(atPath: atPath)
-            guard contents.isEmpty else {
-                Logger.mounter.warning("⚠️ Directory \(atPath, privacy: .public) is not empty (contains \(contents.count) items) and cannot be removed")
-                return
-            }
-            
-            // Directory is empty, safe to remove
-            try fm.removeItem(atPath: atPath)
-            Logger.mounter.info("⌫ Successfully deleted empty directory \(atPath, privacy: .public)")
-            
-        } catch CocoaError.fileNoSuchFile {
-            Logger.mounter.debug("Directory \(atPath, privacy: .public) does not exist (already removed)")
-        } catch CocoaError.fileWriteNoPermission {
-            Logger.mounter.warning("⚠️ No permission to delete directory \(atPath, privacy: .public)")
-        } catch let posixError as POSIXError where posixError.code == .ENOTEMPTY {
-            Logger.mounter.warning("⚠️ Directory \(atPath, privacy: .public) is not empty and cannot be removed")
-        } catch {
-            Logger.mounter.warning("⚠️ Could not delete directory \(atPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
-        }
+        semaphore.wait()
+        return result
     }
 
     
@@ -384,21 +335,21 @@ class Mounter: ObservableObject {
             var filePaths = try fm.contentsOfDirectory(atPath: path)
             filePaths.append("/")
             for filePath in filePaths {
-                // Check if directory is a (remote) filesystem mount
-                // If directory is a regular directory go on
-                if !fm.isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
+                // Check if directory should be protected from deletion
+                // If directory is safe to clean up, proceed
+                if !fm.shouldProtectFromDeletion(atPath: path.appendingPathComponent(filePath)) {
                     // Clean up the directory containing the mounts only if defined in userdefaults
                     if prefs.bool(for: .cleanupLocationDirectory) == true {
                         // If the function has a parameter we want to handle files, not directories
                         if let unwrappedFilename = filename {
-                            if !fm.isDirectoryFilesystemMount(atPath: path.appendingPathComponent(filePath)) {
+                            if !fm.shouldProtectFromDeletion(atPath: path.appendingPathComponent(filePath)) {
                                 let deleteFile = path.appendingPathComponent(filePath).appendingPathComponent(unwrappedFilename)
                                 if fm.fileExists(atPath: deleteFile) {
                                     Logger.mounter.info("⌫  Deleting obstructing file \(deleteFile, privacy: .public)")
                                     try fm.removeItem(atPath: deleteFile)
                                 }
                             } else {
-                                Logger.mounter.info("🔍 Found file system mount at \(path.appendingPathComponent(filePath), privacy: .public). Not deleting it")
+                                Logger.mounter.info("🔍 Directory \(path.appendingPathComponent(filePath), privacy: .public) is protected from deletion")
                             }
                         } else {
                             // Else we have a directory to remove
@@ -410,7 +361,7 @@ class Mounter: ObservableObject {
                         }
                     }
                 } else {
-                    // Directory is file-system mount.
+                    // Directory is protected (mount point or within mounted filesystem).
                     // Now let's check if there is some SHARE-1, SHARE-2, ... mount and unmount it
                     //
                     // Compare list of shares with mount
@@ -457,7 +408,7 @@ class Mounter: ObservableObject {
     ///
     /// - Parameter path: Path where the share is mounted
     /// - Returns: Result indicating success or failure with error details
-    func unmountShare(atPath path: String) async -> Result<Void, MounterError> {
+    func unmountShare(atPath path: String, skipFinderRefresh: Bool = false) async -> Result<Void, MounterError> {
         // Check if path is really a filesystem mount
         if fm.isDirectoryFilesystemMount(atPath: path) || path.hasPrefix("/Volumes") {
             Logger.mounter.info("Trying to unmount share at path \(path, privacy: .public)")
@@ -466,6 +417,13 @@ class Mounter: ObservableObject {
             do {
                 try await fm.unmountVolume(at: url, options: [.allPartitionsAndEjectDisk, .withoutUI])
                 removeDirectory(atPath: URL(string: url.absoluteString)!.relativePath)
+                
+                // Refresh Finder for specific unmounted path (use killall for unmount)
+                if !skipFinderRefresh {
+                    let finderController = FinderController()
+                    await finderController.refreshFinder(forPaths: [path], isUnmountOperation: true)
+                }
+                
                 return .success(())
             } catch {
                 return .failure(.unmountFailed)
@@ -526,7 +484,7 @@ class Mounter: ObservableObject {
     func unmountAllMountedShares(userTriggered: Bool = false) async {
         for share in await shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
-                let result = await unmountShare(atPath: mountpoint)
+                let result = await unmountShare(atPath: mountpoint, skipFinderRefresh: true)
                 switch result {
                 case .success:
                     Logger.mounter.info("💪 Successfully unmounted \(mountpoint, privacy: .public).")
@@ -559,9 +517,10 @@ class Mounter: ObservableObject {
                 }
             }
         }
-        // Restart Finder to ensure changes are reflected
-        let finderController = FinderController()
-        await finderController.restartFinder()
+         // Refresh Finder view to reflect unmount changes (use killall for unmount)
+         let finderController = FinderController()
+         let mountPaths = await finderController.getActualMountPaths(from: self)
+         await finderController.refreshFinder(forPaths: mountPaths, isUnmountOperation: true)
         await prepareMountPrerequisites()
     }
     
@@ -1009,6 +968,10 @@ class Mounter: ObservableObject {
                 }
             }
             
+            // Refresh Finder for newly mounted path
+            let finderController = FinderController()
+            await finderController.refreshFinder(forPaths: [mountDirectory])
+            
             return mountDirectory
             
         case 2:
@@ -1023,6 +986,11 @@ class Mounter: ObservableObject {
             
         case 17:
             Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public) (rc=\(rc))")
+            
+            // Refresh Finder even for already mounted shares (ensures visibility)
+            let finderController = FinderController()
+            await finderController.refreshFinder(forPaths: [mountDirectory])
+            
             return mountDirectory
             
         case 60:
@@ -1122,7 +1090,6 @@ class Mounter: ObservableObject {
         """)
         
         
-        // swiftlint:disable force_cast
         let rc = NetFSMountURLSync(url as CFURL,
                                    // Use fileURLWithPath for the mount point path
                                    URL(fileURLWithPath: realMountPoint) as CFURL,
@@ -1134,7 +1101,6 @@ class Mounter: ObservableObject {
         
         // Record end time and calculate duration
         Logger.mounter.info("🏁 NetFSMountURLSync finished for \(url, privacy: .public) with return code: \(rc, privacy: .public))")
-        // swiftlint:enable force_cast
         
         // Process the mount result
         let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, url: url)

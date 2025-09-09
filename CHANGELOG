@@ -1,3 +1,18 @@
+# 3.1.11
+### Improvements
+* Some minor improvements in responsiveness
+
+# 3.1.10
+### Bugfixes
+* Resolved "App hanging" reported by sentry (#232)
+
+# 3.1.9
+### Bugfixes
+* Ignore spaces at the beginning and end of shares in profiles (#223)
+* Fixed the timing for reading SMBhome: now SMBhome will be read each time a network change occurs (#224)
+* Clarification in the README: Using SMBHome as users' home share only works if the Mac is bound to Active Directory.
+* Fixed a race condition and a system attribute check for directories where directories in a share could potentially be deleted. (#255)
+
 # 3.1.8
 ### Bugfixes
 * Fixed a race condition during app startup that caused issues with obtaining Kerberos tickets

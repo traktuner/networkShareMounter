@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="24093.9" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="24123.1" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24093.9"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24123.1"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -677,6 +677,44 @@
             </objects>
             <point key="canvasLocation" x="78" y="-165"/>
         </scene>
+        <!--Window Controller-->
+        <scene sceneID="vKa-nF-f1B">
+            <objects>
+                <windowController id="fT4-Sz-Jqv" sceneMemberID="viewController">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="mrE-eA-rIC">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="425" y="461" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1409"/>
+                        <view key="contentView" id="cRy-fP-Uif">
+                            <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </view>
+                        <connections>
+                            <outlet property="delegate" destination="fT4-Sz-Jqv" id="Rj6-PV-MEk"/>
+                        </connections>
+                    </window>
+                    <connections>
+                        <segue destination="wpB-Tk-nas" kind="relationship" relationship="window.shadowedContentViewController" id="leT-Dd-2vH"/>
+                    </connections>
+                </windowController>
+                <customObject id="Yg7-aP-YcM" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-332" y="-269"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="P5x-xF-eaa">
+            <objects>
+                <viewController id="wpB-Tk-nas" sceneMemberID="viewController">
+                    <view key="view" id="kRw-CF-anv">
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                </viewController>
+                <customObject id="Csc-2G-dPE" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="375" y="-304"/>
+        </scene>
         <!--NetworkShareMounterViewController-->
         <scene sceneID="hIz-AP-VOD">
             <objects>
@@ -968,8 +1006,7 @@ The connection will be testet immediately and will be added only if the server i
                         <outlet property="modifyShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
                         <outlet property="networShareMounterExplanation" destination="J0j-se-pTf" id="A8p-Cz-gcY"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
-                        <outlet property="sendDiagnosticsCheckbox" destination="A8b-GW-aqC" id="iPu-YU-QI9"/>
-                        <outlet property="sendDiagnosticsRadioButton" destination="ofJ-Ws-PoV" id="mmI-oG-Hzs"/>
+                        <outlet property="sendDiagnosticsCheckbox" destination="ofJ-Ws-PoV" id="fbd-AC-oc5"/>
                         <outlet property="tableView" destination="s3k-Dc-wH1" id="tOr-hm-vxp"/>
                         <outlet property="toggleManagedSwitch" destination="NmF-bn-oWA" id="4FE-1k-Zdb"/>
                         <outlet property="updateCheckbox" destination="4u9-Ur-baR" id="Uxb-5O-icr"/>
@@ -1466,6 +1503,6 @@ The connection will be testet immediately and will be added only if the server i
         <image name="NSAddTemplate" width="18" height="17"/>
         <image name="NSRemoveTemplate" width="18" height="5"/>
         <image name="nsm_logo" width="512" height="512"/>
-        <image name="questionmark.circle" catalog="system" width="15" height="15"/>
+        <image name="questionmark.circle" catalog="system" width="20" height="20"/>
     </resources>
 </document>

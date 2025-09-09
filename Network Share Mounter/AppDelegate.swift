@@ -173,6 +173,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 options.tracesSampleRate = 0.1
                 // When enabled, the SDK reports SIGTERM signals to Sentry.
                 //options.enableSigtermReporting = true
+//                options.configureProfiling = {
+//                    $0.lifecycle = .trace
+//                    $0.sessionSampleRate = 1
+//                }
             }
             // Manually call startProfiler and stopProfiler
             // to profile the code in between
@@ -491,7 +495,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // No mounted shares, proceed with error handling
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
-                    await self.mounter?.setErrorStatus(.authenticationError)
+                    self.mounter?.setErrorStatus(.authenticationError)
                     await self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
                 }
             }
@@ -531,6 +535,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         // Handle Kerberos off-domain status
         else if notification.userInfo?["krbOffDomain"] is Error {
+            Logger.app.debug("🔔 [DEBUG] Processing krbOffDomain path")
             Task { @MainActor in
                 // Change the color of the menu symbol to default when off domain
                 if let button = self.statusItem.button, self.enableKerberos {
@@ -637,7 +642,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if let mounter = mounter {
                     await mounter.mountGivenShares(userTriggered: true, forShare: shareID)
                     let finderController = FinderController()
-                    await finderController.restartFinder()
+                    let mountPaths = await finderController.getActualMountPaths(from: mounter)
+                    await finderController.refreshFinder(forPaths: mountPaths)
                 } else {
                     Logger.app.error("Could not initialize mounter class, this should never happen.")
                 }
@@ -760,7 +766,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 menu.addItem(NSMenuItem.separator())
                 
             default:
-                await mounter.setErrorStatus(.noError)
+                mounter.setErrorStatus(.noError)
                 Logger.app.debug("🏗️ Constructing default menu.")
             }
         } else {
@@ -1002,3 +1008,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return circleImage
     }
 }
+

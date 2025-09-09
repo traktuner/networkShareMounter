@@ -260,7 +260,6 @@ private func executeProcess(launchPath: String, arguments: [String]) async throw
                 throw ShellCommandError.outputEncodingFailed
             }
 
-            
             if status == 0 {
                 Logger.tasks.debug("executeProcess: Command succeeded.")
                 if !errorString.isEmpty {
