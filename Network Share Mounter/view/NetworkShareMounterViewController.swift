@@ -40,6 +40,9 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     // Internal flag to avoid re-presenting sheet repeatedly in viewDidAppear
     private var didAttemptKrbAuthPresentation = false
     
+    // NEW: Track window closing to prevent re-presenting sheets/popovers during teardown
+    private var isClosing = false
+
     // MARK: - initialize view
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -102,7 +105,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             }
             dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
             
-            if appDelegate.mounter!.errorStatus == .authenticationError { 
+            if appDelegate.mounter!.errorStatus == .authenticationError {
                 await MainActor.run {
                     refreshUserArray(type: .missingPassword)
                     toggleManagedSwitch.isHidden = true
@@ -124,6 +127,29 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         }
     }
     
+    // Ensure we don’t present sheets while closing and avoid race conditions
+    override func viewWillDisappear() {
+        super.viewWillDisappear()
+        isClosing = true
+        
+        // Close any open popover
+        if let pop = sharedPopover, pop.isShown {
+            pop.close()
+        }
+        sharedPopover = nil
+        
+        // End any attached sheet to allow window to close
+        if let sheet = view.window?.attachedSheet {
+            view.window?.endSheet(sheet)
+        }
+        
+        // Remove notification observer early to prevent re-entrant UI actions during close
+        if let token = notificationToken {
+            NotificationCenter.default.removeObserver(token)
+            notificationToken = nil
+        }
+    }
+    
     // Move conditional KrbAuth presentation into viewDidAppear to avoid race conditions
     override func viewDidAppear() {
         super.viewDidAppear()
@@ -132,8 +158,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         didAttemptKrbAuthPresentation = true
         
         Task {
-            // Only present if no sheet already attached
-            guard self.view.window?.attachedSheet == nil else { return }
+            // Only present if no sheet already attached and not closing
+            guard self.view.window?.attachedSheet == nil, self.isClosing == false else { return }
             
             let accounts = await accountsManager.accounts
             let accountsCount = accounts.count
@@ -147,8 +173,10 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     } catch {
                         await MainActor.run {
                             self.dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                            // Present KrbAuth as a sheet programmatically
-                            self.presentKrbAuthAsSheet()
+                            // Present KrbAuth as a sheet programmatically (only if not closing)
+                            if self.isClosing == false && self.view.window?.attachedSheet == nil {
+                                self.presentKrbAuthAsSheet()
+                            }
                         }
                         break
                     }
@@ -159,6 +187,9 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     
     // Helper to present KrbAuthViewController as a sheet
     private func presentKrbAuthAsSheet() {
+        // Do not present if window is closing or a sheet is already attached
+        guard isClosing == false else { return }
+        guard view.window?.attachedSheet == nil else { return }
         guard let storyboard = self.storyboard else { return }
         guard let vc = storyboard.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("KrbAuthViewController")) as? KrbAuthViewController else {
             Logger.networkShareViewController.error("Failed to instantiate KrbAuthViewController from storyboard")
@@ -414,8 +445,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                         self.dogeAuthenticateButton.isEnabled = true
                         self.dogeAuthenticateHelp.isEnabled = true
                         self.dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                        // Optionally present the sheet if not already visible
-                        if self.view.window?.attachedSheet == nil {
+                        // Only present the sheet if not closing and not already visible
+                        if self.isClosing == false && self.view.window?.attachedSheet == nil {
                             self.presentKrbAuthAsSheet()
                         }
                     }
@@ -479,4 +510,3 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         return nil
     }
 }
-
