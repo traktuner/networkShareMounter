@@ -1090,7 +1090,6 @@ class Mounter: ObservableObject {
         """)
         
         
-        // swiftlint:disable force_cast
         let rc = NetFSMountURLSync(url as CFURL,
                                    // Use fileURLWithPath for the mount point path
                                    URL(fileURLWithPath: realMountPoint) as CFURL,
@@ -1102,7 +1101,6 @@ class Mounter: ObservableObject {
         
         // Record end time and calculate duration
         Logger.mounter.info("🏁 NetFSMountURLSync finished for \(url, privacy: .public) with return code: \(rc, privacy: .public))")
-        // swiftlint:enable force_cast
         
         // Process the mount result
         let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, url: url)

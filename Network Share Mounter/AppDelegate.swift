@@ -454,7 +454,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // No mounted shares, proceed with error handling
                 if let button = self.statusItem.button {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
-                    await self.mounter?.setErrorStatus(.authenticationError)
+                    self.mounter?.setErrorStatus(.authenticationError)
                     await self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
                 }
             }
@@ -764,7 +764,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 menu.addItem(NSMenuItem.separator())
                 
             default:
-                await mounter.setErrorStatus(.noError)
+                mounter.setErrorStatus(.noError)
                 Logger.app.debug("🏗️ Constructing default menu.")
             }
         } else {
@@ -1004,3 +1004,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return circleImage
     }
 }
+
