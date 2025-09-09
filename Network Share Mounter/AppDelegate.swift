@@ -173,6 +173,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 options.tracesSampleRate = 0.1
                 // When enabled, the SDK reports SIGTERM signals to Sentry.
                 //options.enableSigtermReporting = true
+//                options.configureProfiling = {
+//                    $0.lifecycle = .trace
+//                    $0.sessionSampleRate = 1
+//                }
             }
             // Manually call startProfiler and stopProfiler
             // to profile the code in between
@@ -315,7 +319,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let principals = await klist.klist()
                 if !principals.isEmpty {
                     Logger.app.info("Found existing Kerberos tickets, updating menu icon.")
-                    DispatchQueue.main.async {
+                    Task { @MainActor in
                         if let button = self.statusItem.button {
                             button.image = NSImage(named: NSImage.Name(MenuImageName.green.imageName))
                         }
@@ -448,61 +452,100 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func handleErrorNotification(_ notification: NSNotification) {
         // Handle Kerberos authentication error
         if notification.userInfo?["KrbAuthError"] is Error {
-            DispatchQueue.main.async {
-                if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name(MenuImageName.red.imageName))
-                    Task { @MainActor in
-                        await self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
-                    }
+            Logger.app.debug("🔔 [DEBUG] Processing KrbAuthError path")
+            
+            // Check if we have successfully mounted shares before setting error status
+            Task { @MainActor in
+                let hasMountedShares = await mounter?.shareManager.allShares.contains { $0.mountStatus == .mounted } ?? false
+                
+                if hasMountedShares {
+                    Logger.app.debug("🔔 [DEBUG] Shares are mounted - ignoring Kerberos error to prevent status override")
+                    return
+                }
+                
+                Logger.app.debug("🔔 [DEBUG] No mounted shares - proceeding with Kerberos error handling")
+                if let button = statusItem.button, enableKerberos {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
+                    mounter?.setErrorStatus(.krbAuthenticationError)
+                    await constructMenu(withMounter: mounter, andStatus: .krbAuthenticationError)
                 }
             }
         }
         // Handle general authentication error
         else if notification.userInfo?["AuthError"] is Error {
-            DispatchQueue.main.async {
+            Logger.app.debug("🔔 [DEBUG] Processing AuthError path")
+            
+            // Check if we have successfully mounted shares before setting error status
+            Task { @MainActor in
+                let hasMountedShares = await mounter?.shareManager.allShares.contains { $0.mountStatus == .mounted } ?? false
+                
+                if hasMountedShares {
+                    Logger.app.debug("🔔 [DEBUG] Shares are mounted - ignoring Auth error to prevent status override")
+                    return
+                }
+                
+                // No mounted shares, proceed with error handling
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name(MenuImageName.yellow.imageName))
-                    Task { @MainActor in
-                        await self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
-                    }
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                    self.mounter?.setErrorStatus(.authenticationError)
+                    await self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
                 }
             }
         }
         // Handle error clearance
         else if notification.userInfo?["ClearError"] is Error {
-            DispatchQueue.main.async {
+            Logger.app.debug("🔔 [DEBUG] Processing ClearError path")
+            Task { @MainActor in
                 // Change the color of the menu symbol to default
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
-                    Task { @MainActor in
-                        await self.constructMenu(withMounter: self.mounter)
-                    }
+                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    self.mounter?.setErrorStatus(.noError)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
         // Handle successful Kerberos authentication
         else if notification.userInfo?["krbAuthenticated"] is Error {
-            DispatchQueue.main.async {
+            Logger.app.debug("🔔 [DEBUG] Processing krbAuthenticated path")
+            Task { @MainActor in
                 if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name(MenuImageName.green.imageName))
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                    self.mounter?.setErrorStatus(.noError)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
         // Handle general failure
         else if notification.userInfo?["FailError"] is Error {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name(MenuImageName.red.imageName))
-                    // button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
+                    self.mounter?.setErrorStatus(.otherError)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
         // Handle Kerberos off-domain status
         else if notification.userInfo?["krbOffDomain"] is Error {
-            DispatchQueue.main.async {
+            Logger.app.debug("🔔 [DEBUG] Processing krbOffDomain path")
+            Task { @MainActor in
                 // Change the color of the menu symbol to default when off domain
-                if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
+                if let button = statusItem.button, enableKerberos {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    mounter?.setErrorStatus(.offDomain)
+                    await constructMenu(withMounter: mounter)
+                }
+            }
+        }
+        
+        // Handle Kerberos unreachable (KDC/Network issues)
+        else if notification.userInfo?["krbUnreachable"] is Error {
+            Logger.app.debug("🔔 [DEBUG] Processing krbUnreachable path")
+            Task { @MainActor in
+                if let button = statusItem.button, enableKerberos {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounter")) // Farblos
+                    mounter?.setErrorStatus(.offDomain)
+                    await constructMenu(withMounter: mounter)
                 }
             }
         }
@@ -603,7 +646,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if let mounter = mounter {
                     await mounter.mountGivenShares(userTriggered: true, forShare: shareID)
                     let finderController = FinderController()
-                    await finderController.restartFinder()
+                    let mountPaths = await finderController.getActualMountPaths(from: mounter)
+                    await finderController.refreshFinder(forPaths: mountPaths)
                 } else {
                     Logger.app.error("Could not initialize mounter class, this should never happen.")
                 }
@@ -706,24 +750,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.autoenablesItems = false
         
+        // Determine the status to use: explicit parameter or mounter's current error status
+        let statusToUse = andStatus ?? mounter?.errorStatus
+        
         // Handle different error states and construct appropriate menu items
         if let mounter = mounter {
-            switch andStatus {
+            switch statusToUse {
             case .krbAuthenticationError:
                 Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
-                mounter.errorStatus = .authenticationError
+//                mounter.setErrorStatus(.authenticationError)
                 menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
                                         action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
                 menu.addItem(NSMenuItem.separator())
             case .authenticationError:
                 Logger.app.debug("🏗️ Constructing authentication problem menu.")
-                mounter.errorStatus = .authenticationError
+//                mounter.setErrorStatus(.authenticationError)
                 menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
                                         action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
                 menu.addItem(NSMenuItem.separator())
                 
             default:
-                mounter.errorStatus = .noError
+                mounter.setErrorStatus(.noError)
                 Logger.app.debug("🏗️ Constructing default menu.")
             }
         } else {
@@ -965,3 +1012,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return circleImage
     }
 }
+

@@ -25,6 +25,9 @@ class ActivityController {
     /// Reference to AppDelegate for accessing important app components
     private weak var appDelegate: AppDelegate?
     
+    /// Flag to prevent double authentication triggers during app startup
+    private var isInStartupPhase = true
+    
     // MARK: - Initialization
     
     /// Initializes the controller and starts monitoring system events
@@ -33,6 +36,13 @@ class ActivityController {
     init(appDelegate: AppDelegate) {
         self.appDelegate = appDelegate
         startMonitoring()
+        
+        // Reset startup flag after a short delay to allow normal timer operations
+        Task {
+            try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+            isInStartupPhase = false
+            Logger.activityController.debug("✅ Startup phase completed - timer-based auth triggers now enabled")
+        }
     }
     
     // MARK: - Observer Management
@@ -171,9 +181,9 @@ class ActivityController {
         Logger.activityController.debug("▶︎ unmountAllShares called by \(notificationName, privacy: .public)")
         
         let unmountTask = Task { @MainActor in
-            Logger.activityController.debug("🔄 Unmount-Task gestartet - Führe Unmount-Operation durch")
+            Logger.activityController.debug("🔄 Unmount task started - Executing unmount operation")
             await mounter.unmountAllMountedShares()
-            Logger.activityController.debug("✅ Unmount-Task abgeschlossen - Alle Shares erfolgreich unmounted")
+            Logger.activityController.debug("✅ Unmount task completed - All shares successfully unmounted.")
         }
         
         _ = unmountTask
@@ -193,11 +203,15 @@ class ActivityController {
         
         let wakeupTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Wake-up operation - Starting mount process")
+            // Update SMBHome from AD/OpenDirectory on network/domain changes
+            await mounter.shareManager.updateSMBHome()
+            
             await mounter.mountGivenShares()
-            Logger.activityController.debug("🐛 Restarting Finder to bypass a presumed bug in macOS")
+            Logger.activityController.debug("🔄 Refreshing Finder view to ensure mounted shares are visible")
             
             let finderController = FinderController()
-            await finderController.restartFinder()
+            let mountPaths = await finderController.getActualMountPaths(from: mounter)
+            await finderController.refreshFinder(forPaths: mountPaths)
             Logger.activityController.debug("✅ Wake-up operation completed")
         }
         
@@ -222,6 +236,8 @@ class ActivityController {
         Logger.activityController.debug("▶︎ mountGivenShares called by \(notificationName, privacy: .public)")
         
         let mountTask = Task { @MainActor in
+            // Update SMBHome from AD/OpenDirectory on network/domain changes
+            await mounter.shareManager.updateSMBHome()
             Logger.activityController.debug("🔄 Mounting shares - Starting operation on main actor")
             await mounter.mountGivenShares()
             Logger.activityController.debug("✅ All shares successfully mounted - Operation completed")
@@ -242,12 +258,28 @@ class ActivityController {
             return
         }
         
-        // Use Task directly without storing reference - more reliable than storing in a property
+        // Prevent too frequent authentication attempts.
+        let lastAuthAttempt = UserDefaults.standard.object(forKey: "lastKrbAuthAttempt") as? Date ?? Date.distantPast
+        let timeSinceLastAttempt = Date().timeIntervalSince(lastAuthAttempt)
+        
+        // wait at least 30 seconds between authentication attempts
+        guard timeSinceLastAttempt > 30 else {
+            Logger.activityController.debug("Skipping auth attempt - too soon since last attempt (\(timeSinceLastAttempt, privacy: .public)s)")
+            return
+        }
+        
+        UserDefaults.standard.set(Date(), forKey: "lastKrbAuthAttempt")
+        
         Task { @MainActor in
             Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn")
-            Logger.activityController.debug("🔄 Starting automatic sign-in task")
-            await appDelegate?.automaticSignIn.signInAllAccounts()
-            Logger.activityController.info("✅ Automatic sign-in completed successfully")
+            
+            do {
+                Logger.activityController.debug("🔄 Starting automatic sign-in task")
+                await appDelegate?.automaticSignIn.signInAllAccounts()
+                Logger.activityController.info("✅ Automatic sign-in completed successfully")
+            } catch {
+                Logger.activityController.error("❌ Automatic sign-in failed with error: \(error.localizedDescription, privacy: .public)")
+            }
         }
     }
     
@@ -267,6 +299,10 @@ class ActivityController {
         
         let userMountTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Manual mount operation - Starting mount process")
+            
+            // Update SMBHome from AD/OpenDirectory on network/domain changes
+            await mounter.shareManager.updateSMBHome()
+            
             await mounter.mountGivenShares(userTriggered: true)
             Logger.activityController.debug("✅ Shares successfully mounted after user request - Operation completed")
         }
@@ -307,7 +343,13 @@ class ActivityController {
     /// Those who run seem to have all the fun
     /// I'm caught up, I don't know what to do
     @objc func timeGoesBySoSlowly() {
-        NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+        // Only trigger auth during timer calls if we're past the startup phase
+        if !isInStartupPhase {
+            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+        } else {
+            Logger.activityController.debug("⏰ Skipping auth trigger during startup phase to prevent double authentication")
+        }
+        
         guard let mounter = appDelegate?.mounter else {
             Logger.activityController.error("Timer processing failed: Mounter not available")
             return
@@ -319,6 +361,8 @@ class ActivityController {
         let timerTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Timer-triggered mount operation - Updating share array")
             await mounter.shareManager.updateShareArray()
+            Logger.activityController.debug("🔄 Timer-triggered mount operation - checking for SMBhome shares")
+            await mounter.shareManager.updateSMBHome()
             Logger.activityController.debug("▶︎ ...calling mountGivenShares")
             await mounter.mountGivenShares()
             Logger.activityController.debug("✅ Timer processing completed successfully")

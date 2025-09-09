@@ -8,6 +8,7 @@
 
 import Foundation
 import OSLog
+import OpenDirectory
 
 enum ShareError: Error {
     case invalidIndex(Int)
@@ -151,7 +152,7 @@ actor ShareManager {
     /// - Note: Handles username resolution, password retrieval from keychain, and share URL expansion
     func getMDMShareConfig(forShare shareElement: [String:String]) -> Share? {
         // Extract network share URL, return nil if not found
-        guard let shareUrlString = shareElement[Defaults.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare]?.trim() else {
             Logger.shareManager.error("❌ MDM Config: Missing 'networkShare' key in share element: \(shareElement, privacy: .public)")
             return nil
         }
@@ -175,7 +176,7 @@ actor ShareManager {
             // Hinzugefügtes Logging:
             Logger.shareManager.debug("📝 Setting username via usernameOverride and PreferenceManager: \(username, privacy: .public)")
             userName = username
-        } else if let username = shareElement[Defaults.username] {
+        } else if let username = shareElement[Defaults.username]?.trim() {
             Logger.shareManager.debug("📝 Setting username via usernameOverride and shareElement: \(username, privacy: .public)")
             userName = username
         } else {
@@ -187,7 +188,7 @@ actor ShareManager {
         let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
         
         // Configure authentication type, defaulting to Kerberos if not specified
-        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
         var password: String?
         var mountStatus = MountStatus.unmounted
         
@@ -216,7 +217,7 @@ actor ShareManager {
                                          mountStatus: mountStatus,
                                          username: userName,
                                          password: password,
-                                         mountPoint: shareElement[Defaults.mountPoint],
+                                         mountPoint: shareElement[Defaults.mountPoint]?.trim(),
                                          managed: true)
         return(newShare)
     }
@@ -237,13 +238,13 @@ actor ShareManager {
     /// - Parameter forShare shareElement: an array of a dictionary (key-value) containing the share definitions
     /// - Returns: optional `Share?` element
     func getUserShareConfigs(forShare shareElement: [String: String]) -> Share? {
-        guard let shareUrlString = shareElement[Defaults.networkShare] else {
+        guard let shareUrlString = shareElement[Defaults.networkShare]?.trim() else {
             return nil
         }
         var password: String?
         var mountStatus = MountStatus.unmounted
         
-        if let username = shareElement[Defaults.username] {
+        if let username = shareElement[Defaults.username]?.trim() {
             guard let url = URL(string: shareUrlString) else {
                 Logger.shareManager.error("🛑 Invalid share URL: \(shareUrlString, privacy: .public)")
                 return nil
@@ -260,14 +261,14 @@ actor ShareManager {
             }
         }
         
-        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType] ?? AuthType.krb.rawValue) ?? AuthType.krb
-        let mountPoint = shareElement[Defaults.mountPoint]
+        let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
+        let mountPoint = shareElement[Defaults.mountPoint]?.trim()
 
         let newShare = Share.createShare(
             networkShare: shareUrlString,
             authType: shareAuthType,
             mountStatus: mountStatus,
-            username: shareElement[Defaults.username],
+            username: shareElement[Defaults.username]?.trim(),
             password: password,
             mountPoint: mountPoint,
             managed: false
@@ -486,84 +487,40 @@ actor ShareManager {
         // synchronize() is deprecated and unnecessary
     }
     
-    // MARK: - Profile-based Credential Support
-    
-    /// Get credentials for a share - supports hybrid profile system
-    /// - Kerberos profiles: Reference existing share-based keychain entries
-    /// - Password profiles: Use new profile-based keychain structure
-    /// - Legacy fallback: Direct share-based keychain lookup
-    func getCredentialsForShare(_ share: Share) async -> (username: String?, password: String?) {
-        // Try profile-based credentials first
-        if let profile = AuthProfileManager.shared.findProfile(for: share.networkShare) {
-            if profile.useKerberos {
-                // Kerberos profile - reference existing share-based keychain entry
-                return getKerberosCredentials(for: share, profile: profile)
-            } else {
-                // Password profile - use new profile-based keychain structure
-                return await getProfileCredentials(for: profile)
+    /// Updates SMBHome share from Active Directory/OpenDirectory
+    ///
+    /// This method queries the current user's SMBHome attribute from AD/OD
+    /// and adds it as a managed share if available. This is called dynamically
+    /// when network changes occur to handle domain switches.
+    func updateSMBHome() async {
+        Logger.shareManager.debug("🏠 Checking for SMBHome attribute in AD/OpenDirectory")
+        
+        await Task.detached(priority: .background) {
+            do {
+                let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
+                // swiftlint:disable force_cast
+                let query = try ODQuery(node: node, forRecordTypes: kODRecordTypeUsers, attribute: kODAttributeTypeRecordName,
+                                        matchType: ODMatchType(kODMatchEqualTo), queryValues: NSUserName(), returnAttributes: kODAttributeTypeSMBHome,
+                                        maximumResults: 1).resultsAllowingPartial(false) as! [ODRecord]
+                // swiftlint:enable force_cast
+                if let result = query.first?.value(forKey: kODAttributeTypeSMBHome) as? [String] {
+                    var homeDirectory = result[0]
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\\\", with: "smb://")
+                    homeDirectory = homeDirectory.replacingOccurrences(of: "\\", with: "/")
+                    Logger.shareManager.info("🏠 Found SMBHome: \(homeDirectory, privacy: .public)")
+                    
+                    let newShare = Share.createShare(networkShare: homeDirectory,
+                                                     authType: AuthType.krb,
+                                                     mountStatus: MountStatus.unmounted,
+                                                     managed: true)
+                    await self.addShare(newShare)
+                    Logger.shareManager.debug("✅ SMBHome share added successfully")
+                } else {
+                    Logger.shareManager.debug("ℹ️ No SMBHome attribute found for current user")
+                }
+            } catch {
+                Logger.shareManager.info("⚠️ Couldn't query SMBHome from AD/OpenDirectory: \(error.localizedDescription)")
             }
-        }
-        
-        // Fall back to legacy share-based credentials
-        return getLegacyCredentials(for: share)
-    }
-    
-    /// Get credentials from Kerberos profile (references existing share-based keychain entries)
-    private func getKerberosCredentials(for share: Share, profile: AuthProfile) -> (username: String?, password: String?) {
-        guard let url = URL(string: share.networkShare) else {
-            Logger.shareManager.warning("Invalid share URL for Kerberos profile: \(share.networkShare, privacy: .public)")
-            return (profile.username, nil)
-        }
-        
-        guard let username = profile.username else {
-            Logger.shareManager.warning("Kerberos profile has no username for \(share.networkShare, privacy: .public)")
-            return (nil, nil)
-        }
-        
-        let keychainManager = KeychainManager()
-        do {
-            // Try to get password from existing share-based keychain entry
-            let password = try keychainManager.retrievePassword(forShare: url, withUsername: username)
-            Logger.shareManager.debug("✅ Retrieved Kerberos credentials from existing keychain for \(share.networkShare, privacy: .public)")
-            return (username, password)
-        } catch KeychainError.itemNotFound {
-            // For Kerberos, missing password is normal (ticket-based auth)
-            Logger.shareManager.debug("🎫 Kerberos profile for \(share.networkShare, privacy: .public) - no password needed")
-            return (username, nil)
-        } catch {
-            Logger.shareManager.warning("Failed to get Kerberos credentials for \(share.networkShare, privacy: .public): \(error)")
-            return (username, nil)
-        }
-    }
-    
-    /// Get credentials from password profile (uses new profile-based keychain structure)
-    private func getProfileCredentials(for profile: AuthProfile) async -> (username: String?, password: String?) {
-        do {
-            let password = try await AuthProfileManager.shared.retrievePassword(for: profile)
-            let usernameLog = profile.username ?? "unknown"
-            Logger.shareManager.debug("✅ Retrieved profile credentials for user \(usernameLog, privacy: .public)")
-            return (profile.username, password)
-        } catch {
-            let usernameLog = profile.username ?? "unknown"
-            Logger.shareManager.warning("Failed to get profile credentials for \(usernameLog, privacy: .public): \(error)")
-            return (profile.username, nil)
-        }
-    }
-    
-    /// Get legacy share-based credentials from keychain
-    private func getLegacyCredentials(for share: Share) -> (username: String?, password: String?) {
-        guard let username = share.username,
-              let url = URL(string: share.networkShare) else {
-            return (nil, nil)
-        }
-        
-        let keychainManager = KeychainManager()
-        do {
-            let password = try keychainManager.retrievePassword(forShare: url, withUsername: username)
-            return (username, password)
-        } catch {
-            Logger.shareManager.warning("Failed to get legacy credentials for \(share.networkShare, privacy: .public): \(error)")
-            return (username, nil)
-        }
+        }.value
     }
 }

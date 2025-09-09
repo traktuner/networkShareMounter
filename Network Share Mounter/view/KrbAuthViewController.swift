@@ -44,6 +44,9 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         NSLocalizedString("authui-infotext", comment: "")
     ]
     
+    // Retain a single popover for help to close it reliably
+    private var helpPopover: NSPopover?
+    
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,6 +64,13 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         
         // Set the delegate for the password field
         password.delegate = self
+    }
+    
+    override func viewWillDisappear() {
+        super.viewWillDisappear()
+        // Close any open popover when sheet/window is closing
+        helpPopover?.close()
+        helpPopover = nil
     }
     
     // MARK: - Setup Methods
@@ -111,7 +121,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
             // Ensure the operation is performed on the main thread
             await MainActor.run {
                 // Get the selected item title
-                guard let selectedTitle = accountsList.selectedItem?.title else {
+                guard let selectedTitle = self.accountsList.selectedItem?.title else {
                     Logger.KrbAuthViewController.debug("No account selected for removal")
                     return
                 }
@@ -121,13 +131,13 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
                 
                 // Find the corresponding DogeAccount
                 Task {
-                    let accounts = await accountsManager.accounts
+                    let accounts = await self.accountsManager.accounts
                     if let accountToRemove = accounts.first(where: { $0.displayName == accountTitle }) {
-                        await accountsManager.deleteAccount(account: accountToRemove)
+                        await self.accountsManager.deleteAccount(account: accountToRemove)
                         Logger.KrbAuthViewController.debug("Account removed: \(accountToRemove.displayName)")
                         
                         // Rebuild the accounts menu to reflect the changes
-                        await buildAccountsMenu()
+                        await self.buildAccountsMenu()
                     } else {
                         Logger.KrbAuthViewController.debug("Account not found for removal: \(accountTitle)")
                     }
@@ -209,8 +219,18 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         Task { @MainActor in
             let alert = NSAlert()
             alert.messageText = formatAlertMessage(message)
-            alert.runModal()
-            Logger.authUI.debug("Showing alert with message: \(message)")
+            alert.addButton(withTitle: "OK")
+            alert.alertStyle = .warning
+            
+            if let window = self.view.window {
+                alert.beginSheetModal(for: window) { _ in
+                    Logger.authUI.debug("Showing alert (sheet) with message: \(message)")
+                }
+            } else {
+                // Fallback if no window is available (should rarely happen in a sheet)
+                Logger.authUI.debug("Showing alert (modal fallback) with message: \(message)")
+                alert.runModal()
+            }
         }
     }
     
@@ -339,8 +359,12 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
     }
     
     private func showHelpPopover(for sender: NSButton) {
+        // Close previous help popover if shown
+        if let pop = helpPopover, pop.isShown {
+            pop.close()
+        }
+        
         guard let helpPopoverViewController = storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as? HelpPopoverViewController else {
-            // Handle the error, e.g., log an error message or show an alert
             Logger.authUI.error("Failed to instantiate HelpPopoverViewController")
             return
         }
@@ -349,8 +373,10 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         popover.contentViewController = helpPopoverViewController
         helpPopoverViewController.helpText = helpText[sender.tag]
         popover.animates = true
-        popover.show(relativeTo: sender.frame, of: view, preferredEdge: .minY)
+        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
         popover.behavior = .transient
+        
+        helpPopover = popover
     }
 }
 
@@ -360,31 +386,31 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
         Logger.authUI.debug("Auth succeeded")
         
         do {
-            Logger.authUI.debug("Vor kswitch Ausführung - Principal: \(self.session?.userPrincipal ?? "none")")
-            // Wechsel zum Benutzer-Principal
+            Logger.authUI.debug("Before kswitch execution - Principal: \(self.session?.userPrincipal ?? "none")")
+            // Switch to user principal
             let output = try await cliTask("/usr/bin/kswitch -p \(self.session?.userPrincipal ?? "")")
-            Logger.authUI.debug("kswitch Ausgabe: \(output)")
+            Logger.authUI.debug("kswitch output: \(output)")
             
-            Logger.authUI.debug("Nach kswitch - vor userInfo Aufruf")
+            Logger.authUI.debug("After kswitch - before userInfo call")
             await session?.userInfo()
-            Logger.authUI.debug("Nach userInfo Aufruf - vor handleSuccessfulAuthentication")
+            Logger.authUI.debug("After userInfo call - before handleSuccessfulAuthentication")
             await handleSuccessfulAuthentication()
-            Logger.authUI.debug("Nach handleSuccessfulAuthentication")
+            Logger.authUI.debug("After handleSuccessfulAuthentication")
         } catch {
-            Logger.authUI.warning("⚠️ Fehler beim Wechseln des Kerberos-Principal: \(error.localizedDescription)")
-            // Detaillierte Fehlerinformationen
-            Logger.authUI.debug("Fehlertyp: \(type(of: error))")
+            Logger.authUI.warning("⚠️ Error switching Kerberos principal: \(error.localizedDescription)")
+            // Detailed error information
+            Logger.authUI.debug("Error type: \(type(of: error))")
             if let nsError = error as NSError? {
                 Logger.authUI.debug("NSError Code: \(nsError.code), Domain: \(nsError.domain)")
                 Logger.authUI.debug("UserInfo: \(nsError.userInfo)")
             }
             
-            Logger.authUI.debug("Trotz Fehler bei kswitch - versuche mit userInfo fortzufahren")
-            // Trotzdem mit Authentifizierung fortfahren, da der primäre Auth-Prozess erfolgreich war
+            Logger.authUI.debug("Despite kswitch error - attempting to continue with userInfo")
+            // Continue with authentication anyway, since the primary auth process was successful
             await session?.userInfo()
-            Logger.authUI.debug("Nach userInfo Aufruf im catch-Block")
+            Logger.authUI.debug("After userInfo call in catch block")
             await handleSuccessfulAuthentication()
-            Logger.authUI.debug("Nach handleSuccessfulAuthentication im catch-Block")
+            Logger.authUI.debug("After handleSuccessfulAuthentication in catch block")
         }
     }
     
@@ -413,19 +439,20 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
         }
     }
     
-    func dogeADUserInformation(user: ADUserRecord) {
-        Logger.authUI.debug("User info erhalten: \(user.userPrincipal, privacy: .public)")
+    func dogeADUserInformation(user: ADUserRecord) async {
+        Logger.authUI.debug("User info received: \(user.userPrincipal, privacy: .public)")
         
         Task { @MainActor in
-            Logger.authUI.debug("Beginn des @MainActor-Tasks in dogeADUserInformation")
+            Logger.authUI.debug("Starting @MainActor task in dogeADUserInformation")
             prefs.setADUserInfo(user: user)
-            Logger.authUI.debug("Nach prefs.setADUserInfo")
+            Logger.authUI.debug("After prefs.setADUserInfo")
             stopOperations()
-            Logger.authUI.debug("Nach stopOperations")
+            Logger.authUI.debug("After stopOperations")
             NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
-            Logger.authUI.debug("Nach Notification-Post, vor closeWindow")
+            Logger.authUI.debug("After notification post, before closeWindow")
             self.closeWindow()
-            Logger.authUI.debug("Nach closeWindow")
+            Logger.authUI.debug("After closeWindow")
         }
     }
 }
+
