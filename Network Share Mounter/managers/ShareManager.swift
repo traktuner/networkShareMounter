@@ -53,7 +53,10 @@ actor ShareManager {
     }
     
     /// Remove a share at a specific index
-    func removeShare(at index: Int) {
+    func removeShare(at index: Int) throws {
+        guard index >= 0 && index < _shares.count else {
+            throw ShareError.invalidIndex(index)
+        }
         // remove keychain entry for share
         if let username = _shares[index].username {
             removePasswordFromKeychain(for: _shares[index].networkShare, username: username)
@@ -173,11 +176,10 @@ actor ShareManager {
         // 3. Local system username
         let userName: String
         if let username = prefs.string(for: .usernameOverride) {
-            // Hinzugefügtes Logging:
-            Logger.shareManager.debug("📝 Setting username via usernameOverride and PreferenceManager: \(username, privacy: .public)")
+            Logger.shareManager.debug("📝 Setting username from PreferenceManager override: \(username, privacy: .public)")
             userName = username
         } else if let username = shareElement[Defaults.username]?.trim() {
-            Logger.shareManager.debug("📝 Setting username via usernameOverride and shareElement: \(username, privacy: .public)")
+            Logger.shareManager.debug("📝 Setting username from MDM shareElement: \(username, privacy: .public)")
             userName = username
         } else {
             userName = NSUserName()
@@ -332,27 +334,24 @@ actor ShareManager {
     ///   - isManaged: Whether the share is managed by MDM
     ///   - sharesArray: The array to update with processed shares
     private func processShareForUpdate(newShare: Share, isManaged: Bool, into sharesArray: inout [Share]) {
-        // Check if share exists
-        if !allShares.contains(where: { $0.networkShare == newShare.networkShare }) {
+        if let existingIndex = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
+            // Update existing share with new configuration while preserving state
+            var updatedShare = newShare
+            updatedShare.mountStatus = allShares[existingIndex].mountStatus
+            updatedShare.id = allShares[existingIndex].id
+            updatedShare.actualMountPoint = allShares[existingIndex].actualMountPoint
+            
+            do {
+                try updateShare(at: existingIndex, withUpdatedShare: updatedShare)
+                Logger.shareManager.debug(" ▶︎ Updated existing share \(newShare.networkShare, privacy: .public)")
+            } catch ShareError.invalidIndex(let index) {
+                Logger.shareManager.error(" ▶︎ Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+            } catch {
+                Logger.shareManager.error(" ▶︎ Could not update share \(newShare.networkShare, privacy: .public), error: \(error.localizedDescription)")
+            }
+        } else {
             Logger.shareManager.debug(" ▶︎ Adding new share \(newShare.networkShare, privacy: .public)")
             addShare(newShare)
-        } else {
-            if let index = allShares.firstIndex(where: { $0.networkShare == newShare.networkShare }) {
-                // Update existing share with new configuration while preserving state
-                var updatedShare = newShare
-                updatedShare.mountStatus = allShares[index].mountStatus
-                updatedShare.id = allShares[index].id
-                updatedShare.actualMountPoint = allShares[index].actualMountPoint
-                
-                do {
-                    try updateShare(at: index, withUpdatedShare: updatedShare)
-                    Logger.shareManager.debug(" ▶︎ Updated existing share \(newShare.networkShare, privacy: .public)")
-                } catch ShareError.invalidIndex(let index) {
-                    Logger.shareManager.error(" ▶︎ Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
-                } catch {
-                    Logger.shareManager.error(" ▶︎ Could not update share \(newShare.networkShare, privacy: .public), error: \(error.localizedDescription)")
-                }
-            }
         }
         
         sharesArray.append(newShare)
@@ -361,19 +360,19 @@ actor ShareManager {
     /// Removes managed shares that are no longer present in configuration
     /// - Parameter newShares: The current list of shares from configuration
     private func removeOrphanedManagedShares(newShares: [Share]) {
-        // Find shares that are in _shares but not in newShares
-        let differing = _shares.filter { share in
-            !newShares.contains { newShare in
+        let orphanedManaged = _shares.filter { share in
+            share.managed && !newShares.contains { newShare in
                 share.networkShare == newShare.networkShare
             }
         }
         
-        // Remove orphaned managed shares
-        for orphanedShare in differing {
+        for orphanedShare in orphanedManaged {
             if let index = allShares.firstIndex(where: { $0.networkShare == orphanedShare.networkShare }) {
-                if _shares[index].managed == true {
-                    Logger.shareManager.debug(" ▶︎ Deleting share \(orphanedShare.networkShare, privacy: .public) at index \(index, privacy: .public)")
-                    self.removeShare(at: index)
+                Logger.shareManager.debug(" ▶︎ Deleting share \(orphanedShare.networkShare, privacy: .public) at index \(index, privacy: .public)")
+                do {
+                    try self.removeShare(at: index)
+                } catch {
+                    Logger.shareManager.error(" ▶︎ Failed to delete share \(orphanedShare.networkShare, privacy: .public) at index \(index, privacy: .public): \(error.localizedDescription)")
                 }
             }
         }
@@ -465,16 +464,13 @@ actor ShareManager {
                 var shareConfig: [String: String] = [:]
                 
                 shareConfig[Defaults.networkShare] = share.networkShare
-                
                 shareConfig[Defaults.authType] = share.authType.rawValue
-                shareConfig[Defaults.username] = share.username
                 if let mountPoint = share.mountPoint {
                     shareConfig[Defaults.mountPoint] = mountPoint
                 }
                 if let username = share.username {
                     shareConfig[Defaults.username] = username
                 }
-                // shareConfig[Settings.location] = share.location
                 userDefaultsConfigs.append(shareConfig)
             }
         }
@@ -495,7 +491,8 @@ actor ShareManager {
     func updateSMBHome() async {
         Logger.shareManager.debug("🏠 Checking for SMBHome attribute in AD/OpenDirectory")
         
-        await Task.detached(priority: .background) {
+        Task.detached(priority: .background) { [weak self] in
+            guard let self else { return }
             do {
                 let node = try ODNode(session: ODSession.default(), type: ODNodeType(kODNodeTypeAuthentication))
                 // swiftlint:disable force_cast
@@ -521,6 +518,6 @@ actor ShareManager {
             } catch {
                 Logger.shareManager.info("⚠️ Couldn't query SMBHome from AD/OpenDirectory: \(error.localizedDescription)")
             }
-        }.value
+        }
     }
 }
