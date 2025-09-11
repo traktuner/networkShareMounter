@@ -42,9 +42,6 @@ class ShareViewController: NSViewController {
     var authType: AuthType = AuthType.krb
     var shareArray : [Share] = []
     
-    // Retain a popover for help to manage lifecycle
-    private var helpPopover: NSPopover?
-    
     // MARK: - Outlets
     
     @IBOutlet private weak var networkShareTextField: NSTextField!
@@ -74,12 +71,6 @@ class ShareViewController: NSViewController {
         }
     }
     
-    override func viewWillDisappear() {
-        super.viewWillDisappear()
-        helpPopover?.close()
-        helpPopover = nil
-    }
-    
     @IBAction private func saveButtonTapped(_ sender: NSButton) {
         Task { @MainActor in
             guard let shareData = createShareData() else { return }
@@ -92,23 +83,7 @@ class ShareViewController: NSViewController {
     }
     
     @IBAction private func helpButtonClicked(_ sender: NSButton) {
-        // Close previous help popover if shown
-        if let pop = helpPopover, pop.isShown {
-            pop.close()
-        }
-        // swiftlint:disable force_cast
-        let helpPopoverViewController = storyboard?.instantiateController(
-            withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")
-        ) as! HelpPopoverViewController
-        // swiftlint:enable force_cast
-        
-        let popover = NSPopover()
-        popover.contentViewController = helpPopoverViewController
-        helpPopoverViewController.helpText = helpText[sender.tag]
-        popover.animates = true
-        popover.behavior = .transient
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-        helpPopover = popover
+        showHelpPopover(for: sender)
     }
     
     @IBAction private func cancelButtonTapped(_ sender: NSButton) {
@@ -207,6 +182,22 @@ class ShareViewController: NSViewController {
         }
     }
     
+    private func showHelpPopover(for sender: NSButton) {
+        // swiftlint:disable force_cast
+        let helpPopoverViewController = storyboard?.instantiateController(
+            withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")
+        ) as! HelpPopoverViewController
+        // swiftlint:enable force_cast
+        
+        let popover = NSPopover()
+        popover.contentViewController = helpPopoverViewController
+        helpPopoverViewController.helpText = helpText[sender.tag]
+        popover.animates = true
+        popover.behavior = .transient
+        popover.show(relativeTo: sender.frame, of: view, preferredEdge: .minY)
+    }
+    
+    
     ///
     /// check if share is new or an existing share should be updated
     /// - Parameter networkShareText: String containig the URL of a share
@@ -297,16 +288,9 @@ class ShareViewController: NSViewController {
         alert.messageText = "\(error.localizedDescription)"
         alert.informativeText = NSLocalizedString("Please check the data entered", comment: "Please check the data entered")
         alert.addButton(withTitle: "OK")
-        alert.alertStyle = .warning
-        
-        if let window = self.view.window {
-            alert.beginSheetModal(for: window) { _ in
-                Logger.shareViewController.debug("Presented error alert as sheet")
-            }
-        } else {
-            Logger.shareViewController.debug("Presented error alert modally (fallback)")
-            alert.runModal()
-        }
+        alert.alertStyle = NSAlert.Style.warning
+        // TODO: Unfortunately, two modal views on top of each other don't work as hoped. If I close the alert, the view underneath
+        //  is also closed. I have to take a look at it
+        alert.runModal()
     }
 }
-

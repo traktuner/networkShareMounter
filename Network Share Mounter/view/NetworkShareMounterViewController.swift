@@ -31,18 +31,10 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     // swiftlint:enable force_cast
     
     var showManagedShares = false // toggle to show user defined or managed shares
-    
-    // Use single popover instance to manage lifecycle robustly
-    private var sharedPopover: NSPopover?
+    let popover = NSPopover()
     let accountsManager = AccountsManager.shared
     var notificationToken: NSObjectProtocol? // used to manage notification observers
     
-    // Internal flag to avoid re-presenting sheet repeatedly in viewDidAppear
-    private var didAttemptKrbAuthPresentation = false
-    
-    // NEW: Track window closing to prevent re-presenting sheets/popovers during teardown
-    private var isClosing = false
-
     // MARK: - initialize view
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,9 +76,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         if let token = notificationToken {
             NotificationCenter.default.removeObserver(token)
         }
-        // Ensure popover is closed on deinit
-        sharedPopover?.close()
-        sharedPopover = nil
     }
     
     override func viewWillAppear() {
@@ -124,79 +113,28 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
                 }
             }
-        }
-    }
-    
-    // Ensure we don’t present sheets while closing and avoid race conditions
-    override func viewWillDisappear() {
-        super.viewWillDisappear()
-        isClosing = true
-        
-        // Close any open popover
-        if let pop = sharedPopover, pop.isShown {
-            pop.close()
-        }
-        sharedPopover = nil
-        
-        // End any attached sheet to allow window to close
-        if let sheet = view.window?.attachedSheet {
-            view.window?.endSheet(sheet)
-        }
-        
-        // Remove notification observer early to prevent re-entrant UI actions during close
-        if let token = notificationToken {
-            NotificationCenter.default.removeObserver(token)
-            notificationToken = nil
-        }
-    }
-    
-    // Move conditional KrbAuth presentation into viewDidAppear to avoid race conditions
-    override func viewDidAppear() {
-        super.viewDidAppear()
-        
-        guard enableKerberos, didAttemptKrbAuthPresentation == false else { return }
-        didAttemptKrbAuthPresentation = true
-        
-        Task {
-            // Only present if no sheet already attached and not closing
-            guard self.view.window?.attachedSheet == nil, self.isClosing == false else { return }
             
-            let accounts = await accountsManager.accounts
-            let accountsCount = accounts.count
-            for account in accounts {
-                if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || accountsCount == 1 {
-                    let pwm = KeychainManager()
-                    do {
-                        if try pwm.retrievePassword(forUsername: account.upn.lowercased()) != nil {
+            if self.enableKerberos {
+                let accounts = await accountsManager.accounts
+                let accountsCount = accounts.count
+                for account in accounts {
+                    if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || accountsCount == 1 {
+                        let pwm = KeychainManager()
+                        do {
+                            if try pwm.retrievePassword(forUsername: account.upn.lowercased()) != nil {
+                                break
+                            }
+                        } catch {
+                            await MainActor.run {
+                                dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                                performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
+                            }
                             break
                         }
-                    } catch {
-                        await MainActor.run {
-                            self.dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                            // Present KrbAuth as a sheet programmatically (only if not closing)
-                            if self.isClosing == false && self.view.window?.attachedSheet == nil {
-                                self.presentKrbAuthAsSheet()
-                            }
-                        }
-                        break
                     }
                 }
             }
         }
-    }
-    
-    // Helper to present KrbAuthViewController as a sheet
-    private func presentKrbAuthAsSheet() {
-        // Do not present if window is closing or a sheet is already attached
-        guard isClosing == false else { return }
-        guard view.window?.attachedSheet == nil else { return }
-        guard let storyboard = self.storyboard else { return }
-        guard let vc = storyboard.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("KrbAuthViewController")) as? KrbAuthViewController else {
-            Logger.networkShareViewController.error("Failed to instantiate KrbAuthViewController from storyboard")
-            return
-        }
-        // Present as sheet to ensure dismiss(nil) works reliably
-        self.presentAsSheet(vc)
     }
     
     @IBAction func updateCheckboxToggled(_ sender: Any) {
@@ -216,10 +154,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     @IBOutlet weak var dogeAuthenticateHelp: NSButton!
 
     @IBAction func helpButtonClicked(_ sender: NSButton) {
-        // Use single shared popover
-        if let pop = sharedPopover, pop.isShown {
-            pop.close()
-        }
         // swiftlint:disable force_cast
         let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
         // swiftlint:enable force_cast
@@ -227,9 +161,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         popover.contentViewController = helpPopoverViewController
         helpPopoverViewController.helpText = helpText[sender.tag]
         popover.animates = true
-        popover.behavior = .transient
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-        sharedPopover = popover
+        popover.show(relativeTo: sender.frame, of: self.view, preferredEdge: NSRectEdge.minY)
+        popover.behavior = NSPopover.Behavior.transient
     }
     
     @IBAction func toggleManagedSharesAction(_ sender: Any) {
@@ -279,9 +212,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         }
         
         if tableView.clickedColumn == 0 {
-            if let pop = sharedPopover, pop.isShown {
-                pop.close()
-            }
             // swiftlint:disable force_cast
             let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController")) as! HelpPopoverShareStatusViewController
             // swiftlint:enable force_cast
@@ -291,7 +221,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             popover.behavior = .transient
             let rowRect = tableView.rect(ofRow: clickedRow)
             popover.show(relativeTo: rowRect, of: sender, preferredEdge: NSRectEdge.maxY)
-            sharedPopover = popover
         } else {
             let selectedShare = userShares[clickedRow]
             
@@ -364,7 +293,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                                                                                   authType: selectedShare.authType,
                                                                                   username: selectedShare.username,
                                                                                   password: selectedShare.password,
-                                                                                  mountPath: selectedShare.mountPoint,
                                                                                   managed: selectedShare.managed)
                     await MainActor.run {
                         shareViewController.selectedShareURL = usersNewShare.stringValue
@@ -445,10 +373,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                         self.dogeAuthenticateButton.isEnabled = true
                         self.dogeAuthenticateHelp.isEnabled = true
                         self.dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                        // Only present the sheet if not closing and not already visible
-                        if self.isClosing == false && self.view.window?.attachedSheet == nil {
-                            self.presentKrbAuthAsSheet()
-                        }
                     }
                 } else if notification.userInfo?["krbAuthenticated"] is Error {
                     if self.enableKerberos {
