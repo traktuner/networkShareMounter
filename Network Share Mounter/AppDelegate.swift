@@ -287,7 +287,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             Logger.app.info("Timer actualized on main thread - Mount: \(self.mountTimer.isValid, privacy: .public), Auth: \(self.authTimer.isValid, privacy: .public)")
             
-            monitor.startMonitoring { [weak self] connection, reachable in
+            await monitor.startMonitoring { [weak self] connection, reachable in
                 guard let self = self else { return }
                 
                 if reachable.rawValue == "yes" {

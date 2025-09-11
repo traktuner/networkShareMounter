@@ -580,9 +580,12 @@ class Mounter: ObservableObject {
         
         // Verify network connectivity before attempting mount operations
         let netConnection = Monitor.shared
+        // Take an actor-isolated snapshot first
+        let (connTypeSnapshot, reachableSnapshot) = await netConnection.currentStatus()
+        let netOnSnapshot = (reachableSnapshot == .yes)
         
-        guard netConnection.netOn else {
-            Logger.mounter.warning("⚠️ No network connection available, connection type is \(netConnection.connType.rawValue, privacy: .public). Skipping mount operation.")
+        guard netOnSnapshot else {
+            Logger.mounter.warning("⚠️ No network connection available, connection type is \(connTypeSnapshot.rawValue, privacy: .public). Skipping mount operation.")
             return
         }
         
