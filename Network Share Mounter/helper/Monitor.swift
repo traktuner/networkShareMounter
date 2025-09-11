@@ -48,6 +48,7 @@ public enum Connection: String {
 /// and provides multiple ways to receive updates about these changes:
 /// - Traditional callback method
 /// - Combine publisher for reactive programming
+/// - AsyncStream for Swift Concurrency consumers
 ///
 /// It includes a built-in delay mechanism to allow the network to settle before notifying consumers.
 public class Monitor {
@@ -57,7 +58,7 @@ public class Monitor {
     /// The underlying network path monitor
     let monitor: NWPathMonitor
     
-    /// Queue used for network monitoring
+    /// Queue used for network monitoring (required by NWPathMonitor API)
     private let queue = DispatchQueue(label: "Monitor")
     
     /// Flag indicating if network is currently available
@@ -69,8 +70,8 @@ public class Monitor {
     /// Whether a network update is pending (waiting for the settle time)
     private var networkUpdatePending = false
     
-    /// Timer used to implement the network settle time
-    private var networkUpdateTimer: Timer?
+    /// Task used to implement the network settle time (replaces Timer/RunLoop)
+    private var networkUpdateTask: Task<Void, Never>?
     
     /// Publisher that emits network status updates
     private let networkStatusSubject = PassthroughSubject<(Connection, Reachable), Never>()
@@ -81,6 +82,20 @@ public class Monitor {
     /// Each emission contains a tuple with the connection type and reachability state.
     public var networkStatusPublisher: AnyPublisher<(Connection, Reachable), Never> {
         return networkStatusSubject.eraseToAnyPublisher()
+    }
+    
+    /// Async stream for network status changes (optional modern API)
+    ///
+    /// Consumers can iterate with `for await` to receive updates.
+    public var networkStatusStream: AsyncStream<(Connection, Reachable)> {
+        AsyncStream { continuation in
+            let cancellable = networkStatusPublisher.sink { value in
+                continuation.yield(value)
+            }
+            continuation.onTermination = { @Sendable _ in
+                cancellable.cancel()
+            }
+        }
     }
     
     /// Time in seconds to wait for network to settle before sending updates
@@ -117,9 +132,9 @@ extension Monitor {
             
             Logger.networkMonitor.info("🔌 Got Network connection change trigger from \(self.connType.rawValue, privacy: .public) to \(newConnType.rawValue, privacy: .public)..")
             
-            // Emit update to the Combine publisher
+            // Emit update to the Combine publisher on MainActor
             let update = (newConnType, reachable)
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.networkStatusSubject.send(update)
             }
             
@@ -127,7 +142,7 @@ extension Monitor {
                 // Wait for network to settle before firing callbacks
                 self.handleNetworkSettlingPeriod(path: path, reachable: reachable, callBack: callBack)
             } else {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     callBack(.none, .nope)
                 }
             }
@@ -141,30 +156,33 @@ extension Monitor {
     ///   - reachable: The current reachability state
     ///   - callBack: The callback to trigger after the settling period
     private func handleNetworkSettlingPeriod(path: NWPath, reachable: Reachable, callBack: @escaping (_ connection: Connection, _ reachable: Reachable) -> Void) {
-        // Bestehenden Timer invalidieren
-        self.networkUpdateTimer?.invalidate()
-        self.networkUpdateTimer = nil
+        // Cancel any previous settling task
+        networkUpdateTask?.cancel()
+        networkUpdateTask = nil
         
         Logger.networkMonitor.debug(" ▶︎ Waiting \(Int(self.networkSettleTime), privacy: .public) seconds to settle network...")
         
-        // Timer erstellen mit starker Selbstreferenz
-        let timer = Timer(timeInterval: self.networkSettleTime, repeats: false) { [self] _ in
-            Logger.networkMonitor.debug(" ▶︎ Timer fired! About to execute callback...")
+        // Schedule a new settling task using Swift Concurrency
+        networkUpdateTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(nanoseconds: UInt64(self.networkSettleTime * 1_000_000_000))
+            } catch {
+                // Task was cancelled due to a newer path update
+                Logger.networkMonitor.debug(" ▶︎ Settle task cancelled before firing callback")
+                return
+            }
             
+            Logger.networkMonitor.debug(" ▶︎ Settle delay passed! About to execute callback...")
             let connectionType = self.determineConnectionType(path: path)
             
-            // Auf dem Main Thread ausführen
-            DispatchQueue.main.async {
+            await MainActor.run {
                 Logger.networkMonitor.debug(" ▶︎ Firing network change callbacks")
                 callBack(connectionType, reachable)
             }
         }
         
-        // Timer explizit zum Main RunLoop hinzufügen und Referenz halten
-        RunLoop.main.add(timer, forMode: .common)
-        self.networkUpdateTimer = timer
-        
-        Logger.networkMonitor.debug(" ▶︎ Timer successfully scheduled on main RunLoop")
+        Logger.networkMonitor.debug(" ▶︎ Settle task scheduled")
     }
     
     /// Determines the specific connection type from a network path
@@ -210,8 +228,8 @@ extension Monitor {
     ///
     /// Call this method when you no longer need network monitoring to free up resources.
     public func cancel() {
-        networkUpdateTimer?.invalidate()
-        networkUpdateTimer = nil
+        networkUpdateTask?.cancel()
+        networkUpdateTask = nil
         monitor.cancel()
     }
 }
