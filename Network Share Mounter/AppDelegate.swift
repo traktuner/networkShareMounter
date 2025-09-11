@@ -237,6 +237,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             await mounter?.asyncInit()
             Logger.app.debug("✅ Mounter successfully initialized")
             
+            // NEW: Rescan existing mounts at app start, independent of network state
+            if let mounter = self.mounter {
+                Logger.app.debug("🔍 Performing initial rescan of existing mounts")
+                await mounter.rescanExistingMounts()
+            }
+            
             await self.constructMenu(withMounter: self.mounter)
             Logger.app.debug("✅ Initial menu constructed")
             

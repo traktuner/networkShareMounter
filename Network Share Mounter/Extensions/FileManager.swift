@@ -72,21 +72,32 @@ extension FileManager {
         return false
     }
     
-    /// Checks if a path resides on a network volume (e.g., SMB, AFP, NFS)
+    /// Checks if a path resides on a network volume (e.g., SMB, AFP, NFS, WebDAV)
     ///
-    /// Uses URLResourceValues.volumeIsNetwork for robust detection.
+    /// Uses statfs to inspect f_fstypename for known network filesystems.
     /// - Parameter atPath: Path to check
     /// - Returns: true if the path is on a network volume, false otherwise
     func isOnNetworkVolume(atPath: String) -> Bool {
-        let url = URL(fileURLWithPath: atPath, isDirectory: true)
-        do {
-            let resourceValues = try url.resourceValues(forKeys: [.volumeIsNetworkKey])
-            if let isNetwork = resourceValues.volumeIsNetwork, isNetwork == true {
-                Logger.mounter.debug("🛡️ Network volume protection: \(atPath, privacy: .public) is on a network volume")
-                return true
-            }
-        } catch {
-            Logger.mounter.debug("Error checking volume type for \(atPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
+        var s = statfs()
+        let result = atPath.withCString { cPath -> Int32 in
+            statfs(cPath, &s)
+        }
+        guard result == 0 else {
+            Logger.mounter.debug("Error calling statfs for \(atPath, privacy: .public)")
+            return false
+        }
+        // Convert f_fstypename (CChar array) to Swift String
+        let typeName = withUnsafePointer(to: &s.f_fstypename) { ptr -> String in
+            let buffer = UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self)
+            return String(cString: buffer)
+        }.lowercased()
+        
+        // Common network filesystem type names on macOS
+        // smbfs (SMB), afpfs (AFP), nfs, webdav, cifs
+        let networkTypes: Set<String> = ["smbfs", "afpfs", "nfs", "webdav", "cifs"]
+        if networkTypes.contains(typeName) {
+            Logger.mounter.debug("🛡️ Network volume protection: \(atPath, privacy: .public) is on a network volume (fstype=\(typeName, privacy: .public))")
+            return true
         }
         return false
     }

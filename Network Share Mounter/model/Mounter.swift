@@ -650,9 +650,11 @@ class Mounter: ObservableObject {
                     
                     // Success Case - Mount successful
                     Logger.mounter.debug("✅ Mount call finished successfully for \(share.networkShare, privacy: .public)")
-                    await updateShare(actualMountPoint: mountResult, for: share)
+                    // Normalize/canonicalize the path we store to avoid duplicates/inconsistencies
+                    let canonicalPath = URL(fileURLWithPath: mountResult).standardizedFileURL.path
+                    await updateShare(actualMountPoint: canonicalPath, for: share)
                     await updateShare(mountStatus: .mounted, for: share)
-                    Logger.mounter.info("📊 Share mount complete: \(share.networkShare, privacy: .public) -> \(mountResult, privacy: .public)")
+                    Logger.mounter.info("📊 Share mount complete: \(share.networkShare, privacy: .public) -> \(canonicalPath, privacy: .public)")
                     
                 } catch {
                     // Failure Case - Mount failed
@@ -1069,8 +1071,20 @@ class Mounter: ObservableObject {
         
         // Check if directory can be used as mount point
         if try checkMountDirectory(mountDirectory, forURL: url) {
-            Logger.mounter.info("  ℹ️ Share \(url) seems already mounted at \(mountDirectory, privacy: .public). Returning existing path.")
-            return mountDirectory
+            // EARLY EXIT: Share already mounted here
+            // Normalize the path we store to avoid inconsistencies
+            let canonicalPath = URL(fileURLWithPath: mountDirectory).standardizedFileURL.path
+            Logger.mounter.info("  ℹ️ Share \(url, privacy: .public) seems already mounted at \(canonicalPath, privacy: .public). Persisting status and returning existing path.")
+            
+            // Persist state to Share object
+            await updateShare(actualMountPoint: canonicalPath, for: share)
+            await updateShare(mountStatus: .mounted, for: share)
+            
+            // Gentle Finder refresh to ensure visibility (no killall)
+            let finderController = FinderController()
+            await finderController.refreshFinder(forPaths: [canonicalPath])
+            
+            return canonicalPath
         }
         Logger.mounter.debug("  Mount directory check passed (not already mounted here)")
         
@@ -1113,8 +1127,52 @@ class Mounter: ObservableObject {
         
         // Process the mount result
         let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, url: url)
-        Logger.mounter.debug("--- Finished mountShare successfully for: \(share.networkShare, privacy: .public) at \(finalMountPoint, privacy: .public) --- ")
-        return finalMountPoint
+        // Standardize before returning/persisting (the caller will persist after this returns)
+        let canonicalFinal = URL(fileURLWithPath: finalMountPoint).standardizedFileURL.path
+        Logger.mounter.debug("--- Finished mountShare successfully for: \(share.networkShare, privacy: .public) at \(canonicalFinal, privacy: .public) --- ")
+        return canonicalFinal
+    }
+    
+    // MARK: - Startup rescan
+    
+    /// Rescans all configured shares and persists state for already mounted ones.
+    ///
+    /// This runs without any network requirement and is intended to be called at app startup
+    /// to reflect the real system state immediately in the UI.
+    func rescanExistingMounts() async {
+        let shares = await shareManager.allShares
+        guard !shares.isEmpty else { return }
+        
+        Logger.mounter.info("🔍 Rescanning \(shares.count) shares for existing mounts at startup")
+        
+        for share in shares {
+            do {
+                // Validate and compute expected mount directory
+                guard let url = URL(string: share.networkShare) else { continue }
+                let expectedMountDir = determineMountDirectory(forShare: share, url: url, basePath: defaultMountPath)
+                let canonical = URL(fileURLWithPath: expectedMountDir).standardizedFileURL.path
+                
+                if fm.isDirectoryFilesystemMount(atPath: canonical) {
+                    // Persist mounted state
+                    await updateShare(actualMountPoint: canonical, for: share)
+                    await updateShare(mountStatus: .mounted, for: share)
+                    Logger.mounter.debug("  ✅ Rescan: \(share.networkShare, privacy: .public) is mounted at \(canonical, privacy: .public)")
+                } else {
+                    // If we previously thought it was mounted, clear it
+                    if share.actualMountPoint != nil || share.mountStatus == .mounted {
+                        await updateShare(actualMountPoint: nil, for: share)
+                        await updateShare(mountStatus: .unmounted, for: share)
+                        Logger.mounter.debug("  ℹ️ Rescan: \(share.networkShare, privacy: .public) not mounted at expected path (cleared state)")
+                    }
+                }
+            } catch {
+                // Defensive: continue on any error
+                Logger.mounter.debug("  ⚠️ Rescan error for \(share.networkShare, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        
+        // Rebuild menu to reflect updated state
+        NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
     }
 }
 
