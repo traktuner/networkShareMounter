@@ -44,9 +44,6 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         NSLocalizedString("authui-infotext", comment: "")
     ]
     
-    // Retain a single popover for help to close it reliably
-    private var helpPopover: NSPopover?
-    
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -64,13 +61,6 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         
         // Set the delegate for the password field
         password.delegate = self
-    }
-    
-    override func viewWillDisappear() {
-        super.viewWillDisappear()
-        // Close any open popover when sheet/window is closing
-        helpPopover?.close()
-        helpPopover = nil
     }
     
     // MARK: - Setup Methods
@@ -121,7 +111,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
             // Ensure the operation is performed on the main thread
             await MainActor.run {
                 // Get the selected item title
-                guard let selectedTitle = self.accountsList.selectedItem?.title else {
+                guard let selectedTitle = accountsList.selectedItem?.title else {
                     Logger.KrbAuthViewController.debug("No account selected for removal")
                     return
                 }
@@ -131,13 +121,13 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
                 
                 // Find the corresponding DogeAccount
                 Task {
-                    let accounts = await self.accountsManager.accounts
+                    let accounts = await accountsManager.accounts
                     if let accountToRemove = accounts.first(where: { $0.displayName == accountTitle }) {
-                        await self.accountsManager.deleteAccount(account: accountToRemove)
+                        await accountsManager.deleteAccount(account: accountToRemove)
                         Logger.KrbAuthViewController.debug("Account removed: \(accountToRemove.displayName)")
                         
                         // Rebuild the accounts menu to reflect the changes
-                        await self.buildAccountsMenu()
+                        await buildAccountsMenu()
                     } else {
                         Logger.KrbAuthViewController.debug("Account not found for removal: \(accountTitle)")
                     }
@@ -219,18 +209,8 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         Task { @MainActor in
             let alert = NSAlert()
             alert.messageText = formatAlertMessage(message)
-            alert.addButton(withTitle: "OK")
-            alert.alertStyle = .warning
-            
-            if let window = self.view.window {
-                alert.beginSheetModal(for: window) { _ in
-                    Logger.authUI.debug("Showing alert (sheet) with message: \(message)")
-                }
-            } else {
-                // Fallback if no window is available (should rarely happen in a sheet)
-                Logger.authUI.debug("Showing alert (modal fallback) with message: \(message)")
-                alert.runModal()
-            }
+            alert.runModal()
+            Logger.authUI.debug("Showing alert with message: \(message)")
         }
     }
     
@@ -359,12 +339,8 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
     }
     
     private func showHelpPopover(for sender: NSButton) {
-        // Close previous help popover if shown
-        if let pop = helpPopover, pop.isShown {
-            pop.close()
-        }
-        
         guard let helpPopoverViewController = storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as? HelpPopoverViewController else {
+            // Handle the error, e.g., log an error message or show an alert
             Logger.authUI.error("Failed to instantiate HelpPopoverViewController")
             return
         }
@@ -373,10 +349,8 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         popover.contentViewController = helpPopoverViewController
         helpPopoverViewController.helpText = helpText[sender.tag]
         popover.animates = true
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+        popover.show(relativeTo: sender.frame, of: view, preferredEdge: .minY)
         popover.behavior = .transient
-        
-        helpPopover = popover
     }
 }
 
