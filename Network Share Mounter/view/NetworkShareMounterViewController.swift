@@ -94,7 +94,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             }
             dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
             
-            if appDelegate.mounter!.errorStatus == .authenticationError {
+            let currentErrorStatus = await appDelegate.mounter!.errorStatus
+            if currentErrorStatus == .authenticationError {
                 await MainActor.run {
                     refreshUserArray(type: .missingPassword)
                     toggleManagedSwitch.isHidden = true
@@ -117,19 +118,31 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             if self.enableKerberos {
                 let accounts = await accountsManager.accounts
                 let accountsCount = accounts.count
-                for account in accounts {
-                    if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || accountsCount == 1 {
-                        let pwm = KeychainManager()
-                        do {
-                            if try pwm.retrievePassword(forUsername: account.upn.lowercased()) != nil {
+                
+                // Move Keychain operations to background task to avoid blocking main thread
+                Task.detached { [weak self] in
+                    guard let self = self else { return }
+                    var needsAuth = false
+                    
+                    for account in accounts {
+                        if !self.prefs.bool(for: .singleUserMode) || account.upn == self.prefs.string(for: .lastUser) || accountsCount == 1 {
+                            let pwm = KeychainManager()
+                            do {
+                                if try pwm.retrievePassword(forUsername: account.upn.lowercased()) != nil {
+                                    break
+                                }
+                            } catch {
+                                needsAuth = true
                                 break
                             }
-                        } catch {
-                            await MainActor.run {
-                                dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                                performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
-                            }
-                            break
+                        }
+                    }
+                    
+                    if needsAuth {
+                        await MainActor.run { [weak self] in
+                            guard let self = self else { return }
+                            self.dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                            self.performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
                         }
                     }
                 }
@@ -279,14 +292,20 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                 // swiftlint:enable force_cast
                 shareViewController.callback = { [weak self] result in
                     guard let self = self else { return }
-                    if self.appDelegate.mounter!.errorStatus == .authenticationError {
-                        self.refreshUserArray(type: .missingPassword)
-                    } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
-                        self.refreshUserArray(type: .unmanaged)
-                    } else {
-                        self.refreshUserArray(type: .managed)
+                    Task { [weak self] in
+                        guard let self = self else { return }
+                        let currentErrorStatus = await self.appDelegate.mounter!.errorStatus
+                        await MainActor.run {
+                            if currentErrorStatus == .authenticationError {
+                                self.refreshUserArray(type: .missingPassword)
+                            } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
+                                self.refreshUserArray(type: .unmanaged)
+                            } else {
+                                self.refreshUserArray(type: .managed)
+                            }
+                            self.tableView.reloadData()
+                        }
                     }
-                    self.tableView.reloadData()
                 }
                 if let selectedShare = await appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                     shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
@@ -305,7 +324,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     /// Checks if a networkShare should added to the list of displayed shares
     private func refreshUserArray(type: DisplayShareTypes) {
         Task {
-            await appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
+            for definedShare in await appDelegate.mounter!.shareManager.allShares {
                 var mountSymbol = (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.symbolName :
                 (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.symbolName :
                 (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.symbolName :
