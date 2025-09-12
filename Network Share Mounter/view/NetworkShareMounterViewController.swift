@@ -295,6 +295,11 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     guard let self = self else { return }
                     let currentErrorStatus = await self.appDelegate.mounter!.errorStatus
                     await MainActor.run {
+                        // Ensure window is responsive after modal dialog
+                        if let window = self.view.window {
+                            window.makeKeyAndOrderFront(nil)
+                        }
+                        
                         if currentErrorStatus == .authenticationError {
                             self.refreshUserArray(type: .missingPassword)
                         } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
