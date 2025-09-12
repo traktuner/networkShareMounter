@@ -42,9 +42,6 @@ class ShareViewController: NSViewController {
     var authType: AuthType = AuthType.krb
     var shareArray : [Share] = []
     
-    // Retain a popover for help to manage lifecycle
-    private var helpPopover: NSPopover?
-    
     // MARK: - Outlets
     
     @IBOutlet private weak var networkShareTextField: NSTextField!
@@ -68,16 +65,17 @@ class ShareViewController: NSViewController {
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Configure synchronous UI elements first
+        configureSynchronousUI()
+        
+        // Load share data if available
+        configureShareFromData()
+        
+        // Then handle async operations
         Task {
-            await configureInitialState()
-            await loadAndConfigureShare()
+            await configureAsynchronousState()
         }
-    }
-    
-    override func viewWillDisappear() {
-        super.viewWillDisappear()
-        helpPopover?.close()
-        helpPopover = nil
     }
     
     @IBAction private func saveButtonTapped(_ sender: NSButton) {
@@ -92,23 +90,7 @@ class ShareViewController: NSViewController {
     }
     
     @IBAction private func helpButtonClicked(_ sender: NSButton) {
-        // Close previous help popover if shown
-        if let pop = helpPopover, pop.isShown {
-            pop.close()
-        }
-        // swiftlint:disable force_cast
-        let helpPopoverViewController = storyboard?.instantiateController(
-            withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")
-        ) as! HelpPopoverViewController
-        // swiftlint:enable force_cast
-        
-        let popover = NSPopover()
-        popover.contentViewController = helpPopoverViewController
-        helpPopoverViewController.helpText = helpText[sender.tag]
-        popover.animates = true
-        popover.behavior = .transient
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-        helpPopover = popover
+        showHelpPopover(for: sender)
     }
     
     @IBAction private func cancelButtonTapped(_ sender: NSButton) {
@@ -118,33 +100,47 @@ class ShareViewController: NSViewController {
     
     // MARK: - Private Methods
     
-    private func configureInitialState() async {
+    private func configureSynchronousUI() {
         progressIndicator.isHidden = true
-        shareArray = await appDelegate.mounter!.shareManager.getAllShares()
         shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
         authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
-    }
-    
-    private func loadAndConfigureShare() async {
-        guard let shareString = selectedShareURL,
-              let selectedShare = shareArray.first(where: { $0.networkShare == shareString }) else { return }
-        
-        await MainActor.run {
-            configureShareUI(with: selectedShare)
-        }
-    }
-    
-    private func configureShareUI(with share: Share) {
         saveButton.title = NSLocalizedString("Save", comment: "Save data")
-        networkShareTextField.stringValue = share.networkShare
-        isManaged = share.managed
+    }
+    
+    private func configureAsynchronousState() async {
+        shareArray = await appDelegate.mounter!.shareManager.getAllShares()
+    }
+    
+    private func configureShareFromData() {
+        guard let shareData = shareData else { return }
         
-        if share.managed {
+        networkShareTextField.stringValue = shareData.networkShare
+        isManaged = shareData.managed
+        
+        if shareData.managed {
             configureManagedShareUI()
         } else {
-            configureUnmanagedShareUI(with: share)
+            configureUnmanagedShareUIFromData(with: shareData)
         }
     }
+    
+    func updateUIWithShareData() {
+        configureShareFromData()
+    }
+    
+    private func configureUnmanagedShareUIFromData(with shareData: ShareData) {
+        let isPasswordAuth = shareData.authType == .pwd
+        authType = shareData.authType
+        authTypeSwitch.state = isPasswordAuth ? .off : .on
+        configureAuthTypeUI(isKerberos: !isPasswordAuth)
+        
+        if isPasswordAuth {
+            usernameTextField.stringValue = shareData.username ?? ""
+            passwordTextField.stringValue = shareData.password ?? ""
+        }
+    }
+    
+    
     
     private func configureManagedShareUI() {
         networkShareTextField.isEditable = false
@@ -152,17 +148,6 @@ class ShareViewController: NSViewController {
         [authTypeSwitch, authTypeText, authTypeHelpButton, shareViewText].forEach { $0?.isHidden = true }
     }
     
-    private func configureUnmanagedShareUI(with share: Share) {
-        let isPasswordAuth = share.authType == .pwd
-        authType = share.authType
-        authTypeSwitch.state = isPasswordAuth ? .off : .on
-        configureAuthTypeUI(isKerberos: !isPasswordAuth)
-        
-        if isPasswordAuth {
-            usernameTextField.stringValue = share.username ?? ""
-            passwordTextField.stringValue = share.password ?? ""
-        }
-    }
     
     private func configureAuthTypeUI(isKerberos: Bool) {
         authType = isKerberos ? .krb : .pwd
@@ -206,6 +191,22 @@ class ShareViewController: NSViewController {
             dismiss(nil)
         }
     }
+    
+    private func showHelpPopover(for sender: NSButton) {
+        // swiftlint:disable force_cast
+        let helpPopoverViewController = storyboard?.instantiateController(
+            withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")
+        ) as! HelpPopoverViewController
+        // swiftlint:enable force_cast
+        
+        let popover = NSPopover()
+        popover.contentViewController = helpPopoverViewController
+        helpPopoverViewController.helpText = helpText[sender.tag]
+        popover.animates = true
+        popover.behavior = .transient
+        popover.show(relativeTo: sender.frame, of: view, preferredEdge: .minY)
+    }
+    
     
     ///
     /// check if share is new or an existing share should be updated
@@ -297,16 +298,9 @@ class ShareViewController: NSViewController {
         alert.messageText = "\(error.localizedDescription)"
         alert.informativeText = NSLocalizedString("Please check the data entered", comment: "Please check the data entered")
         alert.addButton(withTitle: "OK")
-        alert.alertStyle = .warning
-        
-        if let window = self.view.window {
-            alert.beginSheetModal(for: window) { _ in
-                Logger.shareViewController.debug("Presented error alert as sheet")
-            }
-        } else {
-            Logger.shareViewController.debug("Presented error alert modally (fallback)")
-            alert.runModal()
-        }
+        alert.alertStyle = NSAlert.Style.warning
+        // TODO: Unfortunately, two modal views on top of each other don't work as hoped. If I close the alert, the view underneath
+        //  is also closed. I have to take a look at it
+        alert.runModal()
     }
 }
-

@@ -59,7 +59,27 @@ enum KeychainError: Error, Equatable {
 }
 
 class KeychainManager: NSObject {
-    var prefs = PreferenceManager()
+    // MARK: - Configuration
+    
+    /// Controls whether created items are iCloud-synchronizable.
+    /// Defaults to false to preserve existing behavior.
+    private let synchronizable: Bool
+    
+    /// Controls the accessibility of created items.
+    /// Defaults to kSecAttrAccessibleAfterFirstUnlock.
+    private let accessibility: CFString
+    
+    /// Initialize a KeychainManager with configuration.
+    /// - Parameters:
+    ///   - synchronizable: If true, created items will be iCloud-synchronizable.
+    ///   - accessibility: kSecAttrAccessible* value to use for created items.
+    init(synchronizable: Bool = false, accessibility: CFString = kSecAttrAccessibleAfterFirstUnlock) {
+        self.synchronizable = synchronizable
+        self.accessibility = accessibility
+        super.init()
+    }
+    
+    // MARK: - Query builders
     
     /// function to create a query to use with keychain
     /// - Parameter forShare: ``String`` containing the URL of a network share
@@ -68,28 +88,29 @@ class KeychainManager: NSObject {
     /// - Parameter service: ``String?`` optional string containing keychain service name
     /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
     /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
-    func makeQuery(share shareURL: URL, username: String, service: String? = nil, accessGroup: String? = nil, comment: String? = nil) throws -> [String: Any]  {
+    /// - Parameter label: ``String?`` optional string for kSecAttrLabel
+    func makeQuery(share shareURL: URL, username: String, service: String? = nil, accessGroup: String? = nil, comment: String? = nil, label: String? = nil) throws -> [String: Any]  {
         guard let host = shareURL.host else {
             throw KeychainError.malformedShare
         }
-        let path = shareURL.lastPathComponent
+        let path = shareURL.path
         let urlScheme = shareURL.scheme
 
         var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrServer as String: host,
                                     kSecAttrPath as String: path,
-                                    kSecAttrLabel as String: host,
-                                    kSecAttrSynchronizable as String: kCFBooleanFalse as Any
+                                    kSecAttrAccessible as String: accessibility
                                     ]
+        // Synchronizable flag according to configuration (for write/update queries)
+        query[kSecAttrSynchronizable as String] = synchronizable ? kCFBooleanTrue as Any : kCFBooleanFalse as Any
+        
         switch urlScheme {
         case "https":
             query[kSecAttrProtocol as String] = kSecAttrProtocolHTTPS
         case "afp":
             query[kSecAttrProtocol as String] = kSecAttrProtocolAFP
-        case "smb":
-            query[kSecAttrProtocol as String] = kSecAttrProtocolSMB
-        case "cifs":
+        case "smb", "cifs":
             query[kSecAttrProtocol as String] = kSecAttrProtocolSMB
         default:
             query[kSecAttrProtocol as String] = kSecAttrProtocolSMB
@@ -102,6 +123,12 @@ class KeychainManager: NSObject {
         }
         if let kcService = service {
             query[kSecAttrService as String] = kcService
+        }
+        if let labelValue = label {
+            query[kSecAttrLabel as String] = labelValue
+        } else {
+            // default label: host
+            query[kSecAttrLabel as String] = host
         }
         return query
     }
@@ -116,40 +143,35 @@ class KeychainManager: NSObject {
         var query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrAccount as String: username,
                                     kSecAttrService as String: service,
-                                    kSecAttrSynchronizable as String: kCFBooleanFalse as Any
+                                    kSecAttrAccessible as String: accessibility
                                     ]
+        // Synchronizable flag according to configuration (for write/update queries)
+        query[kSecAttrSynchronizable as String] = synchronizable ? kCFBooleanTrue as Any : kCFBooleanFalse as Any
+        
         if let kcComment = comment {
             query[kSecAttrComment as String] = kcComment
         }
         if let kcAccessGroup = accessGroup {
             query[kSecAttrAccessGroup as String] = kcAccessGroup
         }
-        if let kSecAttrLabel = label {
-            query[kSecAttrLabel as String] = kSecAttrLabel
+        if let labelValue = label {
+            query[kSecAttrLabel as String] = labelValue
         }
         
         return query
     }
     
-    /// store a new keychain entry. An existing entry will be overwritten
-    /// - Parameter forShare: ``String`` containing the URL of a network share
-    /// - Parameter withUsername: ``String`` contining the username to connect the network share
-    /// - Parameter andPassword: ``String`` containing the password for username
-    /// - Parameter withLabel: ``String?`` optional string containing keychain service name
-    /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
-    /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
+    // MARK: - Create / Update
+    
     func saveCredential(forShare share: URL, withUsername username: String, andPassword password: String, withLabel label: String? = Defaults.keyChainService, accessGroup: String? = Defaults.keyChainAccessGroup, comment: String? = nil) throws {
         do {
-            var query = try makeQuery(share: share, username: username, accessGroup: accessGroup, comment: comment)
+            var query = try makeQuery(share: share, username: username, accessGroup: accessGroup, comment: comment, label: label)
             
-            // Ensure that password data can be successfully encoded
             guard let passwordData = password.data(using: String.Encoding.utf8) else {
                 throw KeychainError.unexpectedPasswordData
             }
             query[kSecValueData as String] = passwordData
             
-            // Delete existing entry (if present)
-            // Ignore the return value since it's normal if no entry exists
             SecItemDelete(query as CFDictionary)
             
             let status = SecItemAdd(query as CFDictionary, nil)
@@ -163,24 +185,15 @@ class KeychainManager: NSObject {
         }
     }
     
-    /// store a new keychain entry. An existing entry will be overwritten
-    /// - Parameter forUsername: ``String`` contining the username to connect the network share
-    /// - Parameter andPassword: ``String`` containing the password for username
-    /// - Parameter withService: ``String?`` containing the service for keychain entry, defaults to Defaults.keyChainService
-    /// - Parameter andLabel: ``String?`` an optional label for the kexchain entry
-    /// - Parameter accessGroup: ``String?`` optional string with access group to keychain entry
-    /// - Parameter comment: ``String?`` optional string with a comment to the keychain entry
     func saveCredential(forUsername username: String, andPassword password: String, withService service: String = Defaults.keyChainService, andLabel label: String? = nil, accessGroup: String? = nil, comment: String? = nil) throws {
         do {
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup, label: label, comment: comment)
             
-            // Ensure that password data can be successfully encoded
             guard let passwordData = password.data(using: String.Encoding.utf8) else {
                 throw KeychainError.unexpectedPasswordData
             }
             query[kSecValueData as String] = passwordData
             
-            // Delete existing entry (if present)
             SecItemDelete(query as CFDictionary)
             
             let status = SecItemAdd(query as CFDictionary, nil)
@@ -194,15 +207,17 @@ class KeychainManager: NSObject {
         }
     }
 
-    /// delete a specific keychain entry defined by
-    /// - Parameter forShare: ``share`` name of the share
-    /// - Parameter withUsername: ``username`` login for share
+    // MARK: - Delete
+    
     func removeCredential(forShare share: URL, withUsername username: String) throws {
         do {
+            guard credentialExists(forShare: share, withUsername: username) else {
+                return
+            }
+            
             let query = try makeQuery(share: share, username: username)
             let status = SecItemDelete(query as CFDictionary)
             
-            // Treat item not found as success for removal
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw KeychainError.errorWithStatus(status: status)
             }
@@ -216,16 +231,15 @@ class KeychainManager: NSObject {
         }
     }
     
-    /// delete a specific keychain entry defined by
-    /// - Parameter forhUsername: ``String`` login for share
-    /// - Parameter andService: ``String`` keychain service
-    /// - Parameter accessGroup: ``String`` access group
-    func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws {
+    func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = Defaults.keyChainAccessGroup) throws {
         do {
+            guard credentialExists(forUsername: username, andService: service, accessGroup: accessGroup) else {
+                return
+            }
+            
             let query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             let status = SecItemDelete(query as CFDictionary)
             
-            // Treat item not found as success for removal
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw KeychainError.errorWithStatus(status: status)
             }
@@ -239,126 +253,105 @@ class KeychainManager: NSObject {
         }
     }
     
-    /// retrieve a password from the keychain
-    /// - Parameter forShare: ``URL`` name of the share
-    /// - Parameter withUsername: ``String`` login for share
+    // MARK: - Read
+    
     func retrievePassword(forShare share: URL, withUsername username: String) throws -> String? {
         do {
             var query = try makeQuery(share: share, username: username)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
+            // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
-            
-            // Handle item not found specifically
             if status == errSecItemNotFound {
-                throw KeychainError.itemNotFound
+                return nil
             }
-            
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
             
             if let parsedData = ref as? Data {
-                return String(data: parsedData, encoding: .utf8) ?? ""
+                return String(data: parsedData, encoding: .utf8)
             }
         } catch let error as KeychainError {
-            throw error // Re-throw known KeychainErrors
+            throw error
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
         return nil // Should not be reached if successful
     }
     
-    /// retrieve a password from the keychain
-    /// - Parameter forUsername: ``String`` username
-    /// - Parameter andService: ``String`` service, defaults to Defaults.keyChainService
-    /// - Parameter accessGroup: ``String`` accessGroup, defaults to Defaults.keyChainAccessGroup
     func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
+            // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
-
-            // Handle item not found specifically
             if status == errSecItemNotFound {
-                throw KeychainError.itemNotFound
+                return nil
             }
-            
             guard status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
             
             if let parsedData = ref as? Data {
-                return String(data: parsedData, encoding: .utf8) ?? ""
+                return String(data: parsedData, encoding: .utf8)
             }
         } catch let error as KeychainError {
-            throw error // Re-throw known KeychainErrors
+            throw error
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
         return nil // Should not be reached if successful
     }
     
-    /// retrieve entries from the keychain
-    /// - Parameter forService: ``String`` service
-    /// - Parameter accessGroup: ``String`` accessGroup, defaults to Defaults.keyChainAccessGroup
-    /// Returns: array of [username: String, password: String]
-    ///
     func retrieveAllEntries(forService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws -> [(username: String, password: String)] {
         do {
-            let query: [String: Any?] = [kSecClass as String: kSecClassGenericPassword,
+            var query: [String: Any?] = [kSecClass as String: kSecClassGenericPassword,
                                          kSecAttrService as String: service,
                                          kSecAttrAccessGroup as String: accessGroup,
-                                         // return data, not only if there was found something
                                          kSecReturnData as String: kCFBooleanTrue!,
-                                         // return all found entries
                                          kSecMatchLimit as String: kSecMatchLimitAll,
-                                         // return all attributes
-                                         kSecReturnAttributes as String: kCFBooleanTrue,
-                                         // ignore if entry is synchornizable with iCloud
-                                         kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+                                         kSecReturnAttributes as String: kCFBooleanTrue
             ]
+            // Always search both local and iCloud-synced items to preserve compatibility.
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            
             var ref: AnyObject? = nil
             
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
             
-            // throw error of something went wrong
             guard status == errSecItemNotFound || status == errSecSuccess else {
                 throw KeychainError.errorWithStatus(status: status)
             }
             
-            // return empty array if no matching entries where found
             guard status != errSecItemNotFound else {
                 return []
             }
             
-            // swiftlint:disable force_cast
-            let array = ref as! CFArray
-            // swiftlint:enable force_cast
-            let dict: [[String: Any]] = array.toSwiftArray()
-            let pairs = dict.compactMap { $0.accountPasswordPair }
+            guard let dictArray = ref as? [[String: Any]] else {
+                return []
+            }
+            let pairs = dictArray.compactMap { $0.accountPasswordPair }
             return pairs
         }
     }
 
-    /// Checks if a keychain entry exists without retrieving the password
-    /// - Parameter forShare: Share URL
-    /// - Parameter withUsername: Username
-    /// - Returns: true if the entry exists, false otherwise
+    // MARK: - Existence checks
+    
     private func credentialExists(forShare share: URL, withUsername username: String) -> Bool {
         do {
             var query = try makeQuery(share: share, username: username)
-            // Only check if the entry exists without retrieving data
             query[kSecReturnData as String] = kCFBooleanFalse
             query[kSecMatchLimit as String] = kSecMatchLimitOne
+            // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             
             var ref: AnyObject?
@@ -369,17 +362,12 @@ class KeychainManager: NSObject {
         }
     }
     
-    /// Checks if a keychain entry exists without retrieving the password
-    /// - Parameter forUsername: Username
-    /// - Parameter andService: Service name
-    /// - Parameter accessGroup: Access group
-    /// - Returns: true if the entry exists, false otherwise
     private func credentialExists(forUsername username: String, andService service: String, accessGroup: String? = nil) -> Bool {
         do {
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
-            // Only check if the entry exists without retrieving data
             query[kSecReturnData as String] = kCFBooleanFalse
             query[kSecMatchLimit as String] = kSecMatchLimitOne
+            // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             
             var ref: AnyObject?
@@ -449,6 +437,15 @@ extension CFArray {
     let array = Array<AnyObject>(_immutableCocoaArray: self)
     return array.compactMap { $0 as? T }
   }
+    // MARK: - OSStatus helper
+    
+    func describe(status: OSStatus) -> String {
+        if let message = SecCopyErrorMessageString(status, nil) as String? {
+            return "\(status) (\(message))"
+        } else {
+            return "\(status)"
+        }
+    }
 }
 
 // MARK: - Helper extenstion to retrieve username - password pair form dictionary
@@ -457,10 +454,12 @@ extension Dictionary where Key == String, Value == Any {
 
     guard
       let username = self[kSecAttrAccount as String] as? String,
-      let password = self[kSecValueData as String] as? Data
+      let passwordData = self[kSecValueData as String] as? Data,
+      let password = String(data: passwordData, encoding: .utf8)
       else {
         return nil
     }
-    return (username, String(data: password, encoding: .utf8) ?? "")
+    return (username, password)
   }
 }
+
