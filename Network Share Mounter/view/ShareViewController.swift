@@ -65,9 +65,16 @@ class ShareViewController: NSViewController {
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Configure synchronous UI elements first
+        configureSynchronousUI()
+        
+        // Load share data if available
+        configureShareFromData()
+        
+        // Then handle async operations
         Task {
-            await configureInitialState()
-            await loadAndConfigureShare()
+            await configureAsynchronousState()
         }
     }
     
@@ -93,33 +100,47 @@ class ShareViewController: NSViewController {
     
     // MARK: - Private Methods
     
-    private func configureInitialState() async {
+    private func configureSynchronousUI() {
         progressIndicator.isHidden = true
-        shareArray = await appDelegate.mounter!.shareManager.getAllShares()
         shareViewText.stringValue = NSLocalizedString("ShareView-Text", comment: "Default text to show on ShareView window")
         authTypeSwitch.isEnabled = !(prefs.string(for: .kerberosRealm) ?? "").isEmpty
-    }
-    
-    private func loadAndConfigureShare() async {
-        guard let shareString = selectedShareURL,
-              let selectedShare = shareArray.first(where: { $0.networkShare == shareString }) else { return }
-        
-        await MainActor.run {
-            configureShareUI(with: selectedShare)
-        }
-    }
-    
-    private func configureShareUI(with share: Share) {
         saveButton.title = NSLocalizedString("Save", comment: "Save data")
-        networkShareTextField.stringValue = share.networkShare
-        isManaged = share.managed
+    }
+    
+    private func configureAsynchronousState() async {
+        shareArray = await appDelegate.mounter!.shareManager.getAllShares()
+    }
+    
+    private func configureShareFromData() {
+        guard let shareData = shareData else { return }
         
-        if share.managed {
+        networkShareTextField.stringValue = shareData.networkShare
+        isManaged = shareData.managed
+        
+        if shareData.managed {
             configureManagedShareUI()
         } else {
-            configureUnmanagedShareUI(with: share)
+            configureUnmanagedShareUIFromData(with: shareData)
         }
     }
+    
+    func updateUIWithShareData() {
+        configureShareFromData()
+    }
+    
+    private func configureUnmanagedShareUIFromData(with shareData: ShareData) {
+        let isPasswordAuth = shareData.authType == .pwd
+        authType = shareData.authType
+        authTypeSwitch.state = isPasswordAuth ? .off : .on
+        configureAuthTypeUI(isKerberos: !isPasswordAuth)
+        
+        if isPasswordAuth {
+            usernameTextField.stringValue = shareData.username ?? ""
+            passwordTextField.stringValue = shareData.password ?? ""
+        }
+    }
+    
+    
     
     private func configureManagedShareUI() {
         networkShareTextField.isEditable = false
@@ -127,17 +148,6 @@ class ShareViewController: NSViewController {
         [authTypeSwitch, authTypeText, authTypeHelpButton, shareViewText].forEach { $0?.isHidden = true }
     }
     
-    private func configureUnmanagedShareUI(with share: Share) {
-        let isPasswordAuth = share.authType == .pwd
-        authType = share.authType
-        authTypeSwitch.state = isPasswordAuth ? .off : .on
-        configureAuthTypeUI(isKerberos: !isPasswordAuth)
-        
-        if isPasswordAuth {
-            usernameTextField.stringValue = share.username ?? ""
-            passwordTextField.stringValue = share.password ?? ""
-        }
-    }
     
     private func configureAuthTypeUI(isKerberos: Bool) {
         authType = isKerberos ? .krb : .pwd

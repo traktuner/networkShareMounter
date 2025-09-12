@@ -45,11 +45,14 @@ import dogeADAuth
 /// - Yellow: Authentication issue (non-Kerberos)
 /// - Red: Kerberos authentication failure
 @main
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// The status item displayed in the system menu bar.
     /// This provides the app's primary user interface through a context menu.
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    
+    /// The main application window used for displaying preferences.
+    var window = NSWindow()
     
     /// The path where network shares are mounted.
     /// This path is used as the default location for all mounted shares.
@@ -799,6 +802,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         circleImage.unlockFocus()
         return circleImage
+    }
+    
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        sender.orderOut(nil)
+        return false
     }
 }
 
