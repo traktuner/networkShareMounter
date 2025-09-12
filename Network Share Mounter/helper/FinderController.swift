@@ -107,8 +107,8 @@ actor FinderController {
             }
         }
         
-        // Method 4: Force Finder window refresh via AppleEvents
-        await refreshFinderWindows()
+//        // Method 4: Force Finder window refresh via AppleEvents
+//        await refreshFinderWindows()
         
         Logger.finderController.info("✅ Multi-method Finder refresh completed for \(pathsToRefresh.count) paths")
         
@@ -147,18 +147,19 @@ actor FinderController {
             Logger.finderController.debug("ℹ️ Could not trigger FSEvent for \(path, privacy: .public): \(error.localizedDescription)")
         }
     }
-    
-    /// Refresh Finder windows using simple activation
-    private func refreshFinderWindows() async {
-        await MainActor.run {
-            // Simple Finder activation to trigger refresh
-            if let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first {
-                // Brief activation can trigger window refresh
-                finder.activate(options: [])
-                Logger.finderController.debug("📬 Finder activation refresh triggered")
-            }
-        }
-    }
+
+// this brings the Finder to foreground on every call
+//    /// Refresh Finder windows using simple activation
+//    private func refreshFinderWindows() async {
+//        await MainActor.run {
+//            // Simple Finder activation to trigger refresh
+//            if let finder = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first {
+//                // Brief activation can trigger window refresh
+//                finder.activate(options: [])
+//                Logger.finderController.debug("📬 Finder activation refresh triggered")
+//            }
+//        }
+//    }
     
     /// Get actual mount paths from Mounter instance
     ///

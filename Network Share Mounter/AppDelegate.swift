@@ -45,14 +45,14 @@ import dogeADAuth
 /// - Yellow: Authentication issue (non-Kerberos)
 /// - Red: Kerberos authentication failure
 @main
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// The status item displayed in the system menu bar.
     /// This provides the app's primary user interface through a context menu.
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     
     /// The main application window used for displaying preferences.
-    var window = NSWindow()
+    var window: NSWindow?
     
     /// The path where network shares are mounted.
     /// This path is used as the default location for all mounted shares.
@@ -171,9 +171,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Synchronize Sparkle settings with current preferences
         synchronizeSparkleSettings()
         
-        // Prevent window from being deallocated when closed
-        window.isReleasedWhenClosed = false
-        
         // Initialize the Mounter instance
         mounter = Mounter()
         
@@ -181,9 +178,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name("networkShareMounter"))
         }
-        
-        // Set the main window's content view controller
-        window.contentViewController = NetworkShareMounterViewController.newInstance()
         
         // Asynchronously initialize the app
         Task {
@@ -475,12 +469,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func showWindow(_ sender: Any?) {
-        window.title = NSLocalizedString("Preferences", comment: "Preferences")
-        window.styleMask.insert([.closable])
-        window.center()
+        if window == nil {
+            let contentRect = NSRect(x: 0, y: 0, width: 600, height: 500)
+            window = NSWindow(contentRect: contentRect,
+                            styleMask: [.titled, .closable, .miniaturizable],
+                            backing: .buffered,
+                            defer: false)
+            window?.isReleasedWhenClosed = false
+            window?.delegate = self
+        }
+        
+        window?.title = NSLocalizedString("Preferences", comment: "Preferences")
+        window?.contentViewController = NetworkShareMounterViewController.newInstance()
+        window?.center()
         NSApp.activate(ignoringOtherApps: true)
-        window.orderFrontRegardless()
-        window.makeKey()
+        window?.orderFrontRegardless()
+        window?.makeKey()
     }
     
     func setupSignalHandlers() {
@@ -736,6 +740,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         circleImage.unlockFocus()
         return circleImage
+    }
+    
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        sender.orderOut(nil)
+        return false
     }
 }
 

@@ -285,36 +285,43 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     
     // MARK: prepare segues by setting certain values
     override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
-        Task {
-            if segue.identifier == "ShareViewSegue" {
-                // swiftlint:disable force_cast
-                let shareViewController = segue.destinationController as! ShareViewController
-                // swiftlint:enable force_cast
-                shareViewController.callback = { [weak self] result in
+        if segue.identifier == "ShareViewSegue" {
+            // swiftlint:disable force_cast
+            let shareViewController = segue.destinationController as! ShareViewController
+            // swiftlint:enable force_cast
+            shareViewController.callback = { [weak self] result in
+                guard let self = self else { return }
+                Task { [weak self] in
                     guard let self = self else { return }
-                    Task { [weak self] in
-                        guard let self = self else { return }
-                        let currentErrorStatus = await self.appDelegate.mounter!.errorStatus
-                        await MainActor.run {
-                            if currentErrorStatus == .authenticationError {
-                                self.refreshUserArray(type: .missingPassword)
-                            } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
-                                self.refreshUserArray(type: .unmanaged)
-                            } else {
-                                self.refreshUserArray(type: .managed)
-                            }
-                            self.tableView.reloadData()
+                    let currentErrorStatus = await self.appDelegate.mounter!.errorStatus
+                    await MainActor.run {
+                        if currentErrorStatus == .authenticationError {
+                            self.refreshUserArray(type: .missingPassword)
+                        } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
+                            self.refreshUserArray(type: .unmanaged)
+                        } else {
+                            self.refreshUserArray(type: .managed)
                         }
+                        self.tableView.reloadData()
                     }
                 }
+            }
+            
+            // Set the selected share URL immediately (synchronously)
+            shareViewController.selectedShareURL = usersNewShare.stringValue
+            
+            // Load share data asynchronously but set it immediately when available
+            Task {
                 if let selectedShare = await appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
-                    shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
-                                                                                  authType: selectedShare.authType,
-                                                                                  username: selectedShare.username,
-                                                                                  password: selectedShare.password,
-                                                                                  managed: selectedShare.managed)
+                    let shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
+                                                                 authType: selectedShare.authType,
+                                                                 username: selectedShare.username,
+                                                                 password: selectedShare.password,
+                                                                 mountPath: selectedShare.mountPoint,
+                                                                 managed: selectedShare.managed)
                     await MainActor.run {
-                        shareViewController.selectedShareURL = usersNewShare.stringValue
+                        shareViewController.shareData = shareData
+                        shareViewController.updateUIWithShareData()
                     }
                 }
             }

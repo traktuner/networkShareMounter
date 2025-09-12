@@ -134,9 +134,10 @@ class ActivityController {
             object: nil
         )
         
+        // CHANGED: Network change now uses a dedicated sequence (revalidate → prepare → mount)
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(mountSharesWithUserTrigger),
+            selector: #selector(mountAfterNetworkChange),
             name: Defaults.nsmNetworkChangeTriggerNotification,
             object: nil
         )
@@ -244,6 +245,37 @@ class ActivityController {
         }
         
         _ = mountTask
+    }
+    
+    // MARK: - Network change sequence
+    
+    /// Handles network change (Up) with robust sequence:
+    /// 1) Revalidate currently mounted shares, unmount unreachable ones
+    /// 2) Prepare mount prerequisites
+    /// 3) Mount shares
+    @objc func mountAfterNetworkChange() {
+        guard let mounter = appDelegate?.mounter else {
+            Logger.activityController.error("Network-change handling failed: Mounter not available")
+            return
+        }
+        
+        Logger.activityController.debug("▶︎ Network change detected: revalidating mounted shares, then mounting")
+        
+        let task = Task { @MainActor in
+            // Update SMBHome from AD/OpenDirectory on network/domain changes
+            await mounter.shareManager.updateSMBHome()
+            
+            await mounter.revalidateMountedSharesAfterNetworkChange()
+            await mounter.prepareMountPrerequisites()
+            await mounter.mountGivenShares()
+            
+            // Optional: gentle Finder refresh after mounts
+            let finderController = FinderController()
+            let mountPaths = await finderController.getActualMountPaths(from: mounter)
+            await finderController.refreshFinder(forPaths: mountPaths)
+        }
+        
+        _ = task
     }
     
     // MARK: - Authentication Handlers
@@ -387,3 +419,4 @@ class ActivityController {
         }
     }
 }
+

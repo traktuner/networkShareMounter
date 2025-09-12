@@ -47,9 +47,9 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        Task {
-            await setupView()
-        }
+        
+        // Configure UI synchronously first
+        configureSynchronousUI()
         
         // Add observer for username field changes
         username.target = self
@@ -61,25 +61,34 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         
         // Set the delegate for the password field
         password.delegate = self
+        
+        // Then handle async operations
+        Task {
+            await setupAsynchronousUI()
+        }
     }
     
     // MARK: - Setup Methods
-    private func setupView() async {
+    private func configureSynchronousUI() {
         krbAuthViewTitle.stringValue = NSLocalizedString("authui-krb-title", comment: "title of kerberos auth window")
         krbAuthViewInfoText.stringValue = NSLocalizedString("authui-krb-infotext", comment: "informative text for kerberos auth window")
-        
-        // Configure UI based on environment
-        configureUIForEnvironment()
         
         authenticateButtonText.title = NSLocalizedString("authui-button-text", comment: "text on authenticate button")
         removeButtonText.title = NSLocalizedString("authui-remove-text", comment: "text on remove button")
         cancelButtonText.title = NSLocalizedString("cancel", comment: "cancel")
         spinner.isHidden = true
         
-        await buildAccountsMenu()
+        // Configure UI based on environment
+        configureUIForEnvironment()
+        
         accountsList.action = #selector(popUpChange)
+    }
+    
+    private func setupAsynchronousUI() async {
+        await buildAccountsMenu()
         await accountsManager.addDelegate(delegate: self)
     }
+    
     
     private func configureUIForEnvironment() {
         if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
