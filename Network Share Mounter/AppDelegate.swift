@@ -743,7 +743,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     
     func windowShouldClose(_ sender: NSWindow) -> Bool {
+        Logger.app.debug("🪟 Window close requested")
+        
+        // Clear any modal state that might be interfering
+        NSApp.stopModal()
+        
+        // Hide the window
         sender.orderOut(nil)
+        
+        // Reset window state for next opening by clearing the reference
+        // This forces recreation on next showWindow call
+        if sender == window {
+            window = nil
+        }
+        
         return false
     }
 }
