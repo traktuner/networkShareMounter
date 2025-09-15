@@ -52,6 +52,40 @@ struct AuthProfile: Identifiable, Codable, Equatable {
     var requiresPasswordInKeychain: Bool {
         return !useKerberos || (useKerberos && username != nil) // Simplified: Assume password needed if username present for Kerberos
     }
+
+    /// Validates if the username is in proper UPN format for Kerberos authentication.
+    /// UPN format: username@REALM.COM
+    var isValidKerberosUsername: Bool {
+        guard useKerberos, let username = username else { return !useKerberos }
+
+        // UPN format: username@realm
+        let components = username.split(separator: "@")
+        guard components.count == 2 else { return false }
+
+        let userPart = String(components[0])
+        let realmPart = String(components[1])
+
+        // Basic validation
+        return !userPart.isEmpty &&
+               !realmPart.isEmpty &&
+               realmPart.uppercased() == realmPart // Realms are typically uppercase
+    }
+
+    /// Validates that the username realm matches the configured Kerberos realm.
+    var hasConsistentKerberosRealm: Bool {
+        guard useKerberos,
+              let username = username,
+              let realm = kerberosRealm else { return !useKerberos }
+
+        let usernameRealm = username.components(separatedBy: "@").last
+        return usernameRealm?.uppercased() == realm.uppercased()
+    }
+
+    /// Comprehensive validation for Kerberos profiles.
+    var isValidKerberosProfile: Bool {
+        guard useKerberos else { return true } // Non-Kerberos profiles are always valid here
+        return isValidKerberosUsername && hasConsistentKerberosRealm
+    }
 }
 
 // MARK: - Color <-> Data Conversion Helper

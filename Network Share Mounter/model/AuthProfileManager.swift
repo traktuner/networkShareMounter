@@ -2,6 +2,25 @@ import Foundation
 import Combine
 import OSLog
 
+// MARK: - AuthProfileError
+
+enum AuthProfileError: LocalizedError {
+    case duplicateProfileID
+    case profileNotFound
+    case validationFailed([String])
+
+    var errorDescription: String? {
+        switch self {
+        case .duplicateProfileID:
+            return "A profile with this ID already exists"
+        case .profileNotFound:
+            return "Profile not found"
+        case .validationFailed(let errors):
+            return "Profile validation failed: \(errors.joined(separator: ", "))"
+        }
+    }
+}
+
 // MARK: - AuthProfileManager
 
 /// Manages the collection of authentication profiles.
@@ -33,14 +52,20 @@ class AuthProfileManager: ObservableObject {
     func addProfile(_ profile: AuthProfile, password: String?) async throws {
         guard !profiles.contains(where: { $0.id == profile.id }) else {
             Logger.dataModel.warning("Attempted to add profile with duplicate ID: \(profile.id)")
-            // Optionally throw an error here
-            return
+            throw AuthProfileError.duplicateProfileID
         }
-        
+
+        // Validate profile
+        let validation = await validateProfile(profile)
+        if !validation.isValid {
+            Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
+            throw AuthProfileError.validationFailed(validation.errors)
+        }
+
         // Add profile metadata
         profiles.append(profile)
         saveProfiles() // Save metadata changes
-        
+
         // Save password if provided
         if let pwd = password, !pwd.isEmpty {
             try await savePassword(for: profile, password: pwd)
@@ -53,10 +78,16 @@ class AuthProfileManager: ObservableObject {
     func updateProfile(_ profile: AuthProfile) async throws {
         guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else {
             Logger.dataModel.warning("Attempted to update non-existent profile ID: \(profile.id)")
-            // Optionally throw an error
-            return
+            throw AuthProfileError.profileNotFound
         }
-        
+
+        // Validate profile
+        let validation = await validateProfile(profile)
+        if !validation.isValid {
+            Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
+            throw AuthProfileError.validationFailed(validation.errors)
+        }
+
         await MainActor.run {
             profiles[index] = profile
             objectWillChange.send()
@@ -610,6 +641,54 @@ class AuthProfileManager: ObservableObject {
         return kerberosRealm
     }
 
+    // MARK: - Validation Methods
+
+    /// Validates a Kerberos profile against existing DogeAccounts.
+    /// Returns true if the profile's username exists in DogeAccounts or if validation is not applicable.
+    func validateKerberosProfile(_ profile: AuthProfile) async -> Bool {
+        guard profile.useKerberos, let username = profile.username else {
+            // Non-Kerberos profiles don't need DogeAccount validation
+            return !profile.useKerberos
+        }
+
+        let accountsManager = AccountsManager.shared
+        let dogeAccounts = await accountsManager.accounts
+
+        let isValid = dogeAccounts.contains { account in
+            account.upn.lowercased() == username.lowercased()
+        }
+
+        if !isValid {
+            Logger.dataModel.warning("⚠️ Kerberos profile validation failed: Username '\(username)' not found in DogeAccounts")
+        } else {
+            Logger.dataModel.debug("✅ Kerberos profile validation passed for username: \(username)")
+        }
+
+        return isValid
+    }
+
+    /// Comprehensive profile validation including basic checks and DogeAccount validation for Kerberos.
+    func validateProfile(_ profile: AuthProfile) async -> (isValid: Bool, errors: [String]) {
+        var errors: [String] = []
+
+        // Basic validation from AuthProfile
+        if !profile.isValidKerberosProfile {
+            if profile.useKerberos && !profile.isValidKerberosUsername {
+                errors.append("Kerberos username must be in UPN format (user@REALM.COM)")
+            }
+            if profile.useKerberos && !profile.hasConsistentKerberosRealm {
+                errors.append("Username realm does not match configured Kerberos realm")
+            }
+        }
+
+        // DogeAccount validation for Kerberos profiles
+        if profile.useKerberos && !(await validateKerberosProfile(profile)) {
+            errors.append("Kerberos username not found in available DogeAccounts")
+        }
+
+        return (errors.isEmpty, errors)
+    }
+
     // MARK: - Default Realm Profile Management
     
     /// Checks if a default realm profile already exists
@@ -634,11 +713,11 @@ class AuthProfileManager: ObservableObject {
         
         // Check if default realm profile already exists
         if hasDefaultRealmProfile() {
-            Logger.dataModel.debug("Default realm profile already exists for realm: \\(mdmRealm)")
+            Logger.dataModel.debug("Default realm profile already exists for realm: \(mdmRealm)")
             return
         }
-        
-        Logger.dataModel.info("Creating default realm profile for MDM realm: \\(mdmRealm)")
+
+        Logger.dataModel.info("Creating default realm profile for MDM realm: \(mdmRealm)")
         
         // Get username from DogeAccounts for the realm
         let accountsManager = AccountsManager.shared
@@ -650,7 +729,7 @@ class AuthProfileManager: ObservableObject {
             return accountRealm == mdmRealm.uppercased()
         }
         
-        let username = matchingAccount?.upn ?? "\\(NSUserName())@\\(mdmRealm)"
+        let username = matchingAccount?.upn ?? "\(NSUserName())@\(mdmRealm)"
         
         // Create default realm profile
         let profileId = UUID().uuidString
