@@ -8,6 +8,7 @@ enum AuthProfileError: LocalizedError {
     case duplicateProfileID
     case profileNotFound
     case validationFailed([String])
+    case realmConflict(existingProfile: AuthProfile, newProfile: AuthProfile)
 
     var errorDescription: String? {
         switch self {
@@ -17,6 +18,8 @@ enum AuthProfileError: LocalizedError {
             return "Profile not found"
         case .validationFailed(let errors):
             return "Profile validation failed: \(errors.joined(separator: ", "))"
+        case .realmConflict(let existing, let new):
+            return "Realm conflict: \(existing.displayName) conflicts with \(new.displayName)"
         }
     }
 }
@@ -58,8 +61,17 @@ class AuthProfileManager: ObservableObject {
         // Validate profile
         let validation = await validateProfile(profile)
         if !validation.isValid {
-            Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
-            throw AuthProfileError.validationFailed(validation.errors)
+            // Check if it's a realm conflict (needs UI confirmation)
+            if let conflictingProfile = validation.realmConflict {
+                Logger.dataModel.warning("⚠️ Realm conflict detected for '\(profile.displayName)' with existing profile '\(conflictingProfile.displayName)'")
+                throw AuthProfileError.realmConflict(existingProfile: conflictingProfile, newProfile: profile)
+            }
+
+            // Regular validation errors
+            if !validation.errors.isEmpty {
+                Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
+                throw AuthProfileError.validationFailed(validation.errors)
+            }
         }
 
         // Add profile metadata
@@ -84,8 +96,17 @@ class AuthProfileManager: ObservableObject {
         // Validate profile
         let validation = await validateProfile(profile)
         if !validation.isValid {
-            Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
-            throw AuthProfileError.validationFailed(validation.errors)
+            // Check if it's a realm conflict (needs UI confirmation)
+            if let conflictingProfile = validation.realmConflict {
+                Logger.dataModel.warning("⚠️ Realm conflict detected for '\(profile.displayName)' with existing profile '\(conflictingProfile.displayName)'")
+                throw AuthProfileError.realmConflict(existingProfile: conflictingProfile, newProfile: profile)
+            }
+
+            // Regular validation errors
+            if !validation.errors.isEmpty {
+                Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
+                throw AuthProfileError.validationFailed(validation.errors)
+            }
         }
 
         await MainActor.run {
@@ -94,6 +115,45 @@ class AuthProfileManager: ObservableObject {
         }
         saveProfiles() // Save metadata changes
         Logger.dataModel.info("Updated profile '\(profile.displayName)' (ID: \(profile.id))")
+    }
+
+    /// Replaces an existing Kerberos profile with a new one for the same realm.
+    /// This method handles the case where a user confirms they want to replace an existing profile.
+    /// - Parameters:
+    ///   - newProfile: The new profile to add
+    ///   - existingProfile: The existing profile to replace
+    ///   - password: Optional password for the new profile
+    func replaceKerberosProfile(_ newProfile: AuthProfile, replacing existingProfile: AuthProfile, password: String?) async throws {
+        guard newProfile.useKerberos && existingProfile.useKerberos else {
+            Logger.dataModel.error("❌ replaceKerberosProfile called with non-Kerberos profiles")
+            throw AuthProfileError.validationFailed(["Both profiles must be Kerberos profiles"])
+        }
+
+        Logger.dataModel.info("🔄 Replacing Kerberos profile '\(existingProfile.displayName)' with '\(newProfile.displayName)'")
+
+        // Remove the existing profile (including keychain entries)
+        try await removeProfile(existingProfile)
+
+        // Add the new profile (bypassing realm conflict check since we explicitly want to replace)
+        guard !profiles.contains(where: { $0.id == newProfile.id }) else {
+            throw AuthProfileError.duplicateProfileID
+        }
+
+        // Basic validation only (skip realm conflict check)
+        if newProfile.useKerberos && !newProfile.isValidKerberosProfile {
+            throw AuthProfileError.validationFailed(["Der Benutzername muss im Format benutzername@domäne.de eingegeben werden"])
+        }
+
+        // Add the new profile
+        profiles.append(newProfile)
+        saveProfiles()
+
+        // Save password if provided
+        if let pwd = password, !pwd.isEmpty {
+            try await savePassword(for: newProfile, password: pwd)
+        }
+
+        Logger.dataModel.info("✅ Successfully replaced Kerberos profile. New profile ID: \(newProfile.id)")
     }
 
     /// Removes a profile and its associated password from the Keychain.
@@ -228,10 +288,14 @@ class AuthProfileManager: ObservableObject {
     /// This approach ensures we have all share data before starting migration
     func migrateFromLegacyCredentials() async throws {
         Logger.dataModel.info("🔄 Starting hybrid credential migration (direct config approach)")
-        
-        // Get shares directly from UserDefaults/MDM configuration (not ShareManager)
-        let shareConfigs = getAllShareConfigurations()
-        Logger.dataModel.info("Found \(shareConfigs.count) share configurations to analyze")
+
+        // Store original profiles for rollback in case of failure
+        let originalProfiles = profiles
+
+        do {
+            // Get shares directly from UserDefaults/MDM configuration (not ShareManager)
+            let shareConfigs = getAllShareConfigurations()
+            Logger.dataModel.info("Found \(shareConfigs.count) share configurations to analyze")
         
         // Get FAU shared credentials for additional Kerberos profile creation
         let fauCredentials = try keychainManager.retrieveAllFAUSharedCredentials()
@@ -265,10 +329,11 @@ class AuthProfileManager: ObservableObject {
                     kerberosProfiles[groupKey] = existing
                 } else {
                     let kerberosCheck = await checkIfKerberosUser(username: username)
+                    let fallbackRealm = getMDMKerberosRealm() ?? "FAUAD.FAU.DE"
                     kerberosProfiles[groupKey] = KerberosProfileData(
                         username: username,
                         shares: [shareConfig.shareURL],
-                        kerberosRealm: kerberosCheck.realm ?? "FAUAD.FAU.DE",
+                        kerberosRealm: kerberosCheck.realm ?? fallbackRealm,
                         keychainType: credentialInfo.keychainType
                     )
                     Logger.dataModel.debug("✅ Kerberos profile: \(username) (keychain: \(String(describing: credentialInfo.keychainType)))")
@@ -303,10 +368,11 @@ class AuthProfileManager: ObservableObject {
             let isKerberos = await checkIfKerberosUser(username: fauCredential.username)
             
             if isKerberos.isKerberos {
-                                    kerberosProfiles[groupKey] = KerberosProfileData(
+                let fallbackRealm = getMDMKerberosRealm() ?? "FAUAD.FAU.DE"
+                kerberosProfiles[groupKey] = KerberosProfileData(
                         username: fauCredential.username,
                         shares: [], // No shares associated yet
-                        kerberosRealm: isKerberos.realm ?? "FAUAD.FAU.DE",
+                        kerberosRealm: isKerberos.realm ?? fallbackRealm,
                         keychainType: KeychainEntryType.fauShared
                     )
                 Logger.dataModel.debug("✅ Added FAU Kerberos user: \(fauCredential.username)")
@@ -354,10 +420,10 @@ class AuthProfileManager: ObservableObject {
                     andPassword: profileData.password,
                     withService: keychainServiceForProfiles
                 )
-                
+
                 profiles.append(profile)
                 Logger.dataModel.info("✅ Migrated password profile for \(profileData.username)")
-                
+
                 // TODO: Remove old share-based entries after successful migration
                 // This should be done carefully to avoid data loss
                 // for shareURL in profileData.shares {
@@ -365,9 +431,11 @@ class AuthProfileManager: ObservableObject {
                 //         try? keychainManager.removeCredential(forShare: url, withUsername: profileData.username)
                 //     }
                 // }
-                
+
             } catch {
                 Logger.dataModel.error("❌ Failed to migrate password for \(profileData.username): \(error)")
+                // Continue with other profiles instead of failing entire migration
+                continue
             }
         }
         
@@ -376,7 +444,18 @@ class AuthProfileManager: ObservableObject {
         // Save all profiles to UserDefaults
         saveProfiles()
         
-        Logger.dataModel.info("✅ Hybrid migration completed: \(kerberosProfiles.count) Kerberos profiles, \(passwordProfiles.count) password profiles")
+            Logger.dataModel.info("✅ Hybrid migration completed: \(kerberosProfiles.count) Kerberos profiles, \(passwordProfiles.count) password profiles")
+
+        } catch {
+            Logger.dataModel.error("❌ Migration failed: \(error.localizedDescription)")
+
+            // Rollback: restore original profiles
+            profiles = originalProfiles
+            saveProfiles()
+
+            Logger.dataModel.warning("⚠️ Rolled back to original profiles due to migration failure")
+            throw error
+        }
     }
     
     // MARK: - Share Configuration Reading
@@ -544,7 +623,6 @@ class AuthProfileManager: ObservableObject {
         } catch {
             Logger.dataModel.warning("Error accessing UPN credentials for \(fullUPN): \(error)")
         }
-        
         return nil
     }
     
@@ -580,11 +658,8 @@ class AuthProfileManager: ObservableObject {
                 // Continue to next service
             }
         }
-        
         return nil
     }
-    
-
     
     /// Gets password for a specific share and username from keychain
     private func getPasswordForShare(_ share: Share, username: String) async -> String? {
@@ -636,12 +711,20 @@ class AuthProfileManager: ObservableObject {
         if let userDomain = username.userDomain() {
             return userDomain
         }
-        
         // Fall back to configured realm
         return kerberosRealm
     }
 
     // MARK: - Validation Methods
+
+    /// Checks if a Kerberos profile already exists for the given realm.
+    /// Returns the existing profile if found, otherwise nil.
+    func findExistingKerberosProfile(forRealm realm: String) -> AuthProfile? {
+        return profiles.first { profile in
+            profile.useKerberos &&
+            profile.kerberosRealm?.uppercased() == realm.uppercased()
+        }
+    }
 
     /// Validates a Kerberos profile against existing DogeAccounts.
     /// Returns true if the profile's username exists in DogeAccounts or if validation is not applicable.
@@ -668,39 +751,81 @@ class AuthProfileManager: ObservableObject {
     }
 
     /// Comprehensive profile validation including basic checks and DogeAccount validation for Kerberos.
-    func validateProfile(_ profile: AuthProfile) async -> (isValid: Bool, errors: [String]) {
+    /// Returns validation result and user-friendly error messages.
+    func validateProfile(_ profile: AuthProfile) async -> (isValid: Bool, errors: [String], realmConflict: AuthProfile?) {
         var errors: [String] = []
+        var realmConflict: AuthProfile? = nil
 
         // Basic validation from AuthProfile
         if !profile.isValidKerberosProfile {
             if profile.useKerberos && !profile.isValidKerberosUsername {
-                errors.append("Kerberos username must be in UPN format (user@REALM.COM)")
+                errors.append("Der Benutzername muss im Format benutzername@domäne.de eingegeben werden")
             }
             if profile.useKerberos && !profile.hasConsistentKerberosRealm {
-                errors.append("Username realm does not match configured Kerberos realm")
+                errors.append("Die Domäne im Benutzernamen stimmt nicht mit der konfigurierten Kerberos-Domäne überein")
+            }
+        }
+
+        // Check for realm conflicts in Kerberos profiles
+        if profile.useKerberos, let realm = profile.kerberosRealm {
+            if let existingProfile = findExistingKerberosProfile(forRealm: realm) {
+                // Only report conflict if it's not the same profile being updated
+                if existingProfile.id != profile.id {
+                    realmConflict = existingProfile
+                    // Don't add to errors - this will be handled by UI confirmation
+                }
             }
         }
 
         // DogeAccount validation for Kerberos profiles
-        if profile.useKerberos && !(await validateKerberosProfile(profile)) {
-            errors.append("Kerberos username not found in available DogeAccounts")
+        if profile.useKerberos {
+            let kerbValid = await validateKerberosProfile(profile)
+            if !kerbValid {
+                errors.append("Der Kerberos-Benutzername wurde nicht in den verfügbaren Konten gefunden")
+            }
         }
 
-        return (errors.isEmpty, errors)
+        return (errors.isEmpty && realmConflict == nil, errors, realmConflict)
     }
 
     // MARK: - Default Realm Profile Management
-    
+
     /// Checks if a default realm profile already exists
     /// A default realm profile is one that uses Kerberos and matches the MDM-configured realm
     func hasDefaultRealmProfile() -> Bool {
         let prefs = PreferenceManager()
         guard let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty else { return false }
-        
+
         return profiles.contains { profile in
-            profile.useKerberos && 
+            profile.useKerberos &&
             profile.kerberosRealm?.lowercased() == mdmRealm.lowercased()
         }
+    }
+
+    /// Checks if MDM has configured a Kerberos realm but no matching profile exists yet
+    /// Returns the MDM realm if setup is needed, nil otherwise
+    func needsMDMKerberosSetup() -> String? {
+        let prefs = PreferenceManager()
+        guard let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty else {
+            return nil // No MDM realm configured
+        }
+
+        // Check if we already have a profile for this realm
+        let hasExistingProfile = profiles.contains { profile in
+            profile.useKerberos &&
+            profile.kerberosRealm?.lowercased() == mdmRealm.lowercased()
+        }
+
+        return hasExistingProfile ? nil : mdmRealm
+    }
+
+    /// Checks if the given realm is configured via MDM and should be locked in UI
+    func isMDMConfiguredRealm(_ realm: String?) -> Bool {
+        let prefs = PreferenceManager()
+        guard let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty,
+              let realm = realm else { return false }
+
+        return mdmRealm.lowercased() == realm.lowercased()
     }
     
     /// Creates a default realm profile if MDM realm is configured and no default profile exists
@@ -761,6 +886,12 @@ class AuthProfileManager: ObservableObject {
     }
 
     // MARK: - Helper Functions for Migration
+
+    /// Gets the MDM-configured Kerberos realm as fallback for migration
+    private func getMDMKerberosRealm() -> String? {
+        let prefs = PreferenceManager()
+        return prefs.string(for: .kerberosRealm)
+    }
     
     /// Checks if a username belongs to a Kerberos user
     /// Returns both the result and the associated realm

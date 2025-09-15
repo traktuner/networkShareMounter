@@ -225,30 +225,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
     
-    /// Migrates the old Sparkle enable preference to the new disable preference if necessary.
-    /// The new key `.disableAutoUpdateFramework` takes precedence.
-    private func migrateSparklePreference() {
-        let defaults = UserDefaults.standard
-        let newKey = PreferenceKeys.disableAutoUpdateFramework.rawValue
-        let oldKey = PreferenceKeys.enableAutoUpdater.rawValue
-
-        // Check if the new key is already set (by user or MDM)
-        if defaults.object(forKey: newKey) != nil {
-            Logger.app.info("New preference key '\(newKey)' found. Ignoring old key '\(oldKey)'.")
-            // New key exists, no migration needed, its value takes precedence.
-        } 
-        // Check if the old key exists and the new one doesn't
-        else if defaults.object(forKey: oldKey) != nil {
-            let oldValue = defaults.bool(forKey: oldKey) // Read the old value
-            let newValue = !oldValue // Invert the logic for the new key
-            prefs.set(for: .disableAutoUpdateFramework, value: newValue)
-            Logger.app.warning("Old preference key '\(oldKey)' found and migrated to '\(newKey)=\(newValue)'. Please update configuration profiles.")
-        } else {
-            Logger.app.info("Neither new ('\(newKey)') nor old ('\(oldKey)') Sparkle preference key found. Using default value.")
-            // Neither key exists, rely on the default registered for disableAutoUpdateFramework (likely false).
-        }
-    }
-    
     private func synchronizeSparkleSettings() {
         let sparkleDefaults = UserDefaults.standard
         // Use the new preference key to determine if the framework is globally disabled
@@ -339,6 +315,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 Logger.app.debug("✅ Default realm profile check completed")
             } catch {
                 Logger.app.error("❌ Default realm profile creation failed: \(error)")
+            }
+
+            // Check if MDM requires Kerberos setup and auto-open settings if needed
+            if let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
+                Logger.app.info("🔧 MDM Kerberos realm '\(mdmRealm)' configured but no profile exists. Auto-opening settings for user setup.")
+                await MainActor.run {
+                    // Auto-open settings window with profile creation dialog
+                    SettingsWindowManager.shared.showSettingsWindow(autoOpenProfileCreation: true, mdmRealm: mdmRealm)
+                }
             }
             
             if mounter != nil {

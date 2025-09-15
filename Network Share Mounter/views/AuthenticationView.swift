@@ -168,6 +168,16 @@ struct AuthenticationView: View {
     @State private var profileToEdit: AuthProfile?
     @State private var currentAssociatedShares: [Share] = []
     @State private var ticketRefreshStatus: [String: TicketRefreshStatus] = [:]
+
+    // Auto-open parameters
+    let autoOpenProfileCreation: Bool
+    let mdmRealm: String?
+
+    /// Initializer with optional auto-open parameters
+    init(autoOpenProfileCreation: Bool = false, mdmRealm: String? = nil) {
+        self.autoOpenProfileCreation = autoOpenProfileCreation
+        self.mdmRealm = mdmRealm
+    }
     
     // Access the Mounter (assuming appDelegate is accessible)
     // Consider injecting Mounter if appDelegate access is problematic
@@ -214,8 +224,26 @@ struct AuthenticationView: View {
         .task(id: selectedProfileID) {
             await loadAssociatedShares(for: selectedProfileID)
         }
-        .sheet(isPresented: $isAddingProfile) { 
-            ProfileEditorView(mounter: mounter, isPresented: $isAddingProfile, onSave: { newProfile, password in
+        .onAppear {
+            // Auto-open profile creation dialog if requested (e.g., for MDM setup)
+            if autoOpenProfileCreation && !profileManager.profiles.isEmpty == false {
+                // Only auto-open if no profiles exist or if MDM setup is specifically needed
+                if let mdmRealm = mdmRealm {
+                    let needsSetup = AuthProfileManager.shared.needsMDMKerberosSetup() != nil
+                    if needsSetup {
+                        DispatchQueue.main.async {
+                            self.isAddingProfile = true
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $isAddingProfile) {
+            ProfileEditorView(
+                mounter: mounter,
+                isPresented: $isAddingProfile,
+                mdmRealm: mdmRealm,
+                onSave: { newProfile, password in
                 Task {
                     do {
                         try await profileManager.addProfile(newProfile, password: password)

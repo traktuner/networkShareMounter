@@ -23,7 +23,10 @@ class SettingsWindowManager: NSObject, NSWindowDelegate {
     }
     
     /// Shows the settings window or brings it to front if already open
-    func showSettingsWindow() {
+    /// - Parameters:
+    ///   - autoOpenProfileCreation: If true, automatically opens the profile creation dialog
+    ///   - mdmRealm: Optional MDM-configured realm for pre-filling the profile creation dialog
+    func showSettingsWindow(autoOpenProfileCreation: Bool = false, mdmRealm: String? = nil) {
         // If window exists, just bring it to front
         if let window = settingsWindow {
             if window.isVisible {
@@ -57,8 +60,11 @@ class SettingsWindowManager: NSObject, NSWindowDelegate {
         // Use Core Animation for smooth transitions
         window.animationBehavior = .documentWindow
         
-        // Create and set the SwiftUI content view
-        let contentView = SettingsView()
+        // Create and set the SwiftUI content view with optional auto-open parameters
+        let contentView = SettingsView(
+            autoOpenProfileCreation: autoOpenProfileCreation,
+            mdmRealm: mdmRealm
+        )
         window.contentView = NSHostingView(rootView: contentView)
         
         // Show the window

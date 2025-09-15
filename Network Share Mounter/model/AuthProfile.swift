@@ -86,6 +86,29 @@ struct AuthProfile: Identifiable, Codable, Equatable {
         guard useKerberos else { return true } // Non-Kerberos profiles are always valid here
         return isValidKerberosUsername && hasConsistentKerberosRealm
     }
+
+    /// Extracts the realm part from a UPN-format username
+    /// Returns nil if username is not in UPN format or no realm can be extracted
+    var extractedRealm: String? {
+        guard let username = username else { return nil }
+        let components = username.split(separator: "@")
+        guard components.count == 2 else { return nil }
+        return String(components[1]).uppercased()
+    }
+
+    /// Extracts the user part (before @) from a UPN-format username
+    /// Returns the original username if not in UPN format
+    var extractedUserPart: String {
+        guard let username = username else { return "" }
+        let components = username.split(separator: "@")
+        return String(components[0])
+    }
+
+    /// Checks if the username is in UPN format (contains exactly one @)
+    var isUPNFormat: Bool {
+        guard let username = username else { return false }
+        return username.filter { $0 == "@" }.count == 1
+    }
 }
 
 // MARK: - Color <-> Data Conversion Helper

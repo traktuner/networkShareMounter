@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
+    "@%@" : {
+
+    },
     "⚠️ Authentication problem..." : {
       "comment" : "Authentication problem",
       "localizations" : {
@@ -116,7 +122,7 @@
         }
       }
     },
-    "Alle verfügbaren Shares sind bereits diesem oder anderen Profilen zugeordnet." : {
+    "Alle verfügbaren Shares sind bereits zugeordnet." : {
 
     },
     "Allgemein" : {
@@ -626,13 +632,16 @@
     "Beim Anmelden starten" : {
 
     },
+    "benutzername" : {
+
+    },
     "Benutzername" : {
 
     },
     "Benutzername:" : {
 
     },
-    "Bezeichnung:" : {
+    "Bezeichnung" : {
 
     },
     "Build Date" : {
@@ -817,6 +826,9 @@
         }
       }
     },
+    "Darstellung" : {
+
+    },
     "Diagnosedaten" : {
 
     },
@@ -900,8 +912,18 @@
         }
       }
     },
-    "Erstellen Sie ein Authentifizierungsprofil für Ihre Netzwerk-Shares." : {
+    "Ersetzen" : {
 
+    },
+    "Es gibt bereits ein Kerberos-Profil für die Domäne '%@' mit dem Namen '%@'. Pro Domäne ist nur ein Kerberos-Profil sinnvoll. Soll das bestehende Profil ersetzt werden?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Es gibt bereits ein Kerberos-Profil für die Domäne '%1$@' mit dem Namen '%2$@'. Pro Domäne ist nur ein Kerberos-Profil sinnvoll. Soll das bestehende Profil ersetzt werden?"
+          }
+        }
+      }
     },
     "Farbe" : {
 
@@ -990,19 +1012,22 @@
     "Keine weiteren Shares verfügbar" : {
 
     },
+    "Kerberos" : {
+
+    },
     "Kerberos authentication error" : {
       "comment" : "Kerberos authentication error"
     },
     "Kerberos authentication successful" : {
       "comment" : "Kerberos authentication successful"
     },
-    "Kerberos Realm:" : {
+    "Kerberos Realm" : {
 
     },
     "Kerberos-Authentifizierung" : {
 
     },
-    "Kerberos-Authentifizierung verwenden" : {
+    "Kerberos-Authentifizierung (Single Sign-On)" : {
 
     },
     "Kerberos-Ticket aktualisieren" : {
@@ -1017,6 +1042,9 @@
     "Klicken Sie auf '+', um einen neuen Share hinzuzufügen" : {
 
     },
+    "Konfigurieren Sie Anmeldedaten und zugehörige Netzwerk-Shares." : {
+
+    },
     "Konfigurieren Sie hier die Netzwerk-Shares und deren Verbindungseinstellungen." : {
 
     },
@@ -1025,9 +1053,6 @@
     },
     "krb-offdomain-button" : {
       "comment" : "Button text for kerberos authentication"
-    },
-    "Lade verfügbare Shares..." : {
-
     },
     "Löschen" : {
 
@@ -1204,9 +1229,6 @@
 
     },
     "Netzwerkpfad:" : {
-
-    },
-    "Neues Profil erstellen" : {
 
     },
     "no error occured" : {
@@ -1495,19 +1517,16 @@
     "Profil entfernen" : {
 
     },
+    "Profil für diese Domäne bereits vorhanden" : {
+
+    },
     "Profil hinzufügen" : {
-
-    },
-    "Profil Name" : {
-
-    },
-    "Profilbild" : {
 
     },
     "Profile werden geladen..." : {
 
     },
-    "Profilfarbe auswählen" : {
+    "Profilname" : {
 
     },
     "Profilzuweisung aufheben" : {
@@ -1563,7 +1582,7 @@
     "Realm: %@" : {
 
     },
-    "REALM.COM" : {
+    "REALM.EXAMPLE" : {
 
     },
     "Save" : {
@@ -1657,7 +1676,7 @@
     "Share entfernen" : {
 
     },
-    "Share hinzufügen..." : {
+    "Share hinzufügen …" : {
 
     },
     "Share is already mounted" : {
@@ -1741,6 +1760,9 @@
           }
         }
       }
+    },
+    "Sichern" : {
+
     },
     "smb://server/pfad" : {
 
@@ -1865,9 +1887,6 @@
       }
     },
     "Symbol" : {
-
-    },
-    "Symbol wählen" : {
 
     },
     "Target host is not reachable" : {
@@ -2145,13 +2164,13 @@
     "Verbinden/Trennen" : {
 
     },
+    "Verfügbare Shares werden geladen …" : {
+
+    },
     "Version" : {
 
     },
     "Verwalten Sie hier Ihre Authentifizierungsprofile für Netzwerkverbindungen." : {
-
-    },
-    "Vorschau" : {
 
     },
     "Wählen Sie die Netzwerk-Shares aus, die Sie diesem Profil zuordnen möchten." : {
@@ -2163,10 +2182,10 @@
     "Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil" : {
 
     },
-    "Wählen Sie eine Farbe für das Profilsymbol" : {
+    "Zugehöriges Profil" : {
 
     },
-    "Zugehöriges Profil" : {
+    "Zugeordnete Shares" : {
 
     },
     "Zugeordnete Shares (%lld)" : {
