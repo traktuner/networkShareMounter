@@ -201,13 +201,15 @@ struct GeneralSettingsView: View {
                  prefs.set(for: .autostart, value: newValue)
              } else {
                  // Revert UI if change is disallowed by MDM.
-                 DispatchQueue.main.async { startAtLogin = prefs.bool(for: .autostart) }
+                 Task { @MainActor in startAtLogin = prefs.bool(for: .autostart) }
              }
         }
         .onChange(of: sendDiagnosticData) { newValue in
             // Persist the diagnostic data preference.
             prefs.set(for: .sendDiagnostics, value: newValue)
-            // TODO: Implement logic to start/stop diagnostic reporting based on newValue.
+
+            // Reconfigure Sentry based on the new preference
+            SentryManager.shared.configureSentry()
         }
         .onChange(of: automaticallyChecksForUpdates) { newValue in
             // Persist the automatic check preference if allowed.
@@ -222,7 +224,7 @@ struct GeneralSettingsView: View {
                 }
             } else {
                  // Revert UI if change is disallowed by MDM.
-                 DispatchQueue.main.async { 
+                 Task { @MainActor in 
                      automaticallyChecksForUpdates = prefs.bool(for: .SUEnableAutomaticChecks)
                  }
             }
@@ -233,7 +235,7 @@ struct GeneralSettingsView: View {
                  prefs.set(for: .SUAutomaticallyUpdate, value: newValue)
             } else {
                  // Revert UI if change is disallowed by MDM or checks are disabled.
-                 DispatchQueue.main.async { 
+                 Task { @MainActor in 
                      automaticallyDownloadsUpdates = prefs.bool(for: .SUAutomaticallyUpdate)
                  }
             }

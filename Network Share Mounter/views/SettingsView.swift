@@ -12,6 +12,23 @@ import SwiftUI
 struct SettingsView: View {
     /// The currently selected settings tab
     @State private var selection: SettingsTab = .networkShares
+
+    /// Auto-open profile creation dialog on startup
+    let autoOpenProfileCreation: Bool
+
+    /// MDM-configured realm for pre-filling profile creation
+    let mdmRealm: String?
+
+    /// Initializer with optional auto-open parameters
+    init(autoOpenProfileCreation: Bool = false, mdmRealm: String? = nil) {
+        self.autoOpenProfileCreation = autoOpenProfileCreation
+        self.mdmRealm = mdmRealm
+
+        // If we should auto-open profile creation, start with authentication tab
+        if autoOpenProfileCreation {
+            self._selection = State(initialValue: .authentication)
+        }
+    }
     
     /// Enum representing the available settings tabs
     enum SettingsTab: String, CaseIterable, Identifiable {
@@ -81,7 +98,10 @@ struct SettingsView: View {
                 case .networkShares:
                     NetworkSharesView()
                 case .authentication:
-                    AuthenticationView()
+                    AuthenticationView(
+                        autoOpenProfileCreation: autoOpenProfileCreation,
+                        mdmRealm: mdmRealm
+                    )
                 case .general:
                     GeneralSettingsView()
                 }
@@ -89,12 +109,11 @@ struct SettingsView: View {
                 Spacer() // Pushes the content above it to the top
             }
         }
-        .navigationTitle("Einstellungen")
         // Set appropriate minimum dimensions for consistent layout of all views
-        .frame(minWidth: 850, minHeight: 500)
+        .frame(minWidth: 900, minHeight: 580)
     }
 }
 
 #Preview {
     SettingsView()
-} 
+}

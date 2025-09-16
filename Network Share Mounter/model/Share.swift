@@ -33,7 +33,9 @@ struct Share: Identifiable {
     var actualMountPoint: String?
     var managed: Bool
     var shareDisplayName: String?
-    var id = UUID().uuidString
+    /// Unique identifier (random UUID). Remains stable for the life-time of the Share instance and
+    /// is stored persistently when needed (e.g. associated profiles).
+    var id: String = UUID().uuidString
     
     /// Lock for thread-safe access to Share properties
     private var lock = os_unfair_lock()
@@ -81,8 +83,28 @@ struct Share: Identifiable {
         }
     }
     
-    /// factory-method, to create a new Share object
-    static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true, shareDisplayName: String? = nil) -> Share {
-        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, shareDisplayName: shareDisplayName, id: UUID().uuidString)
+    /// Factory-method that guarantees a **stable, deterministic ID** based on the share URL. This
+    /// prevents UI race-conditions where randomly generated UUIDs change between reloads.
+    static func createShare(
+        networkShare: String,
+        authType: AuthType,
+        mountStatus: MountStatus,
+        username: String? = nil,
+        password: String? = nil,
+        mountPoint: String? = nil,
+        managed: Bool = true,
+        shareDisplayName: String? = nil
+    ) -> Share {
+        return Share(
+            networkShare: networkShare,
+            authType: authType,
+            username: username,
+            password: password,
+            mountStatus: mountStatus,
+            mountPoint: mountPoint,
+            managed: managed,
+            shareDisplayName: shareDisplayName,
+            id: UUID().uuidString
+        )
     }
 }

@@ -44,7 +44,6 @@ import dogeADAuth
 /// - Green: Kerberos authentication successful
 /// - Yellow: Authentication issue (non-Kerberos)
 /// - Red: Kerberos authentication failure
-@main
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// The status item displayed in the system menu bar.
@@ -60,6 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     
     /// The object responsible for mounting network shares.
     /// This handles all operations related to connecting, authenticating, and mounting shares.
+    /// NOTE: Instance is created by Network_Share_MounterApp and injected here.
     var mounter: Mounter?
     
     /// Manages user preferences for the application.
@@ -158,25 +158,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // --- Preference Migration Logic for Sparkle --- 
         migrateSparklePreference()
         // --- End Migration Logic ---
-        
-#if DEBUG
-        Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
-#else
-        if prefs.bool(for: .sendDiagnostics) == true {
-            Logger.app.debug("Initializing sentry SDK...")
-            SentrySDK.start { options in
-                options.dsn = Defaults.sentryDSN
-                options.debug = false
-                options.tracesSampleRate = 0.1
-            }
-        }
-#endif
+
+        // Configure Sentry based on user preferences
+        SentryManager.shared.configureSentry()
         
         // Synchronize Sparkle settings with current preferences
         synchronizeSparkleSettings()
-        
-        // Initialize the Mounter instance
-        mounter = Mounter()
         
         // Set up the status item in the menu bar
         if let button = statusItem.button {
@@ -198,30 +185,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             Logger.app.debug("Setting LaunchAtLogin state asynchronously via Task...")
             LaunchAtLogin.isEnabled = self.prefs.bool(for: .autostart)
             Logger.app.debug("LaunchAtLogin state set via Task.")
-        }
-    }
-    
-    /// Migrates the old Sparkle enable preference to the new disable preference if necessary.
-    /// The new key `.disableAutoUpdateFramework` takes precedence.
-    private func migrateSparklePreference() {
-        let defaults = UserDefaults.standard
-        let newKey = PreferenceKeys.disableAutoUpdateFramework.rawValue
-        let oldKey = PreferenceKeys.enableAutoUpdater.rawValue
-
-        // Check if the new key is already set (by user or MDM)
-        if defaults.object(forKey: newKey) != nil {
-            Logger.app.info("New preference key '\(newKey)' found. Ignoring old key '\(oldKey)'.")
-            // New key exists, no migration needed, its value takes precedence.
-        } 
-        // Check if the old key exists and the new one doesn't
-        else if defaults.object(forKey: oldKey) != nil {
-            let oldValue = defaults.bool(forKey: oldKey) // Read the old value
-            let newValue = !oldValue // Invert the logic for the new key
-            prefs.set(for: .disableAutoUpdateFramework, value: newValue)
-            Logger.app.warning("Old preference key '\(oldKey)' found and migrated to '\(newKey)=\(newValue)'. Please update configuration profiles.")
-        } else {
-            Logger.app.info("Neither new ('\(newKey)') nor old ('\(oldKey)') Sparkle preference key found. Using default value.")
-            // Neither key exists, rely on the default registered for disableAutoUpdateFramework (likely false).
         }
     }
     
@@ -281,6 +244,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         Task { @MainActor in
             Logger.app.debug("🔄 Starting asynchronous app initialization")
             
+            // Perform one-time migration from legacy credentials to profiles BEFORE mounter init
+            let migrationKey = "AuthProfileMigrationCompleted_v3.0"
+            if !UserDefaults.standard.bool(forKey: migrationKey) {
+                do {
+                    try await AuthProfileManager.shared.migrateFromLegacyCredentials()
+                    UserDefaults.standard.set(true, forKey: migrationKey)
+                    Logger.app.info("✅ Profile migration completed successfully")
+                } catch {
+                    Logger.app.error("❌ Profile migration failed: \(error)")
+                }
+            } else {
+                Logger.app.debug("Profile migration already completed, skipping")
+            }
+            
+            // Initialize the mounter AFTER migration
             await mounter?.asyncInit()
             Logger.app.debug("✅ Mounter successfully initialized")
             
@@ -301,7 +279,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 let principals = await klist.klist()
                 if !principals.isEmpty {
                     Logger.app.info("Found existing Kerberos tickets, updating menu icon.")
-                    Task { @MainActor in
+                    await MainActor.run {
                         if let button = self.statusItem.button {
                             button.image = NSImage(named: NSImage.Name(MenuImageName.green.imageName))
                         }
@@ -318,18 +296,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             await AccountsManager.shared.initialize()
             Logger.app.debug("✅ Account manager initialized")
             
-            // Perform one-time migration from legacy credentials to profiles
-            let migrationKey = "AuthProfileMigrationCompleted_v3.2"
-            if !UserDefaults.standard.bool(forKey: migrationKey) {
-                do {
-                    try await AuthProfileManager.shared.migrateFromLegacyCredentials()
-                    UserDefaults.standard.set(true, forKey: migrationKey)
-                    Logger.app.info("✅ Profile migration completed successfully")
-                } catch {
-                    Logger.app.error("❌ Profile migration failed: \(error)")
+            // Create default realm profile if needed (always check on startup)
+            do {
+                try await AuthProfileManager.shared.createDefaultRealmProfileIfNeeded()
+                Logger.app.debug("✅ Default realm profile check completed")
+            } catch {
+                Logger.app.error("❌ Default realm profile creation failed: \(error)")
+            }
+
+            // Check if MDM requires Kerberos setup and auto-open settings if needed
+            if let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
+                Logger.app.info("🔧 MDM Kerberos realm '\(mdmRealm)' configured but no profile exists. Auto-opening settings for user setup.")
+                await MainActor.run {
+                    // Auto-open settings window with profile creation dialog using the new SwiftUI system
+                    NotificationCenter.default.post(
+                        name: .showSettingsScene,
+                        object: nil,
+                        userInfo: [
+                            "autoOpenProfileCreation": true,
+                            "mdmRealm": mdmRealm
+                        ]
+                    )
                 }
-            } else {
-                Logger.app.debug("Profile migration already completed, skipping")
             }
             
             if mounter != nil {
@@ -404,10 +392,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     return
                 }
                 Logger.app.debug("🔔 [DEBUG] No mounted shares - proceeding with Kerberos error handling")
-                if let button = statusItem.button, enableKerberos {
+                if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
-                    mounter?.setErrorStatus(.krbAuthenticationError)
-                    await constructMenu(withMounter: mounter, andStatus: .krbAuthenticationError)
+                    self.mounter?.setErrorStatus(.krbAuthenticationError)
+                    await self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
                 }
             }
         }
@@ -430,7 +418,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             Logger.app.debug("🔔 [DEBUG] Processing ClearError path")
             Task { @MainActor in
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
                     self.mounter?.setErrorStatus(.noError)
                     await self.constructMenu(withMounter: self.mounter)
                 }
@@ -458,20 +446,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         else if notification.userInfo?["krbOffDomain"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing krbOffDomain path")
             Task { @MainActor in
-                if let button = statusItem.button, enableKerberos {
+                // Change the color of the menu symbol to default when off domain
+                if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
-                    mounter?.setErrorStatus(.offDomain)
-                    await constructMenu(withMounter: mounter)
-                }
-            }
-        }
-        else if notification.userInfo?["krbUnreachable"] is Error {
-            Logger.app.debug("🔔 [DEBUG] Processing krbUnreachable path")
-            Task { @MainActor in
-                if let button = statusItem.button, enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounter")) // Farblos
-                    mounter?.setErrorStatus(.offDomain)
-                    await constructMenu(withMounter: mounter)
+                    self.mounter?.setErrorStatus(.offDomain)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
@@ -537,7 +516,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Shows the new SwiftUI settings window.
     @objc func showSettingsWindowSwiftUI(_ sender: Any?) {
-        SettingsWindowManager.shared.showSettingsWindow()
+        Logger.app.debug("🔧 [DEBUG] showSettingsWindowSwiftUI called")
+        // Use the new SwiftUI app notification system
+        NotificationCenter.default.post(name: .showSettingsScene, object: nil)
+        Logger.app.debug("🔧 [DEBUG] Posted showSettingsScene notification")
     }
     
     /// Sets up signal handlers for mounting and unmounting shares.
@@ -809,4 +791,3 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return false
     }
 }
-

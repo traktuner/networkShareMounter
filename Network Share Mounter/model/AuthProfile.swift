@@ -52,6 +52,63 @@ struct AuthProfile: Identifiable, Codable, Equatable {
     var requiresPasswordInKeychain: Bool {
         return !useKerberos || (useKerberos && username != nil) // Simplified: Assume password needed if username present for Kerberos
     }
+
+    /// Validates if the username is in proper UPN format for Kerberos authentication.
+    /// UPN format: username@REALM.COM
+    var isValidKerberosUsername: Bool {
+        guard useKerberos, let username = username else { return !useKerberos }
+
+        // UPN format: username@realm
+        let components = username.split(separator: "@")
+        guard components.count == 2 else { return false }
+
+        let userPart = String(components[0])
+        let realmPart = String(components[1])
+
+        // Basic validation
+        return !userPart.isEmpty &&
+               !realmPart.isEmpty &&
+               realmPart.uppercased() == realmPart // Realms are typically uppercase
+    }
+
+    /// Validates that the username realm matches the configured Kerberos realm.
+    var hasConsistentKerberosRealm: Bool {
+        guard useKerberos,
+              let username = username,
+              let realm = kerberosRealm else { return !useKerberos }
+
+        let usernameRealm = username.components(separatedBy: "@").last
+        return usernameRealm?.uppercased() == realm.uppercased()
+    }
+
+    /// Comprehensive validation for Kerberos profiles.
+    var isValidKerberosProfile: Bool {
+        guard useKerberos else { return true } // Non-Kerberos profiles are always valid here
+        return isValidKerberosUsername && hasConsistentKerberosRealm
+    }
+
+    /// Extracts the realm part from a UPN-format username
+    /// Returns nil if username is not in UPN format or no realm can be extracted
+    var extractedRealm: String? {
+        guard let username = username else { return nil }
+        let components = username.split(separator: "@")
+        guard components.count == 2 else { return nil }
+        return String(components[1]).uppercased()
+    }
+
+    /// Extracts the user part (before @) from a UPN-format username
+    /// Returns the original username if not in UPN format
+    var extractedUserPart: String {
+        guard let username = username else { return "" }
+        let components = username.split(separator: "@")
+        return String(components[0])
+    }
+
+    /// Checks if the username is in UPN format (contains exactly one @)
+    var isUPNFormat: Bool {
+        guard let username = username else { return false }
+        return username.filter { $0 == "@" }.count == 1
+    }
 }
 
 // MARK: - Color <-> Data Conversion Helper

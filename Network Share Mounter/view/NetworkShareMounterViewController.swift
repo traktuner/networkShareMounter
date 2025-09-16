@@ -337,6 +337,11 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     guard let self = self else { return }
                     let currentErrorStatus = await self.appDelegate.mounter!.errorStatus
                     await MainActor.run {
+                        // Ensure window is responsive after modal dialog
+                        if let window = self.view.window {
+                            window.makeKeyAndOrderFront(nil)
+                        }
+                        
                         if currentErrorStatus == .authenticationError {
                             self.refreshUserArray(type: .missingPassword)
                         } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
@@ -354,7 +359,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             
             // Load share data asynchronously but set it immediately when available
             Task {
-                if let selectedShare = await appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
+                let allShares = await appDelegate.mounter!.shareManager.allShares
+                if let selectedShare = allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
                     let shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
                                                                  authType: selectedShare.authType,
                                                                  username: selectedShare.username,
@@ -373,7 +379,8 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     /// Checks if a networkShare should added to the list of displayed shares
     private func refreshUserArray(type: DisplayShareTypes) {
         Task {
-            for definedShare in await appDelegate.mounter!.shareManager.allShares {
+            let allShares = await appDelegate.mounter!.shareManager.allShares
+            for definedShare in allShares {
                 var mountSymbol = (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.symbolName :
                 (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.symbolName :
                 (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.symbolName :

@@ -8,6 +8,7 @@
 
 import Foundation
 import Security
+import OSLog
 
 /// Description of the CFDictionary for a new keychain entry
 ///
@@ -377,6 +378,65 @@ class KeychainManager: NSObject {
         }
     }
     
+    // MARK: - Migration Support
+    
+    /// Retrieves all entries from FAU shared keychain for Kerberos migration
+    /// Uses the same pattern as retrieveAllEntries but with FAU access group
+    func retrieveAllFAUSharedCredentials() throws -> [(username: String, password: String)] {
+        // Check if FAU access group is configured
+        let fauAccessGroup = Defaults.keyChainAccessGroup
+        guard !fauAccessGroup.isEmpty else {
+            Logger.keychain.info("No FAU access group configured")
+            return [] // No FAU access group configured
+        }
+        
+        do {
+            // Query for FAU shared credentials with specific service and access group
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: "de.fau.rrze.faucredentials", // FAU specific service
+                kSecAttrAccessGroup as String: fauAccessGroup,
+                kSecReturnData as String: kCFBooleanTrue,
+                kSecMatchLimit as String: kSecMatchLimitAll,
+                kSecReturnAttributes as String: kCFBooleanTrue,
+                kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+            ]
+            
+            var ref: AnyObject? = nil
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            
+            // Handle no items found gracefully
+            if status == errSecItemNotFound {
+                Logger.keychain.info("No FAU shared credentials found")
+                return []
+            }
+            
+            guard status == errSecSuccess else {
+                Logger.keychain.warning("Error retrieving FAU credentials: \(status)")
+                return [] // Return empty array instead of throwing
+            }
+            
+            let array = ref as! CFArray
+            let dict: [[String: Any]] = array.toSwiftArray()
+            let pairs = dict.compactMap { $0.accountPasswordPair }
+            
+            Logger.keychain.info("Retrieved \(pairs.count) FAU shared credentials")
+            return pairs
+            
+        } catch {
+            Logger.keychain.warning("Error in FAU credentials query: \(error)")
+            return [] // Return empty array instead of throwing
+        }
+    }
+}
+
+
+// MARK: - Helper extensions to extract data from CFArray and Dictionaries
+extension CFArray {
+  func toSwiftArray<T>() -> [T] {
+    let array = Array<AnyObject>(_immutableCocoaArray: self)
+    return array.compactMap { $0 as? T }
+  }
     // MARK: - OSStatus helper
     
     func describe(status: OSStatus) -> String {

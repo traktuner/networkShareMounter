@@ -2,41 +2,43 @@ import SwiftUI
 import OSLog
 import dogeADAuth // For KlistUtil - Assuming it's here
 
+
+
 // MARK: - Profile Detail View
 
 struct ProfileDetailView: View {
     // Dependencies
     let profile: AuthProfile
     let associatedShares: [Share] 
+    let ticketRefreshStatus: TicketRefreshStatus
+    let mounter: Mounter
     let onEditProfile: () -> Void
     let onRefreshTicket: () -> Void
     
-    // Access the Mounter (needed for share actions)
-    // Assuming appDelegate.mounter is globally accessible or passed differently
-    private let mounter = appDelegate.mounter!
-    
     // State for Kerberos ticket status
-    @State private var ticketStatus: Bool? = nil
+    @State private var ticketStatus: TicketStatus = .unknown
 
     // Logger
     private static var logger = Logger.authenticationView // Assuming this logger is accessible
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 32) {
             // Profile Header
             profileHeader
             
             Divider()
-                .padding(.vertical, 8) // Add more space around this divider
+                .padding(.vertical, 12) // More space around dividers
             
             // Authentication Information Section
             authInfoSection
             
             Divider()
-                .padding(.vertical, 8) // Add more space around this divider
+                .padding(.vertical, 12) // More space around dividers
             
             // Associated Shares Section
             associatedSharesSection
+            
+            Spacer() // Push content to top and allow breathing room
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         // Task to check ticket status
@@ -48,8 +50,8 @@ struct ProfileDetailView: View {
     // MARK: Subviews for Body
     
     private var profileHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
                 Image(systemName: profile.symbolName ?? "person.circle")
                     .foregroundColor(.white)
                     .padding(8)
@@ -75,10 +77,10 @@ struct ProfileDetailView: View {
     }
     
     private var authInfoSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("Anmeldedaten")
                 .font(.headline)
-                .padding(.bottom, 4) // Add consistent spacing with shares section
+                .padding(.bottom, 8) // More spacing for section headers
             
             if profile.useKerberos {
                  HStack {
@@ -101,28 +103,42 @@ struct ProfileDetailView: View {
     
     // View for Kerberos Status Indicator and Refresh Button
     private var kerberosStatusView: some View {
-        VStack(alignment: .trailing) {
+        VStack(alignment: .trailing, spacing: 8) {
              HStack {
-                if let status = ticketStatus {
-                    Circle()
-                        .fill(status ? .green : .red)
-                        .frame(width: 10, height: 10)
-                        .help(status ? "Aktives Kerberos-Ticket gefunden" : "Kein aktives Kerberos-Ticket gefunden")
-                    Text(status ? "Ticket gültig" : "Kein gültiges Ticket")
+                // Show refresh status if active, otherwise show ticket status
+                if ticketRefreshStatus != .idle {
+                    // Show refresh status
+                    if ticketRefreshStatus == .refreshing {
+                        ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
+                    } else {
+                        Circle()
+                            .fill(ticketRefreshStatus.color)
+                            .frame(width: 10, height: 10)
+                    }
+                    Text(ticketRefreshStatus.displayText)
+                        .foregroundColor(ticketRefreshStatus.color)
                 } else {
-                    ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
-                    Text("Prüfe...")
+                    // Show normal ticket status
+                    if ticketStatus == .unknown {
+                        ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
+                        Text("Prüfe...")
+                    } else {
+                        Circle()
+                            .fill(ticketStatus.color)
+                            .frame(width: 10, height: 10)
+                            .help(ticketStatus.helpText)
+                        Text(ticketStatus.displayText)
+                            .foregroundColor(ticketStatus.color)
+                    }
                 }
             }
             .font(.caption)
             
             Button("Ticket aktualisieren") {
                 Self.logger.info("Ticket refresh requested for profile \(profile.displayName)")
-                onRefreshTicket() // Call original action if needed
-                // Trigger a re-check after attempting refresh
-                ticketStatus = nil 
+                onRefreshTicket()
             }
-            .disabled(ticketStatus != false) // Disable if unknown or already valid
+            .disabled(ticketRefreshStatus == .refreshing) // Disable during refresh
         }
     }
     
@@ -133,21 +149,15 @@ struct ProfileDetailView: View {
                 Text("Benutzername:")
                 Text(profile.username ?? "N/A")
             }
-            GridRow {
-                Text("Passwort:")
-                Text("Gespeichert im Schlüsselbund")
-                    .foregroundColor(.secondary)
-                    .italic()
-            }
         }
     }
     
     private var associatedSharesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
              HStack {
                 Text("Zugeordnete Shares (\(associatedShares.count))")
                     .font(.headline)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 8)
                 Spacer()
                 // Placeholder button - needs implementation if desired
                 // Button("Verknüpfen...") { ... }.font(.caption)
@@ -185,7 +195,7 @@ struct ProfileDetailView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
         .contextMenu {
             Button(share.mountStatus == .mounted ? "Trennen" : "Verbinden") {
                 handleMountToggle(for: share)
@@ -200,27 +210,18 @@ struct ProfileDetailView: View {
     
     /// Asynchronously checks the Kerberos ticket status for the current profile.
     private func checkTicketStatus() async {
-        guard profile.useKerberos else {
-            ticketStatus = nil 
-            return
+        // Use the global ticket status checker
+        let status = await checkKerberosTicketStatus(for: profile)
+        
+        // Update the status on the main thread
+        await MainActor.run {
+            ticketStatus = status
         }
-        ticketStatus = nil 
-        guard let username = profile.username, !username.isEmpty, 
-              let realm = profile.kerberosRealm, !realm.isEmpty else {
-            Self.logger.warning("Cannot check Kerberos ticket for profile '\(profile.displayName)': Missing username or realm.")
-            ticketStatus = false 
-            return
-        }
-        let principalToCheck = "\(username)@\(realm.uppercased())"
-        Self.logger.debug("(DetailView) Checking Kerberos ticket for principal: \(principalToCheck)")
-        let klistUtil = KlistUtil() 
-        let activeTickets = await klistUtil.klist() 
-        let hasActiveTicket = activeTickets.contains { ticket in
-            ticket.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
-        }
-        ticketStatus = hasActiveTicket
-        Self.logger.debug("(DetailView) Kerberos ticket status for \(principalToCheck): \(hasActiveTicket)")
+        
+        Self.logger.debug("(DetailView) Ticket status for profile '\(profile.displayName)': \(status.displayText)")
     }
+    
+
     
     /// Returns the appropriate color for the mount status indicator.
     private func mountStatusColor(for status: MountStatus) -> Color {
@@ -285,6 +286,8 @@ struct ProfileDetailView_Previews: PreviewProvider {
         ProfileDetailView(
             profile: profile1,
             associatedShares: [share1],
+            ticketRefreshStatus: .idle,
+            mounter: mockMounter,
             onEditProfile: { print("Preview Edit") },
             onRefreshTicket: { print("Preview Refresh") }
         )
@@ -294,6 +297,8 @@ struct ProfileDetailView_Previews: PreviewProvider {
         ProfileDetailView(
             profile: profile2,
             associatedShares: [share2, share3],
+            ticketRefreshStatus: .idle,
+            mounter: mockMounter,
             onEditProfile: { print("Preview Edit") },
             onRefreshTicket: { print("Preview Refresh") }
         )
