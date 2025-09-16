@@ -44,7 +44,6 @@ import dogeADAuth
 /// - Green: Kerberos authentication successful
 /// - Yellow: Authentication issue (non-Kerberos)
 /// - Red: Kerberos authentication failure
-@main
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// The status item displayed in the system menu bar.
@@ -60,6 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     
     /// The object responsible for mounting network shares.
     /// This handles all operations related to connecting, authenticating, and mounting shares.
+    /// NOTE: Instance is created by Network_Share_MounterApp and injected here.
     var mounter: Mounter?
     
     /// Manages user preferences for the application.
@@ -158,25 +158,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // --- Preference Migration Logic for Sparkle --- 
         migrateSparklePreference()
         // --- End Migration Logic ---
-        
-#if DEBUG
-        Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
-#else
-        if prefs.bool(for: .sendDiagnostics) == true {
-            Logger.app.debug("Initializing sentry SDK...")
-            SentrySDK.start { options in
-                options.dsn = Defaults.sentryDSN
-                options.debug = false
-                options.tracesSampleRate = 0.1
-            }
-        }
-#endif
+
+        // Configure Sentry based on user preferences
+        SentryManager.shared.configureSentry()
         
         // Synchronize Sparkle settings with current preferences
         synchronizeSparkleSettings()
-        
-        // Initialize the Mounter instance
-        mounter = Mounter()
         
         // Set up the status item in the menu bar
         if let button = statusItem.button {
@@ -321,8 +308,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
                 Logger.app.info("🔧 MDM Kerberos realm '\(mdmRealm)' configured but no profile exists. Auto-opening settings for user setup.")
                 await MainActor.run {
-                    // Auto-open settings window with profile creation dialog
-                    SettingsWindowManager.shared.showSettingsWindow(autoOpenProfileCreation: true, mdmRealm: mdmRealm)
+                    // Auto-open settings window with profile creation dialog using the new SwiftUI system
+                    NotificationCenter.default.post(
+                        name: .showSettingsScene,
+                        object: nil,
+                        userInfo: [
+                            "autoOpenProfileCreation": true,
+                            "mdmRealm": mdmRealm
+                        ]
+                    )
                 }
             }
             
@@ -522,7 +516,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Shows the new SwiftUI settings window.
     @objc func showSettingsWindowSwiftUI(_ sender: Any?) {
-        SettingsWindowManager.shared.showSettingsWindow()
+        Logger.app.debug("🔧 [DEBUG] showSettingsWindowSwiftUI called")
+        // Use the new SwiftUI app notification system
+        NotificationCenter.default.post(name: .showSettingsScene, object: nil)
+        Logger.app.debug("🔧 [DEBUG] Posted showSettingsScene notification")
     }
     
     /// Sets up signal handlers for mounting and unmounting shares.
@@ -794,4 +791,3 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return false
     }
 }
-

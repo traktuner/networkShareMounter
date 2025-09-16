@@ -868,6 +868,9 @@
     "Einstellungen" : {
 
     },
+    "Einstellungen …" : {
+
+    },
     "Entfernen" : {
 
     },
@@ -1761,9 +1764,6 @@
         }
       }
     },
-    "Sichern" : {
-
-    },
     "smb://server/pfad" : {
 
     },
@@ -2183,9 +2183,6 @@
 
     },
     "Zugehöriges Profil" : {
-
-    },
-    "Zugeordnete Shares" : {
 
     },
     "Zugeordnete Shares (%lld)" : {

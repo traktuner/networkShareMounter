@@ -11,6 +11,7 @@ struct DetailColumnView: View {
     @ObservedObject var profileManager: AuthProfileManager // Needs AuthProfile definition
     let currentAssociatedShares: [Share] // Needs Share definition
     let ticketRefreshStatus: [String: TicketRefreshStatus]
+    let mounter: Mounter // Added missing mounter dependency
     
     // Actions passed down to ProfileDetailView
     var onEditProfile: (AuthProfile) -> Void
@@ -21,35 +22,43 @@ struct DetailColumnView: View {
 
     var body: some View {
         ScrollView {
-            Group {
-                // Find the profile based on ID
-                let selectedProfile = profileManager.profiles.first { $0.id == selectedProfileID }
-
-                if let profile = selectedProfile {
-                    // Display profile details
-                    ProfileDetailView(
-                        profile: profile,
-                        associatedShares: currentAssociatedShares,
-                        ticketRefreshStatus: ticketRefreshStatus[profile.id] ?? .idle,
-                        onEditProfile: { onEditProfile(profile) }, 
-                        onRefreshTicket: { onRefreshTicket(profile) } 
-                    )
-                } else {
-                    // Display placeholder if no profile is selected or found
-                    ProfileDetailPlaceholderView()
-                }
-            }
-            .padding(20) // Move the padding to the content inside the ScrollView
+            contentView
+                .padding(20)
         }
-        // Add a subtle background to match styling in other views
         .background(Color(.controlBackgroundColor))
-        // Add a subtle border for consistent styling
         .overlay(
             RoundedRectangle(cornerRadius: 6)
                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)
         )
-        // Make the column take available space
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Content View
+    
+    @ViewBuilder
+    private var contentView: some View {
+        // Find the profile based on ID
+        let selectedProfile = profileManager.profiles.first { $0.id == selectedProfileID }
+        
+        if let profile = selectedProfile {
+            profileDetailView(for: profile)
+        } else {
+            ProfileDetailPlaceholderView()
+        }
+    }
+    
+    // MARK: - Profile Detail View Helper
+    
+    @ViewBuilder
+    private func profileDetailView(for profile: AuthProfile) -> some View {
+        ProfileDetailView(
+            profile: profile,
+            associatedShares: currentAssociatedShares,
+            ticketRefreshStatus: ticketRefreshStatus[profile.id] ?? .idle,
+            mounter: mounter,
+            onEditProfile: { onEditProfile(profile) },
+            onRefreshTicket: { onRefreshTicket(profile) }
+        )
     }
 }
 
@@ -78,6 +87,7 @@ struct DetailColumnView_Previews: PreviewProvider {
             profileManager: mockProfileManager,
             currentAssociatedShares: [share1, share2],
             ticketRefreshStatus: [:],
+            mounter: mockMounter,
             onEditProfile: { _ in print("Preview Edit") },
             onRefreshTicket: { _ in print("Preview Refresh") }
         )
@@ -93,6 +103,7 @@ struct DetailColumnView_Previews: PreviewProvider {
             profileManager: mockProfileManager,
             currentAssociatedShares: [],
             ticketRefreshStatus: [:],
+            mounter: mockMounter,
             onEditProfile: { _ in print("Preview Edit") },
             onRefreshTicket: { _ in print("Preview Refresh") }
         )

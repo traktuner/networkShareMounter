@@ -9,6 +9,7 @@
 import SwiftUI
 import OSLog // Add OSLog for logging
 import dogeADAuth
+import AppKit // For NSApplication
 
 // MARK: - Ticket Status Enums
 
@@ -87,16 +88,16 @@ enum TicketRefreshStatus: Equatable {
         case .success:
             return "Erfolgreich aktualisiert"
         case .failed(let error):
-            // Simplify common error messages for user-friendly display
-            if error.contains("unable to reach any KDC") {
-                return "KDC nicht erreichbar"
-            } else if error.contains("invalid credentials") || error.contains("UnAuthenticated") {
-                return "Ungültige Anmeldedaten"
-            } else if error.contains("OffDomain") {
-                return "Außerhalb der Domäne"
-            } else {
-                return "Fehler bei Aktualisierung"
-            }
+                // Simplify common error messages for user-friendly display
+                if error.contains("unable to reach any KDC") {
+                    return "KDC nicht erreichbar"
+                } else if error.contains("invalid credentials") || error.contains("UnAuthenticated") {
+                    return "Ungültige Anmeldedaten"
+                } else if error.contains("OffDomain") {
+                    return "Außerhalb der Domäne"
+                } else {
+                    return "Fehler bei Aktualisierung"
+                }
         }
     }
     
@@ -109,12 +110,12 @@ enum TicketRefreshStatus: Equatable {
         case .success:
             return .green
         case .failed(let error):
-            // Use same logic as TicketStatus for consistency
-            if error.contains("unable to reach any KDC") {
-                return .secondary  // Network issue, not auth failure
-            } else {
-                return .red        // Real authentication error
-            }
+                // Use same logic as TicketStatus for consistency
+                if error.contains("unable to reach any KDC") {
+                    return .secondary  // Network issue, not auth failure
+                } else {
+                    return .red        // Real authentication error
+                }
         }
     }
 }
@@ -169,6 +170,9 @@ struct AuthenticationView: View {
     @State private var currentAssociatedShares: [Share] = []
     @State private var ticketRefreshStatus: [String: TicketRefreshStatus] = [:]
 
+    // Injected global service
+    @EnvironmentObject private var mounter: Mounter
+
     // Auto-open parameters
     let autoOpenProfileCreation: Bool
     let mdmRealm: String?
@@ -178,10 +182,6 @@ struct AuthenticationView: View {
         self.autoOpenProfileCreation = autoOpenProfileCreation
         self.mdmRealm = mdmRealm
     }
-    
-    // Access the Mounter (assuming appDelegate is accessible)
-    // Consider injecting Mounter if appDelegate access is problematic
-    private let mounter = appDelegate.mounter!
     
     // Logger
     // Assuming Logger.authenticationView is defined globally or via extension
@@ -211,6 +211,7 @@ struct AuthenticationView: View {
                     profileManager: profileManager,
                     currentAssociatedShares: currentAssociatedShares,
                     ticketRefreshStatus: ticketRefreshStatus,
+                    mounter: mounter,
                     onEditProfile: handleEditProfile, 
                     onRefreshTicket: handleRefreshTicket 
                 )
@@ -244,17 +245,18 @@ struct AuthenticationView: View {
                 isPresented: $isAddingProfile,
                 mdmRealm: mdmRealm,
                 onSave: { newProfile, password in
-                Task {
-                    do {
-                        try await profileManager.addProfile(newProfile, password: password)
-                        selectedProfileID = newProfile.id
-                        logger.info("Successfully added profile '\(newProfile.displayName)'.")
-                    } catch {
-                        logger.error("Failed to add profile '\(newProfile.displayName)': \(error.localizedDescription)")
-                        // TODO: Show error alert to user
+                    Task {
+                        do {
+                            try await profileManager.addProfile(newProfile, password: password)
+                            selectedProfileID = newProfile.id
+                            logger.info("Successfully added profile '\(newProfile.displayName)'.")
+                        } catch {
+                            logger.error("Failed to add profile '\(newProfile.displayName)': \(error.localizedDescription)")
+                            // TODO: Show error alert to user
+                        }
                     }
                 }
-            })
+            )
         }
         .sheet(isPresented: $isEditingProfile) { 
             if let profile = profileToEdit {
@@ -483,33 +485,10 @@ struct AuthenticationView: View {
 
 #Preview {
     AuthenticationView()
+        .environmentObject(Mounter())
         // Optionally provide mock data manager in preview if needed
         // .environmentObject(MockAuthProfileManager())
 }
-
-// Remove definitions of extracted subviews from here:
-/*
-// MARK: - Subviews
-
-/// Header View for Authentication Settings
-struct AuthenticationHeaderView: View { ... }
-
-// Placeholder view when no profile is selected
-struct ProfileDetailPlaceholderView: View { ... }
-
-/// View for the right detail column (shows selected profile details or placeholder)
-struct DetailColumnView: View { ... }
-
-/// View for displaying the list of authentication profiles.
-struct ProfileListView: View { ... }
-
-/// View for displaying a single row in the profile list.
-struct ProfileRowView: View { ... }
-
-// MARK: - ProfileDetailView
-
-struct ProfileDetailView: View { ... }
-*/ 
 
 // MARK: - Authentication Delegate for Ticket Refresh
 

@@ -9,9 +9,6 @@
 import SwiftUI
 import OSLog
 
-/// Delegate to access AppDelegate methods and properties
-let appDelegate = NSApplication.shared.delegate as! AppDelegate
-
 /// View for configuring network shares
 struct NetworkSharesView: View {
     // Replace static demo data with state for real data
@@ -22,9 +19,9 @@ struct NetworkSharesView: View {
     @State private var isDataLoaded = false
     // @State private var showProfileSelector = false // Deactivated for now
     // @State private var shareToAssignProfile: Share? // Deactivated for now
-    
-    // Access the Mounter to interact with shares
-    private let mounter = appDelegate.mounter!
+
+    // Access the Mounter via SwiftUI Environment
+    @EnvironmentObject private var mounter: Mounter
     
     // Access the ProfileManager for share-profile associations
     @ObservedObject private var profileManager = AuthProfileManager.shared
@@ -296,7 +293,7 @@ struct NetworkSharesView: View {
         // Load all data when the view appears
         .onAppear {
             Task {
-                Logger.networkSharesView.info("📱 NetworkSharesView appearing - starting data load")
+                Logger.networkSharesView.info("📱 NetworkSharesView appearing - mounter available via Environment")
                 await loadAllData()
             }
         }
@@ -354,7 +351,7 @@ struct NetworkSharesView: View {
         Logger.networkSharesView.debug("🔄 Loading shares from ShareManager")
         self.shares = await mounter.shareManager.allShares
         Logger.networkSharesView.debug("✅ Loaded \(shares.count) shares")
-        
+
         // If the selected share no longer exists, deselect it
         if let currentSelection = selectedNetworkShare, !shares.contains(where: { $0.networkShare == currentSelection }) {
             selectedNetworkShare = nil

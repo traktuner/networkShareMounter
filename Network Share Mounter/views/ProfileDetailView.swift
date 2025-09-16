@@ -11,12 +11,9 @@ struct ProfileDetailView: View {
     let profile: AuthProfile
     let associatedShares: [Share] 
     let ticketRefreshStatus: TicketRefreshStatus
+    let mounter: Mounter
     let onEditProfile: () -> Void
     let onRefreshTicket: () -> Void
-    
-    // Access the Mounter (needed for share actions)
-    // Assuming appDelegate.mounter is globally accessible or passed differently
-    private let mounter = appDelegate.mounter!
     
     // State for Kerberos ticket status
     @State private var ticketStatus: TicketStatus = .unknown
@@ -290,6 +287,7 @@ struct ProfileDetailView_Previews: PreviewProvider {
             profile: profile1,
             associatedShares: [share1],
             ticketRefreshStatus: .idle,
+            mounter: mockMounter,
             onEditProfile: { print("Preview Edit") },
             onRefreshTicket: { print("Preview Refresh") }
         )
@@ -300,6 +298,7 @@ struct ProfileDetailView_Previews: PreviewProvider {
             profile: profile2,
             associatedShares: [share2, share3],
             ticketRefreshStatus: .idle,
+            mounter: mockMounter,
             onEditProfile: { print("Preview Edit") },
             onRefreshTicket: { print("Preview Refresh") }
         )

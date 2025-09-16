@@ -109,12 +109,11 @@ struct SettingsView: View {
                 Spacer() // Pushes the content above it to the top
             }
         }
-        .navigationTitle("Einstellungen")
         // Set appropriate minimum dimensions for consistent layout of all views
-        .frame(minWidth: 1000, minHeight: 550)
+        .frame(minWidth: 900, minHeight: 580)
     }
 }
 
 #Preview {
     SettingsView()
-} 
+}

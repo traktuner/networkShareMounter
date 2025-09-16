@@ -116,14 +116,14 @@ struct ProfileEditorView: View {
             
             // Content
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 32) {
                     basicInfoSection
                     kerberosSection
                     sharesSection
                     appearanceSection
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
             }
             
             Divider()
@@ -131,7 +131,7 @@ struct ProfileEditorView: View {
             // Actions
             bottomBar
         }
-        .frame(minWidth: 560, minHeight: 580)
+        .frame(minWidth: 600, minHeight: 620)
         .onAppear {
             loadAllShares()
             loadExistingPassword()
@@ -152,22 +152,24 @@ struct ProfileEditorView: View {
     // MARK: - Header
     
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             Image(systemName: selectedSymbol)
-                .foregroundColor(.white)
-                .frame(width: 34, height: 34)
-                .background(Circle().fill(selectedColor))
-            
-            VStack(alignment: .leading, spacing: 2) {
+                .foregroundStyle(.white)
+                .font(.title2.weight(.medium))
+                .frame(width: 48, height: 48)
+                .background(Circle().fill(selectedColor.gradient))
+                .shadow(color: selectedColor.opacity(0.3), radius: 6, x: 0, y: 3)
+
+            VStack(alignment: .leading, spacing: 4) {
                 Text(existingProfile == nil ? "Profil hinzufügen" : "Profil bearbeiten")
-                    .font(.headline)
+                    .font(.title2.weight(.semibold))
                 Text("Konfigurieren Sie Anmeldedaten und zugehörige Netzwerk-Shares.")
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
             Spacer()
         }
-        .padding(16)
+        .padding(20)
     }
     
     // MARK: - Sections
@@ -209,9 +211,10 @@ struct ProfileEditorView: View {
                         .textFieldStyle(.roundedBorder)
                 }
             }
-            .padding(8)
+            .padding(12)
         } label: {
-            Label("Anmeldedaten", systemImage: "person")
+            Label("Anmeldedaten", systemImage: "person.circle.fill")
+                .foregroundStyle(.blue)
         }
     }
     
@@ -246,9 +249,10 @@ struct ProfileEditorView: View {
                     }
                 }
             }
-            .padding(8)
+            .padding(12)
         } label: {
-            Label("Kerberos", systemImage: "ticket")
+            Label("Kerberos", systemImage: useKerberos ? "ticket.fill" : "ticket")
+                .foregroundStyle(useKerberos ? .orange : .secondary)
         }
     }
     
@@ -311,9 +315,10 @@ struct ProfileEditorView: View {
                 }
                 .padding(.top, 4)
             }
-            .padding(8)
+            .padding(12)
         } label: {
-            Label("Zugeordnete Shares", systemImage: "externaldrive")
+            Label("Zugeordnete Shares (\(editingAssociatedShares.count))", systemImage: "externaldrive.fill")
+                .foregroundStyle(.green)
         }
     }
     
@@ -340,24 +345,31 @@ struct ProfileEditorView: View {
                         .frame(width: 44, height: 24)
                 }
             }
-            .padding(8)
+            .padding(12)
         } label: {
-            Label("Darstellung", systemImage: "paintpalette")
+            Label("Darstellung", systemImage: "paintpalette.fill")
+                .foregroundStyle(.purple)
         }
     }
     
     // MARK: - Bottom Bar
     
     private var bottomBar: some View {
-        HStack {
+        HStack(spacing: 16) {
             Button("Abbrechen") { isPresented = false }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
                 .keyboardShortcut(.cancelAction)
+
             Spacer()
-            Button("Sichern") { saveChanges() }
+
+            Button("Speichern") { saveChanges() }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .keyboardShortcut(.defaultAction)
                 .disabled(isSaveDisabled)
         }
-        .padding(12)
+        .padding(16)
     }
     
     // MARK: - Helpers

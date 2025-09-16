@@ -1,89 +1,42 @@
 //
-//  GeneralSettingsView.swift
+//  SettingsWindowManager.swift
 //  Network Share Mounter
 //
 //  Created by Longariva, Gregor (RRZE) on 10.04.25.
 //  Copyright © 2024 RRZE. All rights reserved.
 //
 
-import SwiftUI
-import AppKit
+import Foundation
 
-/// Manager for controlling the settings window lifecycle
-class SettingsWindowManager: NSObject, NSWindowDelegate {
-    /// The singleton instance of the manager
+/// Manager for requesting the SwiftUI-based settings window (Scene) to appear.
+///
+/// In the modern SwiftUI approach (Option A), we do not construct NSWindow manually.
+/// Instead, the App's SwiftUI Scene graph owns the window. This manager only posts
+/// a notification with parameters that the SwiftUI App/Scene listens to and opens
+/// the SettingsView accordingly.
+final class SettingsWindowManager {
     static let shared = SettingsWindowManager()
-    
-    /// The settings window instance
-    private var settingsWindow: NSWindow?
-    
-    /// Private initializer to enforce singleton pattern
-    private override init() {
-        super.init()
-    }
-    
-    /// Shows the settings window or brings it to front if already open
+    private init() {}
+
+    /// Requests to show the Settings SwiftUI window (Scene).
     /// - Parameters:
-    ///   - autoOpenProfileCreation: If true, automatically opens the profile creation dialog
-    ///   - mdmRealm: Optional MDM-configured realm for pre-filling the profile creation dialog
+    ///   - autoOpenProfileCreation: If true, automatically opens the profile creation dialog inside SettingsView.
+    ///   - mdmRealm: Optional MDM-configured realm for pre-filling the profile creation dialog.
     func showSettingsWindow(autoOpenProfileCreation: Bool = false, mdmRealm: String? = nil) {
-        // If window exists, just bring it to front
-        if let window = settingsWindow {
-            if window.isVisible {
-                window.orderFrontRegardless()
-            } else {
-                window.makeKeyAndOrderFront(nil)
-            }
-            NSApp.activate(ignoringOtherApps: true)
-            return
-        }
-        
-        // Create a new window
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 850, height: 520),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
+        // In a pure SwiftUI Scene setup, the App listens to this notification
+        // and toggles the state that presents a Settings Scene/Window.
+        NotificationCenter.default.post(
+            name: .showSettingsScene,
+            object: nil,
+            userInfo: [
+                "autoOpenProfileCreation": autoOpenProfileCreation,
+                "mdmRealm": mdmRealm as Any
+            ]
         )
-        
-        // Configure the window
-        window.title = "Einstellungen"
-        window.center()
-        window.setFrameAutosaveName("SettingsWindow")
-        window.identifier = NSUserInterfaceItemIdentifier("SettingsWindow")
-        window.isReleasedWhenClosed = false
-        window.delegate = self
-        
-        // Set minimum size to match the constraints in SettingsView
-        window.minSize = NSSize(width: 850, height: 500)
-        
-        // Use Core Animation for smooth transitions
-        window.animationBehavior = .documentWindow
-        
-        // Create and set the SwiftUI content view with optional auto-open parameters
-        let contentView = SettingsView(
-            autoOpenProfileCreation: autoOpenProfileCreation,
-            mdmRealm: mdmRealm
-        )
-        window.contentView = NSHostingView(rootView: contentView)
-        
-        // Show the window
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-        
-        // Store the reference
-        self.settingsWindow = window
     }
-    
-    /// Closes the settings window if it's open
+
+    /// No-op in SwiftUI Scene world. Closing is handled by the Scene/UI state.
     func closeSettingsWindow() {
-        settingsWindow?.close()
+        // Intentionally left empty; closing is driven by SwiftUI state/scene management.
     }
-    
-    // MARK: - NSWindowDelegate
-    
-    func windowWillClose(_ notification: Notification) {
-        // We keep the window around for performance reasons
-        // but could clean up resources here if needed
-    }
-} 
+}

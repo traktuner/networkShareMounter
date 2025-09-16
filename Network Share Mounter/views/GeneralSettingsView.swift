@@ -207,7 +207,9 @@ struct GeneralSettingsView: View {
         .onChange(of: sendDiagnosticData) { newValue in
             // Persist the diagnostic data preference.
             prefs.set(for: .sendDiagnostics, value: newValue)
-            // TODO: Implement logic to start/stop diagnostic reporting based on newValue.
+
+            // Reconfigure Sentry based on the new preference
+            SentryManager.shared.configureSentry()
         }
         .onChange(of: automaticallyChecksForUpdates) { newValue in
             // Persist the automatic check preference if allowed.
