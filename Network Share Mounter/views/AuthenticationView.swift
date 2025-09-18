@@ -239,6 +239,12 @@ struct AuthenticationView: View {
                 }
             }
         }
+        // Live-Update: Reload associated shares when Mounter posts a reconstruct notification
+        .onReceive(NotificationCenter.default.publisher(for: Defaults.nsmReconstructMenuTriggerNotification)) { _ in
+            Task {
+                await loadAssociatedShares(for: selectedProfileID)
+            }
+        }
         .sheet(isPresented: $isAddingProfile) {
             ProfileEditorView(
                 mounter: mounter,

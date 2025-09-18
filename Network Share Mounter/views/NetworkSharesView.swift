@@ -297,6 +297,10 @@ struct NetworkSharesView: View {
                 await loadAllData()
             }
         }
+        // Live-Update: Reload shares when Mounter posts a reconstruct notification
+        .onReceive(NotificationCenter.default.publisher(for: Defaults.nsmReconstructMenuTriggerNotification)) { _ in
+            Task { await loadShares() }
+        }
         .sheet(isPresented: $showAddSheet) {
             addShareSheet
         }
