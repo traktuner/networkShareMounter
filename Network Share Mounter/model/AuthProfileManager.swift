@@ -31,21 +31,21 @@ enum AuthProfileError: LocalizedError {
 class AuthProfileManager: ObservableObject {
     /// Shared singleton instance.
     static let shared = AuthProfileManager()
-    
+
     /// The key used to store profile metadata in UserDefaults.
 //    private let userDefaultsKey = "com.example.NetworkShareMounter.AuthProfiles"
-    
+
     /// The published array of authentication profiles. Views can subscribe to this.
     @Published var profiles: [AuthProfile] = []
-    
+
     /// Access to the Keychain manager.
     private let keychainManager = KeychainManager()
-    
+
     private init() {
         loadProfiles()
         Logger.dataModel.info("AuthProfileManager initialized. Loaded \(self.profiles.count) profiles.")
     }
-    
+
     // --- Profile Management ---
 
     /// Adds a new profile and optionally saves its password to the Keychain.
@@ -161,7 +161,7 @@ class AuthProfileManager: ObservableObject {
     func removeProfile(_ profile: AuthProfile) async throws {
         profiles.removeAll { $0.id == profile.id }
         saveProfiles() // Save metadata changes
-        
+
         // Remove password from Keychain
         try await removePassword(for: profile)
         Logger.dataModel.info("Removed profile '\(profile.displayName)' (ID: \(profile.id))")
@@ -224,7 +224,7 @@ class AuthProfileManager: ObservableObject {
             throw error // Re-throw other errors
         }
     }
-    
+
     /// Removes the password for a given profile from the Keychain.
     /// - Parameter profile: The profile whose password should be removed.
     func removePassword(for profile: AuthProfile) async throws {
@@ -240,7 +240,6 @@ class AuthProfileManager: ObservableObject {
         }
     }
 
-
     // --- Persistence ---
 
     /// Loads profiles from UserDefaults.
@@ -250,7 +249,7 @@ class AuthProfileManager: ObservableObject {
             self.profiles = [] // Start with empty array if no data
             return
         }
-        
+
         do {
             let decoder = JSONDecoder()
             self.profiles = try decoder.decode([AuthProfile].self, from: data)
@@ -260,7 +259,7 @@ class AuthProfileManager: ObservableObject {
             self.profiles = [] // Reset to empty on error
         }
     }
-    
+
     /// Saves the current profiles array to UserDefaults.
     private func saveProfiles() {
         do {
@@ -272,17 +271,17 @@ class AuthProfileManager: ObservableObject {
             Logger.dataModel.error("Failed to encode profiles for UserDefaults: \(error.localizedDescription)")
         }
     }
-    
+
     // --- Keychain Configuration ---
-    
+
     /// Defines the service identifier used for storing profile passwords in the Keychain.
     private var keychainServiceForProfiles: String {
         // Using the bundle identifier makes it unique to this application.
         return Bundle.main.bundleIdentifier ?? "com.example.NetworkShareMounter.AuthProfilePasswords"
     }
-    
+
     // MARK: - Hybrid Migration
-    
+
     /// Performs a hybrid migration from legacy share-based credentials to profiles
     /// Reads shares directly from UserDefaults/MDM configuration to avoid timing issues
     /// This approach ensures we have all share data before starting migration
@@ -296,30 +295,30 @@ class AuthProfileManager: ObservableObject {
             // Get shares directly from UserDefaults/MDM configuration (not ShareManager)
             let shareConfigs = getAllShareConfigurations()
             Logger.dataModel.info("Found \(shareConfigs.count) share configurations to analyze")
-        
+
         // Get FAU shared credentials for additional Kerberos profile creation
         let fauCredentials = try keychainManager.retrieveAllFAUSharedCredentials()
         Logger.dataModel.info("Found \(fauCredentials.count) FAU shared credentials")
-        
+
         // Process each share individually based on AuthType and found keychain entries
         var kerberosProfiles: [String: KerberosProfileData] = [:]
         var passwordProfiles: [String: PasswordProfileData] = [:]
-        
+
         // Process each share configuration (only those with explicit usernames)
         for shareConfig in shareConfigs {
             guard let username = shareConfig.username else {
                 Logger.dataModel.debug("Skipping share without username: \(shareConfig.shareURL)")
                 continue
             }
-            
+
             let groupKey = username.lowercased()
-            
+
             // Try to get password and determine keychain type for this specific share
             guard let credentialInfo = getPasswordForShareConfig(shareConfig) else {
                 Logger.dataModel.warning("⚠️ No password found for share: \(shareConfig.shareURL)")
                 continue
             }
-            
+
             // Determine profile type based on ACTUAL keychain entry type (not just AuthType)
             switch credentialInfo.keychainType {
             case KeychainEntryType.kerberosUPN, KeychainEntryType.fauShared:
@@ -338,7 +337,7 @@ class AuthProfileManager: ObservableObject {
                     )
                     Logger.dataModel.debug("✅ Kerberos profile: \(username) (keychain: \(String(describing: credentialInfo.keychainType)))")
                 }
-                
+
             case KeychainEntryType.shareBased:
                 // Found share-based entry -> Password profile (migrate keychain)
                 if var existing = passwordProfiles[groupKey] {
@@ -354,19 +353,19 @@ class AuthProfileManager: ObservableObject {
                 }
             }
         }
-        
+
         // Also check FAU shared credentials for additional Kerberos profiles (users without shares)
         for fauCredential in fauCredentials {
             let groupKey = fauCredential.username.lowercased()
-            
+
             // Skip if we already have this user from shares
             if kerberosProfiles[groupKey] != nil {
                 continue
             }
-            
+
             // Check if this is a Kerberos user
             let isKerberos = await checkIfKerberosUser(username: fauCredential.username)
-            
+
             if isKerberos.isKerberos {
                 let fallbackRealm = getMDMKerberosRealm() ?? "FAUAD.FAU.DE"
                 kerberosProfiles[groupKey] = KerberosProfileData(
@@ -378,13 +377,13 @@ class AuthProfileManager: ObservableObject {
                 Logger.dataModel.debug("✅ Added FAU Kerberos user: \(fauCredential.username)")
             }
         }
-        
+
         Logger.dataModel.info("Created \(kerberosProfiles.count) Kerberos profiles and \(passwordProfiles.count) password profiles")
-        
+
         // Create Kerberos profiles (reference existing keychain entries - DON'T migrate)
         for (_, profileData) in kerberosProfiles {
             let profileId = UUID().uuidString
-            
+
             let profile = AuthProfile(
                 id: profileId,
                 displayName: profileData.username,
@@ -394,15 +393,15 @@ class AuthProfileManager: ObservableObject {
                 associatedNetworkShares: profileData.shares,
                 symbolName: "ticket"
             )
-            
+
             profiles.append(profile)
             Logger.dataModel.info("✅ Created Kerberos profile for \(profileData.username) (references existing \(String(describing: profileData.keychainType)) keychain)")
         }
-        
+
         // Create and migrate password profiles (migrate keychain entries)
         for (_, profileData) in passwordProfiles {
             let profileId = UUID().uuidString
-            
+
             let profile = AuthProfile(
                 id: profileId,
                 displayName: profileData.username,
@@ -412,7 +411,7 @@ class AuthProfileManager: ObservableObject {
                 associatedNetworkShares: profileData.shares,
                 symbolName: "person"
             )
-            
+
             // Migrate password to new profile-based keychain structure
             do {
                 try keychainManager.saveCredential(
@@ -438,12 +437,15 @@ class AuthProfileManager: ObservableObject {
                 continue
             }
         }
-        
+
         Logger.dataModel.info("Created \(kerberosProfiles.count) Kerberos profiles and \(passwordProfiles.count) password profiles")
-        
+
         // Save all profiles to UserDefaults
         saveProfiles()
-        
+
+        // Update existing user shares to link with newly created profiles
+        await updateExistingSharesWithProfiles()
+
             Logger.dataModel.info("✅ Hybrid migration completed: \(kerberosProfiles.count) Kerberos profiles, \(passwordProfiles.count) password profiles")
 
         } catch {
@@ -457,16 +459,16 @@ class AuthProfileManager: ObservableObject {
             throw error
         }
     }
-    
+
     // MARK: - Share Configuration Reading
-    
+
     /// Share configuration structure for migration
     private struct ShareConfiguration {
         let shareURL: String
         let username: String?
         let authType: String
     }
-    
+
     /// Kerberos profile data for migration
     private struct KerberosProfileData {
         let username: String
@@ -474,27 +476,27 @@ class AuthProfileManager: ObservableObject {
         let kerberosRealm: String
         let keychainType: KeychainEntryType
     }
-    
+
     /// Password profile data for migration
     private struct PasswordProfileData {
         let username: String
         let password: String
         var shares: [String]
     }
-    
+
     /// Gets all share configurations directly from UserDefaults/MDM (bypasses ShareManager timing issues)
     private func getAllShareConfigurations() -> [ShareConfiguration] {
         var configurations: [ShareConfiguration] = []
         let userDefaults = UserDefaults.standard
         let prefs = PreferenceManager()
-        
+
         // 1. Process MDM shares (new format)
         if let sharesDict = userDefaults.array(forKey: Defaults.managedNetworkSharesKey) as? [[String: String]], !sharesDict.isEmpty {
             Logger.dataModel.debug("Processing \(sharesDict.count) MDM shares (new format)")
-            
+
             for shareElement in sharesDict {
                 guard let shareUrlString = shareElement[Defaults.networkShare] else { continue }
-                
+
                 // Determine username (same logic as ShareManager)
                 let userName: String?
                 if let username = prefs.string(for: .usernameOverride) {
@@ -504,11 +506,11 @@ class AuthProfileManager: ObservableObject {
                 } else {
                     userName = NSUserName()
                 }
-                
+
                 // Replace username placeholder
                 let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName ?? "")
                 let authType = shareElement[Defaults.authType] ?? AuthType.krb.rawValue
-                
+
                 configurations.append(ShareConfiguration(
                     shareURL: shareRectified,
                     username: userName,
@@ -519,7 +521,7 @@ class AuthProfileManager: ObservableObject {
         // 2. Process legacy MDM shares if no new format found
         else if let nwShares = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
             Logger.dataModel.debug("Processing \(nwShares.count) legacy MDM shares")
-            
+
             for share in nwShares {
                 let shareRectified = share.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
                 configurations.append(ShareConfiguration(
@@ -529,14 +531,14 @@ class AuthProfileManager: ObservableObject {
                 ))
             }
         }
-        
+
         // 3. Process user-defined shares
         if let privSharesDict = userDefaults.array(forKey: Defaults.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
             Logger.dataModel.debug("Processing \(privSharesDict.count) user-defined shares (new format)")
-            
+
             for shareElement in privSharesDict {
                 guard let shareUrlString = shareElement[Defaults.networkShare] else { continue }
-                
+
                 configurations.append(ShareConfiguration(
                     shareURL: shareUrlString,
                     username: shareElement[Defaults.username],
@@ -547,7 +549,7 @@ class AuthProfileManager: ObservableObject {
         // Legacy user shares
         else if let nwShares = userDefaults.array(forKey: Defaults.customSharesKey) as? [String], !nwShares.isEmpty {
             Logger.dataModel.debug("Processing \(nwShares.count) legacy user shares")
-            
+
             for share in nwShares {
                 configurations.append(ShareConfiguration(
                     shareURL: share,
@@ -556,11 +558,11 @@ class AuthProfileManager: ObservableObject {
                 ))
             }
         }
-        
+
         Logger.dataModel.info("Collected \(configurations.count) total share configurations")
         return configurations
     }
-    
+
     /// Gets password for a specific share configuration from keychain
     /// Searches based on the share's AuthType to determine the correct keychain format
     private func getPasswordForShareConfig(_ shareConfig: ShareConfiguration) -> (password: String, keychainType: KeychainEntryType)? {
@@ -568,7 +570,7 @@ class AuthProfileManager: ObservableObject {
             Logger.dataModel.warning("Invalid share config: \(shareConfig.shareURL)")
             return nil
         }
-        
+
         // Determine search strategy based on AuthType
         if shareConfig.authType == AuthType.krb.rawValue {
             // For Kerberos shares, try UPN-based entries first (these should stay in keychain)
@@ -576,14 +578,14 @@ class AuthProfileManager: ObservableObject {
                 Logger.dataModel.debug("✅ Found UPN-based Kerberos password for \(username)")
                 return (password: upnPassword, keychainType: KeychainEntryType.kerberosUPN)
             }
-            
+
             // Try FAU shared keychain
             if let fauPassword = tryGetFAUPassword(for: username) {
                 Logger.dataModel.debug("✅ Found FAU shared Kerberos password for \(username)")
                 return (password: fauPassword, keychainType: KeychainEntryType.fauShared)
             }
         }
-        
+
         // For password-based shares or fallback, try share-based entries (these should be migrated)
         if let url = URL(string: shareConfig.shareURL) {
             do {
@@ -597,23 +599,23 @@ class AuthProfileManager: ObservableObject {
                 Logger.dataModel.warning("Error retrieving share-based password: \(error)")
             }
         }
-        
+
         Logger.dataModel.debug("❌ No password found for \(username) in any keychain location")
         return nil
     }
-    
+
     /// Types of keychain entries to determine migration strategy
     private enum KeychainEntryType {
         case kerberosUPN    // UPN-based Kerberos entry (keep in keychain)
         case fauShared      // FAU shared keychain entry (keep in keychain)
         case shareBased     // Share-based entry (migrate to profile format)
     }
-    
+
     /// Try to get UPN-based password for Kerberos authentication
     private func tryGetUPNPassword(for username: String) -> String? {
         // Try with full UPN (same as AutomaticSignIn)
         let fullUPN = username.contains("@") ? username.lowercased() : "\(username.lowercased())@fauad.fau.de"
-        
+
         do {
             let password = try keychainManager.retrievePassword(forUsername: fullUPN, andService: Defaults.keyChainService)
             Logger.dataModel.debug("Found UPN password for \(fullUPN)")
@@ -625,7 +627,7 @@ class AuthProfileManager: ObservableObject {
         }
         return nil
     }
-    
+
     /// Try to get password from FAU shared keychain
     private func tryGetFAUPassword(for username: String) -> String? {
         do {
@@ -636,19 +638,19 @@ class AuthProfileManager: ObservableObject {
             return nil
         }
     }
-    
+
     /// Try to get Kerberos password using various approaches
     private func tryGetKerberosPassword(for username: String, shareURL: String) -> String? {
         // Try with lowercase username (common pattern for Kerberos)
         let lowercaseUsername = username.lowercased()
-        
+
         // Try different keychain services that might be used for Kerberos
         let possibleServices = [
             "de.fau.rrze.faucredentials",
             Defaults.keyChainService,
             "networkShareMounter"
         ]
-        
+
         for service in possibleServices {
             do {
                 let password = try keychainManager.retrievePassword(forUsername: lowercaseUsername, andService: service)
@@ -660,14 +662,14 @@ class AuthProfileManager: ObservableObject {
         }
         return nil
     }
-    
+
     /// Gets password for a specific share and username from keychain
     private func getPasswordForShare(_ share: Share, username: String) async -> String? {
         guard let url = URL(string: share.networkShare) else {
             Logger.dataModel.warning("Invalid share URL: \(share.networkShare)")
             return nil
         }
-        
+
         do {
             // Try to get password using existing KeychainManager methods
             let password = try keychainManager.retrievePassword(forShare: url, withUsername: username)
@@ -681,7 +683,7 @@ class AuthProfileManager: ObservableObject {
             return nil
         }
     }
-    
+
     /// Determines if a credential belongs to a Kerberos account
     private func isKerberosCredential(username: String, kerberosRealm: String?, dogeAccounts: [DogeAccount]) -> Bool {
         // Method 1: Check if username matches any DogeAccount UPN
@@ -691,7 +693,7 @@ class AuthProfileManager: ObservableObject {
                 return true
             }
         }
-        
+
         // Method 2: Check if username domain matches configured Kerberos realm
         if let realm = kerberosRealm, !realm.isEmpty,
            let userDomain = username.userDomain() {
@@ -700,11 +702,11 @@ class AuthProfileManager: ObservableObject {
                 return true
             }
         }
-        
+
         Logger.dataModel.debug("🔍 Standard credential: \(username)")
         return false
     }
-    
+
     /// Extracts the Kerberos realm for a credential
     private func extractKerberosRealm(username: String, kerberosRealm: String?, dogeAccounts: [DogeAccount]) -> String? {
         // Try to get realm from username domain
@@ -827,15 +829,15 @@ class AuthProfileManager: ObservableObject {
 
         return mdmRealm.lowercased() == realm.lowercased()
     }
-    
+
     /// Creates a default realm profile if MDM realm is configured and no default profile exists
     func createDefaultRealmProfileIfNeeded() async throws {
         let prefs = PreferenceManager()
-        guard let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty else { 
+        guard let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty else {
             Logger.dataModel.debug("No MDM Kerberos realm configured")
-            return 
+            return
         }
-        
+
         // Check if default realm profile already exists
         if hasDefaultRealmProfile() {
             Logger.dataModel.debug("Default realm profile already exists for realm: \(mdmRealm)")
@@ -843,19 +845,19 @@ class AuthProfileManager: ObservableObject {
         }
 
         Logger.dataModel.info("Creating default realm profile for MDM realm: \(mdmRealm)")
-        
+
         // Get username from DogeAccounts for the realm
         let accountsManager = AccountsManager.shared
         let dogeAccounts = await accountsManager.accounts
-        
+
         // Find matching DogeAccount for this realm
         let matchingAccount = dogeAccounts.first { account in
             let accountRealm = account.upn.components(separatedBy: "@").last?.uppercased()
             return accountRealm == mdmRealm.uppercased()
         }
-        
+
         let username = matchingAccount?.upn ?? "\(NSUserName())@\(mdmRealm)"
-        
+
         // Create default realm profile
         let profileId = UUID().uuidString
         let profile = AuthProfile(
@@ -867,20 +869,20 @@ class AuthProfileManager: ObservableObject {
             associatedNetworkShares: [],
             symbolName: "ticket"
         )
-        
+
         // Add to profiles and save
         profiles.append(profile)
         saveProfiles()
-        
+
         Logger.dataModel.info("Default realm profile created successfully")
     }
-    
+
     /// Checks if a profile is the default realm profile (non-deletable)
     func isDefaultRealmProfile(_ profile: AuthProfile) -> Bool {
         let prefs = PreferenceManager()
         guard let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty else { return false }
-        
-        return profile.useKerberos && 
+
+        return profile.useKerberos &&
                profile.kerberosRealm?.lowercased() == mdmRealm.lowercased() &&
                profile.displayName == "Standard Kerberos"
     }
@@ -892,23 +894,23 @@ class AuthProfileManager: ObservableObject {
         let prefs = PreferenceManager()
         return prefs.string(for: .kerberosRealm)
     }
-    
+
     /// Checks if a username belongs to a Kerberos user
     /// Returns both the result and the associated realm
     private func checkIfKerberosUser(username: String) async -> (isKerberos: Bool, realm: String?) {
         // Get Kerberos realm from preferences
         let prefs = PreferenceManager()
         let kerberosRealm = prefs.string(for: .kerberosRealm)
-        
+
         // Get existing DogeAccounts (Kerberos accounts)
         let accountsManager = AccountsManager.shared
         let dogeAccounts = await accountsManager.accounts
-        
+
         // Check if username matches any DogeAccount UPN
         let matchesDogeAccount = dogeAccounts.contains { account in
             account.upn.lowercased() == username.lowercased()
         }
-        
+
         if matchesDogeAccount {
             // Extract realm from DogeAccount or use configured realm
             if let account = dogeAccounts.first(where: { $0.upn.lowercased() == username.lowercased() }) {
@@ -916,22 +918,92 @@ class AuthProfileManager: ObservableObject {
                 return (true, realm)
             }
         }
-        
+
         // Check if username domain matches configured Kerberos realm
         if let realm = kerberosRealm, !realm.isEmpty {
             if username.lowercased().hasSuffix("@\(realm.lowercased())") {
                 return (true, realm)
             }
         }
-        
+
         return (false, nil)
     }
-    
+
     /// Extracts realm from UPN (User Principal Name)
     private func extractRealmFromUPN(_ upn: String?) -> String? {
         guard let upn = upn else { return nil }
         let components = upn.split(separator: "@")
         return components.count > 1 ? String(components[1]) : nil
+    }
+
+    // MARK: - Share Migration
+
+    /// Updates existing user shares to link them with newly created AuthProfiles
+    /// This ensures v3→v4 migration connects existing shares with the correct profiles
+    func updateExistingSharesWithProfiles() async {
+        Logger.dataModel.info("🔗 Starting share migration to link existing shares with AuthProfiles")
+
+        // Read current user shares from UserDefaults
+        guard let userShares = UserDefaults.standard.array(forKey: Defaults.userNetworkShares) as? [[String: String]] else {
+            Logger.dataModel.info("📝 No user shares found to migrate")
+            return
+        }
+
+        var updatedShares: [[String: String]] = []
+        var migrationCount = 0
+
+        for shareConfig in userShares {
+            var updatedShare = shareConfig
+
+            // Skip shares that already have an authProfileID
+            if shareConfig[Defaults.authProfileID] != nil {
+                Logger.dataModel.debug("⏭️ Share \(shareConfig[Defaults.networkShare] ?? "unknown") already has authProfileID, skipping")
+                updatedShares.append(updatedShare)
+                continue
+            }
+
+            // Get share details
+            guard let shareURL = shareConfig[Defaults.networkShare],
+                  let username = shareConfig[Defaults.username] else {
+                Logger.dataModel.debug("⏭️ Share missing URL or username, skipping: \(shareConfig)")
+                updatedShares.append(updatedShare)
+                continue
+            }
+
+            // Find matching AuthProfile for this username
+            let matchingProfile = profiles.first { profile in
+                // For password profiles: exact username match
+                if !profile.useKerberos {
+                    return profile.username?.lowercased() == username.lowercased()
+                }
+
+                // For Kerberos profiles: check if username matches (with or without domain)
+                let profileUsername = profile.username?.components(separatedBy: "@")[0]
+                let shareUsername = username.components(separatedBy: "@")[0]
+                return profileUsername?.lowercased() == shareUsername.lowercased()
+            }
+
+            if let profile = matchingProfile {
+                updatedShare[Defaults.authProfileID] = profile.id
+                migrationCount += 1
+                Logger.dataModel.info("✅ Linked share \(shareURL) with AuthProfile '\(profile.displayName)' (ID: \(profile.id))")
+
+                // For AuthProfile shares, determine correct authType
+                updatedShare[Defaults.authType] = profile.useKerberos ? AuthType.krb.rawValue : AuthType.pwd.rawValue
+            } else {
+                Logger.dataModel.warning("⚠️ No matching AuthProfile found for share \(shareURL) with username \(username)")
+            }
+
+            updatedShares.append(updatedShare)
+        }
+
+        // Save updated shares back to UserDefaults
+        if migrationCount > 0 {
+            UserDefaults.standard.set(updatedShares, forKey: Defaults.userNetworkShares)
+            Logger.dataModel.info("✅ Share migration completed: \(migrationCount) shares linked with AuthProfiles")
+        } else {
+            Logger.dataModel.info("📝 No shares needed AuthProfile linking")
+        }
     }
 }
 
@@ -944,4 +1016,4 @@ extension Logger {
     // static let dataModel = Logger(subsystem: subsystem, category: "DataModel")
     // If already defined, this extension might not be needed here.
     // If not defined, uncomment the line above or ensure appropriate logger access.
-} 
+}

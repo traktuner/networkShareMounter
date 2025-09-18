@@ -249,10 +249,11 @@ struct AddShareView: View {
         let displayName = shareDisplayName.isEmpty ? nil : shareDisplayName
         let newShare = Share.createShare(
             networkShare: networkShare,
-            authType: .krb, // Default to Kerberos, actual auth depends on profile/Mounter logic
+            authType: (selectedProfileID ?? "").isEmpty ? .krb : .pwd, // Safe unwrap and check with isEmpty
             mountStatus: .unmounted,
             managed: false, // User-added shares are not managed
-            shareDisplayName: displayName
+            shareDisplayName: displayName,
+            authProfileID: (selectedProfileID ?? "").isEmpty ? nil : selectedProfileID // Safe unwrap before use
         )
         
         do {

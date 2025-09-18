@@ -257,7 +257,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             } else {
                 Logger.app.debug("Profile migration already completed, skipping")
             }
-            
+
+            // Perform share-linking migration (v3.0 → v4.0) - runs independently of AuthProfile migration
+            let shareMigrationKey = "ShareLinkingMigrationCompleted_v4.0"
+            if !UserDefaults.standard.bool(forKey: shareMigrationKey) {
+                Logger.app.info("🔗 Starting share linking migration...")
+                await AuthProfileManager.shared.updateExistingSharesWithProfiles()
+                UserDefaults.standard.set(true, forKey: shareMigrationKey)
+                Logger.app.info("✅ Share linking migration completed successfully")
+            } else {
+                Logger.app.debug("Share linking migration already completed, skipping")
+            }
+
             // Initialize the mounter AFTER migration
             await mounter?.asyncInit()
             Logger.app.debug("✅ Mounter successfully initialized")

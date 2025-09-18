@@ -273,7 +273,9 @@ actor ShareManager {
             username: shareElement[Defaults.username]?.trim(),
             password: password,
             mountPoint: mountPoint,
-            managed: false
+            managed: false,
+            shareDisplayName: shareElement[Defaults.shareDisplayNameKey]?.trim(),
+            authProfileID: shareElement[Defaults.authProfileID]?.trim()
         )
         return(newShare)
     }
@@ -470,6 +472,9 @@ actor ShareManager {
                 }
                 if let username = share.username {
                     shareConfig[Defaults.username] = username
+                }
+                if let authProfileID = share.authProfileID {
+                    shareConfig[Defaults.authProfileID] = authProfileID
                 }
                 userDefaultsConfigs.append(shareConfig)
             }

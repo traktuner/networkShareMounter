@@ -1126,20 +1126,25 @@ class Mounter: ObservableObject {
         )
         Logger.mounter.debug("  Prepared mount options. Real mount point target: \(realMountPoint, privacy: .public)")
         
+        // Resolve credentials for AuthProfile shares
+        Logger.mounter.info("🚀 About to resolve credentials for share: \(share.networkShare, privacy: .public)")
+        let (finalUsername, finalPassword) = try await resolveCredentials(for: share)
+        Logger.mounter.info("✅ Credential resolution completed. Username: \(finalUsername ?? "nil", privacy: .public), Has password: \(finalPassword != nil ? "yes" : "no")")
+
         // Perform the mount operation
         Logger.mounter.info("""
             🚀 Calling NetFSMountURLSync: URL=\(url, privacy: .public),
                             Path=\(realMountPoint, privacy: .public),
-                            User=\(share.username ?? "(nil)", privacy: .public),
-                            Pwd=\(share.password == nil ? "(nil)" : "(set)", privacy: .public)
+                            User=\(finalUsername ?? "(nil)", privacy: .public),
+                            Pwd=\(finalPassword == nil ? "(nil)" : "(set)", privacy: .public)
         """)
-        
-        
+
+
         let rc = NetFSMountURLSync(url as CFURL,
                                    // Use fileURLWithPath for the mount point path
                                    URL(fileURLWithPath: realMountPoint) as CFURL,
-                                   share.username as CFString?,
-                                   share.password as CFString?,
+                                   finalUsername as CFString?,
+                                   finalPassword as CFString?,
                                    openOptions as! CFMutableDictionary,
                                    mountOptions as! CFMutableDictionary,
                                    nil) // Resulting mount path (we don't use this directly)
@@ -1235,6 +1240,54 @@ class Mounter: ObservableObject {
         }
         
         NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
+    }
+
+    // MARK: - AuthProfile Credential Resolution
+
+    /// Resolves credentials for a share, handling both legacy username/password and AuthProfile-based authentication
+    ///
+    /// - Parameter share: The share for which to resolve credentials
+    /// - Returns: A tuple containing the resolved username and password
+    /// - Throws: MounterError if credentials cannot be resolved
+    private func resolveCredentials(for share: Share) async throws -> (username: String?, password: String?) {
+        Logger.mounter.info("🔍 resolveCredentials called for share: \(share.networkShare, privacy: .public)")
+        Logger.mounter.info("🔍 Share authProfileID: \(share.authProfileID ?? "nil", privacy: .public)")
+        Logger.mounter.info("🔍 Share username: \(share.username ?? "nil", privacy: .public)")
+        Logger.mounter.info("🔍 Share has password: \(share.password != nil ? "yes" : "no")")
+
+        // If share has AuthProfile ID, resolve credentials from AuthProfile system
+        if let authProfileID = share.authProfileID {
+            Logger.mounter.debug("🔑 Resolving credentials from AuthProfile ID: \(authProfileID)")
+
+            // Get the AuthProfile by ID
+            guard let authProfile = AuthProfileManager.shared.profiles.first(where: { $0.id == authProfileID }) else {
+                Logger.mounter.error("❌ AuthProfile not found for ID: \(authProfileID)")
+                Logger.mounter.error("❌ Available AuthProfile IDs: \(AuthProfileManager.shared.profiles.map { $0.id }, privacy: .public)")
+                throw MounterError.authenticationError
+            }
+
+            // For Kerberos profiles, no explicit username/password needed (uses ticket)
+            if authProfile.useKerberos {
+                Logger.mounter.debug("🎫 Using Kerberos authentication for profile: \(authProfile.displayName)")
+                return (nil, nil) // NetFS will use Kerberos ticket
+            }
+
+            // For password-based profiles, retrieve credentials
+            do {
+                let password = try await AuthProfileManager.shared.retrievePassword(for: authProfile)
+                Logger.mounter.debug("✅ Retrieved credentials from AuthProfile: \(authProfile.displayName)")
+                return (authProfile.username, password)
+            } catch {
+                Logger.mounter.error("❌ Failed to retrieve password for AuthProfile \(authProfile.displayName): \(error.localizedDescription)")
+                throw MounterError.authenticationError
+            }
+        }
+
+        // Fallback: Use legacy username/password from share (backward compatibility)
+        Logger.mounter.info("🔄 Using legacy credentials from share")
+        Logger.mounter.info("🔄 Legacy username: \(share.username ?? "nil", privacy: .public)")
+        Logger.mounter.info("🔄 Legacy has password: \(share.password != nil ? "yes" : "no")")
+        return (share.username, share.password)
     }
 }
 

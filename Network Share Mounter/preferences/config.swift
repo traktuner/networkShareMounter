@@ -164,6 +164,9 @@ struct Defaults {
     
     /// Optional display name for the share
     static let shareDisplayNameKey = "shareDisplayName"
+
+    /// Optional AuthProfile ID for shares using the new AuthProfile system
+    static let authProfileID = "authProfileID"
     
     /// Legacy key for user-defined shares
     static let customSharesKey = "customNetworkShares"
@@ -171,6 +174,6 @@ struct Defaults {
     /// Current key for user-defined shares
     static let userNetworkShares = "userNetworkShares"
     
-    static let authProfileKey = "authProfile"
+    static let authProfileKey = "authProfiles"
 }
 

@@ -33,6 +33,8 @@ struct Share: Identifiable {
     var actualMountPoint: String?
     var managed: Bool
     var shareDisplayName: String?
+    /// Optional authentication profile ID for shares using the new AuthProfile system
+    var authProfileID: String?
     /// Unique identifier (random UUID). Remains stable for the life-time of the Share instance and
     /// is stored persistently when needed (e.g. associated profiles).
     var id: String = UUID().uuidString
@@ -93,7 +95,8 @@ struct Share: Identifiable {
         password: String? = nil,
         mountPoint: String? = nil,
         managed: Bool = true,
-        shareDisplayName: String? = nil
+        shareDisplayName: String? = nil,
+        authProfileID: String? = nil
     ) -> Share {
         return Share(
             networkShare: networkShare,
@@ -102,8 +105,10 @@ struct Share: Identifiable {
             password: password,
             mountStatus: mountStatus,
             mountPoint: mountPoint,
+            actualMountPoint: nil,
             managed: managed,
             shareDisplayName: shareDisplayName,
+            authProfileID: authProfileID,
             id: UUID().uuidString
         )
     }
