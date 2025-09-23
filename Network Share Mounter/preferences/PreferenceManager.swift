@@ -163,35 +163,41 @@ struct PreferenceManager {
         }
         
         // Store user information in state defaults
-        let userInfo: [PreferenceKeys: Any] = [
+        let userInfo: [PreferenceKeys: Any?] = [
             .userCN: user.cn,
             .userGroups: user.groups,
-            .userPasswordExpireDate: user.computedExpireDate as Any,
-            .userPasswordSetDate: user.passwordSet as Any,
-            .userHome: user.homeDirectory as Any,
+            .userPasswordExpireDate: user.computedExpireDate,
+            .userPasswordSetDate: user.passwordSet,
+            .userHome: user.homeDirectory,
             .userPrincipal: user.userPrincipal,
-            .customLDAPAttributesResults: user.customAttributes as Any,
+            .customLDAPAttributesResults: user.customAttributes,
             .userShortName: user.shortName,
             .userUPN: user.upn,
-            .userEmail: user.email as Any,
+            .userEmail: user.email,
             .userFullName: user.fullName,
             .userFirstName: user.firstName,
             .userLastName: user.lastName,
             .userLastChecked: Date()
         ]
-        
+
         for (key, value) in userInfo {
-            stateDefaults.set(value, forKey: key.rawValue)
+            if let validValue = value {
+                stateDefaults.set(validValue, forKey: key.rawValue)
+            } else {
+                stateDefaults.removeObject(forKey: key.rawValue)
+            }
         }
         
         // Update all users dictionary
         var allUsers = stateDefaults.dictionary(forKey: PreferenceKeys.allUserInformation.rawValue) as? [String: [String: AnyObject]] ?? [:]
-        
+
         var userInfoDict = [String: AnyObject]()
         for (key, value) in userInfo {
-            userInfoDict[key.rawValue] = value as AnyObject
+            if let validValue = value {
+                userInfoDict[key.rawValue] = validValue as AnyObject
+            }
         }
-        
+
         allUsers[user.userPrincipal] = userInfoDict
         stateDefaults.setValue(allUsers, forKey: PreferenceKeys.allUserInformation.rawValue)
         
