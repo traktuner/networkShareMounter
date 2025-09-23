@@ -111,7 +111,7 @@ lane :create_package do |options|
     path: "build/Network Share Mounter.app",
     output_path: "build/NetworkShareMounter-#{suffix}#{appversion}.dmg",
     volume_name: "NetworkShareMounter#{build_type.empty? ? "" : "-#{build_type}"}",
-    size: 10
+    size: 15
   )
   
   desc "creating .pkg file"
