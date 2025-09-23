@@ -829,6 +829,9 @@
     "Darstellung" : {
 
     },
+    "Debug-Logs an Support senden" : {
+
+    },
     "Diagnosedaten" : {
 
     },
@@ -1056,6 +1059,9 @@
     },
     "krb-offdomain-button" : {
       "comment" : "Button text for kerberos authentication"
+    },
+    "Logs werden gesendet..." : {
+
     },
     "Löschen" : {
 
