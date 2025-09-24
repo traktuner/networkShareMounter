@@ -25,6 +25,18 @@ lane :getbundleid do
   get_product_bundle_id(project_filepath: 'networkShareMounter.xcodeproj', scheme: 'NetworkShareMounter')
 end
 
+lane :ensure_correct_build_number do
+  desc "Ensure CFBundleVersion matches current Xcode build number"
+  current_build = get_build_number(xcodeproj: "networkShareMounter.xcodeproj")
+  UI.message("Current build number from Xcode: #{current_build}")
+  
+  # Setze die Build Number explizit
+  increment_build_number(
+    xcodeproj: "networkShareMounter.xcodeproj",
+    build_number: current_build
+  )
+end
+
 lane :getappversion do
   desc "gets the version of the app. It first looks in the plist and then for '$(MARKETING_VERSION)'"
   get_version_number(xcodeproj: "networkShareMounter.xcodeproj",target: "Network Share Mounter")  
@@ -145,6 +157,7 @@ lane :testbuild do
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
+    ensure_correct_build_number
     build
     create_package(type: "Test")
   rescue => exception
@@ -158,6 +171,7 @@ lane :alpha do
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
+    ensure_correct_build_number
     build
     create_package(type: "Alpha")
     sentryUpload
@@ -172,6 +186,7 @@ lane :beta do
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
+    ensure_correct_build_number
     build
     create_package(type: "Beta")
     sentryUpload
@@ -186,6 +201,7 @@ lane :release do
     increment_build_number(
       xcodeproj: "networkShareMounter.xcodeproj"
     )
+    ensure_correct_build_number
     build
     create_package
     sentryUpload
