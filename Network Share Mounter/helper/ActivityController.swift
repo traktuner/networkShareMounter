@@ -18,15 +18,18 @@ import OSLog
 class ActivityController {
     
     // MARK: - Properties
-    
+
     /// Access to user preferences
     private let prefs = PreferenceManager()
-    
+
     /// Reference to AppDelegate for accessing important app components
     private weak var appDelegate: AppDelegate?
-    
+
     /// Flag to prevent double authentication triggers during app startup
     private var isInStartupPhase = true
+
+    /// Task for debouncing network change operations
+    private var networkChangeTask: Task<Void, Never>?
     
     // MARK: - Initialization
     
@@ -253,29 +256,67 @@ class ActivityController {
     /// 1) Revalidate currently mounted shares, unmount unreachable ones
     /// 2) Prepare mount prerequisites
     /// 3) Mount shares
+    ///
+    /// Uses debouncing to prevent multiple simultaneous network change operations
     @objc func mountAfterNetworkChange() {
         guard let mounter = appDelegate?.mounter else {
             Logger.activityController.error("Network-change handling failed: Mounter not available")
             return
         }
-        
+
+        // Cancel any existing network change task to prevent parallel operations
+        networkChangeTask?.cancel()
+
         Logger.activityController.debug("▶︎ Network change detected: revalidating mounted shares, then mounting")
-        
-        let task = Task { @MainActor in
+
+        networkChangeTask = Task { @MainActor in
+            // Small delay to debounce rapid network change events
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+            // Check if task was cancelled during delay
+            guard !Task.isCancelled else {
+                Logger.activityController.debug("🚫 Network change task was cancelled during debounce period")
+                return
+            }
+
+            Logger.activityController.debug("🔄 Starting network change operations after debounce")
+
             // Update SMBHome from AD/OpenDirectory on network/domain changes
             await mounter.shareManager.updateSMBHome()
-            
+
+            guard !Task.isCancelled else { return }
+
             await mounter.revalidateMountedSharesAfterNetworkChange()
+            Logger.activityController.debug("🔄 Revalidation completed, preparing mount prerequisites")
+
+            guard !Task.isCancelled else {
+                Logger.activityController.debug("🚫 Task cancelled after revalidation")
+                return
+            }
+
             await mounter.prepareMountPrerequisites()
-            await mounter.mountGivenShares()
-            
+            Logger.activityController.debug("🔄 Mount prerequisites completed, starting mount operations")
+
+            guard !Task.isCancelled else {
+                Logger.activityController.debug("🚫 Task cancelled after preparation")
+                return
+            }
+
+            await mounter.mountGivenShares(networkTriggered: true)
+            Logger.activityController.debug("🔄 Mount operations completed, refreshing Finder")
+
+            guard !Task.isCancelled else {
+                Logger.activityController.debug("🚫 Task cancelled after mounting")
+                return
+            }
+
             // Optional: gentle Finder refresh after mounts
             let finderController = FinderController()
             let mountPaths = await finderController.getActualMountPaths(from: mounter)
             await finderController.refreshFinder(forPaths: mountPaths)
+
+            Logger.activityController.debug("✅ Network change operations completed")
         }
-        
-        _ = task
     }
     
     // MARK: - Authentication Handlers
