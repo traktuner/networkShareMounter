@@ -8,6 +8,7 @@
 
 import Foundation
 import Security
+import OSLog
 
 /// Description of the CFDictionary for a new keychain entry
 ///
@@ -249,24 +250,38 @@ class KeychainManager: NSObject {
     
     func retrievePassword(forShare share: URL, withUsername username: String) throws -> String? {
         do {
-            var query = try makeQuery(share: share, username: username)
+            Logger.keychain.debug("🔐 Retrieving password for share: \(share.absoluteString, privacy: .public), username: \(username, privacy: .public)")
+
+            var query = try makeQuery(share: share, username: username, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainService)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
             // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
-            
+
+            Logger.keychain.debug("🔐 Keychain query: \(query, privacy: .public)")
+
             var ref: AnyObject? = nil
-            
+
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            Logger.keychain.debug("🔐 Keychain status: \(status, privacy: .public)")
+
             if status == errSecItemNotFound {
+                Logger.keychain.debug("🔐 No keychain entry found for \(share.absoluteString, privacy: .public)")
                 return nil
             }
             guard status == errSecSuccess else {
+                Logger.keychain.error("🔐 Keychain error: \(status, privacy: .public)")
                 throw KeychainError.errorWithStatus(status: status)
             }
-            
+
             if let parsedData = ref as? Data {
-                return String(data: parsedData, encoding: .utf8)
+                let password = String(data: parsedData, encoding: .utf8)
+                Logger.keychain.debug("🔐 Successfully retrieved password for \(share.absoluteString, privacy: .public)")
+                return password
+            } else {
+                Logger.keychain.error("🔐 Failed to parse password data from keychain for \(share.absoluteString, privacy: .public)")
+                Logger.keychain.error("🔐 Retrieved data type: \(type(of: ref), privacy: .public)")
+                return nil
             }
         } catch let error as KeychainError {
             throw error
