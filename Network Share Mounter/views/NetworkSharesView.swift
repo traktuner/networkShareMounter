@@ -370,7 +370,7 @@ struct NetworkSharesView: View {
             return .green
         case .unmounted, .queued, .userUnmounted, .toBeMounted:
             return .gray
-        case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unreachable:
+        case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unreachable, .unassignedProfile:
             return .red
         case .unknown, .undefined:
             return .orange

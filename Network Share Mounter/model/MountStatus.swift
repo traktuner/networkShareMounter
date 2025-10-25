@@ -25,5 +25,6 @@ enum MountStatus: String {
     case missingPassword = "missingPassword"
     case invalidCredentials = "invalidCredentials"
     case obstructingDirectory = "obstructingDirectory"
+    case unassignedProfile = "unassignedProfile"
     case unknown = "unknown"
 }

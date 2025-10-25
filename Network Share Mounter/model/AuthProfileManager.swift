@@ -28,6 +28,7 @@ enum AuthProfileError: LocalizedError {
 
 /// Manages the collection of authentication profiles.
 /// Handles loading/saving profile metadata (to UserDefaults) and coordinates password storage (via KeychainManager).
+@MainActor
 class AuthProfileManager: ObservableObject {
     /// Shared singleton instance.
     static let shared = AuthProfileManager()
@@ -182,6 +183,105 @@ class AuthProfileManager: ObservableObject {
         return profiles.first { profile in
             profile.associatedNetworkShares?.contains(networkShare) ?? false
         }
+    }
+
+    // MARK: - Auto-Assignment
+
+    /// Automatically assigns a Kerberos profile to a share based on realm and username matching.
+    /// Uses intelligent prioritization when multiple profiles match the realm.
+    /// - Parameters:
+    ///   - shareURL: The network share URL to assign a profile to
+    ///   - username: Optional username from the share configuration
+    ///   - kerberosRealm: The Kerberos realm to match against
+    /// - Returns: The profile ID if a match was found, nil otherwise
+    func autoAssignKerberosProfile(shareURL: String, username: String?, kerberosRealm: String) -> String? {
+        Logger.dataModel.debug("🔍 Auto-assigning Kerberos profile for share: \(shareURL), realm: \(kerberosRealm)")
+
+        // Find all Kerberos profiles matching the realm
+        let candidateProfiles = profiles.filter { profile in
+            profile.useKerberos &&
+            profile.kerberosRealm?.uppercased() == kerberosRealm.uppercased()
+        }
+
+        // No matching profiles found
+        guard !candidateProfiles.isEmpty else {
+            Logger.dataModel.warning("⚠️ No Kerberos profile found for realm: \(kerberosRealm), share: \(shareURL)")
+            return nil
+        }
+
+        // Exactly one match - use it
+        if candidateProfiles.count == 1 {
+            let profile = candidateProfiles[0]
+            Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(profile.displayName)' to share: \(shareURL)")
+            return profile.id
+        }
+
+        // Multiple matches - use prioritization logic
+        Logger.dataModel.debug("🔍 Found \(candidateProfiles.count) Kerberos profiles for realm \(kerberosRealm), applying prioritization")
+
+        // Priority 1: Username match (if share has username)
+        if let username = username {
+            if let usernameMatch = candidateProfiles.first(where: {
+                $0.username?.lowercased() == username.lowercased()
+            }) {
+                Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(usernameMatch.displayName)' (username match) to share: \(shareURL)")
+                return usernameMatch.id
+            }
+        }
+
+        // Priority 2: Profile with most associated shares (likely the "main" profile)
+        if let mainProfile = candidateProfiles.max(by: {
+            ($0.associatedNetworkShares?.count ?? 0) < ($1.associatedNetworkShares?.count ?? 0)
+        }) {
+            Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(mainProfile.displayName)' (most shares) to share: \(shareURL)")
+            return mainProfile.id
+        }
+
+        // Fallback: First profile (shouldn't happen but safe)
+        let fallbackProfile = candidateProfiles[0]
+        Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(fallbackProfile.displayName)' (fallback) to share: \(shareURL)")
+        return fallbackProfile.id
+    }
+
+    /// Automatically assigns a password profile to a share based on username matching.
+    /// Supports matching against both password profiles and Kerberos profiles with UPN usernames.
+    /// - Parameters:
+    ///   - shareURL: The network share URL to assign a profile to
+    ///   - username: The username from the share configuration
+    /// - Returns: The profile ID if exactly one match was found, nil if zero or multiple matches (ambiguous)
+    func autoAssignPasswordProfile(shareURL: String, username: String) -> String? {
+        Logger.dataModel.debug("🔍 Auto-assigning password profile for share: \(shareURL), username: \(username)")
+
+        // Extract local part of username (before @ for UPN format)
+        let shareUsernameLocal = username.split(separator: "@").first.map(String.init) ?? username
+
+        // Find all profiles (Password AND Kerberos) where username matches
+        let candidateProfiles = profiles.filter { profile in
+            guard let profileUsername = profile.username else { return false }
+
+            // Extract local part from profile username (handles UPN like "user@DOMAIN.DE")
+            let profileUsernameLocal = profileUsername.split(separator: "@").first.map(String.init) ?? profileUsername
+
+            return profileUsernameLocal.lowercased() == shareUsernameLocal.lowercased()
+        }
+
+        // No matching profiles found
+        guard !candidateProfiles.isEmpty else {
+            Logger.dataModel.warning("⚠️ No profile found for username: \(username), share: \(shareURL)")
+            return nil
+        }
+
+        // Exactly one match - auto-assign
+        if candidateProfiles.count == 1 {
+            let profile = candidateProfiles[0]
+            Logger.dataModel.info("✅ Auto-assigned profile '\(profile.displayName)' to password share: \(shareURL)")
+            return profile.id
+        }
+
+        // Multiple matches - ambiguous, requires user decision
+        Logger.dataModel.warning("⚠️ Found \(candidateProfiles.count) profiles for username '\(username)' - ambiguous, requires user selection")
+        Logger.dataModel.debug("   Candidates: \(candidateProfiles.map { $0.displayName }.joined(separator: ", "))")
+        return nil
     }
 
     // --- Password Management Coordination ---

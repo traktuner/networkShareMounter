@@ -1274,10 +1274,14 @@ class Mounter: ObservableObject {
         if let authProfileID = share.authProfileID {
             Logger.mounter.debug("🔑 Resolving credentials from AuthProfile ID: \(authProfileID)")
 
-            // Get the AuthProfile by ID
-            guard let authProfile = AuthProfileManager.shared.profiles.first(where: { $0.id == authProfileID }) else {
+            // Take a MainActor snapshot to avoid autoclosure isolation violations
+            let profilesSnapshot = await AuthProfileManager.shared.profiles
+
+            // Get the AuthProfile by ID from the snapshot
+            guard let authProfile = profilesSnapshot.first(where: { $0.id == authProfileID }) else {
                 Logger.mounter.error("❌ AuthProfile not found for ID: \(authProfileID)")
-                Logger.mounter.error("❌ Available AuthProfile IDs: \(AuthProfileManager.shared.profiles.map { $0.id }, privacy: .public)")
+                let availableIDs = profilesSnapshot.map { $0.id }
+                Logger.mounter.error("❌ Available AuthProfile IDs: \(availableIDs, privacy: .public)")
                 throw MounterError.authenticationError
             }
 

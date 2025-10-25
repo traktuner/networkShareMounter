@@ -227,8 +227,8 @@ struct ProfileDetailView: View {
     private func mountStatusColor(for status: MountStatus) -> Color {
          switch status {
         case .mounted: return .green
-        case .unmounted, .queued, .toBeMounted, .undefined, .userUnmounted: return .gray
-        case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unreachable: return .red
+        case .unmounted, .queued, .toBeMounted, .undefined, .userUnmounted : return .gray
+         case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unassignedProfile, .unreachable: return .red
         case .unknown: return .orange
         }
     }
