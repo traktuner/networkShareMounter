@@ -83,6 +83,9 @@
         }
       }
     },
+    "⚠️ Profile assignment required..." : {
+      "comment" : "Profile assignment required"
+    },
     "Abbrechen" : {
 
     },
@@ -1531,6 +1534,9 @@
     },
     "Profil hinzufügen" : {
 
+    },
+    "Profile assignment required" : {
+      "comment" : "Profile assignment required"
     },
     "Profile werden geladen..." : {
 

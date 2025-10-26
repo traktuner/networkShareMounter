@@ -574,7 +574,8 @@ class Mounter: ObservableObject {
     /// - Parameters:
     ///   - userTriggered: Whether the mount operation was initiated by user
     ///   - shareID: Optional ID of specific share to mount. If nil, mounts all configured shares
-    func mountGivenShares(userTriggered: Bool = false, forShare shareID: String? = nil) async {
+    ///   - networkTriggered: Whether the mount was triggered by a network change (allows retrying unreachable shares)
+    func mountGivenShares(userTriggered: Bool = false, forShare shareID: String? = nil, networkTriggered: Bool = false) async {
         // Thread-safe task management via actor
         await taskController.cancelAndClearTasks()
         
@@ -657,7 +658,8 @@ class Mounter: ObservableObject {
                             // The actual mount operation
                             return try await self.mountShare(forShare: share,
                                                            atPath: self.defaultMountPath,
-                                                           userTriggered: userTriggered)
+                                                           userTriggered: userTriggered,
+                                                           networkTriggered: networkTriggered)
                         }
                         
                         // Wait for the first result or timeout
@@ -895,14 +897,21 @@ class Mounter: ObservableObject {
     ///   - share: The share to check
     ///   - url: The validated URL of the share
     ///   - userTriggered: Whether the mount was triggered by user action
+    ///   - networkTriggered: Whether the mount was triggered by a network change (allows retrying unreachable shares)
     /// - Throws: MounterError with appropriate status if mounting should not proceed
-    private func checkMountingCondition(forShare share: Share, url: URL, userTriggered: Bool) throws {
+    private func checkMountingCondition(forShare share: Share, url: URL, userTriggered: Bool, networkTriggered: Bool = false) throws {
+        // Skip already mounted shares unless user-triggered
+        if !userTriggered && share.actualMountPoint != nil {
+            Logger.mounter.info("✅ Share \(url, privacy: .public) is already mounted at \(share.actualMountPoint!, privacy: .public). Skipping.")
+            throw MounterError.alreadyMounted
+        }
+
         if !userTriggered && (
             share.mountStatus == MountStatus.queued ||
             share.mountStatus == MountStatus.errorOnMount ||
             share.mountStatus == MountStatus.userUnmounted ||
-            share.mountStatus == MountStatus.unreachable) {
-            
+            (share.mountStatus == MountStatus.unreachable && !networkTriggered)) {
+
             if share.mountStatus == MountStatus.queued {
                 Logger.mounter.info("⌛ Share \(url, privacy: .public) is already queued for mounting.")
                 throw MounterError.mountIsQueued
@@ -912,13 +921,18 @@ class Mounter: ObservableObject {
             } else if share.mountStatus == MountStatus.userUnmounted {
                 Logger.mounter.info("🖐️ Share \(url, privacy: .public): user decided to unmount all shares, not mounting them.")
                 throw MounterError.userUnmounted
-            } else if share.mountStatus == MountStatus.unreachable {
+            } else if share.mountStatus == MountStatus.unreachable && !networkTriggered {
                 Logger.mounter.info("⚠️ Share \(url, privacy: .public): ignored by mount, last time I tried server was not reachable.")
                 throw MounterError.targetNotReachable
             } else {
                 Logger.mounter.info("🤷 Share \(url, privacy: .public): not mounted, I do not know why. It just happened.")
                 throw MounterError.otherError
             }
+        }
+
+        // Allow retrying unreachable shares during network changes
+        if networkTriggered && share.mountStatus == MountStatus.unreachable {
+            Logger.mounter.info("🌐 Share \(url, privacy: .public): retrying unreachable share after network change.")
         }
     }
     
@@ -1071,9 +1085,10 @@ class Mounter: ObservableObject {
     ///   - share: The share to mount
     ///   - mountPath: The base path where the share will be mounted
     ///   - userTriggered: Whether the mount was triggered by user action
+    ///   - networkTriggered: Whether the mount was triggered by a network change (allows retrying unreachable shares)
     /// - Returns: The actual mount point path where the share was mounted
     /// - Throws: MounterError if the mount operation fails
-    func mountShare(forShare share: Share, atPath mountPath: String, userTriggered: Bool = false) async throws -> String {
+    func mountShare(forShare share: Share, atPath mountPath: String, userTriggered: Bool = false, networkTriggered: Bool = false) async throws -> String {
         Logger.mounter.debug("--- Starting mountShare for: \(share.networkShare, privacy: .public) --- ")
         // Validate the share URL and get host
         let (url, host) = try await validateShareURL(share)
@@ -1111,7 +1126,7 @@ class Mounter: ObservableObject {
         Logger.mounter.debug("  Mount directory check passed (not already mounted here)")
         
         // Check if mounting should be attempted based on current status (unless user triggered)
-        try checkMountingCondition(forShare: share, url: url, userTriggered: userTriggered)
+        try checkMountingCondition(forShare: share, url: url, userTriggered: userTriggered, networkTriggered: networkTriggered)
         Logger.mounter.debug("  Mounting condition check passed")
         
         // Prepare for mount
@@ -1259,10 +1274,14 @@ class Mounter: ObservableObject {
         if let authProfileID = share.authProfileID {
             Logger.mounter.debug("🔑 Resolving credentials from AuthProfile ID: \(authProfileID)")
 
-            // Get the AuthProfile by ID
-            guard let authProfile = AuthProfileManager.shared.profiles.first(where: { $0.id == authProfileID }) else {
+            // Take a MainActor snapshot to avoid autoclosure isolation violations
+            let profilesSnapshot = await AuthProfileManager.shared.profiles
+
+            // Get the AuthProfile by ID from the snapshot
+            guard let authProfile = profilesSnapshot.first(where: { $0.id == authProfileID }) else {
                 Logger.mounter.error("❌ AuthProfile not found for ID: \(authProfileID)")
-                Logger.mounter.error("❌ Available AuthProfile IDs: \(AuthProfileManager.shared.profiles.map { $0.id }, privacy: .public)")
+                let availableIDs = profilesSnapshot.map { $0.id }
+                Logger.mounter.error("❌ Available AuthProfile IDs: \(availableIDs, privacy: .public)")
                 throw MounterError.authenticationError
             }
 

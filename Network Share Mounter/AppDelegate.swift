@@ -281,7 +281,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             
             await self.constructMenu(withMounter: self.mounter)
             Logger.app.debug("✅ Initial menu constructed")
-            
+
+            // Check for shares without assigned profiles after initialization
+            if let mounter = self.mounter {
+                await mounter.shareManager.checkForUnassignedProfiles()
+            }
+
             if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
                 Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
                 self.enableKerberos = true
@@ -465,6 +470,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
             }
         }
+        else if notification.userInfo?["UnassignedProfiles"] is Error {
+            Logger.app.debug("🔔 [DEBUG] Processing UnassignedProfiles path")
+            Task { @MainActor in
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                    self.mounter?.setErrorStatus(.unassignedProfile)
+                    await self.constructMenu(withMounter: self.mounter, andStatus: .unassignedProfile)
+                }
+            }
+        }
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -624,7 +639,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
                                         action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
                 menu.addItem(NSMenuItem.separator())
-                
+            case .unassignedProfile:
+                Logger.app.debug("🏗️ Constructing unassigned profile menu.")
+                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Profile assignment required...", comment: "Profile assignment required"),
+                                        action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
+                menu.addItem(NSMenuItem.separator())
+
             default:
                 mounter.setErrorStatus(.noError)
                 Logger.app.debug("🏗️ Constructing default menu.")

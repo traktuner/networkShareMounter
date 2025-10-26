@@ -97,6 +97,9 @@ enum MounterError: Error {
     
     /// An existing directory is blocking the mount point
     case obstructingDirectory
+
+    /// Share has no assigned authentication profile
+    case unassignedProfile
 }
 
 extension MounterError: LocalizedError {
@@ -241,6 +244,11 @@ extension MounterError: LocalizedError {
             return NSLocalizedString(
                 "Can nout mount share because of obstructing directory",
                 comment: "Can nout mount share because of obstructing directory"
+            )
+        case .unassignedProfile:
+            return NSLocalizedString(
+                "Profile assignment required",
+                comment: "Profile assignment required"
             )
         }
     }

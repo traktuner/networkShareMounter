@@ -136,7 +136,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             }
             dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
             
-            let currentErrorStatus = await appDelegate.mounter!.errorStatus
+            let currentErrorStatus = appDelegate.mounter!.errorStatus
             if currentErrorStatus == .authenticationError {
                 await MainActor.run {
                     refreshUserArray(type: .missingPassword)
@@ -160,6 +160,10 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             if self.enableKerberos {
                 let accounts = await accountsManager.accounts
                 let accountsCount = accounts.count
+
+                // Capture MainActor-isolated preferences before moving to a detached task
+                let singleUserMode = self.prefs.bool(for: .singleUserMode)
+                let lastUser = self.prefs.string(for: .lastUser)
                 
                 // Move Keychain operations to background task to avoid blocking main thread
                 Task.detached { [weak self] in
@@ -167,7 +171,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     var needsAuth = false
                     
                     for account in accounts {
-                        if !self.prefs.bool(for: .singleUserMode) || account.upn == self.prefs.string(for: .lastUser) || accountsCount == 1 {
+                        if !singleUserMode || account.upn == lastUser || accountsCount == 1 {
                             let pwm = KeychainManager()
                             do {
                                 if try pwm.retrievePassword(forUsername: account.upn.lowercased()) != nil {
@@ -335,7 +339,7 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                 guard let self = self else { return }
                 Task { [weak self] in
                     guard let self = self else { return }
-                    let currentErrorStatus = await self.appDelegate.mounter!.errorStatus
+                    let currentErrorStatus = self.appDelegate.mounter!.errorStatus
                     await MainActor.run {
                         // Ensure window is responsive after modal dialog
                         if let window = self.view.window {
