@@ -575,24 +575,6 @@
     "Bezeichnung" : {
 
     },
-    "Build Date" : {
-      "comment" : "Build date label",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Build-Datum"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Build Date"
-          }
-        }
-      }
-    },
     "Can nout mount share because of obstructing directory" : {
       "comment" : "Can nout mount share because of obstructing directory",
       "localizations" : {
@@ -739,24 +721,6 @@
         }
       }
     },
-    "Check for Updates Now" : {
-      "comment" : "Check for updates button label",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jetzt nach Updates suchen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Check for Updates Now"
-          }
-        }
-      }
-    },
     "Darstellung" : {
 
     },
@@ -765,24 +729,6 @@
     },
     "Diagnosedaten" : {
 
-    },
-    "Diagnostics" : {
-      "comment" : "Diagnostics section title",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diagnosedaten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Diagnostics"
-          }
-        }
-      }
     },
     "Die Verwaltung der Software-Aktualisierungen ist durch eine MDM-Richtlinie deaktiviert." : {
 
@@ -870,24 +816,6 @@
     },
     "Fügen Sie Netzwerk-Shares hinzu, die mit diesem Profil authentifiziert werden sollen." : {
 
-    },
-    "General" : {
-      "comment" : "General settings title",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allgemein"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "General"
-          }
-        }
-      }
     },
     "help-auth-error" : {
       "comment" : "Help text shown if some shares are not authenticated"
@@ -2065,42 +1993,6 @@
     "smb://server/pfad" : {
 
     },
-    "Software Update" : {
-      "comment" : "Software update section title",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Software-Aktualisierung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Software Update"
-          }
-        }
-      }
-    },
-    "Software update management is disabled by an MDM policy." : {
-      "comment" : "MDM update disabled info text",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Verwaltung der Software-Aktualisierungen ist durch eine MDM-Richtlinie deaktiviert."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Software update management is disabled by an MDM policy."
-          }
-        }
-      }
-    },
     "Software-Aktualisierung" : {
 
     },
@@ -2147,42 +2039,6 @@
     },
     "Standard-Kerberos-Profile können nicht gelöscht werden" : {
 
-    },
-    "Start at Login" : {
-      "comment" : "Start at login toggle label",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beim Anmelden starten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Start at Login"
-          }
-        }
-      }
-    },
-    "Startup" : {
-      "comment" : "Startup section title",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Programmstart"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Startup"
-          }
-        }
-      }
     },
     "Symbol" : {
 
