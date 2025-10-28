@@ -1084,6 +1084,88 @@
     "mount-status-info-text" : {
 
     },
+    "MountAllShares.Description" : {
+      "comment" : "Connect all configured and reachable network drives.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Verbindet alle konfigurierten und erreichbaren Netzwerklaufwerke."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect all configured and reachable network drives."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar todas las unidades de red configuradas y accesibles."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connectez tous les lecteurs réseau configurés et accessibles."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collegare tutte le unità di rete configurate e raggiungibili."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbind alle geconfigureerde en bereikbare netwerkschijven."
+          }
+        }
+      }
+    },
+    "MountAllShares.Title" : {
+      "comment" : "Connect all network drives",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde alle Netzwerklaufwerke"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect all network drives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar todas las unidades de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter tous les lecteurs réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega tutte le unità di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbind alle netwerkschijven"
+          }
+        }
+      }
+    },
     "mounted" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1650,6 +1732,30 @@
             "state" : "new",
             "value" : "Send Anonymous Diagnostic Data"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviar datos de diagnóstico anónimos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer des données de diagnostic anonymes"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invia dati diagnostici anonimi"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verzend anonieme diagnostische gegevens"
+          }
         }
       }
     },
@@ -1772,6 +1878,252 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je kunt elke Windows (smb/cifs), afp of WebDAV netwerkshare koppelen zolang je de servernaam en het exportpad kent.\nVoer de share naam in als: smb://server.name/export/path.\nDe verbinding wordt onmiddellijk getest en wordt alleen toegevoegd als de server bereikbaar is en de share beschikbaar is."
+          }
+        }
+      }
+    },
+    "Shortcuts.Mount.ShortTitle" : {
+      "comment" : "Short title for mount shortcut",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinden"
+          }
+        }
+      }
+    },
+    "Shortcuts.Phrase.Mount.1" : {
+      "comment" : "Siri phrase for mounting shares (with %@ placeholder for app name)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde Shares in %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect shares in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar recursos compartidos en %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter les partages dans %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega condivisioni in %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbind shares in %@"
+          }
+        }
+      }
+    },
+    "Shortcuts.Phrase.Mount.2" : {
+      "comment" : "Alternative Siri phrase for mounting shares (with %@ placeholder for app name)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde Netzwerklaufwerke in %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect network drives in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar unidades de red en %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter les lecteurs réseau dans %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega unità di rete in %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbind netwerkschijven in %@"
+          }
+        }
+      }
+    },
+    "Shortcuts.Phrase.Unmount.1" : {
+      "comment" : "Siri phrase for unmounting shares (with %@ placeholder for app name)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trenne Shares in %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect shares in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar recursos compartidos en %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter les partages dans %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scollega condivisioni in %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel shares af in %@"
+          }
+        }
+      }
+    },
+    "Shortcuts.Phrase.Unmount.2" : {
+      "comment" : "Alternative Siri phrase for unmounting shares (with %@ placeholder for app name)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trenne Netzwerklaufwerke in %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect network drives in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar unidades de red en %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter les lecteurs réseau dans %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scollega unità di rete in %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel netwerkschijven af in %@"
+          }
+        }
+      }
+    },
+    "Shortcuts.Unmount.ShortTitle" : {
+      "comment" : "Short title for unmount shortcut",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trennen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scollega"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afkoppelen"
           }
         }
       }
@@ -2087,6 +2439,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Onbekende retourcode, sorry."
+          }
+        }
+      }
+    },
+    "UnmountAllShares.Description" : {
+      "comment" : "Disconnect all configured and mounted network drives.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trennt alle konfigurierten und eingebundenen Netzwerklaufwerke."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect all configured and mounted network drives."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar todas las unidades de red configuradas y montadas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter tous les lecteurs réseau configurés et montés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scollega tutte le unità di rete configurate e montate."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel alle geconfigureerde en gekoppelde netwerkschijven af."
+          }
+        }
+      }
+    },
+    "UnmountAllShares.Title" : {
+      "comment" : "Disconnect all network drives",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trenne alle Netzwerklaufwerke"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect all network drives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar todas las unidades de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter tous les lecteurs réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scollega tutte le unità di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel alle netwerkschijven af"
           }
         }
       }
