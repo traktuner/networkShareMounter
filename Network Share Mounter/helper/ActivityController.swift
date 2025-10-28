@@ -160,6 +160,21 @@ class ActivityController {
             object: nil
         )
         
+        // NEW: Observe distributed notifications from the App Intents Extension
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(unmountShares),
+            name: .nsmDistributedUnmountTrigger,
+            object: nil
+        )
+        
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(mountSharesWithUserTrigger),
+            name: .nsmDistributedMountTrigger,
+            object: nil
+        )
+        
         Logger.activityController.debug("All observers successfully registered")
     }
     

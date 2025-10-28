@@ -11,6 +11,10 @@
 		F72264792CED189200173B18 /* CircleIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72264782CED189200173B18 /* CircleIconView.swift */; };
 		F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */; };
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
+		F7341C512EAFC540005D3BD3 /* MountAllSharesIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7341C502EAFC540005D3BD3 /* MountAllSharesIntent.swift */; };
+		F7341C532EAFC551005D3BD3 /* UnmountAllSharesIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7341C522EAFC551005D3BD3 /* UnmountAllSharesIntent.swift */; };
+		F7341C552EAFC552005D3BD3 /* NetworkShareShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7341C542EAFC552005D3BD3 /* NetworkShareShortcuts.swift */; };
+		F7341C5C2EB0E0BC005D3BD3 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7341C5B2EB0E0BC005D3BD3 /* Notifications.swift */; };
 		F73429F92DA5767C0025985F /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F12DA5767C0025985F /* AuthenticationView.swift */; };
 		F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F52DA5767C0025985F /* SettingsView.swift */; };
 		F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73429F32DA5767C0025985F /* NetworkSharesView.swift */; };
@@ -96,6 +100,10 @@
 		F72264782CED189200173B18 /* CircleIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleIconView.swift; sourceTree = "<group>"; };
 		F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayShareTypes.swift; sourceTree = "<group>"; };
 		F72B13E92B332987001BDEEA /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
+		F7341C502EAFC540005D3BD3 /* MountAllSharesIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountAllSharesIntent.swift; sourceTree = "<group>"; };
+		F7341C522EAFC551005D3BD3 /* UnmountAllSharesIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnmountAllSharesIntent.swift; sourceTree = "<group>"; };
+		F7341C542EAFC552005D3BD3 /* NetworkShareShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareShortcuts.swift; sourceTree = "<group>"; };
+		F7341C5B2EB0E0BC005D3BD3 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		F73429F12DA5767C0025985F /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		F73429F22DA5767C0025985F /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		F73429F32DA5767C0025985F /* NetworkSharesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSharesView.swift; sourceTree = "<group>"; };
@@ -227,6 +235,17 @@
 			path = helper;
 			sourceTree = "<group>";
 		};
+		F7341C562EAFC58F005D3BD3 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				F7341C542EAFC552005D3BD3 /* NetworkShareShortcuts.swift */,
+				F7341C502EAFC540005D3BD3 /* MountAllSharesIntent.swift */,
+				F7341C522EAFC551005D3BD3 /* UnmountAllSharesIntent.swift */,
+				F7341C5B2EB0E0BC005D3BD3 /* Notifications.swift */,
+			);
+			path = Intents;
+			sourceTree = "<group>";
+		};
 		F73429F72DA5767C0025985F /* views */ = {
 			isa = PBXGroup;
 			children = (
@@ -270,6 +289,7 @@
 				F78455422B4C52F000A8F507 /* preferences */,
 				F7EF65F12B3B5D7000051D44 /* Extensions */,
 				F7EF65D62B3B571600051D44 /* lookups */,
+				F7341C562EAFC58F005D3BD3 /* Intents */,
 				F7EF65DD2B3B57AB00051D44 /* managers */,
 				F7E727A82B03AA0D0036CF15 /* model */,
 				F70457EB2B307C8D00506DF4 /* helper */,
@@ -537,9 +557,12 @@
 				F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */,
 				F73429FC2DA5767C0025985F /* SettingsWindowManager.swift in Sources */,
 				F73429FE2DA5767C0025985F /* GeneralSettingsView.swift in Sources */,
+				F7341C512EAFC540005D3BD3 /* MountAllSharesIntent.swift in Sources */,
 				F7D146D82B84CB7600BFD8F5 /* FileManager.swift in Sources */,
 				F765D0572A852935001D5116 /* Share.swift in Sources */,
+				F7341C532EAFC551005D3BD3 /* UnmountAllSharesIntent.swift in Sources */,
 				F742ACF62861CB62009864DF /* AppStatistics.swift in Sources */,
+				F7341C552EAFC552005D3BD3 /* NetworkShareShortcuts.swift in Sources */,
 				F791FCA02DD23DBC00F0445C /* AuthenticationHeaderView.swift in Sources */,
 				F72B13EA2B332987001BDEEA /* Menu.swift in Sources */,
 				F791FC8D2DD22E9200F0445C /* AuthProfile.swift in Sources */,
@@ -558,6 +581,7 @@
 				F791FCA22DD23DC300F0445C /* DetailColumnView.swift in Sources */,
 				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,
 				F7E801AC2E797BF2009D4D3B /* SentryManager.swift in Sources */,
+				F7341C5C2EB0E0BC005D3BD3 /* Notifications.swift in Sources */,
 				F7EF65F32B3B5DBB00051D44 /* String.swift in Sources */,
 				F747F8662B6F81D400AC0772 /* MountStatus.swift in Sources */,
 				F791FCA82DD23DD500F0445C /* ProfileRowView.swift in Sources */,
@@ -729,7 +753,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 352;
+				CURRENT_PROJECT_VERSION = 355;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -759,7 +783,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 352;
+				CURRENT_PROJECT_VERSION = 355;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -793,7 +817,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 352;
+				CURRENT_PROJECT_VERSION = 355;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -844,7 +868,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 352;
+				CURRENT_PROJECT_VERSION = 355;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
