@@ -89,42 +89,6 @@
     "Abbrechen" : {
 
     },
-    "About" : {
-      "comment" : "About section title",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Über"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "About"
-          }
-        }
-      }
-    },
-    "Adjust general application settings here." : {
-      "comment" : "General settings description",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passen Sie hier allgemeine Einstellungen der Anwendung an."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Adjust general application settings here."
-          }
-        }
-      }
-    },
     "Alle verfügbaren Shares sind bereits zugeordnet." : {
 
     },
@@ -580,42 +544,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "IdM-Gebruikersnaam"
-          }
-        }
-      }
-    },
-    "Automatically Check for Updates" : {
-      "comment" : "Automatically check for updates toggle label",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatisch nach Updates suchen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically Check for Updates"
-          }
-        }
-      }
-    },
-    "Automatically Install Updates" : {
-      "comment" : "Automatically install updates toggle label",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updates automatisch installieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically Install Updates"
           }
         }
       }
@@ -1566,42 +1494,6 @@
         }
       }
     },
-    "Preferences" : {
-      "comment" : "Preferences",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einstellungen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configuraciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Préférences"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preferenze"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voorkeuren"
-          }
-        }
-      }
-    },
     "Profil auswählen" : {
 
     },
@@ -1713,48 +1605,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opslaan"
-          }
-        }
-      }
-    },
-    "Send Anonymous Diagnostic Data" : {
-      "comment" : "Send diagnostic data toggle label",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonyme Diagnosedaten senden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Send Anonymous Diagnostic Data"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviar datos de diagnóstico anónimos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoyer des données de diagnostic anonymes"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invia dati diagnostici anonimi"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verzend anonieme diagnostische gegevens"
           }
         }
       }
