@@ -1774,165 +1774,249 @@
       }
     },
     "Shortcuts.Phrase.Mount.1" : {
-      "comment" : "Siri phrase for mounting shares (with %@ placeholder for app name)",
+      "comment" : "Siri phrase for mounting shares",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbinde Shares in %@"
+            "value" : "Verbinde Shares"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect shares in %@"
+            "value" : "Connect shares"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectar recursos compartidos en %@"
+            "value" : "Conectar recursos compartidos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecter les partages dans %@"
+            "value" : "Connecter les partages"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Collega condivisioni in %@"
+            "value" : "Collega condivisioni"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbind shares in %@"
+            "value" : "Verbind shares"
           }
         }
       }
     },
     "Shortcuts.Phrase.Mount.2" : {
-      "comment" : "Alternative Siri phrase for mounting shares (with %@ placeholder for app name)",
+      "comment" : "Alternative Siri phrase for mounting shares",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbinde Netzwerklaufwerke in %@"
+            "value" : "Verbinde Netzwerklaufwerke"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connect network drives in %@"
+            "value" : "Connect network drives"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectar unidades de red en %@"
+            "value" : "Conectar unidades de red"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecter les lecteurs réseau dans %@"
+            "value" : "Connecter les lecteurs réseau"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Collega unità di rete in %@"
+            "value" : "Collega unità di rete"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbind netwerkschijven in %@"
+            "value" : "Verbind netwerkschijven"
+          }
+        }
+      }
+    },
+    "Shortcuts.Phrase.Mount.3" : {
+      "comment" : "Alternative Siri phrase for mounting shares",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde Netzwerkshares"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect network shares"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar recursos compartidos de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter les partages réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collegare le condivisioni di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbind netwerkshares"
           }
         }
       }
     },
     "Shortcuts.Phrase.Unmount.1" : {
-      "comment" : "Siri phrase for unmounting shares (with %@ placeholder for app name)",
+      "comment" : "Siri phrase for unmounting shares",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trenne Shares in %@"
+            "value" : "Trenne Shares"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disconnect shares in %@"
+            "value" : "Disconnect shares"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desconectar recursos compartidos en %@"
+            "value" : "Desconectar recursos compartidos"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Déconnecter les partages dans %@"
+            "value" : "Déconnecter les partages"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scollega condivisioni in %@"
+            "value" : "Scollega condivisioni"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koppel shares af in %@"
+            "value" : "Koppel shares af"
           }
         }
       }
     },
     "Shortcuts.Phrase.Unmount.2" : {
-      "comment" : "Alternative Siri phrase for unmounting shares (with %@ placeholder for app name)",
+      "comment" : "Alternative Siri phrase for unmounting shares",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trenne Netzwerklaufwerke in %@"
+            "value" : "Trenne Netzwerklaufwerke"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disconnect network drives in %@"
+            "value" : "Disconnect network drives"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desconectar unidades de red en %@"
+            "value" : "Desconectar unidades de red"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Déconnecter les lecteurs réseau dans %@"
+            "value" : "Déconnecter les lecteurs réseau"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scollega unità di rete in %@"
+            "value" : "Scollega unità di rete"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koppel netwerkschijven af in %@"
+            "value" : "Koppel netwerkschijven af"
+          }
+        }
+      }
+    },
+    "Shortcuts.Phrase.Unmount.3" : {
+      "comment" : "Alternative Siri phrase for unmounting shares",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trenne netzwerkshares"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect network shares"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar recursos compartidos de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter les partages réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scollega le condivisioni di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel netwerkshares af"
           }
         }
       }

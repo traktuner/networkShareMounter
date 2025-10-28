@@ -46,15 +46,18 @@ struct NetworkShareShortcuts: AppShortcutsProvider {
         // Localized phrases from the "Localizable" table (with `%@` for the app name).
         let mountPhrase1String = String(format: String(localized: "Shortcuts.Phrase.Mount.1", table: "Localizable"), appName)
         let mountPhrase2String = String(format: String(localized: "Shortcuts.Phrase.Mount.2", table: "Localizable"), appName)
+        let mountPhrase3String = String(format: String(localized: "Shortcuts.Phrase.Mount.3", table: "Localizable"), appName)
         let unmountPhrase1String = String(format: String(localized: "Shortcuts.Phrase.Unmount.1", table: "Localizable"), appName)
         let unmountPhrase2String = String(format: String(localized: "Shortcuts.Phrase.Unmount.2", table: "Localizable"), appName)
+        let unmountPhrase3String = String(format: String(localized: "Shortcuts.Phrase.Unmount.3", table: "Localizable"), appName)
 
         return [
             AppShortcut(
                 intent: MountAllSharesIntent(),
                 phrases: [
                     .init(mountPhrase1String),
-                    .init(mountPhrase2String)
+                    .init(mountPhrase2String),
+                    .init(mountPhrase3String)
                 ],
                 shortTitle: mountShortTitle,
                 systemImageName: "externaldrive.connected.to.line.below"
@@ -63,7 +66,8 @@ struct NetworkShareShortcuts: AppShortcutsProvider {
                 intent: UnmountAllSharesIntent(),
                 phrases: [
                     .init(unmountPhrase1String),
-                    .init(unmountPhrase2String)
+                    .init(unmountPhrase2String),
+                    .init(unmountPhrase3String)
                 ],
                 shortTitle: unmountShortTitle,
                 systemImageName: "externaldrive.badge.minus"
