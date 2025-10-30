@@ -367,16 +367,20 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
             }
             
             guard let selectedTitle = accountsList.selectedItem?.title else { return }
-            
-            Task {
+
+            Task { [weak self] in
+                guard let self else { return }
                 let accounts = await accountsManager.accounts
+
                 if let account = accounts.first(where: { $0.displayName == selectedTitle.replacingOccurrences(of: " ◀︎", with: "") }) {
                     if let isInKeychain = account.hasKeychainEntry, isInKeychain {
                         let keyUtil = KeychainManager()
                         do {
                             let retrievedPassword = try keyUtil.retrievePassword(forUsername: account.upn.lowercased()) ?? ""
-                            password.stringValue = retrievedPassword
-                            authenticateButtonText.isEnabled = !retrievedPassword.isEmpty
+                            await MainActor.run {
+                                self.password.stringValue = retrievedPassword
+                                self.authenticateButtonText.isEnabled = !retrievedPassword.isEmpty
+                            }
                         } catch {
                             Logger.KrbAuthViewController.debug("Unable to get user's password")
                         }
