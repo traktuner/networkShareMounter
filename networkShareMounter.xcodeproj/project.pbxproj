@@ -50,7 +50,6 @@
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7A7A2182C8F0240006772D4 /* dogeADAuth */; };
 		F7B9EEA02E4220DB00DF2814 /* DirectoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B9EE9F2E4220DB00DF2814 /* DirectoryManager.swift */; };
-		F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */; };
 		F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7C205162C305C8A00902B4E /* dogeADAuth */; };
 		F7CAE1252CFB879000D0A839 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F7CAE1242CFB879000D0A839 /* Sentry */; };
 		F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */; };
@@ -180,7 +179,6 @@
 				F7885F642C623084000B96AC /* Sparkle in Frameworks */,
 				F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */,
 				F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */,
-				F7BAC10D274FBA2D00B5BFF4 /* LaunchAtLogin in Frameworks */,
 				F7CAE1252CFB879000D0A839 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -370,7 +368,6 @@
 				F79B1591274E722000C322A8 /* Sources */,
 				F79B1592274E722000C322A8 /* Frameworks */,
 				F79B1593274E722000C322A8 /* Resources */,
-				F7BAC10E274FBCB000B5BFF4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -378,7 +375,6 @@
 			);
 			name = "Network Share Mounter";
 			packageProductDependencies = (
-				F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */,
 				F7C205162C305C8A00902B4E /* dogeADAuth */,
 				F7E2AF6E2C3061020063960F /* dogeADAuth */,
 				F7885F632C623084000B96AC /* Sparkle */,
@@ -430,7 +426,6 @@
 			);
 			mainGroup = D60FA5131E7FBE1300D9B5A5;
 			packageReferences = (
-				F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
 				F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */,
 				F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				F75964662D13E6CA00916D06 /* XCRemoteSwiftPackageReference "dogeadauth" */,
@@ -465,27 +460,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		F7BAC10E274FBCB000B5BFF4 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\"${BUILT_PRODUCTS_DIR}/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/copy-helper-swiftpm.sh\"\n\n\n\n\n\n\n\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F706FECD2D8EABCF001C2785 /* Sources */ = {
@@ -703,7 +677,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 356;
+				CURRENT_PROJECT_VERSION = 367;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -733,7 +707,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 356;
+				CURRENT_PROJECT_VERSION = 367;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -767,7 +741,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 356;
+				CURRENT_PROJECT_VERSION = 367;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -818,7 +792,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 356;
+				CURRENT_PROJECT_VERSION = 367;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -897,14 +871,6 @@
 				minimumVersion = 2.8.0;
 			};
 		};
-		F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.2.0;
-			};
-		};
 		F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
@@ -937,11 +903,6 @@
 		F7A7A2182C8F0240006772D4 /* dogeADAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = dogeADAuth;
-		};
-		F7BAC10C274FBA2D00B5BFF4 /* LaunchAtLogin */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */;
-			productName = LaunchAtLogin;
 		};
 		F7C205162C305C8A00902B4E /* dogeADAuth */ = {
 			isa = XCSwiftPackageProductDependency;
