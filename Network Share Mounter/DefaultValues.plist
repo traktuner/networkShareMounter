@@ -16,8 +16,6 @@
 	<string>nsm_logo</string>
 	<key>kerberosRealm</key>
 	<string></string>
-	<key>autostart</key>
-	<false/>
 	<key>canQuit</key>
 	<true/>
 	<key>unmountOnExit</key>

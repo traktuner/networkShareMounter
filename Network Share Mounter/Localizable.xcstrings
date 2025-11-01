@@ -109,6 +109,7 @@
     },
     "authenticate-share-button" : {
       "comment" : "Button text to change authentication",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -182,6 +183,7 @@
     },
     "authui-button-text" : {
       "comment" : "text on authenticate button",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -222,6 +224,7 @@
       }
     },
     "authui-infotext" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -263,6 +266,7 @@
     },
     "authui-krb-infotext" : {
       "comment" : "informative text for kerberos auth window",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -304,6 +308,7 @@
     },
     "authui-krb-title" : {
       "comment" : "title of kerberos auth window",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -345,6 +350,7 @@
     },
     "authui-password-text" : {
       "comment" : "value shown as password",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -386,6 +392,7 @@
     },
     "authui-password-text-FAU" : {
       "comment" : "value shown as FAU password",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -427,6 +434,7 @@
     },
     "authui-remove-text" : {
       "comment" : "text on remove button",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -468,6 +476,7 @@
     },
     "authui-username-text" : {
       "comment" : "value shown as username",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -509,6 +518,7 @@
     },
     "authui-username-text-FAU" : {
       "comment" : "value shown as FAU username",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -612,6 +622,7 @@
     },
     "cancel" : {
       "comment" : "cancel",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -817,27 +828,6 @@
     "Fügen Sie Netzwerk-Shares hinzu, die mit diesem Profil authentifiziert werden sollen." : {
 
     },
-    "help-auth-error" : {
-      "comment" : "Help text shown if some shares are not authenticated"
-    },
-    "help-authType" : {
-
-    },
-    "help-krb-auth-text" : {
-
-    },
-    "help-new-share" : {
-      "comment" : "Help text with some infos about adding new shares"
-    },
-    "help-password" : {
-
-    },
-    "help-show-managed-shares" : {
-
-    },
-    "help-username" : {
-
-    },
     "Hinzufügen" : {
 
     },
@@ -913,32 +903,14 @@
     "Konfigurieren Sie hier die Netzwerk-Shares und deren Verbindungseinstellungen." : {
 
     },
-    "krb-auth-button" : {
-      "comment" : "Button text for kerberos authentication"
-    },
-    "krb-offdomain-button" : {
-      "comment" : "Button text for kerberos authentication"
-    },
     "Logs werden gesendet..." : {
 
     },
     "Löschen" : {
 
     },
-    "managed-shares-text" : {
-      "comment" : "Label for additional/managed shares"
-    },
-    "missing-krb-auth-button" : {
-      "comment" : "Button text for missing kerberos authentication"
-    },
-    "modify-share-button" : {
-      "comment" : "Button text to modify share"
-    },
     "Mount queued" : {
       "comment" : "Mount queued"
-    },
-    "mount-status-info-text" : {
-
     },
     "MountAllShares.Description" : {
       "comment" : "Connect all configured and reachable network drives.",
@@ -1504,6 +1476,7 @@
     },
     "Save" : {
       "comment" : "Save data",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1621,6 +1594,7 @@
     },
     "ShareView-Text" : {
       "comment" : "Default text to show on ShareView window",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1998,6 +1972,7 @@
     },
     "Sorry, no help available" : {
       "comment" : "this should not happen",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

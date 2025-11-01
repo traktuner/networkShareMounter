@@ -8,7 +8,7 @@
 
 import Cocoa
 import Network
-import LaunchAtLogin
+import ServiceManagement
 import OSLog
 import Sparkle
 import Sentry
@@ -173,19 +173,92 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Asynchronously initialize the app
         Task {
             await initializeApp()
+
+            // Handle autostart configuration (MDM or first-time setup)
+            Task.detached(priority: .utility) { [weak self] in
+                guard let self = self else { return }
+
+                let defaults = UserDefaults.standard
+                let service = SMAppService.mainApp
+                let hasCompletedSetup = defaults.bool(forKey: PreferenceKeys.hasCompletedInitialAutostartSetup.rawValue)
+
+                // Check if MDM has set an autostart preference
+                let hasMDMAutostart = defaults.objectIsForced(forKey: PreferenceKeys.autostart.rawValue)
+
+                if hasMDMAutostart {
+                    let mdmAutostart = self.prefs.bool(for: .autostart)
+                    let canChangeAutostart = self.prefs.bool(for: .canChangeAutostart)
+                    let currentStatus = service.status
+
+                    if !canChangeAutostart {
+                        // Scenario 1: MDM enforces autostart on EVERY launch (not changeable by user)
+                        Logger.app.info("🔧 MDM autostart enforced (canChangeAutostart=false): \(mdmAutostart), current system: \(String(describing: currentStatus), privacy: .public)")
+
+                        let needsSync = (mdmAutostart && currentStatus != .enabled) || (!mdmAutostart && currentStatus == .enabled)
+
+                        if needsSync {
+                            do {
+                                if mdmAutostart {
+                                    try service.register()
+                                    Logger.app.info("✅ Enforced MDM autostart: enabled")
+                                } else {
+                                    try await service.unregister()
+                                    Logger.app.info("✅ Enforced MDM autostart: disabled")
+                                }
+                            } catch {
+                                Logger.app.error("❌ Failed to enforce MDM autostart: \(error.localizedDescription, privacy: .public)")
+                            }
+                        }
+                    } else {
+                        // Scenario 2: MDM provides initial value but user can change (canChangeAutostart=true)
+                        if !hasCompletedSetup {
+                            Logger.app.info("🎉 First launch with MDM default (canChangeAutostart=true): \(mdmAutostart)")
+
+                            do {
+                                if mdmAutostart {
+                                    try service.register()
+                                    Logger.app.info("✅ Applied MDM initial autostart: enabled")
+                                } else {
+                                    try await service.unregister()
+                                    Logger.app.info("✅ Applied MDM initial autostart: disabled")
+                                }
+                            } catch {
+                                Logger.app.error("❌ Failed to apply MDM initial autostart: \(error.localizedDescription, privacy: .public)")
+                            }
+
+                            // Mark setup as completed - from now on user controls it
+                            defaults.set(true, forKey: PreferenceKeys.hasCompletedInitialAutostartSetup.rawValue)
+                        } else {
+                            // Setup already done - user has control, ignore MDM value
+                            Logger.app.debug("Setup completed - user controls autostart (MDM value ignored)")
+                        }
+                    }
+                } else {
+                    // Scenario 3: No MDM - enable autostart on first launch
+                    if !hasCompletedSetup {
+                        Logger.app.info("🎉 First launch without MDM - enabling autostart by default")
+
+                        do {
+                            try service.register()
+                            Logger.app.info("✅ Autostart enabled on first launch")
+                        } catch {
+                            Logger.app.error("❌ Failed to enable autostart on first launch: \(error.localizedDescription, privacy: .public)")
+                        }
+
+                        // Mark setup as completed
+                        defaults.set(true, forKey: PreferenceKeys.hasCompletedInitialAutostartSetup.rawValue)
+                    } else {
+                        // Setup already done - respect user's choice
+                        Logger.app.debug("Autostart setup completed - respecting user's system state")
+                    }
+                }
+            }
         }
         
         // Set up signal handlers for the app
         setupSignalHandlers()
-        
-        activityController = ActivityController(appDelegate: self)
 
-        Task.detached(priority: .background) { [weak self] in
-            guard let self = self else { return }
-            Logger.app.debug("Setting LaunchAtLogin state asynchronously via Task...")
-            LaunchAtLogin.isEnabled = self.prefs.bool(for: .autostart)
-            Logger.app.debug("LaunchAtLogin state set via Task.")
-        }
+        activityController = ActivityController(appDelegate: self)
     }
     
     /// Migrates the old Sparkle enable preference to the new disable preference if necessary.
@@ -241,7 +314,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     
     private func initializeApp() async {
-        Task { @MainActor in
+        await Task { @MainActor in
             Logger.app.debug("🔄 Starting asynchronous app initialization")
             
             // Perform one-time migration from legacy credentials to profiles BEFORE mounter init
@@ -385,7 +458,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             
             NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
             Logger.app.debug("🎉 App initialization completed successfully")
-        }
+        }.value
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -543,6 +616,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Shows the new SwiftUI settings window.
     @objc func showSettingsWindowSwiftUI(_ sender: Any?) {
         Logger.app.debug("🔧 [DEBUG] showSettingsWindowSwiftUI called")
+
+        // Activate the app to bring it to foreground (necessary for menu bar apps)
+        NSApp.activate(ignoringOtherApps: true)
+
         // Use the new SwiftUI app notification system
         NotificationCenter.default.post(name: .showSettingsScene, object: nil)
         Logger.app.debug("🔧 [DEBUG] Posted showSettingsScene notification")

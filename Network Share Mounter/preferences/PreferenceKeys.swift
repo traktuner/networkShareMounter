@@ -120,7 +120,10 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Whether application starts automatically at login
     case autostart = "autostart"
-    
+
+    /// Whether the initial autostart setup has been completed
+    case hasCompletedInitialAutostartSetup = "hasCompletedInitialAutostartSetup"
+
     /// Whether auto-updater is enabled.
     /// Since NSM 4 this is a legacy value and is essentially serving as an inverted alias for disableAutoUpdateFramework
     case enableAutoUpdater = "enableAutoUpdater"

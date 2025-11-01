@@ -9,7 +9,7 @@
 import SwiftUI
 import AppKit
 import Sparkle // Keep import for SPUUpdaterController access via AppDelegate
-import LaunchAtLogin // Import for Start at Login toggle
+import ServiceManagement
 import OSLog
 import Sentry
 import Compression
@@ -23,7 +23,7 @@ import zlib
 /// - Managing software update preferences (checking automatically, installing automatically).
 ///
 /// It interacts with `PreferenceManager` to load and save settings from `UserDefaults`,
-/// uses the `LaunchAtLogin` library to manage the login item status, and interacts
+/// uses the native `SMAppService` API to manage the login item status, and interacts
 /// with the `AppDelegate` to trigger Sparkle update checks.
 /// MDM settings like disabling the update framework or preventing changes to the login item
 /// are respected.
@@ -32,8 +32,8 @@ struct GeneralSettingsView: View {
     private var prefs = PreferenceManager()
     
     /// Controls whether the application starts automatically when the user logs in.
-    /// Initialized from `prefs.bool(for: .autostart)` in `.onAppear`.
-    /// Changes are saved back to `prefs` and applied via `LaunchAtLogin.isEnabled` in `.onChange`,
+    /// Initialized from `SMAppService.mainApp.status` in `.onAppear`.
+    /// Changes are saved back to `prefs` and applied via `SMAppService` register/unregister in `.onChange`,
     /// respecting the `.canChangeAutostart` preference.
     @State private var startAtLogin: Bool = false
     
@@ -245,23 +245,42 @@ struct GeneralSettingsView: View {
         }
         // Apply consistent 20pt padding to the entire view, matching other views
         .padding(20)
-        .onAppear { 
-            // Load initial state from UserDefaults when the view appears.
-            startAtLogin = prefs.bool(for: .autostart)
+        .onAppear {
+            // Load autostart state from macOS System (not UserDefaults)
+            let service = SMAppService.mainApp
+            startAtLogin = (service.status == .enabled)
+
             sendDiagnosticData = prefs.bool(for: .sendDiagnostics)
             automaticallyChecksForUpdates = prefs.bool(for: .SUEnableAutomaticChecks)
             automaticallyDownloadsUpdates = prefs.bool(for: .SUAutomaticallyUpdate)
         }
         // MARK: - State Change Handlers
         .onChange(of: startAtLogin) { newValue in
-             // Persist the login item state if allowed.
-             if prefs.bool(for: .canChangeAutostart) {
-                 LaunchAtLogin.isEnabled = newValue
-                 prefs.set(for: .autostart, value: newValue)
-             } else {
-                 // Revert UI if change is disallowed by MDM.
-                 Task { @MainActor in startAtLogin = prefs.bool(for: .autostart) }
-             }
+            guard prefs.bool(for: .canChangeAutostart) else {
+                // MDM prevents changes - revert to system state
+                Task { @MainActor in
+                    let service = SMAppService.mainApp
+                    startAtLogin = (service.status == .enabled)
+                }
+                return
+            }
+
+            let service = SMAppService.mainApp
+            do {
+                if newValue {
+                    try service.register()
+                    Logger.app.debug("✅ Autostart enabled")
+                } else {
+                    try service.unregister()
+                    Logger.app.debug("✅ Autostart disabled")
+                }
+            } catch {
+                Logger.app.error("❌ Failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
+                // Revert to actual system state on error
+                Task { @MainActor in
+                    startAtLogin = (service.status == .enabled)
+                }
+            }
         }
         .onChange(of: sendDiagnosticData) { newValue in
             // Persist the diagnostic data preference.
