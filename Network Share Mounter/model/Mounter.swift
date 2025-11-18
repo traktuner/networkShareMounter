@@ -674,11 +674,18 @@ class Mounter: ObservableObject {
                     
                     // Success Case - Mount successful
                     Logger.mounter.debug("✅ Mount call finished successfully for \(share.networkShare, privacy: .public)")
-                    // Normalize/canonicalize the path we store to avoid duplicates/inconsistencies
                     let canonicalPath = URL(fileURLWithPath: mountResult).standardizedFileURL.path
                     await updateShare(actualMountPoint: canonicalPath, for: share)
                     await updateShare(mountStatus: .mounted, for: share)
                     Logger.mounter.info("📊 Share mount complete: \(share.networkShare, privacy: .public) -> \(canonicalPath, privacy: .public)")
+
+                    if share.authType == .krb {
+                        NotificationCenter.default.post(
+                            name: Notification.Name("nsmKerberosMountSuccess"),
+                            object: nil,
+                            userInfo: ["shareID": share.id]
+                        )
+                    }
                     
                 } catch {
                     // Failure Case - Mount failed
@@ -724,6 +731,15 @@ class Mounter: ObservableObject {
     ///   - error: The error encountered during mounting.
     ///   - share: The share that failed to mount.
     private func handleMountError(_ error: Error, for share: Share) async {
+        if share.authType == .krb && isAuthRelatedError(error) {
+            Logger.mounter.info("🔄 Kerberos auth error detected for \(share.networkShare, privacy: .public) - triggering retry")
+            NotificationCenter.default.post(
+                name: Defaults.nsmKerberosAuthRetryNeeded,
+                object: nil,
+                userInfo: ["shareID": share.id]
+            )
+        }
+
         switch error {
         case MounterError.doesNotExist:
             Logger.mounter.debug("❌ Share does not exist: \(share.networkShare, privacy: .public)")
@@ -733,7 +749,6 @@ class Mounter: ObservableObject {
             await updateShare(mountStatus: .unreachable, for: share)
         case MounterError.authenticationError:
             Logger.mounter.debug("❌ Authentication error: \(share.networkShare, privacy: .public)")
-            // Distinguish between Kerberos SSO errors and username/password errors
             if share.authType == .krb {
                 Logger.mounter.debug("🔑 Kerberos authentication error for: \(share.networkShare, privacy: .public)")
                 await setErrorStatus(.krbAuthenticationError)
@@ -769,7 +784,22 @@ class Mounter: ObservableObject {
             await updateShare(mountStatus: .unreachable, for: share) // Default to unreachable for unknown errors
         }
     }
-    
+
+    /// Determines if an error is authentication-related and warrants a Kerberos retry
+    ///
+    /// - Parameter error: The error to check
+    /// - Returns: true if the error is likely caused by missing or expired Kerberos credentials
+    private func isAuthRelatedError(_ error: Error) -> Bool {
+        switch error {
+        case MounterError.doesNotExist,
+             MounterError.authenticationError,
+             MounterError.permissionDenied:
+            return true
+        default:
+            return false
+        }
+    }
+
     /// Sets the mount status for all shares to the specified value
     ///
     /// - Parameter status: The mount status to set for all shares
