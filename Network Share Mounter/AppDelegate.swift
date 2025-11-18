@@ -271,25 +271,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             } else {
                 Logger.app.error("Could not initialize mounter class, this should never happen.")
             }
-            
-            Logger.app.debug("Trigger user authentication on app startup.")
-            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
-            
+
+            UserDefaults.standard.removeObject(forKey: "lastKrbAuthAttempt")
+
             self.mountTimer = Timer.scheduledTimer(withTimeInterval: Defaults.mountTriggerTimer, repeats: true, block: { _ in
                 Logger.app.debug("Passed \(Defaults.mountTriggerTimer, privacy: .public) seconds, performing operartions:")
                 NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
             })
-            
+
             self.authTimer = Timer.scheduledTimer(withTimeInterval: Defaults.authTriggerTimer, repeats: true, block: { _ in
                 Logger.app.debug("Passed \(Defaults.authTriggerTimer, privacy: .public) seconds, performing operartions:")
                 NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
             })
-            
+
             Logger.app.info("Timer actualized on main thread - Mount: \(self.mountTimer.isValid, privacy: .public), Auth: \(self.authTimer.isValid, privacy: .public)")
-            
+
             await monitor.startMonitoring { [weak self] connection, reachable in
                 guard let self = self else { return }
-                
+
                 if reachable.rawValue == "yes" {
                     Logger.app.debug("Network is reachable, firing nsmNetworkChangeTriggerNotification and nsmAuthTriggerNotification.")
                     NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
@@ -311,9 +310,62 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     _ = networkTask
                 }
             }
-            
-            NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+
+            if self.enableKerberos {
+                Logger.app.debug("Kerberos enabled - waiting for authentication before initial mount")
+                await self.performInitialMountWithKerberosAuth()
+            } else {
+                Logger.app.debug("No Kerberos authentication required - performing initial mount")
+                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+            }
+
             Logger.app.debug("🎉 App initialization completed successfully")
+        }
+    }
+
+    @MainActor
+    private func performInitialMountWithKerberosAuth() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var authObserver: NSObjectProtocol?
+            var hasResumed = false
+
+            authObserver = NotificationCenter.default.addObserver(
+                forName: .nsmNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                guard let self = self, !hasResumed else { return }
+
+                if notification.userInfo?["krbAuthenticated"] is Error {
+                    Logger.app.debug("✅ Kerberos authentication successful - triggering initial mount")
+                    hasResumed = true
+
+                    if let observer = authObserver {
+                        NotificationCenter.default.removeObserver(observer)
+                    }
+
+                    NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+                    continuation.resume()
+                }
+            }
+
+            Logger.app.debug("Trigger user authentication on app startup.")
+            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+
+                guard !hasResumed else { return }
+                hasResumed = true
+
+                if let observer = authObserver {
+                    NotificationCenter.default.removeObserver(observer)
+                }
+
+                Logger.app.warning("⚠️ Kerberos authentication timeout - proceeding with mount anyway")
+                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+                continuation.resume()
+            }
         }
     }
 
