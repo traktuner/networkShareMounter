@@ -34,12 +34,15 @@ class ActivityController {
     // MARK: - Initialization
     
     /// Initializes the controller and starts monitoring system events
-    /// 
+    ///
     /// - Parameter appDelegate: Reference to the AppDelegate instance
     init(appDelegate: AppDelegate) {
         self.appDelegate = appDelegate
+
+        UserDefaults.standard.set(Date(), forKey: "lastActivityTimestamp")
+
         startMonitoring()
-        
+
         // Reset startup flag after a short delay to allow normal timer operations
         Task {
             try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
@@ -198,28 +201,8 @@ class ActivityController {
     /// Mounts all configured shares and restarts Finder
     /// to work around known macOS issues
     @objc func wakeupFromSleep() {
-        guard let mounter = appDelegate?.mounter else {
-            Logger.activityController.error("Wake-up processing failed: Mounter not available")
-            return
-        }
-        
-        Logger.activityController.debug("▶︎ mountGivenShares called by didWakeNotification")
-        
-        let wakeupTask = Task { @MainActor in
-            Logger.activityController.debug("🔄 Wake-up operation - Starting mount process")
-            // Update SMBHome from AD/OpenDirectory on network/domain changes
-            await mounter.shareManager.updateSMBHome()
-            
-            await mounter.mountGivenShares()
-            Logger.activityController.debug("🔄 Refreshing Finder view to ensure mounted shares are visible")
-            
-            let finderController = FinderController()
-            let mountPaths = await finderController.getActualMountPaths(from: mounter)
-            await finderController.refreshFinder(forPaths: mountPaths)
-            Logger.activityController.debug("✅ Wake-up operation completed")
-        }
-        
-        _ = wakeupTask
+        Logger.activityController.debug("▶︎ System wake notification received")
+        performSoftRestart(reason: "wake from sleep")
     }
     
     /// Mounts configured network shares
@@ -416,21 +399,33 @@ class ActivityController {
     /// Those who run seem to have all the fun
     /// I'm caught up, I don't know what to do
     @objc func timeGoesBySoSlowly() {
-        // Only trigger auth during timer calls if we're past the startup phase
+        let lastActivity = UserDefaults.standard.object(forKey: "lastActivityTimestamp") as? Date ?? Date()
+        let timeSinceLastActivity = Date().timeIntervalSince(lastActivity)
+        let threshold = Defaults.mountTriggerTimer * 2
+
+        if timeSinceLastActivity > threshold {
+            Logger.activityController.warning("⚠️ Detected long inactivity (\(timeSinceLastActivity, privacy: .public)s > \(threshold, privacy: .public)s) - performing soft restart")
+            UserDefaults.standard.set(Date(), forKey: "lastActivityTimestamp")
+            performSoftRestart(reason: "long inactivity detected")
+            return
+        }
+
+        UserDefaults.standard.set(Date(), forKey: "lastActivityTimestamp")
+
         if !isInStartupPhase {
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
         } else {
             Logger.activityController.debug("⏰ Skipping auth trigger during startup phase to prevent double authentication")
         }
-        
+
         guard let mounter = appDelegate?.mounter else {
             Logger.activityController.error("Timer processing failed: Mounter not available")
             return
         }
-        
+
         Logger.activityController.debug("⏰ Time goes by so slowly: Timer notification received")
         Logger.activityController.debug("▶︎ ...checking for possible MDM profile changes")
-        
+
         let timerTask = Task { @MainActor in
             Logger.activityController.debug("🔄 Timer-triggered mount operation - Updating share array")
             await mounter.shareManager.updateShareArray()
@@ -440,10 +435,111 @@ class ActivityController {
             await mounter.mountGivenShares()
             Logger.activityController.debug("✅ Timer processing completed successfully")
         }
-        
+
         _ = timerTask
     }
-    
+
+    // MARK: - Soft Restart
+
+    /// Performs a soft restart of the app after sleep or long inactivity
+    ///
+    /// This resets authentication state and remounts shares without full app reinitialization.
+    /// Handles both Kerberos and password-authenticated shares appropriately.
+    ///
+    /// - Parameter reason: Description of why the soft restart was triggered (for logging)
+    private func performSoftRestart(reason: String) {
+        guard let mounter = appDelegate?.mounter else {
+            Logger.activityController.error("Soft restart failed: Mounter not available")
+            return
+        }
+
+        Logger.activityController.info("🔄 Performing soft restart: \(reason, privacy: .public)")
+
+        UserDefaults.standard.removeObject(forKey: "lastKrbAuthAttempt")
+        Logger.activityController.debug("🔄 Reset authentication rate limiter")
+
+        let restartTask = Task { @MainActor in
+            Logger.activityController.debug("🔄 Updating MDM share configuration")
+            await mounter.shareManager.updateShareArray()
+
+            Logger.activityController.debug("🔄 Checking for SMBHome shares")
+            await mounter.shareManager.updateSMBHome()
+
+            Logger.activityController.debug("🔄 Rescanning existing mounts")
+            await mounter.rescanExistingMounts()
+
+            if appDelegate?.enableKerberos == true {
+                Logger.activityController.debug("🔄 Kerberos enabled - triggering authentication before mount")
+                await performSoftRestartWithKerberosAuth(mounter: mounter)
+            } else {
+                Logger.activityController.debug("🔄 No Kerberos - mounting shares directly")
+                await mounter.mountGivenShares()
+            }
+
+            Logger.activityController.debug("🔄 Refreshing Finder view")
+            let finderController = FinderController()
+            let mountPaths = await finderController.getActualMountPaths(from: mounter)
+            await finderController.refreshFinder(forPaths: mountPaths)
+
+            Logger.activityController.info("✅ Soft restart completed successfully")
+        }
+
+        _ = restartTask
+    }
+
+    /// Performs soft restart with Kerberos authentication wait
+    ///
+    /// Waits for Kerberos authentication to complete before mounting shares.
+    /// Includes a 30-second timeout to prevent indefinite blocking.
+    ///
+    /// - Parameter mounter: The Mounter instance to use for mounting
+    @MainActor
+    private func performSoftRestartWithKerberosAuth(mounter: Mounter) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var authObserver: NSObjectProtocol?
+            var hasResumed = false
+
+            authObserver = NotificationCenter.default.addObserver(
+                forName: .nsmNotification,
+                object: nil,
+                queue: .main
+            ) { notification in
+                guard !hasResumed else { return }
+
+                if notification.userInfo?["krbAuthenticated"] is Error {
+                    Logger.activityController.debug("✅ Kerberos authentication successful - proceeding with mount")
+                    hasResumed = true
+
+                    if let observer = authObserver {
+                        NotificationCenter.default.removeObserver(observer)
+                    }
+
+                    Task { @MainActor in
+                        await mounter.mountGivenShares()
+                        continuation.resume()
+                    }
+                }
+            }
+
+            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+
+                guard !hasResumed else { return }
+                hasResumed = true
+
+                if let observer = authObserver {
+                    NotificationCenter.default.removeObserver(observer)
+                }
+
+                Logger.activityController.warning("⚠️ Kerberos authentication timeout - proceeding with mount anyway")
+                await mounter.mountGivenShares()
+                continuation.resume()
+            }
+        }
+    }
+
     // MARK: - Helpers for utilizing the cliTask method
     
     /// Executes a CLI command asynchronously with error handling
