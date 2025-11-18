@@ -30,7 +30,10 @@ class ActivityController {
 
     /// Task for debouncing network change operations
     private var networkChangeTask: Task<Void, Never>?
-    
+
+    /// Thread-safe tracker for authentication retry attempts
+    private let retryTracker = AuthRetryTracker()
+
     // MARK: - Initialization
     
     /// Initializes the controller and starts monitoring system events
@@ -154,7 +157,44 @@ class ActivityController {
             name: Defaults.nsmReconstructMenuTriggerNotification,
             object: nil
         )
-        
+
+        NotificationCenter.default.addObserver(
+            forName: Defaults.nsmKerberosAuthRetryNeeded,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self else { return }
+            guard let shareID = notification.userInfo?["shareID"] as? String else {
+                Logger.activityController.error("Kerberos retry notification missing shareID")
+                return
+            }
+
+            Task {
+                let currentRetries = await self.retryTracker.incrementAndGet(for: shareID)
+
+                if currentRetries < 1 {
+                    Logger.activityController.info("🔄 Kerberos auth retry triggered for share \(shareID, privacy: .public) (attempt \(currentRetries + 1, privacy: .public)/1)")
+                    self.performSoftRestart(reason: "kerberos authentication retry")
+                } else {
+                    Logger.activityController.warning("⚠️ Kerberos retry limit reached for share \(shareID, privacy: .public) - giving up")
+                }
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name("nsmKerberosMountSuccess"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self else { return }
+            guard let shareID = notification.userInfo?["shareID"] as? String else { return }
+
+            Task {
+                await self.retryTracker.reset(for: shareID)
+                Logger.activityController.debug("✅ Reset retry counter for successfully mounted share \(shareID, privacy: .public)")
+            }
+        }
+
         // Kerberos cache changes
         DistributedNotificationCenter.default.addObserver(
             self,
@@ -162,7 +202,7 @@ class ActivityController {
             name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name,
             object: nil
         )
-        
+
         Logger.activityController.debug("All observers successfully registered")
     }
     
@@ -338,22 +378,24 @@ class ActivityController {
             }
         }
     }
-    
+
     /// Mounts shares after user request
     ///
     /// First performs Kerberos authentication, then mounts the shares
     @objc func mountSharesWithUserTrigger() {
-        // Renew Kerberos tickets
         processAutomaticSignIn()
-        
+
         guard let mounter = appDelegate?.mounter else {
             Logger.activityController.error("User request for mounting failed: Mounter not available")
             return
         }
-        
+
         Logger.activityController.debug("▶︎ mountGivenShares with user-trigger called")
-        
+
         let userMountTask = Task { @MainActor in
+            await retryTracker.resetAll()
+            Logger.activityController.debug("🔄 Reset auth retry counters for manual mount")
+
             Logger.activityController.debug("🔄 Manual mount operation - Starting mount process")
             
             // Update SMBHome from AD/OpenDirectory on network/domain changes
@@ -459,6 +501,11 @@ class ActivityController {
         Logger.activityController.debug("🔄 Reset authentication rate limiter")
 
         let restartTask = Task { @MainActor in
+            if !reason.contains("retry") {
+                await retryTracker.resetAll()
+                Logger.activityController.debug("🔄 Reset auth retry counters")
+            }
+
             Logger.activityController.debug("🔄 Updating MDM share configuration")
             await mounter.shareManager.updateShareArray()
 
@@ -554,6 +601,46 @@ class ActivityController {
             Logger.activityController.error("Command execution failed: \(command, privacy: .public), error: \(error.localizedDescription, privacy: .public)")
             throw error
         }
+    }
+}
+
+// MARK: - Authentication Retry Tracker
+
+/// Thread-safe actor for tracking Kerberos authentication retry attempts
+///
+/// Manages retry counters per share to prevent infinite retry loops while allowing
+/// single retry attempts after authentication failures.
+actor AuthRetryTracker {
+    private var attempts: [String: Int] = [:]
+
+    /// Gets the current retry count for a share and increments it
+    ///
+    /// - Parameter shareID: The share identifier
+    /// - Returns: The retry count BEFORE incrementing
+    func incrementAndGet(for shareID: String) -> Int {
+        let current = attempts[shareID] ?? 0
+        attempts[shareID] = current + 1
+        return current
+    }
+
+    /// Resets the retry counter for a specific share
+    ///
+    /// - Parameter shareID: The share identifier
+    func reset(for shareID: String) {
+        attempts.removeValue(forKey: shareID)
+    }
+
+    /// Resets all retry counters
+    func resetAll() {
+        attempts.removeAll()
+    }
+
+    /// Checks if a share has exceeded its retry limit
+    ///
+    /// - Parameter shareID: The share identifier
+    /// - Returns: true if the share has already been retried
+    func hasExceededLimit(for shareID: String) -> Bool {
+        return (attempts[shareID] ?? 0) >= 1
     }
 }
 
