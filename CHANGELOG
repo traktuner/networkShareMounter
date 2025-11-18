@@ -1,3 +1,11 @@
+# 3.1.15
+### Bugfixes
+* Fixed a regression that prevented mounts from occurring at app startup (#252 #246)
+
+### Features
+* If a Kerberos-authenticated mount fails, an attempt will be made to re-authenticate, followed by a second mount attempt before an error occurs
+* After waking up the Mac, the internal mount structures will be fully reinitialized
+
 # 3.1.14
 ### Bugfixes
 * fixed a regression where the Sparkle framework was accidentally rolled back to an older version
