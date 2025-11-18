@@ -83,7 +83,10 @@ struct Defaults {
     
     /// Notification for menu reconstruction
     static let nsmReconstructMenuTriggerNotification = Notification.Name("nsmReconstructMenuTriggerNotification")
-    
+
+    /// Notification for Kerberos authentication retry needed
+    static let nsmKerberosAuthRetryNeeded = Notification.Name("nsmKerberosAuthRetryNeeded")
+
     // MARK: - NetFS Mount Options
     
     /// Options for regular mounting without UI
