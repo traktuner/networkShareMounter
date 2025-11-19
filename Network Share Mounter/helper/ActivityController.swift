@@ -34,6 +34,9 @@ class ActivityController {
     /// Thread-safe tracker for authentication retry attempts
     private let retryTracker = AuthRetryTracker()
 
+    /// Flag to prevent parallel mount operations
+    private var isMountOperationInProgress = false
+
     // MARK: - Initialization
     
     /// Initializes the controller and starts monitoring system events
@@ -293,6 +296,15 @@ class ActivityController {
         Logger.activityController.debug("▶︎ Network change detected: revalidating mounted shares, then mounting")
 
         networkChangeTask = Task { @MainActor in
+            // Guard against parallel mount operations
+            guard !isMountOperationInProgress else {
+                Logger.activityController.info("⏭️ Mount operation already running, skipping network-triggered mount")
+                return
+            }
+
+            isMountOperationInProgress = true
+            defer { isMountOperationInProgress = false }
+
             // Small delay to debounce rapid network change events
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
 
@@ -505,6 +517,9 @@ class ActivityController {
                 await retryTracker.resetAll()
                 Logger.activityController.debug("🔄 Reset auth retry counters")
             }
+
+            Logger.activityController.debug("🔄 Resetting all share mount stati")
+            await mounter.setAllMountStatus(to: .undefined)
 
             Logger.activityController.debug("🔄 Updating MDM share configuration")
             await mounter.shareManager.updateShareArray()
