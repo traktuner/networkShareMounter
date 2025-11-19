@@ -576,9 +576,6 @@ class Mounter: ObservableObject {
     ///   - shareID: Optional ID of specific share to mount. If nil, mounts all configured shares
     ///   - networkTriggered: Whether the mount was triggered by a network change (allows retrying unreachable shares)
     func mountGivenShares(userTriggered: Bool = false, forShare shareID: String? = nil, networkTriggered: Bool = false) async {
-        // Thread-safe task management via actor
-        await taskController.cancelAndClearTasks()
-        
         // Verify network connectivity before attempting mount operations
         let netConnection = Monitor.shared
         // Take an actor-isolated snapshot first
@@ -633,88 +630,56 @@ class Mounter: ObservableObject {
             }
         } else {
             sharesToMount = allShares
-            Logger.mounter.debug("🔄 Preparing to mount \(sharesToMount.count, privacy: .public) shares in parallel")
+            Logger.mounter.debug("🔄 Preparing to mount \(sharesToMount.count, privacy: .public) shares sequentially")
         }
         
         Logger.mounter.debug("📋 Shares to mount: \(sharesToMount.map { $0.networkShare }.joined(separator: ", "), privacy: .public)")
-        
-        // Create concurrent mount tasks for each share
-        var localMountTasks: [Task<Void, Never>] = []
-        
-        for share in sharesToMount {
-            let mountTask = Task {
-                Logger.mounter.debug("--- [Task Start] Processing share: \(share.networkShare, privacy: .public) ---")
-                
-                do {
-                    // Reset mount status for user-triggered mounts or if specifically mounting this share
-                    if userTriggered || shareID == share.id {
-                        Logger.mounter.debug("🔄 Resetting mount status for \(share.networkShare, privacy: .public)")
-                        await updateShare(mountStatus: .undefined, for: share)
-                    }
-                    
-                    // Attempt to mount the share with timeout protection
-                    let mountResult = try await withThrowingTaskGroup(of: String.self) { group -> String in
-                        group.addTask {
-                            // The actual mount operation
-                            return try await self.mountShare(forShare: share,
-                                                           atPath: self.defaultMountPath,
-                                                           userTriggered: userTriggered,
-                                                           networkTriggered: networkTriggered)
-                        }
-                        
-                        // Wait for the first result or timeout
-                        guard let result = try await group.next() else {
-                            throw MounterError.timedOutHost
-                        }
-                        
-                        // Cancel any remaining tasks
-                        group.cancelAll()
-                        return result
-                    }
-                    
-                    // Success Case - Mount successful
-                    Logger.mounter.debug("✅ Mount call finished successfully for \(share.networkShare, privacy: .public)")
-                    let canonicalPath = URL(fileURLWithPath: mountResult).standardizedFileURL.path
-                    await updateShare(actualMountPoint: canonicalPath, for: share)
-                    await updateShare(mountStatus: .mounted, for: share)
-                    Logger.mounter.info("📊 Share mount complete: \(share.networkShare, privacy: .public) -> \(canonicalPath, privacy: .public)")
 
-                    if share.authType == .krb {
-                        NotificationCenter.default.post(
-                            name: Notification.Name("nsmKerberosMountSuccess"),
-                            object: nil,
-                            userInfo: ["shareID": share.id]
-                        )
-                    }
-                    
-                } catch {
-                    // Failure Case - Mount failed
-                    Logger.mounter.error("❌ Mount failed for \(share.networkShare, privacy: .public): \(error.localizedDescription, privacy: .public)")
-                    await handleMountError(error, for: share)
+        // Mount shares sequentially to avoid race conditions
+        Logger.mounter.info("⏳ Mounting \(sharesToMount.count) share(s) sequentially...")
+
+        for share in sharesToMount {
+            Logger.mounter.debug("--- [Sequential Mount] Processing share: \(share.networkShare, privacy: .public) ---")
+
+            do {
+                // Reset mount status for user-triggered mounts or if specifically mounting this share
+                if userTriggered || shareID == share.id {
+                    Logger.mounter.debug("🔄 Resetting mount status for \(share.networkShare, privacy: .public)")
+                    await updateShare(mountStatus: .undefined, for: share)
                 }
-                
-                Logger.mounter.debug("--- [Task End] Finished processing share: \(share.networkShare, privacy: .public) ---")
-            }
-            
-            localMountTasks.append(mountTask)
-        }
-        
-        // Thread-safe task collection update
-        await taskController.setTasks(localMountTasks)
-        
-        // Wait for all mount tasks to complete
-        Logger.mounter.info("⏳ Waiting for all mount operations to complete...")
-        
-        await withTaskGroup(of: Void.self) { group in
-            for task in localMountTasks {
-                group.addTask {
-                    await task.value
+
+                // Attempt to mount the share
+                let mountResult = try await mountShare(forShare: share,
+                                                      atPath: defaultMountPath,
+                                                      userTriggered: userTriggered,
+                                                      networkTriggered: networkTriggered)
+
+                // Success Case - Mount successful
+                Logger.mounter.debug("✅ Mount call finished successfully for \(share.networkShare, privacy: .public)")
+                let canonicalPath = URL(fileURLWithPath: mountResult).standardizedFileURL.path
+                await updateShare(actualMountPoint: canonicalPath, for: share)
+                await updateShare(mountStatus: .mounted, for: share)
+                Logger.mounter.info("📊 Share mount complete: \(share.networkShare, privacy: .public) -> \(canonicalPath, privacy: .public)")
+
+                if share.authType == .krb {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("nsmKerberosMountSuccess"),
+                        object: nil,
+                        userInfo: ["shareID": share.id]
+                    )
                 }
+
+            } catch {
+                // Failure Case - Mount failed
+                Logger.mounter.error("❌ Mount failed for \(share.networkShare, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                await handleMountError(error, for: share)
             }
+
+            Logger.mounter.debug("--- [Sequential Mount] Finished processing share: \(share.networkShare, privacy: .public) ---")
         }
-        
+
         // Log final mount status for all shares
-        Logger.mounter.info("📊 Parallel mount process finished. Final mount status summary:")
+        Logger.mounter.info("📊 Sequential mount process finished. Final mount status summary:")
         for share in await shareManager.allShares {
             if let mountPoint = share.actualMountPoint {
                 Logger.mounter.info("  ✅ \(share.networkShare, privacy: .public) → mounted at: \(mountPoint, privacy: .public)")
@@ -937,15 +902,15 @@ class Mounter: ObservableObject {
         }
 
         if !userTriggered && (
-            share.mountStatus == MountStatus.queued ||
-            share.mountStatus == MountStatus.errorOnMount ||
+            (share.mountStatus == MountStatus.queued && !networkTriggered) ||
+            (share.mountStatus == MountStatus.errorOnMount && !networkTriggered) ||
             share.mountStatus == MountStatus.userUnmounted ||
             (share.mountStatus == MountStatus.unreachable && !networkTriggered)) {
 
             if share.mountStatus == MountStatus.queued {
                 Logger.mounter.info("⌛ Share \(url, privacy: .public) is already queued for mounting.")
                 throw MounterError.mountIsQueued
-            } else if share.mountStatus == MountStatus.errorOnMount {
+            } else if share.mountStatus == MountStatus.errorOnMount && !networkTriggered {
                 Logger.mounter.info("⚠️ Share \(url, privacy: .public): not mounted, last time I tried I got a mount error.")
                 throw MounterError.otherError
             } else if share.mountStatus == MountStatus.userUnmounted {
@@ -960,9 +925,9 @@ class Mounter: ObservableObject {
             }
         }
 
-        // Allow retrying unreachable shares during network changes
-        if networkTriggered && share.mountStatus == MountStatus.unreachable {
-            Logger.mounter.info("🌐 Share \(url, privacy: .public): retrying unreachable share after network change.")
+        // Allow retrying unreachable and errorOnMount shares during network changes
+        if networkTriggered && (share.mountStatus == MountStatus.unreachable || share.mountStatus == MountStatus.errorOnMount) {
+            Logger.mounter.info("🌐 Share \(url, privacy: .public): retrying share with previous errors after network change.")
         }
     }
     
