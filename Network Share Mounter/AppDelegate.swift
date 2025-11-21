@@ -670,6 +670,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         Logger.app.debug("🔧 [DEBUG] showSettingsWindowSwiftUI called")
 
         // Activate the app to bring it to foreground (necessary for menu bar apps)
+        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
         // Use the new SwiftUI app notification system
@@ -854,8 +855,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     } else {
                         Logger.app.debug("  Menu: 🍰 Adding remote share \(share.networkShare, privacy: .public).")
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
-                        // Use shareDisplayName if available, otherwise networkShare
-                        let menuItemTitle = share.shareDisplayName ?? share.networkShare
+                        // Use effectiveMountPoint for menu display
+                        let menuItemTitle = share.effectiveMountPoint
                         menuItem = NSMenuItem(title: NSLocalizedString(menuItemTitle, comment: "Menu item title for a specific share"),
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),
                                               keyEquivalent: "")

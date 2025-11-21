@@ -183,7 +183,25 @@ actor ShareManager {
     var allShares: [Share] {
         return _shares
     }
-    
+
+    /// Check if a mount point name is already in use by another share
+    /// - Parameters:
+    ///   - mountPointName: The mount point name to check
+    ///   - excludingShareURL: Optional share URL to exclude from check (for edit scenarios)
+    /// - Returns: True if duplicate found, false otherwise
+    func isDuplicateMountPoint(_ mountPointName: String, excludingShareURL: String? = nil) -> Bool {
+        let lowercasedName = mountPointName.lowercased()
+
+        return _shares.contains { share in
+            if let excludeURL = excludingShareURL, share.networkShare == excludeURL {
+                return false
+            }
+
+            let shareEffectiveMountPoint = share.effectiveMountPoint.lowercased()
+            return shareEffectiveMountPoint == lowercasedName
+        }
+    }
+
     /// delete all shares, delete array entries is not already empty
     func removeAllShares() {
         if !_shares.isEmpty {
@@ -207,6 +225,11 @@ actor ShareManager {
             savePasswordToKeychain(for: updatedShare.networkShare, username: username, password: password)
         }
         _shares[index] = updatedShare
+
+        // Save updated share configuration to UserDefaults (for non-managed shares)
+        if !updatedShare.managed {
+            saveModifiedShareConfigs()
+        }
     }
     
     /// Update the mount status of a share at a specific index
@@ -515,14 +538,17 @@ actor ShareManager {
     func createShareArray() {
         // Process MDM shares first
         let processingResult = processInitialMDMShares()
-        
+
         // If no MDM shares were found, try legacy MDM configuration
         if !processingResult {
             processInitialLegacyMDMShares()
         }
-        
+
         // Process user-defined shares
         processUserDefinedShares()
+
+        // Migrate mount points for existing shares
+        migrateMountPoints()
     }
     
     /// Processes initial MDM shares during application startup
@@ -571,7 +597,43 @@ actor ShareManager {
             removeLegacyShareConfigs()
         }
     }
-    
+
+    /// Migrates existing shares to use mountPoint field
+    /// Sets mountPoint from shareDisplayName if available, otherwise auto-generates from URL
+    private func migrateMountPoints() {
+        var needsSave = false
+
+        for index in 0..<_shares.count {
+            var share = _shares[index]
+            var updated = false
+
+            if share.mountPoint == nil || share.mountPoint?.isEmpty == true {
+                if let displayName = share.shareDisplayName, !displayName.isEmpty {
+                    share.mountPoint = displayName
+                    Logger.shareManager.info("🔄 Migrated shareDisplayName to mountPoint for: \(share.networkShare, privacy: .public)")
+                    updated = true
+                } else {
+                    let generatedName = extractShareName(from: share.networkShare)
+                    share.mountPoint = generatedName
+                    Logger.shareManager.info("🔄 Auto-generated mountPoint for: \(share.networkShare, privacy: .public) → \(generatedName, privacy: .public)")
+                    updated = true
+                }
+            }
+
+            if updated {
+                _shares[index] = share
+                needsSave = true
+            }
+        }
+
+        if needsSave {
+            saveModifiedShareConfigs()
+            Logger.shareManager.info("✅ Mount point migration completed, saved to UserDefaults")
+        } else {
+            Logger.shareManager.debug("ℹ️ No mount point migration needed")
+        }
+    }
+
     /// function to return all shares
     ///    since the class/actor is now asynchron, there is no way to get _shares directly
     func getAllShares() -> [Share] {

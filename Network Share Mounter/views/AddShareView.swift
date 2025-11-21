@@ -17,9 +17,13 @@ struct AddShareView: View {
 
     // State for form fields
     @State private var networkShare: String = "" // e.g., smb://server/share
-    @State private var shareDisplayName: String = ""
+    @State private var mountPointName: String = ""
     @State private var selectedProfileID: String? = nil // Profile ID or nil for "None"
-    
+
+    // Validation states
+    @State private var mountPointError: String? = nil
+    @State private var isValidatingMountPoint = false
+
     // Logger
     private let logger = Logger.networkSharesView // Use logger from parent view category for now
 
@@ -98,7 +102,7 @@ struct AddShareView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(networkShare.isEmpty) 
+                .disabled(networkShare.isEmpty || mountPointName.isEmpty || mountPointError != nil)
                 .keyboardShortcut(.defaultAction)
             }
             .padding(20)
@@ -121,13 +125,27 @@ struct AddShareView: View {
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
                     .disabled(isEditing && (existingShare?.managed == true))
+                    .onChange(of: networkShare) { newValue in
+                        autoFillMountPointIfNeeded(from: newValue)
+                    }
             }
             
             HStack {
-                Text("Anzeigename:")
+                Text("Share-Name:")
                     .frame(width: 100, alignment: .trailing)
-                TextField("Optional", text: $shareDisplayName)
-                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 4) {
+                    TextField("Share-Name", text: $mountPointName)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: mountPointName) { newValue in
+                            validateMountPoint(newValue)
+                        }
+
+                    if let error = mountPointError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
             }
             
             if isEditing && (existingShare?.managed == true) {
@@ -211,14 +229,50 @@ struct AddShareView: View {
     /// Sets up the form fields when editing an existing share
     private func setupForEditing() {
         guard let share = existingShare else { return }
-        
+
         networkShare = share.networkShare
-        shareDisplayName = share.shareDisplayName ?? ""
-        
+        mountPointName = share.effectiveMountPoint
+
         // Find associated profile for this share
         selectedProfileID = findAssociatedProfile(for: share)
-        
+
         logger.info("Setup editing for share: \(share.networkShare)")
+    }
+
+    /// Auto-fills mount point name when network share URL changes (only if empty)
+    private func autoFillMountPointIfNeeded(from url: String) {
+        guard !isEditing else { return }
+        guard mountPointName.isEmpty || mountPointName == extractShareName(from: networkShare) else { return }
+
+        let generatedName = extractShareName(from: url)
+        mountPointName = generatedName
+        validateMountPoint(generatedName)
+    }
+
+    /// Validates the mount point name for character constraints and duplicates
+    private func validateMountPoint(_ name: String) {
+        guard !name.isEmpty else {
+            mountPointError = nil
+            return
+        }
+
+        if !name.isValidMountPointName {
+            mountPointError = "⚠️ Dieser Name enthält ungültige Zeichen"
+            return
+        }
+
+        Task {
+            let excludeURL = isEditing ? existingShare?.networkShare : nil
+            let isDuplicate = await mounter.shareManager.isDuplicateMountPoint(name, excludingShareURL: excludeURL)
+
+            await MainActor.run {
+                if isDuplicate {
+                    mountPointError = "⚠️ Dieser Name wird bereits verwendet"
+                } else {
+                    mountPointError = nil
+                }
+            }
+        }
     }
     
     /// Finds which profile (if any) is associated with the given share
@@ -246,13 +300,13 @@ struct AddShareView: View {
         }
         
         // 2. Create Share object
-        let displayName = shareDisplayName.isEmpty ? nil : shareDisplayName
+        let mountPoint = mountPointName.isEmpty ? nil : mountPointName
         let newShare = Share.createShare(
             networkShare: networkShare,
             authType: (selectedProfileID ?? "").isEmpty ? .krb : .pwd, // Safe unwrap and check with isEmpty
             mountStatus: .unmounted,
+            mountPoint: mountPoint,
             managed: false, // User-added shares are not managed
-            shareDisplayName: displayName,
             authProfileID: (selectedProfileID ?? "").isEmpty ? nil : selectedProfileID // Safe unwrap before use
         )
         
@@ -298,13 +352,29 @@ struct AddShareView: View {
             // 2. Update share properties
             var updatedShare = originalShare
             let oldShareURL = originalShare.networkShare
-            
+            let oldMountPoint = originalShare.effectiveMountPoint
+
             updatedShare.networkShare = networkShare
-            updatedShare.shareDisplayName = shareDisplayName.isEmpty ? nil : shareDisplayName
-            
+            updatedShare.mountPoint = mountPointName.isEmpty ? nil : mountPointName
+
+            // Check if mount point changed and share is currently mounted
+            let needsRemount = oldMountPoint != updatedShare.effectiveMountPoint && originalShare.mountStatus == .mounted
+
+            // Unmount if necessary before updating
+            if needsRemount {
+                logger.info("🔄 Mount point changed while mounted - unmounting first")
+                await mounter.unmountShare(for: originalShare, userTriggered: false)
+            }
+
             // 3. Update share in ShareManager
             await mounter.updateShare(for: updatedShare)
             logger.info("Successfully updated share in ShareManager.")
+
+            // Remount if it was mounted before
+            if needsRemount {
+                logger.info("🔄 Remounting share at new mount point")
+                await mounter.mountGivenShares(userTriggered: false, forShare: updatedShare.id)
+            }
             
             // 4. Update profile associations if share URL changed or profile selection changed
             try await updateProfileAssociation(for: networkShare, oldShareURL: oldShareURL)

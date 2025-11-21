@@ -104,9 +104,6 @@
     "Anonyme Diagnosedaten senden" : {
 
     },
-    "Anzeigename:" : {
-
-    },
     "authenticate-share-button" : {
       "comment" : "Button text to change authentication",
       "extractionState" : "stale",
@@ -1232,9 +1229,6 @@
     "Ohne Profil werden Standard-Systemmechanismen (z.B. Kerberos) verwendet." : {
 
     },
-    "Optional" : {
-
-    },
     "Other error" : {
       "comment" : "Other error",
       "localizations" : {
@@ -1587,6 +1581,12 @@
       }
     },
     "Share-Details" : {
+
+    },
+    "Share-Name" : {
+
+    },
+    "Share-Name:" : {
 
     },
     "Shares auswählen" : {
