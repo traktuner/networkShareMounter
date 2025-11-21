@@ -87,12 +87,12 @@ actor AutomaticSignIn {
             // Retrieve accounts and determine sign-in strategy
             let accounts = await accountsManager.accounts
             let accountsCount = accounts.count
-            Logger.automaticSignIn.debug("🔍 Retrieved \(accountsCount) accounts")
+            Logger.automaticSignIn.debug("🔍 Retrieved \(accountsCount) accounts: \(accounts.map { $0.upn }, privacy: .public)")
             
-//            if accounts.isEmpty {
-//                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
-//                return
-//            }
+            if accounts.isEmpty {
+                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
+                return
+            }
             
             for (index, account) in accounts.enumerated() {
                 Logger.automaticSignIn.debug("🔍 Processing account \(index+1)/\(accountsCount): \(account.upn, privacy: .public)")
@@ -104,12 +104,8 @@ actor AutomaticSignIn {
                     let worker = AutomaticSignInWorker(account: account)
                     Logger.automaticSignIn.debug("🔍 Worker created, calling checkUser")
                     
-                    do {
-                        await worker.checkUser()
-                        Logger.automaticSignIn.debug("🔍 checkUser completed for: \(account.upn, privacy: .public)")
-                    } catch {
-                        Logger.automaticSignIn.error("❌ Error in checkUser for account \(account.upn, privacy: .public): \(error.localizedDescription)")
-                    }
+                    await worker.checkUser()
+                    Logger.automaticSignIn.debug("🔍 checkUser completed for: \(account.upn, privacy: .public)")
                 } else {
                     Logger.automaticSignIn.debug("🔍 Skipping account due to single user mode: \(account.upn, privacy: .public)")
                 }
@@ -153,6 +149,10 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// The domain of the user account
     let domain: String
     
+    /// Flag to distinguish between authentication and user info retrieval modes
+    /// When true, we're only retrieving user info and server unavailability should not be treated as auth failure
+    var isInUserInfoMode: Bool = false
+    
     /// Initializes a new worker with a user account
     /// 
     /// - Parameter account: The user account for sign-in
@@ -168,143 +168,67 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Checks the user and performs sign-in
     /// 
     /// The process includes:
-    /// 1. Resolving SRV records for LDAP servers
-    /// 2. Checking existing Kerberos tickets
+    /// 1. Checking existing Kerberos tickets
+    /// 2. Optionally validating SRV records (non-blocking)
     /// 3. Retrieving user information or authentication
     func checkUser() async {
         Logger.automaticSignIn.debug("🔍 [Worker] checkUser started for account: \(self.account.upn, privacy: .public)")
         
-        do {
-            let klist = KlistUtil()
-            Logger.automaticSignIn.debug("🔍 [Worker] KlistUtil initialized")
+        let klist = KlistUtil()
+        Logger.automaticSignIn.debug("🔍 [Worker] KlistUtil initialized")
+        
+        let princs = await klist.klist().map({ $0.principal })
+        Logger.automaticSignIn.debug("🔍 [Worker] Retrieved \(princs.count) principals: \(princs.joined(separator: ", "), privacy: .public)")
+        
+        // Check for existing valid ticket
+        let hasValidTicket = princs.contains(where: { $0.lowercased() == self.account.upn.lowercased() })
+        
+        if hasValidTicket {
+            Logger.automaticSignIn.info("✅ [Worker] Valid ticket found for: \(self.account.upn, privacy: .public)")
             
-            let princs = await klist.klist().map({ $0.principal })
-            Logger.automaticSignIn.debug("🔍 [Worker] Retrieved \(princs.count) principals: \(princs.joined(separator: ", "), privacy: .public)")
+            Logger.automaticSignIn.debug("🔍 [Worker] Calling getUserInfo()")
+            await getUserInfo()
+            Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo() completed")
+        } else {
+            Logger.automaticSignIn.info("🔍 [Worker] No valid ticket found, starting authentication")
             
-            Logger.automaticSignIn.debug("🔍 [Worker] Attempting to resolve SRV records for domain: \(self.domain, privacy: .public)")
-            let records = try await resolveSRVRecordsWithTimeout()
+            // Optionally try SRV validation (non-blocking, fires and forgets)
+            await attemptSRVValidation()
             
-            if !records.SRVRecords.isEmpty {
-                Logger.automaticSignIn.debug("🔍 [Worker] Successfully resolved \(records.SRVRecords.count) SRV records")
-                
-                let hasValidTicket = princs.contains(where: { $0.lowercased() == self.account.upn.lowercased() })
-                
-                if hasValidTicket {
-                    Logger.automaticSignIn.info("✅ [Worker] Valid ticket found for: \(self.account.upn, privacy: .public)")
-                    
-                    Logger.automaticSignIn.debug("🔍 [Worker] Calling getUserInfo()")
-                    await getUserInfo()
-                    Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo() completed")
-                } else {
-                    Logger.automaticSignIn.info("🔍 [Worker] No valid ticket found, starting authentication")
-                    
-                    Logger.automaticSignIn.debug("🔍 [Worker] Calling auth()")
-                    await auth()
-                    Logger.automaticSignIn.debug("🔍 [Worker] auth() completed")
-                }
-            } else {
-                Logger.automaticSignIn.warning("⚠️ [Worker] No SRV records found for domain: \(self.domain, privacy: .public)")
-                throw AutoSignInError.noSRVRecords(domain)
-            }
-        } catch let error as AutoSignInError {
-            Logger.automaticSignIn.error("❌ [Worker] AutoSignInError in checkUser: \(error.localizedDescription)")
-            
-            if case .noSRVRecords = error {
-                Logger.automaticSignIn.debug("🔍 [Worker] Continuing with auth() despite SRV record error")
-                await auth()
-            }
-        } catch {
-            Logger.automaticSignIn.error("❌ [Worker] Unexpected error in checkUser: \(error.localizedDescription)")
-            
-            Logger.automaticSignIn.debug("🔍 [Worker] Calling auth() despite error")
+            Logger.automaticSignIn.debug("🔍 [Worker] Calling auth()")
             await auth()
+            Logger.automaticSignIn.debug("🔍 [Worker] auth() completed")
         }
         
         Logger.automaticSignIn.debug("🔍 [Worker] checkUser finished for account: \(self.account.upn, privacy: .public)")
     }
     
-    /// Resolves SRV records with a timeout protection to prevent hanging
-    /// - Returns: The SRV records result
-    /// - Throws: Error if resolution fails or times out
-    func resolveSRVRecordsWithTimeout() async throws -> SRVResult {
-        Logger.automaticSignIn.debug("🔍 [Worker] Starting SRV record resolution with timeout protection")
-        
-        // Create a task with timeout
-        return try await withTimeout(seconds: 10) {
-            try await self.resolveSRVRecords()
-        }
-    }
-    
-    /// Implements a timeout mechanism for async operations
-    /// - Parameters:
-    ///   - seconds: Timeout duration in seconds
-    ///   - operation: The async operation to execute with timeout protection
-    /// - Returns: The result of the operation if successful before timeout
-    /// - Throws: Error from the operation or timeout error
-    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
-        return try await withThrowingTaskGroup(of: T.self) { group in
-            // Main operation
-            group.addTask {
-                return try await operation()
-            }
-            
-            // Timeout task
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-                throw NSError(domain: "TimeoutError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Operation timed out after \(seconds) seconds"])
-            }
-            
-            // Take the first result (operation or timeout)
-            let result = try await group.next()!
-            
-            // Cancel all remaining tasks
-            group.cancelAll()
-            
-            return result
-        }
-    }
-    
-    /// Resolves SRV records for LDAP services
+    /// Attempts SRV validation in the background (non-blocking)
     /// 
-    /// - Returns: The found SRV records
-    /// - Throws: Error if no records are found
-    private func resolveSRVRecords() async throws -> SRVResult {
-        Logger.automaticSignIn.debug("🔍 [Worker] resolveSRVRecords started")
+    /// This is purely informational and doesn't affect the authentication flow
+    private func attemptSRVValidation() async {
+        Logger.automaticSignIn.debug("🔍 [Worker] Starting optional SRV validation for domain: \(self.domain, privacy: .public)")
         
-        // Flag to ensure the continuation is only resumed once
-        var continuationResumed = false
-        let lock = NSLock() // Use a lock for thread safety
-
-        return try await withCheckedThrowingContinuation { continuation in
+        // Fire and forget - don't block authentication on this
+        Task.detached { [domain] in
+            let resolver = SRVResolver()
             let query = "_ldap._tcp." + domain.lowercased()
-            Logger.automaticSignIn.debug("🔍 [Worker] Resolving SRV records for query: \(query, privacy: .public)")
-
+            
             resolver.resolve(query: query) { result in
-                lock.lock() // Acquire lock before checking/modifying the flag
-                // Check if already resumed
-                guard !continuationResumed else {
-                    lock.unlock() // Release lock if already resumed
-                    Logger.automaticSignIn.warning("⚠️ [Worker] Continuation for SRV query '\(query, privacy: .public)' already resumed. Ignoring duplicate callback.")
-                    return
-                }
-                // Mark as resumed
-                continuationResumed = true
-                lock.unlock() // Release lock after modifying the flag
-
-                Logger.automaticSignIn.debug("🔍 [Worker] SRV resolver returned for query: \(query, privacy: .public)")
-                
                 switch result {
                 case .success(let records):
-                    Logger.automaticSignIn.debug("✅ [Worker] SRV resolution successful with \(records.SRVRecords.count) records")
-                    continuation.resume(returning: records)
+                    if !records.SRVRecords.isEmpty {
+                        Logger.automaticSignIn.info("✅ [Worker] SRV validation successful: found \(records.SRVRecords.count) LDAP servers for domain: \(domain, privacy: .public)")
+                    } else {
+                        Logger.automaticSignIn.info("ℹ️ [Worker] SRV validation: no LDAP servers found for domain: \(domain, privacy: .public)")
+                    }
                 case .failure(let error):
-                    Logger.automaticSignIn.error("❌ [Worker] SRV resolution failed: \(error.localizedDescription, privacy: .public)")
-                    continuation.resume(throwing: error)
+                    Logger.automaticSignIn.debug("🔍 [Worker] SRV validation failed for domain: \(domain, privacy: .public) - \(error.localizedDescription, privacy: .public)")
                 }
             }
-            
-            Logger.automaticSignIn.debug("🔍 [Worker] SRV resolution request submitted, waiting for callback")
         }
+        
+        Logger.automaticSignIn.debug("🔍 [Worker] SRV validation task started (non-blocking)")
     }
     
     /// Authenticates the user with keychain credentials
@@ -332,16 +256,20 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
                 Logger.automaticSignIn.debug("🔍 [Worker] Calling session.authenticate()")
                 await session.authenticate()
                 Logger.automaticSignIn.debug("🔍 [Worker] session.authenticate() returned")
+                // NOTE: Authentication result will be posted by delegate methods
+                // Do NOT post success notification here - delegate handles success/failure
             } else {
                 Logger.automaticSignIn.warning("⚠️ [Worker] No password found in keychain for: \(username, privacy: .public)")
                 account.hasKeychainEntry = false
                 Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification")
+                Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification")
                 NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
             }
         } catch {
             Logger.automaticSignIn.error("❌ [Worker] Error accessing keychain: \(error.localizedDescription, privacy: .public)")
             account.hasKeychainEntry = false
             Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification due to keychain error")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification due to keychain error")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
         }
         
@@ -353,20 +281,35 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Switches to the user principal and retrieves detailed information
     func getUserInfo() async {
         Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo started for user: \(self.account.upn, privacy: .public)")
+        
+        // Set flag to indicate we're in user info mode (not authentication mode)
+        isInUserInfoMode = true
+        
         do {
             // Switch to user principal
             Logger.automaticSignIn.debug("🔍 [Worker] Executing kswitch for principal: \(self.session.userPrincipal)")
             let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
             Logger.automaticSignIn.debug("🔍 [Worker] kswitch output: \(output, privacy: .public)")
             
-            // Retrieve user data
-            Logger.automaticSignIn.debug("🔍 [Worker] Setting delegate and retrieving user info")
+            // Since we have a valid ticket (verified by klist), post success notification
+            Logger.automaticSignIn.debug("🔍 [Worker] Valid ticket confirmed, posting success notification")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification for valid ticket")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
+            
+            // Retrieve user data (best effort - failure won't affect authentication status)
+            Logger.automaticSignIn.debug("🔍 [Worker] Setting delegate and retrieving user info (best effort)")
             session.delegate = self
             await session.userInfo()
             Logger.automaticSignIn.debug("🔍 [Worker] userInfo() call completed")
         } catch {
             Logger.automaticSignIn.error("❌ [Worker] Error retrieving user information: \(error.localizedDescription, privacy: .public)")
+            // Even if kswitch fails, we know we had a valid ticket, so post success
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification despite kswitch error")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
         }
+        
+        // Reset flag when done
+        isInUserInfoMode = false
         Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo completed for user: \(self.account.upn, privacy: .public)")
     }
     
@@ -382,6 +325,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
             
             Logger.automaticSignIn.debug("🔍 [Delegate] Posting success notification")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbAuthenticated notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
             
             Logger.automaticSignIn.debug("🔍 [Delegate] Retrieving user information")
@@ -399,12 +343,22 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// - Parameters:
     ///   - error: Error type
     ///   - description: Error description
-    func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) {
+    func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {
         Logger.automaticSignIn.warning("⚠️ [Delegate] Authentication failed for: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
         
+        // If we're in user info mode (we already have a valid ticket), don't treat server unavailability as auth failure
+        if isInUserInfoMode {
+            Logger.automaticSignIn.info("ℹ️ [Delegate] In user info mode - treating server error as availability issue, not auth failure")
+            Logger.automaticSignIn.debug("🔍 [Delegate] Error type: \(error, privacy: .public), Description: \(description, privacy: .public)")
+            // Don't post any error notifications - we already posted success notification in getUserInfo()
+            Logger.automaticSignIn.debug("🔍 [Delegate] Ignoring error since we already have valid ticket")
+            return
+        }
+        
         switch error {
-        case .AuthenticationFailure, .PasswordExpired:
+        case .AuthenticationFailure, .PasswordExpired, .KerbError, .unknownPrincipal, .wrongRealm:
             Logger.automaticSignIn.debug("🔍 [Delegate] Handling authentication failure or expired password")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
             
             Logger.automaticSignIn.info("🔍 [Delegate] Removing invalid password from Keychain")
@@ -418,10 +372,18 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             
         case .OffDomain:
             Logger.automaticSignIn.info("🔍 [Delegate] Outside the Kerberos Realm network")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbOffDomain notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
-            
+    
+        case .SiteError, .StateError, .UnAuthenticated:
+            Logger.automaticSignIn.debug("🔍 [Delegate] Handling network/reachability error")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbUnreachable notification")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbUnreachable": MounterError.offDomain])
+
         default:
-            Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error: \(error, privacy: .public)")
+            Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error in auth mode: \(error, privacy: .public)")
+            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification for unhandled error")
+            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
         }
         
         Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationFailed completed")
@@ -430,7 +392,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Called when user information was successfully retrieved
     /// 
     /// - Parameter user: Retrieved user information
-    func dogeADUserInformation(user: ADUserRecord) {
+    func dogeADUserInformation(user: ADUserRecord) async {
         Logger.automaticSignIn.debug("🔍 [Delegate] User information received for: \(user.userPrincipal, privacy: .public)")
         
         // Save user information in PreferenceManager

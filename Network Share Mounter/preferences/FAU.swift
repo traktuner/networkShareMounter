@@ -82,14 +82,14 @@ class Migrator: dogeADUserSessionDelegate {
     /// - Parameters:
     ///   - error: The error that occurred during authentication
     ///   - description: Description of the error
-    func dogeADAuthenticationFailed(error: dogeADAuth.dogeADSessionError, description: String) {
+    func dogeADAuthenticationFailed(error: dogeADAuth.dogeADSessionError, description: String) async {
         Logger.FAU.error("Authentication failed after FAU user migration: \(description, privacy: .public)")
     }
     
     /// Called when user information is retrieved
     ///
     /// - Parameter user: The retrieved user record
-    func dogeADUserInformation(user: dogeADAuth.ADUserRecord) {
+    func dogeADUserInformation(user: dogeADAuth.ADUserRecord) async {
         Logger.FAU.debug("User information received for: \(user.userPrincipal, privacy: .public)")
     }
     

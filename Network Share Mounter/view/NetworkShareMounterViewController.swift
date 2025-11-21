@@ -12,7 +12,7 @@ import OSLog
 import Sparkle
 
 class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource, NSPopoverDelegate {
-    
+
     // MARK: - help messages
     var helpText = [NSLocalizedString("Sorry, no help available", comment: "this should not happen"),
                     NSLocalizedString("help-show-managed-shares", comment: ""),
@@ -20,33 +20,29 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     NSLocalizedString("help-krb-auth-text", comment: "")]
     
     var prefs = PreferenceManager()
-    
     var enableKerberos = false
     
     @objc dynamic var launchAtLogin = LaunchAtLogin.kvo
-    // prepare an array of type UserShare to store the defined shares while showing this view
-    @objc dynamic var userShares: [UserShare] = []
+    @objc dynamic var userShares: [UserShare] = [] // used to store the defined shares while showing this view
     
     // swiftlint:disable force_cast
-    // appDelegate is used to accesss variables in AppDelegate
-    let appDelegate = NSApplication.shared.delegate as! AppDelegate
-    
+    let appDelegate = NSApplication.shared.delegate as! AppDelegate // used to access variables in AppDelegate
     var updater: SPUUpdater?
     // swiftlint:enable force_cast
     
-    // toggle to show user defined or managed shares
-    var showManagedShares = false
-    
+    var showManagedShares = false // toggle to show user defined or managed shares
     let popover = NSPopover()
-    
     let accountsManager = AccountsManager.shared
+    var notificationToken: NSObjectProtocol? // used to manage notification observers
     
     // MARK: - initialize view
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         
-        NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
+        notificationToken = NotificationCenter.default.addObserver(forName: .nsmNotification, object: nil, queue: .main) { [weak self] notification in
+            self?.handleErrorNotification(notification as NSNotification)
+        }
         
         if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
             Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
@@ -63,15 +59,22 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             horizontalLine.isHidden = true
         }
         
-        //
-        // get build and version number of the app
         let applicationVersion = Bundle.main.infoDictionary!["CFBundleShortVersionString"]!
         let applicationBuild = Bundle.main.infoDictionary!["CFBundleVersion"]!
         appVersion.stringValue = "Version: \(applicationVersion) (\(applicationBuild))"
+        
         Task {
             let hasShares = await appDelegate.mounter!.shareManager.hasShares()
-            additionalSharesText.isHidden = !hasShares
-            additionalSharesText.stringValue = NSLocalizedString("managed-shares-text", comment: "Label for additional/managed shares")
+            await MainActor.run {
+                additionalSharesText.isHidden = !hasShares
+                additionalSharesText.stringValue = NSLocalizedString("managed-shares-text", comment: "Label for additional/managed shares")
+            }
+        }
+    }
+    
+    deinit {
+        if let token = notificationToken {
+            NotificationCenter.default.removeObserver(token)
         }
     }
     
@@ -85,46 +88,65 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         }
         super.viewWillAppear()
         Task {
-            //
-            // hide kerberos authenticate button if no krb domain is set
-            dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
-            dogeAuthenticateHelp.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+            await MainActor.run {
+                dogeAuthenticateButton.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+                dogeAuthenticateHelp.isHidden = (prefs.string(for: .kerberosRealm) ?? "").isEmpty
+            }
             dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
             
-            //
-            // copy all mdm and user defined shares to a local array
-            // if there is an authentication error show those shares without password
-            if appDelegate.mounter!.errorStatus == .authenticationError { 
-                refreshUserArray(type: .missingPassword)
-                toggleManagedSwitch.isHidden = true
-                additionalSharesText.isHidden = true
-                additionalSharesHelpButton.isHidden = true
-                modifyShareButton.title = NSLocalizedString("authenticate-share-button", comment: "Button text to change authentication")
-                networShareMounterExplanation.stringValue = NSLocalizedString("help-auth-error", comment: "Help text shown if some shares are not authenticated")
-                //
-                // else fill the array with user defined shares
+            let currentErrorStatus = appDelegate.mounter!.errorStatus
+            if currentErrorStatus == .authenticationError {
+                await MainActor.run {
+                    refreshUserArray(type: .missingPassword)
+                    toggleManagedSwitch.isHidden = true
+                    additionalSharesText.isHidden = true
+                    additionalSharesHelpButton.isHidden = true
+                    modifyShareButton.title = NSLocalizedString("authenticate-share-button", comment: "Button text to change authentication")
+                    networShareMounterExplanation.stringValue = NSLocalizedString("help-auth-error", comment: "Help text shown if some shares are not authenticated")
+                }
             } else {
-                refreshUserArray(type: .unmanaged)
-                toggleManagedSwitch.isHidden = false
-                additionalSharesText.isHidden = false
-                additionalSharesHelpButton.isHidden = false
-                modifyShareButton.title = NSLocalizedString("modify-share-button", comment: "Button text to modify share")
-                networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
+                await MainActor.run {
+                    refreshUserArray(type: .unmanaged)
+                    toggleManagedSwitch.isHidden = false
+                    additionalSharesText.isHidden = false
+                    additionalSharesHelpButton.isHidden = false
+                    modifyShareButton.title = NSLocalizedString("modify-share-button", comment: "Button text to modify share")
+                    networShareMounterExplanation.stringValue = NSLocalizedString("help-new-share", comment: "Help text with some infos about adding new shares")
+                }
             }
+            
             if self.enableKerberos {
                 let accounts = await accountsManager.accounts
                 let accountsCount = accounts.count
-                for account in await accountsManager.accounts {
-                    if !prefs.bool(for: .singleUserMode) || account.upn == prefs.string(for: .lastUser) || accountsCount == 1 {
-                        let pwm = KeychainManager()
-                        do {
-                            if let _ = try pwm.retrievePassword(forUsername: account.upn.lowercased()) {
+
+                // Capture MainActor-isolated preferences before moving to a detached task
+                let singleUserMode = self.prefs.bool(for: .singleUserMode)
+                let lastUser = self.prefs.string(for: .lastUser)
+                
+                // Move Keychain operations to background task to avoid blocking main thread
+                Task.detached { [weak self] in
+                    guard let self = self else { return }
+                    var needsAuth = false
+                    
+                    for account in accounts {
+                        if !singleUserMode || account.upn == lastUser || accountsCount == 1 {
+                            let pwm = KeychainManager()
+                            do {
+                                if try pwm.retrievePassword(forUsername: account.upn.lowercased()) != nil {
+                                    break
+                                }
+                            } catch {
+                                needsAuth = true
                                 break
                             }
-                        } catch {
-                            dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                            performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
-                            break
+                        }
+                    }
+                    
+                    if needsAuth {
+                        await MainActor.run { [weak self] in
+                            guard let self = self else { return }
+                            self.dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                            self.performSegue(withIdentifier: "KrbAuthViewSegue", sender: self)
                         }
                     }
                 }
@@ -138,25 +160,16 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     }
     
     @IBOutlet weak var updateCheckbox: NSButton!
-    
     @IBOutlet weak var networShareMounterExplanation: NSTextField!
-    
     @IBOutlet weak var additionalSharesText: NSTextField!
-    
     @IBOutlet weak var appVersion: NSTextField!
-    
     @IBOutlet weak var usersNewShare: NSTextField!
-    
     @IBOutlet weak var modifyShareButton: NSButton!
-    
     @IBOutlet weak var toggleManagedSwitch: NSSwitch!
-    
     @IBOutlet weak var managedSharesHelp: NSButton!
-    
     @IBOutlet weak var dogeAuthenticateButton: NSButton!
-    
     @IBOutlet weak var dogeAuthenticateHelp: NSButton!
-    
+
     @IBAction func helpButtonClicked(_ sender: NSButton) {
         // swiftlint:disable force_cast
         let helpPopoverViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverViewController")) as! HelpPopoverViewController
@@ -169,108 +182,95 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
         popover.behavior = NSPopover.Behavior.transient
     }
     
-    
-    /// function toggle between managed shares and user defined shares
     @IBAction func toggleManagedSharesAction(_ sender: Any) {
         if toggleManagedSwitch.state == NSControl.StateValue.off {
             showManagedShares = false
-            self.userShares.removeAll()
+            userShares.removeAll()
             modifyShareButton.isEnabled = false
             addNewShareButton.isEnabled = true
-            usersNewShare.stringValue=""
+            usersNewShare.stringValue = ""
             refreshUserArray(type: .unmanaged)
         } else {
             showManagedShares = true
             removeShareButton.isEnabled = false
-            self.userShares.removeAll()
+            userShares.removeAll()
             modifyShareButton.isEnabled = false
             addNewShareButton.isEnabled = false
-            usersNewShare.stringValue=""
+            usersNewShare.stringValue = ""
             refreshUserArray(type: .managed)
         }
         tableView.reloadData()
     }
     
-    /// function to prepare to hand over the object for the user-selected tableview column (aka share URL)
     @IBAction func modifyShare(_ sender: NSButton) {
-        self.performSegue(withIdentifier: "ShareViewSegue", sender: self)
+        performSegue(withIdentifier: "ShareViewSegue", sender: self)
     }
+    
     @IBAction func addSharePressed(_ sender: NSButton) {
-        usersNewShare.stringValue=""
-        self.performSegue(withIdentifier: "ShareViewSegue", sender: self)
+        usersNewShare.stringValue = ""
+        performSegue(withIdentifier: "ShareViewSegue", sender: self)
     }
     
     @IBOutlet weak var addNewShareButton: NSButton!
-    
     @IBOutlet weak var additionalSharesHelpButton: NSButton!
-    
     @IBOutlet weak var horizontalLine: NSBox!
-    
     @IBOutlet weak var launchAtLoginRadioButton: NSButton!
-    
-    @IBOutlet weak var sendDiagnosticsRadioButton: NSButton!
-    
+    @IBOutlet weak var sendDiagnosticsCheckbox: NSButton!
     @IBOutlet weak var tableView: NSTableView!
-    
     @IBOutlet weak var removeShareButton: NSButton!
     
-
-    
     @IBAction func tableViewClicked(_ sender: NSTabView) {
-        if tableView.clickedRow >= 0 {
-            if tableView.clickedColumn == 0 {
-                // swiftlint:disable force_cast
-                let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController"))
-                    as! HelpPopoverShareStatusViewController
-                // swiftlint:enable force_cast
-                let popover = NSPopover()
-                popover.contentViewController = HelpPopoverShareStatusViewController
-//                helpPopoverViewController.helpText = helpText[(sender as AnyObject).tag]
-                popover.animates = true
-                popover.behavior = .transient
-                let rowRect = tableView.rect(ofRow: tableView.clickedRow)
-                popover.show(relativeTo: rowRect, of: sender, preferredEdge: NSRectEdge.maxY)
-            } else {
-                // if share is not managed
-                removeShareButton.isEnabled = false
-                modifyShareButton.isEnabled = false
-                usersNewShare.stringValue=""
-                if !self.userShares[tableView.selectedRow].managed ||
-                    // or authType for share is password
-                    self.userShares[tableView.selectedRow].authType == AuthType.pwd.rawValue {
-                    
-                    removeShareButton.isEnabled = true
-                    modifyShareButton.isEnabled = true
-                    usersNewShare.stringValue =  self.userShares[tableView.selectedRow].networkShare
-                    if self.userShares[tableView.selectedRow].managed {
-                        removeShareButton.isEnabled = false
-                    }
-                }
-            }
-        } else {
+        let clickedRow = tableView.clickedRow
+        
+        guard clickedRow >= 0 && clickedRow < userShares.count else {
             removeShareButton.isEnabled = false
             modifyShareButton.isEnabled = false
+            return
+        }
+        
+        if tableView.clickedColumn == 0 {
+            // swiftlint:disable force_cast
+            let HelpPopoverShareStatusViewController = self.storyboard?.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier("HelpPopoverShareStatusViewController")) as! HelpPopoverShareStatusViewController
+            // swiftlint:enable force_cast
+            let popover = NSPopover()
+            popover.contentViewController = HelpPopoverShareStatusViewController
+            popover.animates = true
+            popover.behavior = .transient
+            let rowRect = tableView.rect(ofRow: clickedRow)
+            popover.show(relativeTo: rowRect, of: sender, preferredEdge: NSRectEdge.maxY)
+        } else {
+            let selectedShare = userShares[clickedRow]
+            
+            removeShareButton.isEnabled = false
+            modifyShareButton.isEnabled = false
+            usersNewShare.stringValue = ""
+            
+            if !selectedShare.managed || selectedShare.authType == AuthType.pwd.rawValue {
+                removeShareButton.isEnabled = true
+                modifyShareButton.isEnabled = true
+                usersNewShare.stringValue = selectedShare.networkShare
+                if selectedShare.managed {
+                    removeShareButton.isEnabled = false
+                }
+            }
         }
     }
-    /// IBAction function called if removeShare button is pressed.
-    /// This will remove the share in the selected row in tableView
+    
     @IBAction func removeShare(_ sender: NSButton) {
         let row = self.tableView.selectedRow
-        // this if is probably not needed, but I feel safer with it ;-)
         if row >= 0 {
-            // if a share with the selected name is found, delete it
             Task {
                 if let selectedShare = await appDelegate.mounter!.getShare(forNetworkShare: usersNewShare.stringValue) {
                     Logger.networkShareViewController.debug("unmounting share \(selectedShare.networkShare, privacy: .public)")
                     await self.appDelegate.mounter!.unmountShare(for: selectedShare)
                     Logger.networkShareViewController.info("⚠️ User removed share \(selectedShare.networkShare, privacy: .public)")
                     await self.appDelegate.mounter!.removeShare(for: selectedShare)
-                    // update userDefaults
                     await self.appDelegate.mounter!.shareManager.saveModifiedShareConfigs()
-                    // remove share from local userShares array bound to tableView
-                    self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
-                    usersNewShare.stringValue=""
-                    tableView.reloadData()
+                    await MainActor.run {
+                        self.userShares = self.userShares.filter { $0.networkShare != usersNewShare.stringValue }
+                        usersNewShare.stringValue = ""
+                        tableView.reloadData()
+                    }
                 }
             }
         }
@@ -289,15 +289,22 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
     
     // MARK: prepare segues by setting certain values
     override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
-        Task {
-            if segue.identifier == "ShareViewSegue" {
-                // swiftlint:disable force_cast
-                let shareViewController = segue.destinationController as! ShareViewController
-                // swiftlint:enable force_cast
-                // callback action for data coming from shareViewController
-                shareViewController.callback = { [weak self] result in
-                                guard let self = self else { return }
-                        if self.appDelegate.mounter!.errorStatus == .authenticationError {
+        if segue.identifier == "ShareViewSegue" {
+            // swiftlint:disable force_cast
+            let shareViewController = segue.destinationController as! ShareViewController
+            // swiftlint:enable force_cast
+            shareViewController.callback = { [weak self] result in
+                guard let self = self else { return }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    let currentErrorStatus = self.appDelegate.mounter!.errorStatus
+                    await MainActor.run {
+                        // Ensure window is responsive after modal dialog
+                        if let window = self.view.window {
+                            window.makeKeyAndOrderFront(nil)
+                        }
+                        
+                        if currentErrorStatus == .authenticationError {
                             self.refreshUserArray(type: .missingPassword)
                         } else if self.toggleManagedSwitch.state == NSControl.StateValue.off {
                             self.refreshUserArray(type: .unmanaged)
@@ -305,36 +312,43 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                             self.refreshUserArray(type: .managed)
                         }
                         self.tableView.reloadData()
+                    }
                 }
+            }
+            
+            // Set the selected share URL immediately (synchronously)
+            shareViewController.selectedShareURL = usersNewShare.stringValue
+            
+            // Load share data asynchronously but set it immediately when available
+            Task {
                 if let selectedShare = await appDelegate.mounter!.shareManager.allShares.first(where: {$0.networkShare == usersNewShare.stringValue}) {
-                    // pass the value in the field usersNewShare. This is an optional, so it can be empty if a
-                    // new share will be added
-                    shareViewController.shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
-                                                                                  authType: selectedShare.authType,
-                                                                                  username: selectedShare.username,
-                                                                                  password: selectedShare.password,
-                                                                                  managed: selectedShare.managed)
-                    shareViewController.selectedShareURL = usersNewShare.stringValue
+                    let shareData = ShareViewController.ShareData(networkShare: selectedShare.networkShare,
+                                                                 authType: selectedShare.authType,
+                                                                 username: selectedShare.username,
+                                                                 password: selectedShare.password,
+                                                                 mountPath: selectedShare.mountPoint,
+                                                                 managed: selectedShare.managed)
+                    await MainActor.run {
+                        shareViewController.shareData = shareData
+                        shareViewController.updateUIWithShareData()
+                    }
                 }
             }
         }
     }
     
-    ///
-    ///private function to check if a networkShare should added to the list of displayed shares
-    ///- Parameter type: enum of various types of shares to check for
+    /// Checks if a networkShare should added to the list of displayed shares
     private func refreshUserArray(type: DisplayShareTypes) {
         Task {
-            await appDelegate.mounter!.shareManager.allShares.forEach { definedShare in
-                // set mount symbol
-                var mountSymbol =   (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.symbolName :
+            for definedShare in await appDelegate.mounter!.shareManager.allShares {
+                var mountSymbol = (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.symbolName :
                 (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.symbolName :
                 (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.symbolName :
                 (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.symbolName :
                 (definedShare.mountStatus == .obstructingDirectory) ? MountStatusDescription.obstructingDirectory.symbolName :
                 (definedShare.mountStatus == .unreachable) ? MountStatusDescription.unreachable.symbolName :
                 MountStatusDescription.unknown.symbolName
-                let mountColor =    (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.color :
+                let mountColor = (definedShare.mountStatus == .mounted) ? MountStatusDescription.mounted.color :
                 (definedShare.mountStatus == .queued) ? MountStatusDescription.queued.color :
                 (definedShare.mountStatus == .invalidCredentials) ? MountStatusDescription.invalidCredentials.color :
                 (definedShare.mountStatus == .errorOnMount) ? MountStatusDescription.errorOnMount.color :
@@ -363,7 +377,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                 }
                 
                 if shouldAppend {
-                    // check and skip if share is already in userShares
                     if !userShares.contains(where: { $0.networkShare == definedShare.networkShare }) {
                         userShares.append(UserShare(networkShare: definedShare.networkShare,
                                                     authType: definedShare.authType.rawValue,
@@ -377,33 +390,32 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     }
                 }
             }
-            tableView.reloadData()
+            await MainActor.run {
+                tableView.reloadData()
+            }
         }
     }
-    ///
-    /// provide a method to react to certain events
+    
     @objc func handleErrorNotification(_ notification: NSNotification) {
-        // Always dispatch UI updates to the main thread
-        DispatchQueue.main.async {
-            if notification.userInfo?["krbOffDomain"] is Error {
-                self.dogeAuthenticateButton.isEnabled = false
-                self.dogeAuthenticateHelp.isEnabled = false
-                self.dogeAuthenticateButton.title = NSLocalizedString("krb-offdomain-button", comment: "Button text for kerberos authentication")
-            } else if notification.userInfo?["KrbAuthError"] is Error {
-                if self.enableKerberos {
-                    self.dogeAuthenticateButton.isEnabled = true
-                    self.dogeAuthenticateHelp.isEnabled = true
-                    self.dogeAuthenticateButton.title =  NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
-                }
-            } else if notification.userInfo?["krbAuthenticated"] is Error {
-                if self.enableKerberos {
-                    self.dogeAuthenticateButton.isEnabled = true
-                    self.dogeAuthenticateHelp.isEnabled = true
-                    self.dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
-                }
-            } else if notification.userInfo?["AuthError"] is MounterError {
-                // Update UI for authentication errors
-                Task {
+        Task {
+            await MainActor.run {
+                if notification.userInfo?["krbOffDomain"] is Error {
+                    self.dogeAuthenticateButton.isEnabled = false
+                    self.dogeAuthenticateHelp.isEnabled = false
+                    self.dogeAuthenticateButton.title = NSLocalizedString("krb-offdomain-button", comment: "Button text for kerberos authentication")
+                } else if notification.userInfo?["KrbAuthError"] is Error {
+                    if self.enableKerberos {
+                        self.dogeAuthenticateButton.isEnabled = true
+                        self.dogeAuthenticateHelp.isEnabled = true
+                        self.dogeAuthenticateButton.title = NSLocalizedString("missing-krb-auth-button", comment: "Button text for missing kerberos authentication")
+                    }
+                } else if notification.userInfo?["krbAuthenticated"] is Error {
+                    if self.enableKerberos {
+                        self.dogeAuthenticateButton.isEnabled = true
+                        self.dogeAuthenticateHelp.isEnabled = true
+                        self.dogeAuthenticateButton.title = NSLocalizedString("krb-auth-button", comment: "Button text for kerberos authentication")
+                    }
+                } else if notification.userInfo?["AuthError"] is MounterError {
                     self.refreshUserArray(type: .missingPassword)
                     self.toggleManagedSwitch.isHidden = true
                     self.additionalSharesText.isHidden = true
@@ -415,7 +427,6 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
             }
         }
     }
-    
     
     func numberOfRows(in tableView: NSTableView) -> Int {
         return userShares.count

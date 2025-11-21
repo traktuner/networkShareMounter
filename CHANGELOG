@@ -1,3 +1,54 @@
+# 3.1.15
+### Bugfixes
+* Fixed a regression that prevented mounts from occurring at app startup (#252 #246)
+
+### Features
+* If a Kerberos-authenticated mount fails, an attempt will be made to re-authenticate, followed by a second mount attempt before an error occurs
+* After macOS wakes up, the internal mount structures will be fully reinitialized, which includes rereading the MDM profile and user configurations, as well as resetting the mount statuses and a few more things
+
+# 3.1.14
+### Bugfixes
+* fixed a regression where the Sparkle framework was accidentally rolled back to an older version
+
+# 3.1.13
+### Bugfixes
+* fixed a bug where the shares did not mount after the app was started (#242 (closed))
+
+# 3.1.12
+### Bugfixes
+* fixed a few UI regressions
+* fixed a race condition in Preferences view
+
+# 3.1.11
+### Improvements
+* Some minor improvements in responsiveness
+
+# 3.1.10
+### Bugfixes
+* Resolved "App hanging" reported by sentry (#232)
+
+# 3.1.9
+### Bugfixes
+* Ignore spaces at the beginning and end of shares in profiles (#223)
+* Fixed the timing for reading SMBhome: now SMBhome will be read each time a network change occurs (#224)
+* Clarification in the README: Using SMBHome as users' home share only works if the Mac is bound to Active Directory.
+* Fixed a race condition and a system attribute check for directories where directories in a share could potentially be deleted. (#255)
+
+# 3.1.8
+### Bugfixes
+* Fixed a race condition during app startup that caused issues with obtaining Kerberos tickets
+
+# 3.1.7
+### Bugfixes
+* fixed a bug where shares mounted at various levels could result in the removal of directories
+* Removed a race condition that resulted in recursive notifications calls, causing high load and constanty rebuilding the app menu
+* Minor fix in displaying authentication errors by changing the menu app icon color
+
+# 3.1.6
+### Bugfixes
+* fixed a race condition
+* improved directory and file handling (using FileManager instead of calling shell commands)
+
 # 3.1.5
 ### Improvements
 * Improve the management of network changes
