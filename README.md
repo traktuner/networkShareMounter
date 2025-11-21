@@ -37,7 +37,14 @@ Network shares are stored in a NSUserdefaults domain among other configurable as
 To avoid creating an MDM distributed profile for each user, you can use `%USERNAME%`, which will be replaced with the current user's login name.
 
 **SMBHome**  
-If the current user has the `SMBHome` attribute defined via LDAP or Active Directory, their home directory will be mounted automatically. This typically occurs when the Mac is bound to an Active Directory and the LDAP attribute `HomeDirectory` is set. If necessary, one can manually set the attribute for a local user with the following command: `dscl . create /Users/<yourusername> SMBHome \home.your.domain<yourusername>`.
+If the current user has the `SMBHome` attribute defined in Active Directory, their home directory will be mounted automatically. **This feature requires the Mac to be bound to an Active Directory domain.** The SMBHome attribute corresponds to the `HomeDirectory` field in Active Directory.
+
+**Requirements for automatic SMBHome mounting:**
+- Mac must be bound to Active Directory (`dsconfigad -show` to verify)
+- Current user must be an AD user (not a local account)
+- SMBHome attribute must be set in Active Directory for the user
+
+For local testing purposes, you can manually set the SMBHome attribute for a local user: `dscl . create /Users/<yourusername> SMBHome "smb://home.your.domain/<yourusername>"`.
 
 ### Configuration preferences
 

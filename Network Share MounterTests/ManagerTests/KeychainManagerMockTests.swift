@@ -11,7 +11,7 @@ final class KeychainManagerMockTests: XCTestCase {
         var shouldThrowOnSave = false
         var shouldThrowOnRetrieve = false
         
-        override func makeQuery(share shareURL: URL, username: String, service: String? = nil, accessGroup: String? = nil, comment: String? = nil) throws -> [String: Any] {
+        override func makeQuery(share shareURL: URL, username: String, service: String? = nil, accessGroup: String? = nil, comment: String? = nil, label: String? = nil) throws -> [String: Any] {
             makeQueryCalled = true
             
             if shouldThrowOnMakeQuery {
@@ -72,7 +72,7 @@ final class KeychainManagerMockTests: XCTestCase {
             savedCredentials.removeValue(forKey: key)
         }
         
-        override func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws {
+        override func removeCredential(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = Defaults.keyChainAccessGroup) throws {
             let key = "\(service)|\(username)"
             savedCredentials.removeValue(forKey: key)
         }
@@ -149,3 +149,4 @@ final class KeychainManagerMockTests: XCTestCase {
         XCTAssertEqual(try mockKeychainManager.retrievePassword(forShare: testURL2, withUsername: testUsername), testPassword2)
     }
 } 
+

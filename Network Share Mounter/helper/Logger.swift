@@ -16,6 +16,7 @@ extension Logger {
     static let app = Logger(subsystem: subsystem, category: "app")
     static let mounter = Logger(subsystem: subsystem, category: "mounter")
     static let shareManager = Logger(subsystem: subsystem, category: "shareManager")
+    static let accountsManager = Logger(subsystem: subsystem, category: "accountsManager")
     static let appStatistics = Logger(subsystem: subsystem, category: "appStatistics")
     static let networkMonitor = Logger(subsystem: subsystem, category: "networkMonitor")
     static let activityController = Logger(subsystem: subsystem, category: "activityController")
@@ -31,4 +32,5 @@ extension Logger {
     static let preferences = Logger(subsystem: subsystem, category: "preferences")
     static let login = Logger(subsystem: subsystem, category: "login")
     static let finderController = Logger(subsystem: subsystem, category: "finderController")
+    static let keychain = Logger(subsystem: subsystem, category: "keychain")
 }

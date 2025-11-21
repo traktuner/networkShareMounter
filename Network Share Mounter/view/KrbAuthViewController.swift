@@ -11,6 +11,41 @@ import Cocoa
 import OSLog
 import dogeADAuth
 
+/// Timeout error for async operations
+struct TimeoutError: Error, LocalizedError {
+    let seconds: TimeInterval
+
+    var errorDescription: String? {
+        return "Operation timed out after \(seconds) seconds"
+    }
+}
+
+/// Execute an async operation with a timeout
+/// - Parameters:
+///   - seconds: Timeout duration in seconds
+///   - operation: The async operation to execute
+/// - Returns: The result of the operation
+/// - Throws: TimeoutError if the operation times out
+func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+    return try await withThrowingTaskGroup(of: T.self) { group in
+        // Add the operation task
+        group.addTask {
+            try await operation()
+        }
+
+        // Add the timeout task
+        group.addTask {
+            try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            throw TimeoutError(seconds: seconds)
+        }
+
+        // Return the first task that completes
+        let result = try await group.next()!
+        group.cancelAll()
+        return result
+    }
+}
+
 class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegate {
     func updateAccounts(accounts: [DogeAccount]) {
         Task { @MainActor in
@@ -47,9 +82,9 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        Task {
-            await setupView()
-        }
+        
+        // Configure UI synchronously first
+        configureSynchronousUI()
         
         // Add observer for username field changes
         username.target = self
@@ -61,25 +96,34 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         
         // Set the delegate for the password field
         password.delegate = self
+        
+        // Then handle async operations
+        Task {
+            await setupAsynchronousUI()
+        }
     }
     
     // MARK: - Setup Methods
-    private func setupView() async {
+    private func configureSynchronousUI() {
         krbAuthViewTitle.stringValue = NSLocalizedString("authui-krb-title", comment: "title of kerberos auth window")
         krbAuthViewInfoText.stringValue = NSLocalizedString("authui-krb-infotext", comment: "informative text for kerberos auth window")
-        
-        // Configure UI based on environment
-        configureUIForEnvironment()
         
         authenticateButtonText.title = NSLocalizedString("authui-button-text", comment: "text on authenticate button")
         removeButtonText.title = NSLocalizedString("authui-remove-text", comment: "text on remove button")
         cancelButtonText.title = NSLocalizedString("cancel", comment: "cancel")
         spinner.isHidden = true
         
-        await buildAccountsMenu()
+        // Configure UI based on environment
+        configureUIForEnvironment()
+        
         accountsList.action = #selector(popUpChange)
+    }
+    
+    private func setupAsynchronousUI() async {
+        await buildAccountsMenu()
         await accountsManager.addDelegate(delegate: self)
     }
+    
     
     private func configureUIForEnvironment() {
         if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
@@ -140,7 +184,9 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
     private func authenticateUser(userPassword: String) {
         Task {
             // Set up the session with the provided username and domain
-            session = dogeADSession(domain: username.stringValue.userDomain() ?? prefs.string(for: .kerberosRealm) ?? "", user: username.stringValue)
+            let kerberosRealm = prefs.string(for: .kerberosRealm) ?? ""
+            let sessionDomain = username.stringValue.userDomain() ?? kerberosRealm
+            session = dogeADSession(domain: sessionDomain, user: username.stringValue)
             
             // Configure the session with preferences
             session?.setupSessionFromPrefs(prefs: prefs)
@@ -157,29 +203,50 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
     }
     
     private func handleSuccessfulAuthentication() async {
+        Logger.authUI.debug("🔍 [DEBUG-AUTH] handleSuccessfulAuthentication started")
+        Logger.authUI.debug("🔍 [DEBUG-AUTH] Session userPrincipal: \(self.session?.userPrincipal ?? "nil")")
+
         if let principal = session?.userPrincipal {
+            Logger.authUI.debug("🔍 [DEBUG-AUTH] Checking if account exists for principal: \(principal)")
+
             if let account = await accountsManager.accountForPrincipal(principal: principal) {
+                Logger.authUI.debug("🔍 [DEBUG-AUTH] Existing account found, updating password in keychain")
                 let pwm = KeychainManager()
                 do {
                     try pwm.saveCredential(forUsername: account.upn.lowercased(), andPassword: password.stringValue)
-                    Logger.authUI.debug("Password successfully updated in keychain")
+                    Logger.authUI.debug("✅ [DEBUG-AUTH] Password successfully updated in keychain for: \(account.upn.lowercased())")
                 } catch {
-                    Logger.authUI.debug("Failed saving password in keychain")
+                    Logger.authUI.error("❌ [DEBUG-AUTH] Failed saving password in keychain: \(error.localizedDescription)")
                 }
             } else {
+                Logger.authUI.debug("🔍 [DEBUG-AUTH] No existing account found, creating new account")
                 let newAccount = DogeAccount(displayName: principal, upn: principal, hasKeychainEntry: prefs.bool(for: .useKeychain))
+                Logger.authUI.debug("🔍 [DEBUG-AUTH] Created new account: \(newAccount.upn), hasKeychainEntry: \(newAccount.hasKeychainEntry ?? false)")
+
                 let pwm = KeychainManager()
                 do {
                     try pwm.saveCredential(forUsername: principal.lowercased(), andPassword: password.stringValue)
-                    Logger.authUI.debug("Account successfully added to keychain")
+                    Logger.authUI.debug("✅ [DEBUG-AUTH] New account successfully added to keychain for: \(principal.lowercased())")
                 } catch {
-                    Logger.authUI.debug("Error adding account to Keychain")
+                    Logger.authUI.error("❌ [DEBUG-AUTH] Error adding account to Keychain: \(error.localizedDescription)")
                 }
+
+                Logger.authUI.debug("🔍 [DEBUG-AUTH] Adding account to AccountsManager...")
                 await accountsManager.addAccount(account: newAccount)
+                Logger.authUI.debug("✅ [DEBUG-AUTH] Account added to AccountsManager")
+
+                // Verify the account was added
+                let accountCount = await accountsManager.accounts.count
+                Logger.authUI.debug("🔍 [DEBUG-AUTH] Total accounts after adding: \(accountCount)")
             }
+        } else {
+            Logger.authUI.error("❌ [DEBUG-AUTH] No userPrincipal available from session")
         }
+
+        Logger.authUI.debug("🔍 [DEBUG-AUTH] Posting krbAuthenticated notification")
         NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
-        closeWindow()
+
+        Logger.authUI.debug("✅ [DEBUG-AUTH] handleSuccessfulAuthentication completed - window will be closed by dogeADUserInformation")
     }
     
     // MARK: - UI Operations
@@ -300,16 +367,20 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
             }
             
             guard let selectedTitle = accountsList.selectedItem?.title else { return }
-            
-            Task {
+
+            Task { [weak self] in
+                guard let self else { return }
                 let accounts = await accountsManager.accounts
+
                 if let account = accounts.first(where: { $0.displayName == selectedTitle.replacingOccurrences(of: " ◀︎", with: "") }) {
                     if let isInKeychain = account.hasKeychainEntry, isInKeychain {
                         let keyUtil = KeychainManager()
                         do {
                             let retrievedPassword = try keyUtil.retrievePassword(forUsername: account.upn.lowercased()) ?? ""
-                            password.stringValue = retrievedPassword
-                            authenticateButtonText.isEnabled = !retrievedPassword.isEmpty
+                            await MainActor.run {
+                                self.password.stringValue = retrievedPassword
+                                self.authenticateButtonText.isEnabled = !retrievedPassword.isEmpty
+                            }
                         } catch {
                             Logger.KrbAuthViewController.debug("Unable to get user's password")
                         }
@@ -358,33 +429,75 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
 extension KrbAuthViewController: dogeADUserSessionDelegate {
     func dogeADAuthenticationSucceded() async {
         Logger.authUI.debug("Auth succeeded")
-        
+
         do {
-            Logger.authUI.debug("Vor kswitch Ausführung - Principal: \(self.session?.userPrincipal ?? "none")")
-            // Wechsel zum Benutzer-Principal
-            let output = try await cliTask("/usr/bin/kswitch -p \(self.session?.userPrincipal ?? "")")
-            Logger.authUI.debug("kswitch Ausgabe: \(output)")
-            
-            Logger.authUI.debug("Nach kswitch - vor userInfo Aufruf")
-            await session?.userInfo()
-            Logger.authUI.debug("Nach userInfo Aufruf - vor handleSuccessfulAuthentication")
+            Logger.authUI.debug("Before kswitch execution - Principal: \(self.session?.userPrincipal ?? "none")")
+            // Switch to user principal - use uppercased domain for kswitch compatibility
+            let principal = self.session?.userPrincipal.uppercaseDomain() ?? ""
+            Logger.authUI.debug("Using uppercased principal for kswitch: \(principal)")
+            let output = try await cliTask("/usr/bin/kswitch -p \(principal)")
+            Logger.authUI.debug("kswitch output: \(output)")
+
+            Logger.authUI.debug("After kswitch - before userInfo call")
+            Logger.authUI.debug("🔍 [DEBUG] Starting session.userInfo() call with timeout...")
+
+            // Add timeout handling for userInfo call (5 seconds timeout)
+            let userInfoTask = Task {
+                await session?.userInfo()
+            }
+
+            Logger.authUI.debug("🔍 [DEBUG] Waiting for userInfo to complete (5s timeout)...")
+
+            // Wait for userInfo with 5 second timeout
+            do {
+                _ = try await withTimeout(seconds: 5) {
+                    await userInfoTask.value
+                }
+                Logger.authUI.debug("🔍 [DEBUG] userInfo call completed successfully")
+            } catch {
+                Logger.authUI.warning("⚠️ [DEBUG] userInfo call timed out or failed: \(error.localizedDescription)")
+                Logger.authUI.info("ℹ️ [DEBUG] Continuing with authentication despite userInfo failure - Kerberos auth was successful")
+                userInfoTask.cancel()
+            }
+
+            Logger.authUI.debug("After userInfo call - before handleSuccessfulAuthentication")
             await handleSuccessfulAuthentication()
-            Logger.authUI.debug("Nach handleSuccessfulAuthentication")
+            Logger.authUI.debug("After handleSuccessfulAuthentication")
         } catch {
-            Logger.authUI.warning("⚠️ Fehler beim Wechseln des Kerberos-Principal: \(error.localizedDescription)")
-            // Detaillierte Fehlerinformationen
-            Logger.authUI.debug("Fehlertyp: \(type(of: error))")
+            Logger.authUI.warning("⚠️ Error switching Kerberos principal: \(error.localizedDescription)")
+            // Detailed error information
+            Logger.authUI.debug("Error type: \(type(of: error))")
             if let nsError = error as NSError? {
                 Logger.authUI.debug("NSError Code: \(nsError.code), Domain: \(nsError.domain)")
                 Logger.authUI.debug("UserInfo: \(nsError.userInfo)")
             }
             
-            Logger.authUI.debug("Trotz Fehler bei kswitch - versuche mit userInfo fortzufahren")
-            // Trotzdem mit Authentifizierung fortfahren, da der primäre Auth-Prozess erfolgreich war
-            await session?.userInfo()
-            Logger.authUI.debug("Nach userInfo Aufruf im catch-Block")
+            Logger.authUI.debug("Despite kswitch error - attempting to continue with userInfo")
+            Logger.authUI.debug("Note: kswitch failed but Kerberos ticket was successfully created, continuing with authentication")
+            // Continue with authentication anyway, since the primary auth process was successful
+            Logger.authUI.debug("🔍 [DEBUG-CATCH] Starting session.userInfo() call in catch block with timeout...")
+
+            let userInfoTaskCatch = Task {
+                await session?.userInfo()
+            }
+
+            Logger.authUI.debug("🔍 [DEBUG-CATCH] Waiting for userInfo to complete in catch block (5s timeout)...")
+
+            // Wait for userInfo with 5 second timeout in catch block
+            do {
+                _ = try await withTimeout(seconds: 5) {
+                    await userInfoTaskCatch.value
+                }
+                Logger.authUI.debug("🔍 [DEBUG-CATCH] userInfo call completed in catch block")
+            } catch {
+                Logger.authUI.warning("⚠️ [DEBUG-CATCH] userInfo call timed out or failed in catch block: \(error.localizedDescription)")
+                Logger.authUI.info("ℹ️ [DEBUG-CATCH] Continuing with authentication despite userInfo failure - Kerberos auth was successful")
+                userInfoTaskCatch.cancel()
+            }
+
+            Logger.authUI.debug("After userInfo call in catch block")
             await handleSuccessfulAuthentication()
-            Logger.authUI.debug("Nach handleSuccessfulAuthentication im catch-Block")
+            Logger.authUI.debug("After handleSuccessfulAuthentication in catch block")
         }
     }
     
@@ -413,19 +526,20 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
         }
     }
     
-    func dogeADUserInformation(user: ADUserRecord) {
-        Logger.authUI.debug("User info erhalten: \(user.userPrincipal, privacy: .public)")
-        
+    func dogeADUserInformation(user: ADUserRecord) async {
+        Logger.authUI.debug("🔍 [DEBUG-USERINFO] User info received: \(user.userPrincipal, privacy: .public)")
+
         Task { @MainActor in
-            Logger.authUI.debug("Beginn des @MainActor-Tasks in dogeADUserInformation")
+            Logger.authUI.debug("🔍 [DEBUG-USERINFO] Starting @MainActor task in dogeADUserInformation")
             prefs.setADUserInfo(user: user)
-            Logger.authUI.debug("Nach prefs.setADUserInfo")
+            Logger.authUI.debug("✅ [DEBUG-USERINFO] After prefs.setADUserInfo")
             stopOperations()
-            Logger.authUI.debug("Nach stopOperations")
+            Logger.authUI.debug("✅ [DEBUG-USERINFO] After stopOperations")
             NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
-            Logger.authUI.debug("Nach Notification-Post, vor closeWindow")
+            Logger.authUI.debug("✅ [DEBUG-USERINFO] After notification post, before closeWindow")
             self.closeWindow()
-            Logger.authUI.debug("Nach closeWindow")
+            Logger.authUI.debug("✅ [DEBUG-USERINFO] After closeWindow - dogeADUserInformation completed")
         }
     }
 }
+
