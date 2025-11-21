@@ -835,30 +835,26 @@ class Mounter: ObservableObject {
     ///   - basePath: The base path where the share will be mounted
     /// - Returns: The full path where the share will be mounted
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
-        Logger.mounter.debug("🤔 Determining mount directory: Input ShareMP=\(share.mountPoint ?? "(using share dir)", privacy: .public)', URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
-        var mountDirectory = basePath
-        
-        if basePath != "/Volumes" {
-            // Check if there is a share-specific mountpoint
-            if let mountPoint = share.mountPoint, !mountPoint.isEmpty {
-                mountDirectory += "/" + mountPoint
-            } else if !url.lastPathComponent.isEmpty {
-                // Use the export path of the share as mount directory
+        Logger.mounter.debug("🤔 Determining mount directory: URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
+
+        if basePath == "/Volumes" {
+            // Special case: /Volumes is controlled by Finder/OS
+            // Cannot specify custom mount point, must use share export name from URL
+            var mountDirectory = basePath
+            if !url.lastPathComponent.isEmpty {
                 mountDirectory += "/" + url.lastPathComponent
             } else if let host = url.host {
-                // Use share's server name as mount directory
                 mountDirectory += "/" + host
             }
-        } else if !url.lastPathComponent.isEmpty {
-            // Use the export path of the share as mount directory
-            mountDirectory += "/" + url.lastPathComponent
-        } else if let host = url.host {
-            // Use share's server name as mount directory
-            mountDirectory += "/" + host
+            Logger.mounter.debug("🗺️ Determined mount directory (Volumes): '\(mountDirectory, privacy: .public)'")
+            return mountDirectory
+        } else {
+            // Normal case: use effectiveMountPoint (respects mountPoint or auto-generates)
+            let effectiveMountPoint = share.effectiveMountPoint
+            let mountDirectory = basePath + "/" + effectiveMountPoint
+            Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
+            return mountDirectory
         }
-        
-        Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
-        return mountDirectory
     }
     
     /// Checks if a directory can be used as a mount point

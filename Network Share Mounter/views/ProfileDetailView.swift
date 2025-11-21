@@ -185,7 +185,7 @@ struct ProfileDetailView: View {
          HStack {
             Image(systemName: "externaldrive")
                 .foregroundColor(.secondary)
-            Text(share.shareDisplayName ?? share.networkShare)
+            Text(share.effectiveMountPoint)
             Spacer()
             Circle()
                  .fill(mountStatusColor(for: share.mountStatus))
