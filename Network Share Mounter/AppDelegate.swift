@@ -155,7 +155,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
-        // --- Preference Migration Logic for Sparkle --- 
+        // --- Preference Migration Logic for Sparkle ---
         migrateSparklePreference()
         // --- End Migration Logic ---
 
@@ -272,7 +272,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if defaults.object(forKey: newKey) != nil {
             Logger.app.info("New preference key '\(newKey)' found. Ignoring old key '\(oldKey)'.")
             // New key exists, no migration needed, its value takes precedence.
-        } 
+        }
         // Check if the old key exists and the new one doesn't
         else if defaults.object(forKey: oldKey) != nil {
             let oldValue = defaults.bool(forKey: oldKey) // Read the old value
@@ -754,25 +754,38 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @MainActor func constructMenu(withMounter mounter: Mounter?, andStatus: MounterError? = nil) async {
         let menu = NSMenu()
         menu.autoenablesItems = false
-        
+
         let statusToUse = andStatus ?? mounter?.errorStatus
-        
+
+        // Check MDM policy for settings menu access
+        let menuSettingsValue = prefs.string(for: .menuSettings) ?? ""
+        let canShowSettings = menuSettingsValue != "hidden"
+
         if let mounter = mounter {
             switch statusToUse {
             case .krbAuthenticationError:
                 Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
-                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
-                                        action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
+                let errorItem = NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
+                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          keyEquivalent: "")
+                errorItem.isEnabled = canShowSettings
+                menu.addItem(errorItem)
                 menu.addItem(NSMenuItem.separator())
             case .authenticationError:
                 Logger.app.debug("🏗️ Constructing authentication problem menu.")
-                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
-                                        action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
+                let errorItem = NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
+                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          keyEquivalent: "")
+                errorItem.isEnabled = canShowSettings
+                menu.addItem(errorItem)
                 menu.addItem(NSMenuItem.separator())
             case .unassignedProfile:
                 Logger.app.debug("🏗️ Constructing unassigned profile menu.")
-                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Profile assignment required...", comment: "Profile assignment required"),
-                                        action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)), keyEquivalent: ""))
+                let errorItem = NSMenuItem(title: NSLocalizedString("⚠️ Profile assignment required...", comment: "Profile assignment required"),
+                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          keyEquivalent: "")
+                errorItem.isEnabled = canShowSettings
+                menu.addItem(errorItem)
                 menu.addItem(NSMenuItem.separator())
 
             default:

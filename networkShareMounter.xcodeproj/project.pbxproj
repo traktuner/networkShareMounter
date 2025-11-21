@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 90;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -164,14 +164,11 @@
 /* Begin PBXFrameworksBuildPhase section */
 		F706FECE2D8EABCF001C2785 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F79B1592274E722000C322A8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				F75964682D13E6CA00916D06 /* dogeADAuth in Frameworks */,
 				F7432E722D11A582009B499B /* dogeADAuth in Frameworks */,
@@ -183,7 +180,6 @@
 				F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */,
 				F7CAE1252CFB879000D0A839 /* Sentry in Frameworks */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -358,8 +354,6 @@
 				F706FED22D8EABCF001C2785 /* Network Share MounterTests */,
 			);
 			name = "Network Share MounterTests";
-			packageProductDependencies = (
-			);
 			productName = "Network Share MounterTests";
 			productReference = F706FED12D8EABCF001C2785 /* Network Share MounterTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -373,8 +367,6 @@
 				F79B1593274E722000C322A8 /* Resources */,
 			);
 			buildRules = (
-			);
-			dependencies = (
 			);
 			name = "Network Share Mounter";
 			packageProductDependencies = (
@@ -433,7 +425,7 @@
 				F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				F75964662D13E6CA00916D06 /* XCRemoteSwiftPackageReference "dogeadauth" */,
 			);
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 90;
 			productRefGroup = D60FA51D1E7FBE1400D9B5A5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -447,34 +439,27 @@
 /* Begin PBXResourcesBuildPhase section */
 		F706FECF2D8EABCF001C2785 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F79B1593274E722000C322A8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				F79B159C274E722100C322A8 /* Assets.xcassets in Resources */,
 				F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */,
 				F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F706FECD2D8EABCF001C2785 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F79B1591274E722000C322A8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F791FC9E2DD23DAE00F0445C /* AddShareView.swift in Sources */,
@@ -533,7 +518,6 @@
 				F791FC8B2DD22E5F00F0445C /* AuthProfileManager.swift in Sources */,
 				F767A8C82E7962EB0037060A /* Network_Share_MounterApp.swift in Sources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -546,7 +530,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		D60FA5211E7FBE1400D9B5A5 /* Debug */ = {
+		D60FA5211E7FBE1400D9B5A5 /* Debug configuration for PBXProject "networkShareMounter" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -612,7 +596,7 @@
 			};
 			name = Debug;
 		};
-		D60FA5221E7FBE1400D9B5A5 /* Release */ = {
+		D60FA5221E7FBE1400D9B5A5 /* Release configuration for PBXProject "networkShareMounter" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -671,7 +655,7 @@
 			};
 			name = Release;
 		};
-		F706FED82D8EABCF001C2785 /* Debug */ = {
+		F706FED82D8EABCF001C2785 /* Debug configuration for PBXNativeTarget "Network Share MounterTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -681,7 +665,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 368;
+				CURRENT_PROJECT_VERSION = 369;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -701,7 +685,7 @@
 			};
 			name = Debug;
 		};
-		F706FED92D8EABCF001C2785 /* Release */ = {
+		F706FED92D8EABCF001C2785 /* Release configuration for PBXNativeTarget "Network Share MounterTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -711,7 +695,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 368;
+				CURRENT_PROJECT_VERSION = 369;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -728,7 +712,7 @@
 			};
 			name = Release;
 		};
-		F79B15B7274E722100C322A8 /* Debug */ = {
+		F79B15B7274E722100C322A8 /* Debug configuration for PBXNativeTarget "Network Share Mounter" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -745,7 +729,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 368;
+				CURRENT_PROJECT_VERSION = 369;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -779,7 +763,7 @@
 			};
 			name = Debug;
 		};
-		F79B15B8274E722100C322A8 /* Release */ = {
+		F79B15B8274E722100C322A8 /* Release configuration for PBXNativeTarget "Network Share Mounter" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -796,7 +780,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 368;
+				CURRENT_PROJECT_VERSION = 369;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -832,28 +816,25 @@
 		D60FA5171E7FBE1300D9B5A5 /* Build configuration list for PBXProject "networkShareMounter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D60FA5211E7FBE1400D9B5A5 /* Debug */,
-				D60FA5221E7FBE1400D9B5A5 /* Release */,
+				D60FA5211E7FBE1400D9B5A5 /* Debug configuration for PBXProject "networkShareMounter" */,
+				D60FA5221E7FBE1400D9B5A5 /* Release configuration for PBXProject "networkShareMounter" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		F706FED72D8EABCF001C2785 /* Build configuration list for PBXNativeTarget "Network Share MounterTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F706FED82D8EABCF001C2785 /* Debug */,
-				F706FED92D8EABCF001C2785 /* Release */,
+				F706FED82D8EABCF001C2785 /* Debug configuration for PBXNativeTarget "Network Share MounterTests" */,
+				F706FED92D8EABCF001C2785 /* Release configuration for PBXNativeTarget "Network Share MounterTests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		F79B15BD274E722100C322A8 /* Build configuration list for PBXNativeTarget "Network Share Mounter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F79B15B7274E722100C322A8 /* Debug */,
-				F79B15B8274E722100C322A8 /* Release */,
+				F79B15B7274E722100C322A8 /* Debug configuration for PBXNativeTarget "Network Share Mounter" */,
+				F79B15B8274E722100C322A8 /* Release configuration for PBXNativeTarget "Network Share Mounter" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
