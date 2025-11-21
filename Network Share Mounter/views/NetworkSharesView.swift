@@ -76,8 +76,8 @@ struct NetworkSharesView: View {
 //                            }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                // Use shareDisplayName if available, otherwise networkShare
-                                Text(share.shareDisplayName ?? share.networkShare)
+                                // Use effectiveMountPoint for display
+                                Text(share.effectiveMountPoint)
                                     .font(.headline)
                                 Text(share.networkShare)
                                     .font(.caption)

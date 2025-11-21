@@ -493,9 +493,9 @@ struct ProfileEditorView: View {
     
     private func shareDisplayName(for url: String) -> String {
         if let match = allAvailableShares.first(where: { $0.networkShare == url }) {
-            return match.shareDisplayName ?? url
+            return match.effectiveMountPoint
         }
-        return url
+        return extractShareName(from: url)
     }
     
     private func removeAssociatedShare(url: String) {
@@ -635,7 +635,7 @@ struct ShareSelectionSheet: View {
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(isSelected ? Color.accentColor : .secondary)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(share.shareDisplayName ?? "Unbenannt")
+                            Text(share.effectiveMountPoint)
                             Text(share.networkShare)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)

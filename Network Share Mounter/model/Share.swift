@@ -84,7 +84,16 @@ struct Share: Identifiable {
             share.actualMountPoint = actualMountPoint
         }
     }
-    
+
+    /// Returns the effective mount point name for this share.
+    /// Uses mountPoint if set, otherwise auto-generates from networkShare URL.
+    var effectiveMountPoint: String {
+        if let mountPoint = mountPoint, !mountPoint.isEmpty {
+            return mountPoint
+        }
+        return extractShareName(from: networkShare)
+    }
+
     /// Factory-method that guarantees a **stable, deterministic ID** based on the share URL. This
     /// prevents UI race-conditions where randomly generated UUIDs change between reloads.
     static func createShare(

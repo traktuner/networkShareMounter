@@ -33,6 +33,7 @@
 		F77107B9274EC76200556B20 /* Mounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107B8274EC76200556B20 /* Mounter.swift */; };
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7796E112AFBE5AB008F6A26 /* ActivityController.swift */; };
+		F77A1E772ED0B08C00D7A218 /* ShareHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77A1E762ED0B08C00D7A218 /* ShareHelpers.swift */; };
 		F7885F642C623084000B96AC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F7885F632C623084000B96AC /* Sparkle */; };
 		F78AF9D02D035D5500E32EEA /* FinderController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78AF9CF2D035D5500E32EEA /* FinderController.swift */; };
 		F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* KeychainManager.swift */; };
@@ -111,6 +112,7 @@
 		F77107B8274EC76200556B20 /* Mounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounter.swift; sourceTree = "<group>"; };
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		F7796E112AFBE5AB008F6A26 /* ActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityController.swift; sourceTree = "<group>"; };
+		F77A1E762ED0B08C00D7A218 /* ShareHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareHelpers.swift; sourceTree = "<group>"; };
 		F78AF9CF2D035D5500E32EEA /* FinderController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderController.swift; sourceTree = "<group>"; };
 		F78B9D742B0BA7EF00043327 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		F791FC8A2DD22E5F00F0445C /* AuthProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProfileManager.swift; sourceTree = "<group>"; };
@@ -296,6 +298,7 @@
 				F765D0562A852935001D5116 /* Share.swift */,
 				F742ACF52861CB62009864DF /* AppStatistics.swift */,
 				F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */,
+				F77A1E762ED0B08C00D7A218 /* ShareHelpers.swift */,
 				F72B13E92B332987001BDEEA /* Menu.swift */,
 			);
 			path = model;
@@ -516,6 +519,7 @@
 				F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */,
 				F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */,
 				F791FCA22DD23DC300F0445C /* DetailColumnView.swift in Sources */,
+				F77A1E772ED0B08C00D7A218 /* ShareHelpers.swift in Sources */,
 				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,
 				F7E801AC2E797BF2009D4D3B /* SentryManager.swift in Sources */,
 				F7341C5C2EB0E0BC005D3BD3 /* Notifications.swift in Sources */,
@@ -677,7 +681,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 367;
+				CURRENT_PROJECT_VERSION = 368;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -707,7 +711,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 367;
+				CURRENT_PROJECT_VERSION = 368;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -741,7 +745,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 367;
+				CURRENT_PROJECT_VERSION = 368;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -792,7 +796,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 367;
+				CURRENT_PROJECT_VERSION = 368;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -869,14 +873,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.8.1;
-			};
-		};
-		F7BAC10B274FBA2D00B5BFF4 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.2.0;
 			};
 		};
 		F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
