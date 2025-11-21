@@ -41,4 +41,78 @@ extension FileManager {
         }
         return false
     }
+    
+    /// Checks if a given directory is within a mounted filesystem (but not necessarily a mount point itself)
+    ///
+    /// - Parameter atPath: The directory path to check
+    /// - Returns: `true` if any parent directory is a mount point, `false` if not
+    func isDirectoryWithinFilesystemMount(atPath: String) -> Bool {
+        var currentPath = URL(fileURLWithPath: atPath).deletingLastPathComponent().path
+        
+        while currentPath != "/" && !currentPath.isEmpty {
+            do {
+                let systemAttributes = try attributesOfItem(atPath: currentPath)
+                if let fileSystemFileNumber = systemAttributes[.systemFileNumber] as? NSNumber {
+                    if fileSystemFileNumber == FileManager.filesystemMountNumber {
+                        Logger.mounter.debug("🛡️ Mount protection: \(atPath, privacy: .public) is within mounted filesystem at \(currentPath, privacy: .public)")
+                        return true
+                    }
+                }
+            } catch {
+                Logger.mounter.debug("Error checking mount status for \(currentPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            }
+            
+            let parentURL = URL(fileURLWithPath: currentPath).deletingLastPathComponent()
+            let parentPath = parentURL.path
+            if parentPath == currentPath { break }
+            currentPath = parentPath
+        }
+        
+        Logger.mounter.debug("🔍 Mount check: \(atPath, privacy: .public) is not within any mounted filesystem")
+        return false
+    }
+    
+    /// Checks if a path resides on a network volume (e.g., SMB, AFP, NFS, WebDAV)
+    ///
+    /// Uses statfs to inspect f_fstypename for known network filesystems.
+    /// - Parameter atPath: Path to check
+    /// - Returns: true if the path is on a network volume, false otherwise
+    func isOnNetworkVolume(atPath: String) -> Bool {
+        var s = statfs()
+        let result = atPath.withCString { cPath -> Int32 in
+            statfs(cPath, &s)
+        }
+        guard result == 0 else {
+            Logger.mounter.debug("Error calling statfs for \(atPath, privacy: .public)")
+            return false
+        }
+        // Convert f_fstypename (CChar array) to Swift String
+        let typeName = withUnsafePointer(to: &s.f_fstypename) { ptr -> String in
+            let buffer = UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self)
+            return String(cString: buffer)
+        }.lowercased()
+        
+        // Common network filesystem type names on macOS
+        // smbfs (SMB), afpfs (AFP), nfs, webdav, cifs
+        let networkTypes: Set<String> = ["smbfs", "afpfs", "nfs", "webdav", "cifs"]
+        if networkTypes.contains(typeName) {
+            Logger.mounter.debug("🛡️ Network volume protection: \(atPath, privacy: .public) is on a network volume (fstype=\(typeName, privacy: .public))")
+            return true
+        }
+        return false
+    }
+    
+    /// Comprehensive mount protection check for cleanup operations
+    ///
+    /// Returns true if the directory is a mount point itself OR within a mounted filesystem
+    /// OR if it resides on a network volume. Use this for cleanup operations where you want
+    /// maximum protection.
+    ///
+    /// - Parameter atPath: The directory path to check
+    /// - Returns: `true` if directory should be protected from deletion, `false` if safe to delete
+    func shouldProtectFromDeletion(atPath: String) -> Bool {
+        return isDirectoryFilesystemMount(atPath: atPath)
+            || isDirectoryWithinFilesystemMount(atPath: atPath)
+            || isOnNetworkVolume(atPath: atPath)
+    }
 }

@@ -29,7 +29,7 @@
                     "type": "string",
                     "description": "Example: smb://filer.your.domain.tld/share. Note: %USERNAME% will be replaced with the current user's login name.",
                     "pattern": "^(smb|afp|https):\/\/\\S*.+$",
-                    "default": " ",
+                    "default": "",
                     "title": "Server and share"
                     },
                     "authType":{

@@ -30,8 +30,8 @@ test_build:
     - if: '$CI_COMMIT_TAG =~ /^test-/'
   script:
     - fastlane test
-    - 'echo will do beta upload dmg:  --upload-file build/${FILE}Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg'
-    - 'echo will do beta upload pkg:  --upload-file build/${FILE}Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-${APP_VERSION}.pkg'
+    - 'echo will do beta upload dmg:  --upload-file build/${FILE}-Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg'
+    - 'echo will do beta upload pkg:  --upload-file build/${FILE}-Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-${APP_VERSION}.pkg'
     - 'echo will do release upload dmg: --upload-file build/${FILE}-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg'
     - 'echo will do release uplaod pkg: --upload-file build/${FILE}-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg'
     - 'echo will do beta create: create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg\"}"'
@@ -98,8 +98,8 @@ alpha upload:
   rules:
   - if: '$CI_COMMIT_TAG =~ /^alpha-/'
   script:
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Alpha-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".dmg'
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Alpha-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".pkg'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}-Alpha-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".dmg'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}-Alpha-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".pkg'
   dependencies:
     - alpha build
   tags:
@@ -111,8 +111,8 @@ beta upload:
   rules:
   - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg'
-    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".pkg'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}-Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg'
+    - '/usr/bin/curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/${FILE}-Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg'
   dependencies:
     - beta build
   tags:
@@ -138,7 +138,7 @@ alpha release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^alpha-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}Alpha-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}Alpha-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Alpha-"$APP_VERSION".dmg\"}"'
+    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".dmg\"}"'
   dependencies:
     - alpha build
     - alpha upload
@@ -152,7 +152,7 @@ beta release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}Beta-"$APP_VERSION".dmg\"}"'
+    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg\"}"'
   dependencies:
     - beta build
     - beta upload

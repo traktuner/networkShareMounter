@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="24127" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23727"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="24127"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -677,6 +677,44 @@
             </objects>
             <point key="canvasLocation" x="78" y="-165"/>
         </scene>
+        <!--Window Controller-->
+        <scene sceneID="vKa-nF-f1B">
+            <objects>
+                <windowController id="fT4-Sz-Jqv" sceneMemberID="viewController">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="mrE-eA-rIC">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="425" y="461" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1409"/>
+                        <view key="contentView" id="cRy-fP-Uif">
+                            <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </view>
+                        <connections>
+                            <outlet property="delegate" destination="fT4-Sz-Jqv" id="Rj6-PV-MEk"/>
+                        </connections>
+                    </window>
+                    <connections>
+                        <segue destination="wpB-Tk-nas" kind="relationship" relationship="window.shadowedContentViewController" id="leT-Dd-2vH"/>
+                    </connections>
+                </windowController>
+                <customObject id="Yg7-aP-YcM" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-332" y="-269"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="P5x-xF-eaa">
+            <objects>
+                <viewController id="wpB-Tk-nas" sceneMemberID="viewController">
+                    <view key="view" id="kRw-CF-anv">
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                </viewController>
+                <customObject id="Csc-2G-dPE" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="375" y="-304"/>
+        </scene>
         <!--NetworkShareMounterViewController-->
         <scene sceneID="hIz-AP-VOD">
             <objects>
@@ -779,7 +817,7 @@
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="fNF-bT-aGQ">
-                                    <rect key="frame" x="1" y="73" width="708" height="16"/>
+                                    <rect key="frame" x="1" y="72" width="708" height="17"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="Vuh-QE-2gk">
@@ -968,8 +1006,7 @@ The connection will be testet immediately and will be added only if the server i
                         <outlet property="modifyShareButton" destination="uzk-qz-SRD" id="eyw-FS-zig"/>
                         <outlet property="networShareMounterExplanation" destination="J0j-se-pTf" id="A8p-Cz-gcY"/>
                         <outlet property="removeShareButton" destination="d26-jj-wHS" id="o36-te-Hgd"/>
-                        <outlet property="sendDiagnosticsCheckbox" destination="A8b-GW-aqC" id="iPu-YU-QI9"/>
-                        <outlet property="sendDiagnosticsRadioButton" destination="ofJ-Ws-PoV" id="mmI-oG-Hzs"/>
+                        <outlet property="sendDiagnosticsCheckbox" destination="ofJ-Ws-PoV" id="fbd-AC-oc5"/>
                         <outlet property="tableView" destination="s3k-Dc-wH1" id="tOr-hm-vxp"/>
                         <outlet property="toggleManagedSwitch" destination="NmF-bn-oWA" id="4FE-1k-Zdb"/>
                         <outlet property="updateCheckbox" destination="4u9-Ur-baR" id="Uxb-5O-icr"/>
@@ -1147,11 +1184,11 @@ express individuality and make a statement.  jkdsjhkds </string>
             <objects>
                 <viewController title="ShareView" showSeguePresentationStyle="single" id="H6U-AN-RMc" customClass="ShareViewController" customModule="Network_Share_Mounter" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" id="o1x-lv-AFs">
-                        <rect key="frame" x="0.0" y="0.0" width="680" height="337"/>
+                        <rect key="frame" x="0.0" y="0.0" width="680" height="347"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TWC-7v-gbr">
-                                <rect key="frame" x="18" y="301" width="296" height="16"/>
+                                <rect key="frame" x="18" y="311" width="296" height="16"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="292" id="uxi-va-FJJ"/>
                                 </constraints>
@@ -1162,7 +1199,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="tXZ-2F-XEj">
-                                <rect key="frame" x="18" y="271" width="257" height="16"/>
+                                <rect key="frame" x="18" y="279" width="257" height="16"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Active Directory / Kerberos authentication" id="eVA-NB-rDE">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1170,7 +1207,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Yd8-w1-vJf">
-                                <rect key="frame" x="18" y="242" width="197" height="16"/>
+                                <rect key="frame" x="18" y="247" width="197" height="16"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Username on the network share" id="gUE-zm-T5N">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1178,7 +1215,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="dPF-y7-z2y">
-                                <rect key="frame" x="18" y="211" width="194" height="16"/>
+                                <rect key="frame" x="18" y="213" width="194" height="16"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="Password on the network share" id="5fb-mu-cd4">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -1186,7 +1223,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </textFieldCell>
                             </textField>
                             <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="i3D-kw-hBc">
-                                <rect key="frame" x="307" y="298" width="325" height="21"/>
+                                <rect key="frame" x="307" y="307" width="325" height="24"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="hQs-yn-2pH">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -1197,7 +1234,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </connections>
                             </textField>
                             <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fia-Z0-U3w">
-                                <rect key="frame" x="307" y="239" width="325" height="21"/>
+                                <rect key="frame" x="307" y="243" width="325" height="24"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="cm7-oq-XeS">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -1208,7 +1245,7 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </connections>
                             </textField>
                             <secureTextField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mdA-UP-dTn">
-                                <rect key="frame" x="307" y="208" width="325" height="21"/>
+                                <rect key="frame" x="307" y="209" width="325" height="24"/>
                                 <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="D64-vR-s4M">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -1222,13 +1259,13 @@ express individuality and make a statement.  jkdsjhkds </string>
                                 </connections>
                             </secureTextField>
                             <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="ciR-nE-hXS">
-                                <rect key="frame" x="592" y="266" width="42" height="25"/>
+                                <rect key="frame" x="578" y="275" width="54" height="24"/>
                                 <connections>
                                     <action selector="authTypeSwitchChanged:" target="H6U-AN-RMc" id="u9N-Wq-UVV"/>
                                 </connections>
                             </switch>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="V28-4N-8eM">
-                                <rect key="frame" x="13" y="13" width="154" height="32"/>
+                                <rect key="frame" x="20" y="20" width="140" height="24"/>
                                 <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="2R8-Za-AZT">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1244,7 +1281,7 @@ Gw
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JNn-QP-JtC">
-                                <rect key="frame" x="513" y="13" width="154" height="32"/>
+                                <rect key="frame" x="520" y="20" width="140" height="24"/>
                                 <buttonCell key="cell" type="push" title="Save" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="l6h-Ep-Kih">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1257,7 +1294,7 @@ Gw
                                 </connections>
                             </button>
                             <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="IHB-Jc-5sI">
-                                <rect key="frame" x="18" y="48" width="644" height="129"/>
+                                <rect key="frame" x="18" y="52" width="644" height="129"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="129" id="pDq-d0-uKb"/>
                                 </constraints>
@@ -1271,7 +1308,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </textFieldCell>
                             </textField>
                             <button tag="2" translatesAutoresizingMaskIntoConstraints="NO" id="H3a-fG-lp9">
-                                <rect key="frame" x="640" y="270" width="20" height="20"/>
+                                <rect key="frame" x="640" y="280" width="20" height="18"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="questionmark.circle" catalog="system" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="Xr2-qy-0sy">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1284,7 +1321,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <button tag="3" translatesAutoresizingMaskIntoConstraints="NO" id="82F-ZL-guw">
-                                <rect key="frame" x="640" y="240" width="20" height="20"/>
+                                <rect key="frame" x="640" y="240" width="20" height="30"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="questionmark.circle" catalog="system" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="zQg-b6-fXa">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1297,7 +1334,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <button tag="4" translatesAutoresizingMaskIntoConstraints="NO" id="brU-SK-KAy">
-                                <rect key="frame" x="640" y="209" width="20" height="20"/>
+                                <rect key="frame" x="640" y="213" width="20" height="16"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="questionmark.circle" catalog="system" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="uhG-Fg-5mf">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1310,7 +1347,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <button tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="hZ8-YX-GBO">
-                                <rect key="frame" x="640" y="299" width="20" height="20"/>
+                                <rect key="frame" x="640" y="307" width="20" height="24"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="questionmark.circle" catalog="system" imagePosition="only" alignment="center" imageScaling="proportionallyDown" inset="2" id="jAv-gA-2PW">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1326,7 +1363,7 @@ The connection will be testet immediately and will be added only if the server i
                                 </connections>
                             </button>
                             <progressIndicator maxValue="100" indeterminate="YES" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="9je-1a-zup">
-                                <rect key="frame" x="290" y="20" width="100" height="20"/>
+                                <rect key="frame" x="290" y="22" width="100" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="100" id="UyE-2K-e1a"/>
                                 </constraints>
