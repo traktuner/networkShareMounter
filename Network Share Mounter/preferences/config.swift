@@ -134,7 +134,10 @@ struct Defaults {
         } else {
             langCode = Locale.current.languageCode ?? "en"
         }
-        return NSString(string: "~/\(Defaults.translation[langCode] ?? Defaults.translation["en"]!)").expandingTildeInPath
+        let folder = Defaults.translation[langCode] ?? Defaults.translation["en"]!
+        // Build path using URL semantics to avoid NSString bridging and to resolve "~"
+        let home = URL(fileURLWithPath: NSHomeDirectory())
+        return home.appendingPathComponent(folder).path
     }()
     
     /// Current default mount path (macOS standard)

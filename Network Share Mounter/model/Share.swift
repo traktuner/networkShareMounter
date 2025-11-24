@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import OSLog
 
 /// describes the different properties and states of a share
 /// - Parameter networkShare: ``URL`` containing the exporting server and share
@@ -71,10 +72,82 @@ struct Share: Identifiable {
         }
     }
     
-    /// Update the mount point of a share
+    /// Validates if a mount point value is safe
+    ///
+    /// Mount points must be simple directory names without path separators.
+    /// They are used as relative names appended to the default mount path.
+    /// Both MDM and user-configured mount points follow the same rules.
+    ///
+    /// Valid:   "share", "data", "MyShare", ".hidden" (hidden directories are OK)
+    /// Invalid: "/home", "foo/bar", "../etc", "" (empty)
+    ///
+    /// - Parameter mountPoint: The mount point string to validate
+    /// - Returns: true if valid (simple name) or nil, false if invalid (contains path separators)
+    static func isValidMountPoint(_ mountPoint: String?) -> Bool {
+        guard let mountPoint = mountPoint, !mountPoint.isEmpty else {
+            return true
+        }
+
+        // Mount point must not contain path separators (/)
+        // This prevents absolute paths like "/home" or relative paths like "foo/bar"
+        if mountPoint.contains("/") {
+            return false
+        }
+
+        // Mount point must not be . or .. (directory traversal)
+        if mountPoint == "." || mountPoint == ".." {
+            return false
+        }
+
+        return true
+    }
+
+    /// Sanitizes a mount point value by extracting just the final component
+    ///
+    /// If someone accidentally provides an absolute path like "/Users/test/mount",
+    /// this returns just "mount". If the input is already a simple name, returns it unchanged.
+    ///
+    /// - Parameter mountPoint: The mount point string to sanitize
+    /// - Returns: Sanitized mount point (simple directory name) or nil if invalid
+    static func sanitizeMountPoint(_ mountPoint: String?) -> String? {
+        guard let mountPoint = mountPoint, !mountPoint.isEmpty else {
+            return nil
+        }
+
+        // If it's already valid, return as-is
+        if isValidMountPoint(mountPoint) {
+            return mountPoint
+        }
+
+        // Extract last component from path (e.g., "/home/test" -> "test")
+        let url = URL(fileURLWithPath: mountPoint)
+        let lastComponent = url.lastPathComponent
+
+        // Validate the extracted component
+        if isValidMountPoint(lastComponent) && !lastComponent.isEmpty {
+            return lastComponent
+        }
+
+        return nil
+    }
+
+    /// Update the mount point of a share with validation
     mutating func updateMountPoint(to mountPoint: String?) {
         modify { share in
-            share.mountPoint = mountPoint
+            // Sanitize and validate the mount point before storing
+            let sanitized = Share.sanitizeMountPoint(mountPoint)
+            if let value = sanitized {
+                share.mountPoint = value
+            } else if mountPoint == nil {
+                // Allow explicit nil to clear the mount point
+                share.mountPoint = nil
+            } else {
+                // Invalid mount point - log warning and don't update
+                // Avoid capturing 'share' (inout) in logger's autoclosure by copying values first
+                let rejectedValue = mountPoint ?? "nil"
+                let shareURL = share.networkShare
+                Logger.shareManager.warning("⚠️ Invalid mountPoint value rejected: '\(rejectedValue, privacy: .public)' for share: \(shareURL, privacy: .public)")
+            }
         }
     }
     
@@ -107,13 +180,16 @@ struct Share: Identifiable {
         shareDisplayName: String? = nil,
         authProfileID: String? = nil
     ) -> Share {
+        // Sanitize mountPoint before creating the share
+        let sanitizedMountPoint = sanitizeMountPoint(mountPoint)
+
         return Share(
             networkShare: networkShare,
             authType: authType,
             username: username,
             password: password,
             mountStatus: mountStatus,
-            mountPoint: mountPoint,
+            mountPoint: sanitizedMountPoint,
             actualMountPoint: nil,
             managed: managed,
             shareDisplayName: shareDisplayName,

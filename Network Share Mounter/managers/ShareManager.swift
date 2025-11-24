@@ -609,12 +609,12 @@ actor ShareManager {
 
             if share.mountPoint == nil || share.mountPoint?.isEmpty == true {
                 if let displayName = share.shareDisplayName, !displayName.isEmpty {
-                    share.mountPoint = displayName
+                    share.updateMountPoint(to: displayName)
                     Logger.shareManager.info("🔄 Migrated shareDisplayName to mountPoint for: \(share.networkShare, privacy: .public)")
                     updated = true
                 } else {
                     let generatedName = extractShareName(from: share.networkShare)
-                    share.mountPoint = generatedName
+                    share.updateMountPoint(to: generatedName)
                     Logger.shareManager.info("🔄 Auto-generated mountPoint for: \(share.networkShare, privacy: .public) → \(generatedName, privacy: .public)")
                     updated = true
                 }

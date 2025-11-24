@@ -6,7 +6,7 @@
 //  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
-import Cocoa
+@preconcurrency import Cocoa
 import Network
 import ServiceManagement
 import OSLog
@@ -765,7 +765,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             switch statusToUse {
             case .krbAuthenticationError:
                 Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
-                let errorItem = NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
+                let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Kerberos SSO Authentication problem..."), comment: "Kerberos Authentication problem"),
                                           action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
                                           keyEquivalent: "")
                 errorItem.isEnabled = canShowSettings
@@ -773,7 +773,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 menu.addItem(NSMenuItem.separator())
             case .authenticationError:
                 Logger.app.debug("🏗️ Constructing authentication problem menu.")
-                let errorItem = NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
+                let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Authentication problem..."), comment: "Authentication problem"),
                                           action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
                                           keyEquivalent: "")
                 errorItem.isEnabled = canShowSettings
@@ -781,7 +781,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 menu.addItem(NSMenuItem.separator())
             case .unassignedProfile:
                 Logger.app.debug("🏗️ Constructing unassigned profile menu.")
-                let errorItem = NSMenuItem(title: NSLocalizedString("⚠️ Profile assignment required...", comment: "Profile assignment required"),
+                let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Profile assignment required..."), comment: "Profile assignment required"),
                                           action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
                                           keyEquivalent: "")
                 errorItem.isEnabled = canShowSettings
@@ -797,7 +797,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if let urlString = prefs.string(for: .helpURL), URL(string: urlString) != nil {
-            if let newMenuItem = createMenuItem(title: "About Network Share Mounter",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("About Network Share Mounter"), comment: "About Network Share Mounter"),
                                                   comment: "About Network Share Mounter",
                                                   action: #selector(AppDelegate.openHelpURL(_:)),
                                                   keyEquivalent: "",
@@ -808,7 +808,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if mounter != nil {
-            if let newMenuItem = createMenuItem(title: "Mount shares",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Mount shares"), comment: "Mount shares"),
                                                   comment: "Mount share",
                                                   action: #selector(AppDelegate.mountManually(_:)),
                                                   keyEquivalent: "m",
@@ -816,7 +816,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                                                   prefs: prefs) {
                 menu.addItem(newMenuItem)
             }
-            if let newMenuItem = createMenuItem(title: "Unmount shares",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Unmount shares"), comment: "Unmount shares"),
                                                   comment: "Unmount shares",
                                                   action: #selector(AppDelegate.unmountShares(_:)),
                                                   keyEquivalent: "u",
@@ -824,7 +824,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                                                   prefs: prefs) {
                 menu.addItem(newMenuItem)
             }
-            if let newMenuItem = createMenuItem(title: "Show mounted shares",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Show mounted shares"), comment: "Show mounted shares"),
                                                   comment: "Show mounted shares",
                                                   action: #selector(AppDelegate.openDirectory(_:)),
                                                   keyEquivalent: "f",
@@ -836,7 +836,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if prefs.bool(for: .enableAutoUpdater) == true && updaterController != nil {
-            if let newMenuItem = createMenuItem(title: "Check for Updates...",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Check for Updates..."), comment: "Check for Updates"),
                                                 comment: "Check for Updates",
                                                 action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
                                                 keyEquivalent: "",
@@ -856,11 +856,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     var menuItem: NSMenuItem
                     
                     if let mountpoint = share.actualMountPoint {
-                        let mountDir = (mountpoint as NSString).lastPathComponent
+                        let mountDir = URL(fileURLWithPath: mountpoint).lastPathComponent
                         Logger.app.debug("  Menu: 🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
-                        
+
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
-                        menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
+                        menuItem = NSMenuItem(title: mountDir,
                                               action: #selector(AppDelegate.openDirectory(_:)),
                                               keyEquivalent: "")
                         menuItem.representedObject = mountpoint
@@ -870,7 +870,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
                         // Use effectiveMountPoint for menu display
                         let menuItemTitle = share.effectiveMountPoint
-                        menuItem = NSMenuItem(title: NSLocalizedString(menuItemTitle, comment: "Menu item title for a specific share"),
+                        menuItem = NSMenuItem(title: menuItemTitle,
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),
                                               keyEquivalent: "")
                         menuItem.representedObject = share.id
@@ -891,7 +891,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
         
-        if let newMenuItem = createMenuItem(title: "Preferences ...",
+        if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Preferences ..."), comment: "Preferences"),
                                               comment: "Preferences",
                                               action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)),
                                               keyEquivalent: ",",
@@ -902,7 +902,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if prefs.bool(for: .canQuit) != false {
-            if let newMenuItem = createMenuItem(title: "Quit Network Share Mounter",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Quit Network Share Mounter"), comment: "Quit Network Share Mounter"),
                                                 comment: "Quit Network Share Mounter",
                                                 action: #selector(NSApplication.terminate(_:)),
                                                 keyEquivalent: "q",
@@ -916,13 +916,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         statusItem.menu = menu
     }
     
-    func createMenuItem(title: String, comment: String, action: Selector, keyEquivalent: String, preferenceKey: PreferenceKeys, prefs: PreferenceManager) -> NSMenuItem? {
+    func createMenuItem(title: String, comment: StaticString, action: Selector, keyEquivalent: String, preferenceKey: PreferenceKeys, prefs: PreferenceManager) -> NSMenuItem? {
         let preferenceValue = prefs.string(for: preferenceKey) ?? ""
-        let localizedTitle = NSLocalizedString(title, comment: "")
-        let menuItem = NSMenuItem(title: NSLocalizedString(localizedTitle, comment: comment),
+        let menuItem = NSMenuItem(title: String(localized: String.LocalizationValue(title), comment: comment),
                                   action: action,
                                   keyEquivalent: keyEquivalent)
-        
+
         switch preferenceValue {
         case "hidden":
             return nil
@@ -965,3 +964,4 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return false
     }
 }
+

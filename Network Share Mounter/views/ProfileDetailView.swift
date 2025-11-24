@@ -69,7 +69,7 @@ struct ProfileDetailView: View {
                 
                 Spacer()
                 
-                Button("Bearbeiten") {
+                Button("Edit") {
                     onEditProfile()
                 }
             }
@@ -78,14 +78,14 @@ struct ProfileDetailView: View {
     
     private var authInfoSection: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Anmeldedaten")
+            Text("Authentication data")
                 .font(.headline)
                 .padding(.bottom, 8) // More spacing for section headers
             
             if profile.useKerberos {
                  HStack {
                     VStack(alignment: .leading) {
-                        Text("Kerberos-Authentifizierung")
+                        Text("Kerberos authentication")
                             .fontWeight(.medium)
                         Text("Realm: \(profile.kerberosRealm ?? "N/A")")
                             .foregroundColor(.secondary)
@@ -121,7 +121,7 @@ struct ProfileDetailView: View {
                     // Show normal ticket status
                     if ticketStatus == .unknown {
                         ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
-                        Text("Prüfe...")
+                        Text("Chechking...")
                     } else {
                         Circle()
                             .fill(ticketStatus.color)
@@ -134,7 +134,7 @@ struct ProfileDetailView: View {
             }
             .font(.caption)
             
-            Button("Ticket aktualisieren") {
+            Button("Refresh kerberos ticket") {
                 Self.logger.info("Ticket refresh requested for profile \(profile.displayName)")
                 onRefreshTicket()
             }
@@ -146,7 +146,7 @@ struct ProfileDetailView: View {
     private var standardAuthView: some View {
         Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 12) {
             GridRow {
-                Text("Benutzername:")
+                Text("Username")
                 Text(profile.username ?? "N/A")
             }
         }
@@ -155,7 +155,7 @@ struct ProfileDetailView: View {
     private var associatedSharesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
              HStack {
-                Text("Zugeordnete Shares (\(associatedShares.count))")
+                Text("Assigned shares (\(associatedShares.count))")
                     .font(.headline)
                     .padding(.bottom, 8)
                 Spacer()
@@ -164,7 +164,7 @@ struct ProfileDetailView: View {
             }
             
             if associatedShares.isEmpty {
-                Text("Diesem Profil sind keine Shares zugeordnet.")
+                Text("No shares are assigned to this profile.")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical)
@@ -197,10 +197,10 @@ struct ProfileDetailView: View {
         }
         .padding(.vertical, 6)
         .contextMenu {
-            Button(share.mountStatus == .mounted ? "Trennen" : "Verbinden") {
+            Button(share.mountStatus == .mounted ? "Disconnect" : "Connect") {
                 handleMountToggle(for: share)
             }
-            Button("Profilzuweisung aufheben") {
+            Button("Remove profile assignment") {
                  handleUnassignShare(share)
             }
         }

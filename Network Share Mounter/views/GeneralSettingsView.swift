@@ -103,10 +103,10 @@ struct GeneralSettingsView: View {
                         .frame(width: 32, height: 32)
                         
                     VStack(alignment: .leading) {
-                        Text("Allgemein") // Updated to German
+                        Text("General")
                             .font(.headline)
                             .fontWeight(.medium)
-                        Text("Passen Sie hier allgemeine Einstellungen der Anwendung an.") // Updated to German
+                        Text("Adjust general application settings here.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -118,17 +118,17 @@ struct GeneralSettingsView: View {
                 
                 // MARK: - Startup Section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Programmstart") // Updated to German
+                    Text("Startup")
                         .font(.headline)
-                    Toggle("Beim Anmelden starten", isOn: $startAtLogin) // Updated to German
+                    Toggle("Start at login", isOn: $startAtLogin)
                         .disabled(!prefs.bool(for: .canChangeAutostart))
                 }
-                .padding(.top, 8) // Add consistent spacing between header and first section
-                .padding(.bottom, 8) // Add bottom spacing for consistency
+                .padding(.top, 8)
+                .padding(.bottom, 8)
                 
                 // MARK: - Diagnostic Data Section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Diagnosedaten") // Updated to German
+                    Text("Diagnostics")
                         .font(.headline)
                         .onTapGesture {
                             diagnoseTapCount += 1
@@ -136,7 +136,7 @@ struct GeneralSettingsView: View {
                                 debugLogExportEnabled = true
                             }
                         }
-                    Toggle("Anonyme Diagnosedaten senden", isOn: $sendDiagnosticData) // Updated to German
+                    Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
 
                     // Hidden debug feature: only shown after 5 taps on "Diagnosedaten"
                     if debugLogExportEnabled {
@@ -150,10 +150,10 @@ struct GeneralSettingsView: View {
                                     if isExportingLogs {
                                         ProgressView()
                                             .scaleEffect(0.8)
-                                        Text("Logs werden gesendet...")
+                                        Text("Sending logs...")
                                     } else {
                                         Image(systemName: "doc.text.fill")
-                                        Text("Debug-Logs an Support senden")
+                                        Text("Send debug logs to support")
                                     }
                                 }
                             }
@@ -164,7 +164,7 @@ struct GeneralSettingsView: View {
                             if let result = exportResult {
                                 Text(result)
                                     .font(.caption)
-                                    .foregroundColor(result.contains("erfolgreich") ? .green : .red)
+                                    .foregroundColor(result.localizedCaseInsensitiveContains("success") || result.localizedCaseInsensitiveContains("erfolgreich") ? .green : .red)
                                     .onAppear {
                                         // Clear message after 5 seconds
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
@@ -176,21 +176,21 @@ struct GeneralSettingsView: View {
                         .padding(.top, 8)
                     }
                 }
-                .padding(.vertical, 8) // Add vertical spacing around the section
+                .padding(.vertical, 8)
                 
                 // MARK: - Update Section
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Software-Aktualisierung") // Updated to German
+                    Text("Software Update")
                         .font(.headline)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         // Toggle for enabling automatic update checks.
-                        Toggle("Automatisch nach Updates suchen", isOn: $automaticallyChecksForUpdates) // Updated to German
+                        Toggle("Automatically check for updates", isOn: $automaticallyChecksForUpdates)
                             .disabled(isUpdateFrameworkDisabled)
                             .padding(.leading, 20)
                         
                         // Toggle for enabling automatic update downloads/installs.
-                        Toggle("Updates automatisch installieren", isOn: $automaticallyDownloadsUpdates) // Updated to German
+                        Toggle("Automatically install updates", isOn: $automaticallyDownloadsUpdates)
                             .disabled(isUpdateFrameworkDisabled || !automaticallyChecksForUpdates)
                             .padding(.leading, 20)
                                                 
@@ -207,7 +207,7 @@ struct GeneralSettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "arrow.clockwise")
-                                    Text("Jetzt nach Updates suchen") // Updated to German
+                                    Text("Check for updates now")
                                 }
                             }
                             .disabled(isUpdateFrameworkDisabled)
@@ -218,28 +218,28 @@ struct GeneralSettingsView: View {
                     
                     // Informational text shown when updates are disabled by MDM.
                     if isUpdateFrameworkDisabled {
-                         Text("Die Verwaltung der Software-Aktualisierungen ist durch eine MDM-Richtlinie deaktiviert.") // Updated to German
+                         Text("Software update management is disabled by an MDM policy.")
                              .font(.caption)
                              .foregroundColor(.secondary)
                              .padding(.top, 5)
                     }
                 }
-                .padding(.vertical, 8) // Add vertical spacing
+                .padding(.vertical, 8)
                 
                 // MARK: - Version Info Section
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Über") // Updated to German
+                    Text("About")
                         .font(.headline)
                     
                     HStack {
-                        Text("Version") // Keep as is (same in German)
+                        Text("Version")
                         Spacer()
                         // Display dynamic version and build number
                         Text(appVersion + " (" + buildNumber + ")")
                             .foregroundColor(.secondary)
                     }
                 }
-                .padding(.vertical, 8) // Add vertical spacing
+                .padding(.vertical, 8)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -333,8 +333,8 @@ struct GeneralSettingsView: View {
 
             // Check if Sentry is active
             guard SentryManager.shared.isActive else {
-                Logger.app.warning("⚠️ Sentry not active - cannot send logs. Enable 'Anonyme Diagnosedaten senden' first.")
-                exportResult = "Fehler: Diagnosedaten-Übertragung ist deaktiviert"
+                Logger.app.warning("⚠️ Sentry not active - cannot send logs. Enable 'Send anonymous diagnostic data' first.")
+                exportResult = "Error: Diagnostic data transmission is disabled"
                 isExportingLogs = false
                 return
             }
@@ -384,11 +384,11 @@ struct GeneralSettingsView: View {
             }.value
 
             Logger.app.info("✅ Debug logs exported successfully - check Sentry dashboard")
-            exportResult = "Logs erfolgreich gesendet!"
+            exportResult = "Logs sent successfully!"
 
         } catch {
             Logger.app.error("❌ Failed to export debug logs: \(error.localizedDescription)")
-            exportResult = "Fehler beim Senden der Logs: \(error.localizedDescription)"
+            exportResult = "Failed to send logs: \(error.localizedDescription)"
         }
 
         isExportingLogs = false

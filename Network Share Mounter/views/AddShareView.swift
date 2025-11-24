@@ -36,7 +36,7 @@ struct AddShareView: View {
     }
     
     private var windowTitle: String {
-        isEditing ? "Share bearbeiten" : "Neuen Share hinzufügen"
+        isEditing ? "Edit Share" : "Add New Share"
     }
 
     var body: some View {
@@ -50,7 +50,7 @@ struct AddShareView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                         
-                        Text(isEditing ? "Bearbeiten Sie die Einstellungen für diesen Netzwerk-Share." : "Fügen Sie einen neuen Netzwerk-Share hinzu.")
+                        Text(isEditing ? "Edit the settings for this network share." : "Add a new network share.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -63,7 +63,7 @@ struct AddShareView: View {
                         }
                         .padding(16)
                     } label: {
-                        Label("Share-Details", systemImage: "externaldrive")
+                        Label("Share Details", systemImage: "externaldrive")
                             .font(.headline)
                     }
                     
@@ -74,7 +74,7 @@ struct AddShareView: View {
                         }
                         .padding(16)
                     } label: {
-                        Label("Authentifizierung", systemImage: "person.badge.key")
+                        Label("Authentication", systemImage: "person.badge.key")
                             .font(.headline)
                     }
                 }
@@ -85,14 +85,14 @@ struct AddShareView: View {
             Divider()
             
             HStack {
-                Button("Abbrechen") {
+                Button("Cancel") {
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
                 
                 Spacer()
                 
-                Button(isEditing ? "Änderungen speichern" : "Speichern") {
+                Button(isEditing ? "Save Changes" : "Save") {
                     Task {
                         if isEditing {
                             await handleUpdateChanges()
@@ -119,9 +119,9 @@ struct AddShareView: View {
     private var shareDetailsFields: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Netzwerkpfad:")
+                Text("Network Path:")
                     .frame(width: 100, alignment: .trailing)
-                TextField("smb://server/pfad", text: $networkShare)
+                TextField("smb://server/path", text: $networkShare)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
                     .disabled(isEditing && (existingShare?.managed == true))
@@ -131,10 +131,10 @@ struct AddShareView: View {
             }
             
             HStack {
-                Text("Share-Name:")
+                Text("Share Name:")
                     .frame(width: 100, alignment: .trailing)
                 VStack(alignment: .leading, spacing: 4) {
-                    TextField("Share-Name", text: $mountPointName)
+                    TextField("Share name", text: $mountPointName)
                         .textFieldStyle(.roundedBorder)
                         .onChange(of: mountPointName) { newValue in
                             validateMountPoint(newValue)
@@ -153,7 +153,7 @@ struct AddShareView: View {
                     Image(systemName: "info.circle.fill")
                         .foregroundColor(.blue)
                         .font(.caption)
-                    Text("Dieser Share wird zentral verwaltet und kann nicht geändert werden.")
+                    Text("This share is centrally managed and cannot be changed.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -169,20 +169,20 @@ struct AddShareView: View {
                 HStack {
                     ProgressView()
                         .scaleEffect(0.8)
-                    Text("Profile werden geladen...")
+                    Text("Loading profiles…")
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 20)
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Zugehöriges Profil")
+                    Text("Associated Profile")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    Picker("Profil auswählen", selection: $selectedProfileID) {
+                    Picker("Select Profile", selection: $selectedProfileID) {
                         // Add "None" option
-                        Label("Kein Profil (Standard-System)", systemImage: "gear")
+                        Label("No Profile (System Default)", systemImage: "gear")
                             .tag(String?.none)
                         
                         if !profileManager.profiles.isEmpty {
@@ -211,11 +211,11 @@ struct AddShareView: View {
                     
                     // Help text
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Wählen Sie ein Authentifizierungsprofil für diesen Share aus.")
+                        Text("Choose an authentication profile for this share.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("Ohne Profil werden Standard-Systemmechanismen (z.B. Kerberos) verwendet.")
+                        Text("Without a profile, system defaults (e.g., Kerberos) will be used.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -257,7 +257,7 @@ struct AddShareView: View {
         }
 
         if !name.isValidMountPointName {
-            mountPointError = "⚠️ Dieser Name enthält ungültige Zeichen"
+            mountPointError = "⚠️ This name contains invalid characters"
             return
         }
 
@@ -267,7 +267,7 @@ struct AddShareView: View {
 
             await MainActor.run {
                 if isDuplicate {
-                    mountPointError = "⚠️ Dieser Name wird bereits verwendet"
+                    mountPointError = "⚠️ This name is already in use"
                 } else {
                     mountPointError = nil
                 }

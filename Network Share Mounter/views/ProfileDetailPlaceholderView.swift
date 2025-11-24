@@ -12,7 +12,7 @@ struct ProfileDetailPlaceholderView: View {
                 .foregroundColor(.secondary.opacity(0.6))
                 .padding(.bottom, 8)
                 
-            Text("Wählen Sie ein Profil aus oder erstellen Sie ein neues Profil")
+            Text("Select a profile or create a new one")
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)

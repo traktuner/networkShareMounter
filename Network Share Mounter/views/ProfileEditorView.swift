@@ -139,12 +139,12 @@ struct ProfileEditorView: View {
         .sheet(isPresented: $isShowingShareSelection) {
             modernShareSelectionSheet
         }
-        .alert("Profil für diese Domäne bereits vorhanden", isPresented: $showRealmConflictDialog) {
-            Button("Abbrechen", role: .cancel) { conflictingProfile = nil }
-            Button("Ersetzen", role: .destructive) { handleConfirmedReplacement() }
+        .alert("A profile for this domain already exists", isPresented: $showRealmConflictDialog) {
+            Button("Cancel", role: .cancel) { conflictingProfile = nil }
+            Button("Replace", role: .destructive) { handleConfirmedReplacement() }
         } message: {
             if let existing = conflictingProfile {
-                Text("Es gibt bereits ein Kerberos-Profil für die Domäne '\(existing.kerberosRealm ?? "")' mit dem Namen '\(existing.displayName)'. Pro Domäne ist nur ein Kerberos-Profil sinnvoll. Soll das bestehende Profil ersetzt werden?")
+                Text("There is already a Kerberos profile for the domain '\(existing.kerberosRealm ?? "")' named '\(existing.displayName)'. Only one Kerberos profile per domain is recommended. Do you want to replace the existing profile?")
             }
         }
     }
@@ -161,9 +161,9 @@ struct ProfileEditorView: View {
                 .shadow(color: selectedColor.opacity(0.3), radius: 6, x: 0, y: 3)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(existingProfile == nil ? "Profil hinzufügen" : "Profil bearbeiten")
+                Text(existingProfile == nil ? "Add Profile" : "Edit Profile")
                     .font(.title2.weight(.semibold))
-                Text("Konfigurieren Sie Anmeldedaten und zugehörige Netzwerk-Shares.")
+                Text("Configure credentials and associated network shares.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -177,15 +177,15 @@ struct ProfileEditorView: View {
     private var basicInfoSection: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 12) {
-                LabeledContent("Bezeichnung") {
-                    TextField("Profilname", text: $profileName)
+                LabeledContent("Name") {
+                    TextField("Profile name", text: $profileName)
                         .textFieldStyle(.roundedBorder)
                 }
                 
-                LabeledContent("Benutzername") {
+                LabeledContent("Username") {
                     if useKerberos && !realmPart.isEmpty {
                         HStack(spacing: 0) {
-                            TextField("benutzername", text: $usernamePart)
+                            TextField("username", text: $usernamePart)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(.body, design: .monospaced))
                             Text("@\(realmPart)")
@@ -200,20 +200,20 @@ struct ProfileEditorView: View {
                         }
                         .onChange(of: usernamePart) { _ in updateFullUsername() }
                     } else {
-                        TextField("Benutzername", text: $username)
+                        TextField("Username", text: $username)
                             .textFieldStyle(.roundedBorder)
                             .onChange(of: username) { newValue in detectUPNAndConfigureKerberos(newValue) }
                     }
                 }
                 
                 LabeledContent(passwordLabelText) {
-                    SecureField("Passwort", text: passwordBinding)
+                    SecureField("Password", text: passwordBinding)
                         .textFieldStyle(.roundedBorder)
                 }
             }
             .padding(12)
         } label: {
-            Label("Anmeldedaten", systemImage: "person.circle.fill")
+            Label("Credentials", systemImage: "person.circle.fill")
                 .foregroundStyle(.blue)
         }
     }
@@ -221,7 +221,7 @@ struct ProfileEditorView: View {
     private var kerberosSection: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 12) {
-                Toggle("Kerberos-Authentifizierung (Single Sign-On)", isOn: $useKerberos)
+                Toggle("Kerberos Authentication (Single Sign-On)", isOn: $useKerberos)
                     .onChange(of: useKerberos) { enabled in handleKerberosToggleChange(enabled) }
                     .disabled(shouldDisableKerberosToggle)
                 
@@ -241,7 +241,7 @@ struct ProfileEditorView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle.fill")
                                 .foregroundStyle(.secondary)
-                            Text("Durch MDM-Richtlinie vorgegeben")
+                            Text("Defined by MDM policy")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -262,7 +262,7 @@ struct ProfileEditorView: View {
                 if isLoadingShares {
                     HStack(spacing: 8) {
                         ProgressView()
-                        Text("Verfügbare Shares werden geladen …")
+                        Text("Loading available shares…")
                             .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
@@ -270,10 +270,10 @@ struct ProfileEditorView: View {
                 
                 if editingAssociatedShares.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Keine Shares zugeordnet")
+                        Text("No shares assigned")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        Text("Fügen Sie Netzwerk-Shares hinzu, die mit diesem Profil authentifiziert werden sollen.")
+                        Text("Add network shares to be authenticated with this profile.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -298,7 +298,7 @@ struct ProfileEditorView: View {
                                     Image(systemName: "trash")
                                 }
                                 .buttonStyle(.plain)
-                                .help("Share entfernen")
+                                .help("Remove share")
                             }
                             .padding(.vertical, 4)
                         }
@@ -310,14 +310,14 @@ struct ProfileEditorView: View {
                     Button {
                         isShowingShareSelection = true
                     } label: {
-                        Label("Share hinzufügen …", systemImage: "plus")
+                        Label("Add share…", systemImage: "plus")
                     }
                 }
                 .padding(.top, 4)
             }
             .padding(12)
         } label: {
-            Label("Zugeordnete Shares (\(editingAssociatedShares.count))", systemImage: "externaldrive.fill")
+            Label("Associated Shares (\(editingAssociatedShares.count))", systemImage: "externaldrive.fill")
                 .foregroundStyle(.green)
         }
     }
@@ -339,7 +339,7 @@ struct ProfileEditorView: View {
                     .pickerStyle(.menu)
                 }
                 
-                LabeledContent("Farbe") {
+                LabeledContent("Color") {
                     ColorPicker("", selection: $selectedColor, supportsOpacity: false)
                         .labelsHidden()
                         .frame(width: 44, height: 24)
@@ -347,7 +347,7 @@ struct ProfileEditorView: View {
             }
             .padding(12)
         } label: {
-            Label("Darstellung", systemImage: "paintpalette.fill")
+            Label("Appearance", systemImage: "paintpalette.fill")
                 .foregroundStyle(.purple)
         }
     }
@@ -356,14 +356,14 @@ struct ProfileEditorView: View {
     
     private var bottomBar: some View {
         HStack(spacing: 16) {
-            Button("Abbrechen") { isPresented = false }
+            Button("Cancel") { isPresented = false }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .keyboardShortcut(.cancelAction)
 
             Spacer()
 
-            Button("Speichern") { saveChanges() }
+            Button("Save") { saveChanges() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .keyboardShortcut(.defaultAction)
@@ -567,22 +567,22 @@ struct ProfileEditorView: View {
     }
     
     private var passwordLabelText: String {
-        useKerberos ? "Passwort:" : (existingProfile == nil ? "Passwort:" : "Neues Passwort:")
+        useKerberos ? "Password:" : (existingProfile == nil ? "Password:" : "New Password:")
     }
     
     private func symbolDisplayName(for symbol: String) -> String {
         switch symbol {
         case "person": return "Person"
-        case "building.2": return "Gebäude"
-        case "house": return "Zuhause"
-        case "briefcase": return "Arbeit"
+        case "building.2": return "Building"
+        case "house": return "Home"
+        case "briefcase": return "Work"
         case "desktopcomputer": return "Desktop"
         case "laptopcomputer": return "Laptop"
         case "server.rack": return "Server"
-        case "network": return "Netzwerk"
-        case "folder": return "Ordner"
-        case "graduationcap": return "Studium"
-        case "popcorn": return "Freizeit"
+        case "network": return "Network"
+        case "folder": return "Folder"
+        case "graduationcap": return "Education"
+        case "popcorn": return "Leisure"
         default: return symbol
         }
     }
@@ -605,8 +605,8 @@ struct ShareSelectionSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Shares auswählen").font(.title2.weight(.semibold))
-                Text("Wählen Sie die Netzwerk-Shares aus, die Sie diesem Profil zuordnen möchten.")
+                Text("Select Shares").font(.title2.weight(.semibold))
+                Text("Select the network shares you want to associate with this profile.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -619,10 +619,10 @@ struct ShareSelectionSheet: View {
                     Image(systemName: "externaldrive")
                         .font(.system(size: 40))
                         .foregroundStyle(.secondary)
-                    Text("Keine weiteren Shares verfügbar")
+                    Text("No more shares available")
                         .font(.headline)
                         .foregroundStyle(.secondary)
-                    Text("Alle verfügbaren Shares sind bereits zugeordnet.")
+                    Text("All available shares are already assigned.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -657,10 +657,10 @@ struct ShareSelectionSheet: View {
             Divider()
             
             HStack {
-                Button("Abbrechen") { dismiss() }
+                Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button("Hinzufügen (\(selectedShareURLs.count))") {
+                Button("Add (\(selectedShareURLs.count))") {
                     onAddShares(Array(selectedShareURLs))
                     dismiss()
                 }
@@ -696,7 +696,7 @@ struct ProfileEditorView_Previews: PreviewProvider {
             isPresented: .constant(true),
             onSave: { _,_  in }
         )
-        .previewDisplayName("Neues Profil")
+        .previewDisplayName("New Profile")
         
         ProfileEditorView(
             mounter: previewMounter,
@@ -704,6 +704,6 @@ struct ProfileEditorView_Previews: PreviewProvider {
             existingProfile: exampleProfile,
             onSave: { _,_ in }
         )
-        .previewDisplayName("Profil bearbeiten")
+        .previewDisplayName("Edit Profile")
     }
 }

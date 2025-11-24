@@ -17,8 +17,6 @@ struct NetworkSharesView: View {
     @State private var showAddSheet = false
     @State private var shareToEdit: Share? = nil
     @State private var isDataLoaded = false
-    // @State private var showProfileSelector = false // Deactivated for now
-    // @State private var shareToAssignProfile: Share? // Deactivated for now
 
     // Access the Mounter via SwiftUI Environment
     @EnvironmentObject private var mounter: Mounter
@@ -42,10 +40,10 @@ struct NetworkSharesView: View {
                     .frame(width: 32, height: 32) // Overall smaller icon frame
                     
                 VStack(alignment: .leading) {
-                    Text("Netzwerk-Shares") // Updated to match tab label
+                    Text("Network Shares")
                         .font(.headline) // Smaller title font
                         .fontWeight(.medium) // Adjusted weight
-                    Text("Konfigurieren Sie hier die Netzwerk-Shares und deren Verbindungseinstellungen.") // Description
+                    Text("Configure network shares and their connection settings here.")
                         .font(.subheadline) // Explicitly set subheadline font
                         .foregroundColor(.secondary)
                 }
@@ -61,20 +59,6 @@ struct NetworkSharesView: View {
                 ForEach(shares) { share in
                     HStack {
                         HStack(spacing: 6) {
-                            // TODO: Integrate profile data later
-//                            // Show associated profile icon if a profile is linked
-//                            if let profileSymbol = share.profileSymbol,
-//                               let profileColor = share.profileColor {
-//                                Image(systemName: profileSymbol)
-//                                    .foregroundColor(.white)
-//                                    .background(
-//                                        Circle()
-//                                            .fill(profileColor)
-//                                            .frame(width: 24, height: 24)
-//                                    )
-//                                    .help(share.profileName ?? "")
-//                            }
-                            
                             VStack(alignment: .leading, spacing: 4) {
                                 // Use effectiveMountPoint for display
                                 Text(share.effectiveMountPoint)
@@ -86,15 +70,6 @@ struct NetworkSharesView: View {
                         }
                         
                         Spacer()
-                        
-                        // TODO: Integrate profile data later
-//                        // Associated profile name
-//                        if let profileName = share.profileName {
-//                            Text(profileName)
-//                                .font(.caption)
-//                                .foregroundColor(.secondary)
-//                                .padding(.horizontal, 8)
-//                        }
                         
                         // Status indicator based on real mountStatus
                         Circle()
@@ -110,7 +85,7 @@ struct NetworkSharesView: View {
                     }
                     .contextMenu {
                         // Button to Mount/Unmount the selected share
-                        Button(share.mountStatus == .mounted ? "Trennen" : "Verbinden") {
+                        Button(share.mountStatus == .mounted ? "Disconnect" : "Connect") {
                             Task {
                                 if share.mountStatus == .mounted {
                                     await mounter.unmountShare(for: share, userTriggered: true)
@@ -125,31 +100,15 @@ struct NetworkSharesView: View {
                         // Add edit button for non-managed shares
                         if !share.managed {
                             Divider()
-                            Button("Bearbeiten...") {
+                            Button("Edit...") {
                                 handleEditShare(share)
                             }
                         }
                         
-                        // TODO: Integrate profile actions later
-//                        Button(share.profileName == nil ? "Profil zuweisen..." : "Profil ändern...") {
-//                            shareToAssignProfile = share
-//                            showProfileSelector = true
-//                        }
-//                        
-//                        if share.profileName != nil {
-//                            Button("Profilzuweisung aufheben") {
-//                                if let index = shares.firstIndex(where: { $0.networkShare == share.networkShare }) {
-//                                    // TODO: Implement profile removal logic
-//                                }
-//                            }
-//                        }
-//                        
-//                        Divider()
-                        
                         // Button to delete the share (only if not managed)
                         if !share.managed {
                             Divider() // Add divider only if delete is possible
-                            Button("Löschen") {
+                            Button("Delete") {
                                 Task {
                                     await mounter.removeShare(for: share)
                                     if selectedNetworkShare == share.networkShare {
@@ -176,11 +135,11 @@ struct NetworkSharesView: View {
                             .foregroundColor(.secondary.opacity(0.6))
                             .padding(.bottom, 8)
                             
-                        Text("Keine Netzwerk-Shares konfiguriert")
+                        Text("No network shares configured")
                             .font(.headline)
                             .foregroundColor(.secondary)
                         
-                        Text("Klicken Sie auf '+', um einen neuen Share hinzuzufügen")
+                        Text("Click '+' to add a new share")
                             .font(.caption)
                             .foregroundColor(.secondary.opacity(0.8))
                             .multilineTextAlignment(.center)
@@ -202,7 +161,7 @@ struct NetworkSharesView: View {
                 Button(action: { showAddSheet = true }) {
                     Image(systemName: "plus")
                 }
-                .help("Hinzufügen")
+                .help("Add")
                 
                 Button(action: {
                     Task {
@@ -217,7 +176,7 @@ struct NetworkSharesView: View {
                 }) {
                     Image(systemName: "minus")
                 }
-                .help("Entfernen")
+                .help("Remove")
                 // Disable if no share is selected or if the selected share is managed
                 .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
                 
@@ -225,22 +184,9 @@ struct NetworkSharesView: View {
                 Button(action: handleToolbarEdit) {
                     Image(systemName: "square.and.pencil")
                 }
-                .help("Bearbeiten")
+                .help("Edit")
                 // Disable if no share is selected or if the selected share is managed
                 .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
-                
-                // TODO: Re-enable profile assignment later
-//                Button(action: {
-//                    if let selectedNetworkShare = selectedNetworkShare,
-//                       let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
-//                        shareToAssignProfile = share
-//                        showProfileSelector = true
-//                    }
-//                }) {
-//                    Image(systemName: "person.badge.key")
-//                }
-//                .help("Profil zuweisen")
-//                .disabled(selectedNetworkShare == nil)
                 
                 // MDM hint for managed shares
                 if let selectedNetworkShare = selectedNetworkShare,
@@ -250,7 +196,7 @@ struct NetworkSharesView: View {
                         Image(systemName: "gearshape.fill")
                             .foregroundColor(.orange)
                             .font(.caption)
-                        Text("Durch MDM-Richtlinie vorgegeben")
+                        Text("Defined by MDM policy")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -276,9 +222,9 @@ struct NetworkSharesView: View {
                         Image(systemName: "arrow.up.arrow.down")
                         if let selectedNetworkShare = selectedNetworkShare,
                            let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
-                            Text(share.mountStatus == .mounted ? "Trennen" : "Verbinden")
+                            Text(share.mountStatus == .mounted ? "Disconnect" : "Connect")
                         } else {
-                            Text("Verbinden/Trennen")
+                            Text("Connect/Disconnect")
                         }
                     }
                 }
@@ -319,18 +265,6 @@ struct NetworkSharesView: View {
                 Logger.networkSharesView.info("📋 Edit sheet opening for share: \(editingShare.networkShare)")
             }
         })
-//        .sheet(isPresented: $showProfileSelector) { // Deactivated for now
-//            if let share = shareToAssignProfile {
-//                ProfileSelectorView(
-//                    isPresented: $showProfileSelector,
-//                    onProfileSelected: { profileName, profileSymbol, profileColor in
-//                        if let index = shares.firstIndex(where: { $0.networkShare == share.networkShare }) {
-//                            // TODO: Implement profile assignment logic
-//                        }
-//                    }
-//                )
-//            }
-//        }
     }
     
     /// Loads all required data including shares and ensures profile manager is ready

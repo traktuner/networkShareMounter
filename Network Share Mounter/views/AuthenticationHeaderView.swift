@@ -17,10 +17,10 @@ struct AuthenticationHeaderView: View {
                 .frame(width: 32, height: 32)
 
             VStack(alignment: .leading) {
-                Text("Authentifizierung")
+                Text("Authentication")
                     .font(.headline)
                     .fontWeight(.medium)
-                Text("Verwalten Sie hier Ihre Authentifizierungsprofile für Netzwerkverbindungen.")
+                Text("Manage your authentication profiles for network connections.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
