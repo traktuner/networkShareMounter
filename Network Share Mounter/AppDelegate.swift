@@ -169,7 +169,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if let button = statusItem.button {
             button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
         }
-        
+
         // Asynchronously initialize the app
         Task {
             await initializeApp()
@@ -464,7 +464,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
 
             Logger.app.debug("🎉 App initialization completed successfully")
-        }.value
+        }
     }
 
     @MainActor

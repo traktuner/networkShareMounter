@@ -38,6 +38,18 @@ struct SettingsView: View {
         
         var id: String { self.rawValue }
         
+        /// Returns a localized title for each tab
+        var title: LocalizedStringKey {
+            switch self {
+            case .networkShares:
+                return LocalizedStringKey("Network Shares")
+            case .authentication:
+                return LocalizedStringKey("Authentication")
+            case .general:
+                return LocalizedStringKey("General")
+            }
+        }
+
         /// Returns the SF Symbol name for each tab
         var icon: String {
             switch self {
@@ -70,7 +82,7 @@ struct SettingsView: View {
                 ForEach(SettingsTab.allCases) { tab in
                     NavigationLink(value: tab) {
                         Label {
-                            Text(tab.rawValue)
+                            Text(tab.title) // Use LocalizedStringKey here
                                 .padding(.leading, 8)
                         } icon: {
                             // Create the colored square icon view

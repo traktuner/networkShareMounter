@@ -3067,8 +3067,8 @@
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Verbindet alle konfigurierten und erreichbaren Netzwerklaufwerke."
+            "state" : "translated",
+            "value" : "Verbindet alle konfigurierten und erreichbaren Netzwerklaufwerke"
           }
         },
         "en" : {
