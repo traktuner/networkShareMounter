@@ -27,7 +27,11 @@ import dogeADAuth
 class Mounter: ObservableObject {
     var prefs = PreferenceManager()
     @Published var shareManager = ShareManager()
-    
+
+    /// Indicates whether the Mac is bound to Active Directory
+    /// When true, system Kerberos tickets are used automatically by macOS
+    var isActiveDirectoryBound: Bool = false
+
     /// Published error status that automatically notifies observers
     @Published private var _errorStatus: MounterError = .noError
     
@@ -706,7 +710,8 @@ class Mounter: ObservableObject {
             Logger.mounter.debug("--- [Sequential Mount] Processing share: \(share.networkShare, privacy: .public) ---")
 
             // Early check: Skip Kerberos shares without valid tickets to avoid 60s timeout
-            if share.authType == .krb {
+            // EXCEPT when Mac is AD-bound (system Kerberos tickets are used automatically)
+            if share.authType == .krb && !isActiveDirectoryBound {
                 var shouldSkip = false
 
                 if let profileID = share.authProfileID {
@@ -730,6 +735,8 @@ class Mounter: ObservableObject {
                     Logger.mounter.debug("--- [Sequential Mount] Skipped share: \(share.networkShare, privacy: .public) ---")
                     continue
                 }
+            } else if share.authType == .krb && isActiveDirectoryBound {
+                Logger.mounter.debug("🎯 AD-bound Mac: Attempting Kerberos share mount with system tickets: \(share.networkShare, privacy: .public)")
             }
 
             do {
@@ -907,28 +914,34 @@ class Mounter: ObservableObject {
 
         for share in shares {
             if share.authType == .krb {
-                // Check if this Kerberos share has valid tickets
-                var hasTicket = false
-
-                if let profileID = share.authProfileID {
-                    // Share uses AuthProfile - check realm from profile
-                    let profiles = await AuthProfileManager.shared.profiles
-                    if let profile = profiles.first(where: { $0.id == profileID }),
-                       profile.useKerberos,
-                       let kerberosRealm = profile.kerberosRealm {
-                        hasTicket = await hasValidKerberosTicket(forRealm: kerberosRealm)
-                    }
-                } else {
-                    // Legacy Kerberos share - check default realm from preferences
-                    if let defaultRealm = prefs.string(for: .kerberosRealm), !defaultRealm.isEmpty {
-                        hasTicket = await hasValidKerberosTicket(forRealm: defaultRealm)
-                    }
-                }
-
-                if hasTicket {
+                // If Mac is AD-bound, treat all Kerberos shares as "with tickets"
+                // because system Kerberos tickets are used automatically by macOS
+                if isActiveDirectoryBound {
                     kerberosWithTickets.append(share)
                 } else {
-                    kerberosWithoutTickets.append(share)
+                    // Check if this Kerberos share has valid app-managed tickets
+                    var hasTicket = false
+
+                    if let profileID = share.authProfileID {
+                        // Share uses AuthProfile - check realm from profile
+                        let profiles = await AuthProfileManager.shared.profiles
+                        if let profile = profiles.first(where: { $0.id == profileID }),
+                           profile.useKerberos,
+                           let kerberosRealm = profile.kerberosRealm {
+                            hasTicket = await hasValidKerberosTicket(forRealm: kerberosRealm)
+                        }
+                    } else {
+                        // Legacy Kerberos share - check default realm from preferences
+                        if let defaultRealm = prefs.string(for: .kerberosRealm), !defaultRealm.isEmpty {
+                            hasTicket = await hasValidKerberosTicket(forRealm: defaultRealm)
+                        }
+                    }
+
+                    if hasTicket {
+                        kerberosWithTickets.append(share)
+                    } else {
+                        kerberosWithoutTickets.append(share)
+                    }
                 }
             } else {
                 // Password, guest, or other auth types - always fast
