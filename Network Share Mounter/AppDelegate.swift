@@ -360,10 +360,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 await mounter.shareManager.checkForUnassignedProfiles()
             }
 
-            if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
-                Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
+            // Check if Mac is bound to Active Directory
+            if await isActiveDirectoryBound() {
+                Logger.app.info("🎯 Mac is bound to Active Directory - using system Kerberos")
+
+                // Inform the mounter about AD binding status
+                if let mounter = self.mounter {
+                    mounter.isActiveDirectoryBound = true
+                }
+
+                // Check for system Kerberos tickets (for icon feedback only)
+                let klist = KlistUtil()
+                let tickets = await klist.klist()
+
+                if !tickets.isEmpty {
+                    Logger.app.info("✅ System Kerberos tickets available - AD authentication ready")
+                    await MainActor.run {
+                        if let button = self.statusItem.button {
+                            button.image = NSImage(named: NSImage.Name("networkShareMounterAD"))
+                        }
+                    }
+                } else {
+                    Logger.app.info("ℹ️ No system Kerberos tickets found (off-domain?) - using neutral icon")
+                    // Icon bleibt normal (wurde bereits bei app launch gesetzt)
+                }
+
+                // No app-managed Kerberos authentication needed
+                self.enableKerberos = false
+
+            } else if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+                // Not AD-bound but Kerberos realm configured: use app-managed authentication
+                Logger.app.info("Enabling app-managed Kerberos for Realm \(krbRealm, privacy: .public).")
                 self.enableKerberos = true
-                
+
                 let klist = KlistUtil()
                 let principals = await klist.klist()
                 if !principals.isEmpty {
@@ -375,7 +404,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     }
                 }
             } else {
-                Logger.app.info("No Kerberos Realm found.")
+                Logger.app.info("No Kerberos configuration found.")
             }
             
             let stats = AppStatistics.init()
@@ -456,10 +485,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
 
             if self.enableKerberos {
-                Logger.app.debug("Kerberos enabled - waiting for authentication before initial mount")
+                Logger.app.debug("App-managed Kerberos enabled - waiting for authentication before initial mount")
                 await self.performInitialMountWithKerberosAuth()
             } else {
-                Logger.app.debug("No Kerberos authentication required - performing initial mount")
+                Logger.app.debug("No app-managed Kerberos authentication required (AD-bound or no Kerberos) - performing initial mount")
                 NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
             }
 
