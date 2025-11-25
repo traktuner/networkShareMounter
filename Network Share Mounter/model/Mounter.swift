@@ -12,6 +12,7 @@ import SystemConfiguration
 import OpenDirectory
 import AppKit
 import OSLog
+import dogeADAuth
 
 // swiftlint:disable type_body_length
 /// Class responsible for performing mount/unmount operations for network shares.
@@ -147,12 +148,20 @@ class Mounter: ObservableObject {
         if prefs.bool(for: .useNewDefaultLocation) {
             self.defaultMountPath = Defaults.defaultMountPath
         } else {
-            // Use actual/legacy default location
-            self.defaultMountPath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+            // Use actual/legacy default location (resolve "~" safely without NSString)
+            let homeURL = URL(fileURLWithPath: NSHomeDirectory())
+            self.defaultMountPath = homeURL.appendingPathComponent(localizedFolder).path
         }
         // Set default mount location to profile-defined value if available
-        if let location = prefs.string(for: .location), !location.isEmpty {
-            self.defaultMountPath = NSString(string: prefs.string(for: .location)!).expandingTildeInPath
+        if let locationPref = prefs.string(for: .location), !locationPref.isEmpty {
+            if locationPref.hasPrefix("~") {
+                // Safely expand tilde without NSString
+                let trimmed = String(locationPref.dropFirst()).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                let homeURL = URL(fileURLWithPath: NSHomeDirectory())
+                self.defaultMountPath = homeURL.appendingPathComponent(trimmed).path
+            } else {
+                self.defaultMountPath = locationPref
+            }
         }
         Logger.mounter.debug("defaultMountPath is \(self.defaultMountPath, privacy: .public)")
         createMountFolder(atPath: self.defaultMountPath)
@@ -326,7 +335,46 @@ class Mounter: ObservableObject {
         return result
     }
 
-    
+
+    /// Validates if a path is safe for cleanup operations
+    ///
+    /// This method protects against accidental deletion of system directories.
+    /// It uses a blacklist approach for system-critical paths and validates that
+    /// the path is either in standard mount locations or is a subdirectory of
+    /// the configured defaultMountPath.
+    ///
+    /// - Parameter path: The path to validate
+    /// - Returns: true if path is safe for cleanup, false otherwise
+    private func isSafePathForCleanup(_ path: String) -> Bool {
+        let normalizedPath = URL(fileURLWithPath: path).standardizedFileURL.path
+        let normalizedDefaultMountPath = URL(fileURLWithPath: self.defaultMountPath).standardizedFileURL.path
+
+        // System-critical directories that must NEVER be cleaned up
+        let forbiddenPaths: Set<String> = [
+            "/",
+            "/usr", "/bin", "/sbin", "/etc", "/var", "/tmp", "/cores",
+            "/System", "/Library", "/Applications", "/private",
+            "/dev", "/home", "/opt", "/.vol"
+        ]
+
+        if forbiddenPaths.contains(normalizedPath) {
+            Logger.mounter.warning("🛡️ SECURITY: Blocked cleanup attempt on system directory: \(normalizedPath, privacy: .public)")
+            return false
+        }
+
+        // Allow cleanup in standard mount locations OR within configured defaultMountPath
+        let isInUsers = normalizedPath.hasPrefix("/Users/")
+        let isInVolumes = normalizedPath.hasPrefix("/Volumes/")
+        let isInDefaultMountPath = normalizedPath.hasPrefix(normalizedDefaultMountPath + "/") || normalizedPath == normalizedDefaultMountPath
+
+        guard isInUsers || isInVolumes || isInDefaultMountPath else {
+            Logger.mounter.warning("🛡️ SECURITY: Blocked cleanup attempt on non-whitelisted path: \(normalizedPath, privacy: .public)")
+            return false
+        }
+
+        return true
+    }
+
     /// Deletes unwanted files and empty directories in mount locations
     ///
     /// This function cleans up:
@@ -337,9 +385,13 @@ class Mounter: ObservableObject {
     ///   - path: The path of the directory containing the mountpoints
     ///   - filename: Optional name of file to delete if found (if nil, directories are processed)
     func deleteUnneededFiles(path: String, filename: String?) async {
+        guard isSafePathForCleanup(path) else {
+            Logger.mounter.error("🚨 SECURITY: Cleanup operation aborted for unsafe path: \(path, privacy: .public)")
+            return
+        }
+
         do {
-            var filePaths = try fm.contentsOfDirectory(atPath: path)
-            filePaths.append("/")
+            let filePaths = try fm.contentsOfDirectory(atPath: path)
             for filePath in filePaths {
                 // Check if directory should be protected from deletion
                 // If directory is safe to clean up, proceed
@@ -362,7 +414,7 @@ class Mounter: ObservableObject {
                             // Do not remove the top level directory containing the mountpoints
                             if filePath != "/" {
                                 let deleteFile = path.appendingPathComponent(filePath)
-                                removeDirectory(atPath: URL(string: deleteFile)!.relativePath)
+                                removeDirectory(atPath: URL(fileURLWithPath: deleteFile).path)
                             }
                         }
                     }
@@ -422,7 +474,7 @@ class Mounter: ObservableObject {
             let url = URL(fileURLWithPath: path)
             do {
                 try await fm.unmountVolume(at: url, options: [.allPartitionsAndEjectDisk, .withoutUI])
-                removeDirectory(atPath: URL(string: url.absoluteString)!.relativePath)
+                removeDirectory(atPath: url.path)
                 
                 // Refresh Finder for specific unmounted path (use killall for unmount)
                 if !skipFinderRefresh {
@@ -545,17 +597,26 @@ class Mounter: ObservableObject {
         // The directory with the mounts for the network-shares should be empty. All
         // former directories not deleted by the mounter should be removed to avoid
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
-        
-        // TODO: check if this is not too dangerous
+
+        // Clean up parent directories where shares are mounted
+        // This removes old mountpoint-1, mountpoint-2 style duplicates
         for share in await shareManager.allShares {
-            // Check if there is a specific mountpoint for the share. If yes, get the
-            // parent directory. This is the path where the mountpoint itself is located
-            if let path = share.mountPoint {
-                let url = URL(fileURLWithPath: path)
-                // Remove the last component (aka mountpoint) to get the containing
-                // parent directory
-                let parentDirectory = url.deletingLastPathComponent().path
+            // Calculate the actual full mount directory path for this share
+            guard let shareURL = URL(string: share.networkShare) else {
+                continue
+            }
+
+            // Use the same logic as mounting to determine where this share would be mounted
+            let fullMountDirectory = determineMountDirectory(forShare: share, url: shareURL, basePath: self.defaultMountPath)
+
+            // Get the parent directory that contains the mount point
+            let parentDirectory = URL(fileURLWithPath: fullMountDirectory).deletingLastPathComponent().path
+
+            // Safety check: Only clean up if parent is within safe bounds
+            if isSafePathForCleanup(parentDirectory) {
                 await deleteUnneededFiles(path: parentDirectory, filename: nil)
+            } else {
+                Logger.mounter.warning("⚠️ Skipping cleanup for share '\(share.networkShare, privacy: .public)' - parent directory '\(parentDirectory, privacy: .public)' is outside safe cleanup zone")
             }
         }
         // Look for unneeded files at the defaultMountPath
@@ -632,7 +693,10 @@ class Mounter: ObservableObject {
             sharesToMount = allShares
             Logger.mounter.debug("🔄 Preparing to mount \(sharesToMount.count, privacy: .public) shares sequentially")
         }
-        
+
+        // Sort shares for optimal mount order (password first, then kerberos with tickets, then kerberos without tickets)
+        sharesToMount = await sortSharesByMountability(sharesToMount)
+
         Logger.mounter.debug("📋 Shares to mount: \(sharesToMount.map { $0.networkShare }.joined(separator: ", "), privacy: .public)")
 
         // Mount shares sequentially to avoid race conditions
@@ -640,6 +704,33 @@ class Mounter: ObservableObject {
 
         for share in sharesToMount {
             Logger.mounter.debug("--- [Sequential Mount] Processing share: \(share.networkShare, privacy: .public) ---")
+
+            // Early check: Skip Kerberos shares without valid tickets to avoid 60s timeout
+            if share.authType == .krb {
+                var shouldSkip = false
+
+                if let profileID = share.authProfileID {
+                    let profiles = await AuthProfileManager.shared.profiles
+                    if let profile = profiles.first(where: { $0.id == profileID }),
+                       profile.useKerberos,
+                       let kerberosRealm = profile.kerberosRealm {
+                        if !(await hasValidKerberosTicket(forRealm: kerberosRealm)) {
+                            Logger.mounter.info("⏭️ Skipping Kerberos share without valid ticket: \(share.networkShare, privacy: .public)")
+                            shouldSkip = true
+                        }
+                    }
+                } else if let defaultRealm = prefs.string(for: .kerberosRealm), !defaultRealm.isEmpty {
+                    if !(await hasValidKerberosTicket(forRealm: defaultRealm)) {
+                        Logger.mounter.info("⏭️ Skipping Kerberos share without valid ticket: \(share.networkShare, privacy: .public)")
+                        shouldSkip = true
+                    }
+                }
+
+                if shouldSkip {
+                    Logger.mounter.debug("--- [Sequential Mount] Skipped share: \(share.networkShare, privacy: .public) ---")
+                    continue
+                }
+            }
 
             do {
                 // Reset mount status for user-triggered mounts or if specifically mounting this share
@@ -775,7 +866,81 @@ class Mounter: ObservableObject {
     }
     
     // MARK: - Share Mounting Private Helpers
-    
+
+    // MARK: - Kerberos Ticket Management
+
+    /// Checks if valid Kerberos tickets exist for a given realm
+    ///
+    /// - Parameter realm: The Kerberos realm to check (e.g., "FAUAD.FAU.DE")
+    /// - Returns: true if valid tickets exist for the realm, false otherwise
+    private func hasValidKerberosTicket(forRealm realm: String) async -> Bool {
+        let klist = KlistUtil()
+        let tickets = await klist.klist()
+
+        // Check if we have any valid (non-expired) tickets for this realm
+        let hasValidTicket = tickets.contains { ticket in
+            ticket.principal.uppercased().contains(realm.uppercased())
+        }
+
+        if hasValidTicket {
+            Logger.mounter.debug("✅ Found valid Kerberos ticket for realm: \(realm, privacy: .public)")
+        } else {
+            Logger.mounter.debug("⚠️ No valid Kerberos ticket for realm: \(realm, privacy: .public)")
+        }
+
+        return hasValidTicket
+    }
+
+    /// Sorts shares by mountability to optimize mount order
+    ///
+    /// Order:
+    /// 1. Password-authenticated shares (fast, always work)
+    /// 2. Kerberos shares with valid tickets (fast with ticket)
+    /// 3. Kerberos shares without tickets (slow timeout, will be skipped)
+    ///
+    /// - Parameter shares: The shares to sort
+    /// - Returns: Sorted array of shares
+    private func sortSharesByMountability(_ shares: [Share]) async -> [Share] {
+        var passwordShares: [Share] = []
+        var kerberosWithTickets: [Share] = []
+        var kerberosWithoutTickets: [Share] = []
+
+        for share in shares {
+            if share.authType == .krb {
+                // Check if this Kerberos share has valid tickets
+                var hasTicket = false
+
+                if let profileID = share.authProfileID {
+                    // Share uses AuthProfile - check realm from profile
+                    let profiles = await AuthProfileManager.shared.profiles
+                    if let profile = profiles.first(where: { $0.id == profileID }),
+                       profile.useKerberos,
+                       let kerberosRealm = profile.kerberosRealm {
+                        hasTicket = await hasValidKerberosTicket(forRealm: kerberosRealm)
+                    }
+                } else {
+                    // Legacy Kerberos share - check default realm from preferences
+                    if let defaultRealm = prefs.string(for: .kerberosRealm), !defaultRealm.isEmpty {
+                        hasTicket = await hasValidKerberosTicket(forRealm: defaultRealm)
+                    }
+                }
+
+                if hasTicket {
+                    kerberosWithTickets.append(share)
+                } else {
+                    kerberosWithoutTickets.append(share)
+                }
+            } else {
+                // Password, guest, or other auth types - always fast
+                passwordShares.append(share)
+            }
+        }
+
+        Logger.mounter.debug("📊 Share sorting: \(passwordShares.count) password, \(kerberosWithTickets.count) krb+ticket, \(kerberosWithoutTickets.count) krb-no-ticket")
+
+        return passwordShares + kerberosWithTickets + kerberosWithoutTickets
+    }
+
     /// Validates the network share URL and extracts the host
     ///
     /// - Parameter share: The share to validate
@@ -875,7 +1040,12 @@ class Mounter: ObservableObject {
                     Logger.mounter.info("❗ Obstructing directory at \(directory, privacy: .public): can not mount share \(url, privacy: .public)")
                     throw MounterError.obstructingDirectory
                 } else {
-                    removeDirectory(atPath: URL(string: directory)!.relativePath)
+                    let removed = removeDirectorySync(atPath: URL(fileURLWithPath: directory).path)
+                    if removed {
+                        Logger.mounter.debug("🗑️ Removed obstructing directory: \(directory, privacy: .public)")
+                    } else {
+                        Logger.mounter.warning("⚠️ Failed to remove obstructing directory: \(directory, privacy: .public)")
+                    }
                 }
             }
         }

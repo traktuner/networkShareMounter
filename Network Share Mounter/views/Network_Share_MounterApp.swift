@@ -93,7 +93,7 @@ struct Network_Share_MounterApp: App {
         .commandsRemoved() // keine Standard-Kommandos für diese versteckte Szene
 
         // Einstellungen als eigenes Fenster (Scene)
-        Window("Einstellungen", id: "settings") {
+        Window("Settings", id: "settings") {
             // SettingsView mit den (ggf. aus Notification) übernommenen Parametern
             SettingsView(
                 autoOpenProfileCreation: settingsManager.pendingAutoOpenProfileCreation,
@@ -115,7 +115,7 @@ struct Network_Share_MounterApp: App {
         .commands {
             // Ersetze den Standard-App-Einstellungen-Eintrag und öffne unsere Scene
             CommandGroup(replacing: .appSettings) {
-                Button("Einstellungen …") {
+                Button("Settings …") {
                     Logger.app.debug("🔧 [DEBUG] Einstellungen menu button clicked")
                     openWindow(id: "settings")
                 }

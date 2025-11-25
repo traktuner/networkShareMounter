@@ -12,7 +12,7 @@ struct ProfileRowView: View {
     
     // Computed property to get the current profile
     private var profile: AuthProfile {
-        profileManager.getProfile(by: profileId) ?? AuthProfile(displayName: "Unbekannt")
+        profileManager.getProfile(by: profileId) ?? AuthProfile(displayName: "Unknown")
     }
     
     // Check if this is a default realm profile
@@ -49,7 +49,7 @@ struct ProfileRowView: View {
                         Image(systemName: "lock.fill")
                             .font(.caption2)
                             .foregroundColor(.secondary)
-                            .help("Standard-Kerberos-Profil (nicht löschbar)")
+                            .help("Default Kerberos profile (not deletable)")
                     }
                 }
                 

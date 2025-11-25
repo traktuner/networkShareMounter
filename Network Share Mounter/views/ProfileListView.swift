@@ -45,26 +45,26 @@ struct ProfileListView: View {
                             .tag(profile.id)
                             .padding(.vertical, 1) // Add consistent row spacing
                             .contextMenu {
-                                Button("Bearbeiten") {
+                                Button("Edit") {
                                     onEditProfile(profile)
                                 }
                                 
                                 // Only show delete option if it's not a default realm profile
                                 if !profileManager.isDefaultRealmProfile(profile) {
-                                    Button("Löschen") {
+                                    Button("Delte") {
                                         onRemoveProfile(profile)
                                     }
                                 } else {
-                                    Button("Löschen") {
+                                    Button("Delete") {
                                         // Disabled button with explanation
                                     }
                                     .disabled(true)
-                                    .help("Standard-Kerberos-Profile können nicht gelöscht werden")
+                                    .help("Standard Kerberos profiles cannot be deleted")
                                 }
                                 
                                 if profile.useKerberos {
                                     Divider()
-                                    Button("Ticket aktualisieren") {
+                                    Button("Refresh ticket") {
                                         onRefreshTicket(profile)
                                     }
                                 }
@@ -80,7 +80,7 @@ struct ProfileListView: View {
                 Button(action: onAddProfile) {
                     Image(systemName: "plus")
                 }
-                .help("Profil hinzufügen")
+                .help("Add profile")
                 
                 Button {
                     if let selectedID = selectedProfileID,
@@ -93,10 +93,10 @@ struct ProfileListView: View {
                 .help({
                     guard let selectedID = selectedProfileID,
                           let profile = profileManager.getProfile(by: selectedID) else {
-                        return "Profil entfernen"
+                        return "Remove profile"
                     }
                     return profileManager.isDefaultRealmProfile(profile) ? 
-                           "Standard-Kerberos-Profile können nicht gelöscht werden" : "Profil entfernen"
+                           "Default Kerberos profiles cannot be deleted" : "Remove profile"
                 }())
                 .disabled({
                     guard let selectedID = selectedProfileID,
@@ -118,8 +118,8 @@ struct ProfileListView: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
-                .help("Kerberos-Ticket aktualisieren")
-                .disabled(selectedProfileID == nil || 
+                .help("Update Kerberos ticket")
+                .disabled(selectedProfileID == nil ||
                            (selectedProfileID != nil && 
                             profileManager.getProfile(by: selectedProfileID!)?.useKerberos != true))
             }

@@ -40,34 +40,34 @@ enum TicketStatus: Equatable {
     var displayText: String {
         switch self {
         case .unknown:
-            return "Prüfe..."
+            return "Checking..."
         case .valid:
-            return "Ticket gültig"
+            return "Ticket valid"
         case .expired:
-            return "Ticket abgelaufen"
+            return "Ticket expired"
         case .missing:
-            return "Kein Ticket"
+            return "No ticket"
         case .kdcUnreachable:
-            return "KDC nicht erreichbar"
+            return "KDC unreachable"
         case .authenticationError:
-            return "Authentifizierungsfehler"
+            return "Authentication error"
         }
     }
     
     var helpText: String {
         switch self {
         case .unknown:
-            return "Ticket-Status wird geprüft"
+            return "Checking ticket status"
         case .valid:
-            return "Aktives Kerberos-Ticket gefunden"
+            return "Active Kerberos ticket found"
         case .expired:
-            return "Kerberos-Ticket ist abgelaufen"
+            return "Kerberos ticket has expired"
         case .missing:
-            return "Kein Kerberos-Ticket für diesen Principal gefunden"
+            return "No Kerberos ticket found for this principal"
         case .kdcUnreachable:
-            return "Kerberos-Server (KDC) ist nicht erreichbar"
+            return "Kerberos server (KDC) is unreachable"
         case .authenticationError:
-            return "Anmeldedaten sind ungültig oder anderen Authentifizierungsfehler"
+            return "Invalid credentials or other authentication error"
         }
     }
 }
@@ -84,19 +84,23 @@ enum TicketRefreshStatus: Equatable {
         case .idle:
             return ""
         case .refreshing:
-            return "Prüfe..."
+            return "Checking..."
         case .success:
-            return "Erfolgreich aktualisiert"
+            return "Successfully refreshed"
         case .failed(let error):
                 // Simplify common error messages for user-friendly display
                 if error.contains("unable to reach any KDC") {
-                    return "KDC nicht erreichbar"
+                    return "KDC unreachable"
                 } else if error.contains("invalid credentials") || error.contains("UnAuthenticated") {
-                    return "Ungültige Anmeldedaten"
+                    return "Invalid credentials"
                 } else if error.contains("OffDomain") {
-                    return "Außerhalb der Domäne"
+                    return "Outside domain"
+                } else if error.contains("Nicht für Kerberos konfiguriert") {
+                    return "Not configured for Kerberos"
+                } else if error.contains("Kein Passwort im Schlüsselbund") {
+                    return "No password in keychain"
                 } else {
-                    return "Fehler bei Aktualisierung"
+                    return "Refresh failed"
                 }
         }
     }
@@ -354,7 +358,7 @@ struct AuthenticationView: View {
                 guard profile.useKerberos, let username = profile.username else {
                     logger.warning("Profile \(profile.displayName) is not configured for Kerberos authentication")
                     await MainActor.run {
-                        ticketRefreshStatus[profile.id] = .failed("Nicht für Kerberos konfiguriert")
+                        ticketRefreshStatus[profile.id] = .failed("Not configured for Kerberos")
                     }
                     return
                 }
@@ -392,7 +396,7 @@ struct AuthenticationView: View {
                 guard let password = try await profileManager.retrievePassword(for: profile) else {
                     logger.error("No password found in keychain for profile \(profile.displayName)")
                     await MainActor.run {
-                        ticketRefreshStatus[profile.id] = .failed("Kein Passwort im Schlüsselbund")
+                        ticketRefreshStatus[profile.id] = .failed("No password in keychain")
                         // Post error notification
                         NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
                     }
@@ -420,7 +424,7 @@ struct AuthenticationView: View {
                                 ticketRefreshStatus[profile.id] = .idle
                             }
                         } else {
-                            let errorMessage = error?.localizedDescription ?? "Unbekannter Fehler"
+                            let errorMessage = error?.localizedDescription ?? "Unknown error"
                             logger.error("Ticket refresh failed for \(profile.displayName): \(errorMessage)")
                             ticketRefreshStatus[profile.id] = .failed(errorMessage)
                             // Post error notification to update menu and icon
@@ -479,26 +483,16 @@ struct AuthenticationView: View {
     }
 }
 
-// MARK: - Logger Extension (Ensure accessible)
-// Define or ensure Logger.authenticationView exists
-// Example:
-// extension Logger {
-//     private static var subsystem = Bundle.main.bundleIdentifier!
-//     static let authenticationView = Logger(subsystem: subsystem, category: "AuthenticationView")
-// }
-
 // MARK: - Preview
 
 #Preview {
     AuthenticationView()
         .environmentObject(Mounter())
-        // Optionally provide mock data manager in preview if needed
-        // .environmentObject(MockAuthProfileManager())
 }
 
 // MARK: - Authentication Delegate for Ticket Refresh
 
-private class TicketRefreshDelegate: dogeADUserSessionDelegate {
+private class TicketRefreshDelegate: dogeADUserSessionDelegate, @unchecked Sendable {
     private let profile: AuthProfile
     private let completion: (Bool, Error?) -> Void
     private let logger = Logger.authenticationView
@@ -512,7 +506,6 @@ private class TicketRefreshDelegate: dogeADUserSessionDelegate {
         logger.info("Authentication succeeded for ticket refresh: \(self.profile.displayName, privacy: .public)")
         
         do {
-            // Switch to the authenticated principal
             guard let username = profile.username else {
                 logger.error("No username configured for profile \(self.profile.displayName, privacy: .public)")
                 completion(false, NSError(domain: "TicketRefresh", code: -1, userInfo: [NSLocalizedDescriptionKey: "No username configured"]))
@@ -521,9 +514,6 @@ private class TicketRefreshDelegate: dogeADUserSessionDelegate {
             
             let output = try await cliTask("/usr/bin/kswitch -p \(username)")
             logger.debug("kswitch output: \(output)")
-            
-            // Get user info (optional)
-            // await session?.userInfo()
             
             completion(true, nil)
         } catch {
@@ -535,7 +525,6 @@ private class TicketRefreshDelegate: dogeADUserSessionDelegate {
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {
         logger.error("Authentication failed for ticket refresh: \(self.profile.displayName, privacy: .public) - \(description)")
         
-        // Handle specific error types
         switch error {
         case .UnAuthenticated:
             logger.error("Invalid credentials for \(self.profile.displayName, privacy: .public)")
@@ -550,6 +539,5 @@ private class TicketRefreshDelegate: dogeADUserSessionDelegate {
     
     func dogeADUserInformation(user: ADUserRecord) {
         logger.debug("User information received for ticket refresh: \(user.userPrincipal, privacy: .public)")
-        // Optional: Update user information in preferences
     }
-} 
+}
