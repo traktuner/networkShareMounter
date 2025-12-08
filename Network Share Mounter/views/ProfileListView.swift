@@ -27,11 +27,11 @@ struct ProfileListView: View {
                             .foregroundColor(.secondary.opacity(0.6))
                             .padding(.bottom, 8)
                         
-                        Text("Keine Profile definiert.")
+                        Text("No prodile defined.")
                             .font(.headline)
                             .foregroundColor(.secondary)
                             
-                        Text("Klicken Sie auf '+', um ein neues Profil zu erstellen.")
+                        Text("Click '+' to create a new profile.")
                             .font(.caption)
                             .foregroundColor(.secondary.opacity(0.8))
                             .multilineTextAlignment(.center)
