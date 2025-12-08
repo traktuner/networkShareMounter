@@ -114,6 +114,7 @@ Not allowed:
 
 ### Additional Improvements
 
+- **Active Directory binding**: - Can differentiate between Macs bound to Active Directory and those that use Kerberos authentication
 - **Native autostart**: Uses macOS 13+ `SMAppService` API instead of using an external library
 - **Better error messages**: Clear, actionable error descriptions
 - **Modern Swift architecture**: Full async/await and Actor implementation

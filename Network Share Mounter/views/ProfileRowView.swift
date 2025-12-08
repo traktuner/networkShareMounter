@@ -63,7 +63,7 @@ struct ProfileRowView: View {
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 4)
                             .padding(.vertical, 1)
-                            .background(Color(.controlBackgroundColor))
+                            .background(.ultraThinMaterial)
                             .cornerRadius(3)
                     }
                 } else {
