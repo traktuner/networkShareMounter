@@ -44,7 +44,7 @@ class AuthProfileManager: ObservableObject {
 
     private init() {
         loadProfiles()
-        Logger.dataModel.info("AuthProfileManager initialized. Loaded \(self.profiles.count) profiles.")
+        Logger.dataModel.info("AuthProfileManager initialized. Loaded \(self.profiles.count, privacy: .public) profiles.")
     }
 
     // --- Profile Management ---
@@ -55,7 +55,7 @@ class AuthProfileManager: ObservableObject {
     ///   - password: The password associated with the profile, if any.
     func addProfile(_ profile: AuthProfile, password: String?) async throws {
         guard !profiles.contains(where: { $0.id == profile.id }) else {
-            Logger.dataModel.warning("Attempted to add profile with duplicate ID: \(profile.id)")
+            Logger.dataModel.warning("Attempted to add profile with duplicate ID: \(profile.id, privacy: .public)")
             throw AuthProfileError.duplicateProfileID
         }
 
@@ -64,13 +64,13 @@ class AuthProfileManager: ObservableObject {
         if !validation.isValid {
             // Check if it's a realm conflict (needs UI confirmation)
             if let conflictingProfile = validation.realmConflict {
-                Logger.dataModel.warning("⚠️ Realm conflict detected for '\(profile.displayName)' with existing profile '\(conflictingProfile.displayName)'")
+                Logger.dataModel.warning("⚠️ Realm conflict detected for '\(profile.displayName, privacy: .public)' with existing profile '\(conflictingProfile.displayName)'")
                 throw AuthProfileError.realmConflict(existingProfile: conflictingProfile, newProfile: profile)
             }
 
             // Regular validation errors
             if !validation.errors.isEmpty {
-                Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
+                Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName, privacy: .public)': \(validation.errors.joined(separator: ", "))")
                 throw AuthProfileError.validationFailed(validation.errors)
             }
         }
@@ -83,14 +83,14 @@ class AuthProfileManager: ObservableObject {
         if let pwd = password, !pwd.isEmpty {
             try await savePassword(for: profile, password: pwd)
         }
-        Logger.dataModel.info("Added profile '\(profile.displayName)' (ID: \(profile.id))")
+        Logger.dataModel.info("Added profile '\(profile.displayName, privacy: .public)' (ID: \(profile.id, privacy: .public))")
     }
 
     /// Updates an existing profile's metadata. Does not modify the password.
     /// - Parameter profile: The `AuthProfile` with updated metadata.
     func updateProfile(_ profile: AuthProfile) async throws {
         guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else {
-            Logger.dataModel.warning("Attempted to update non-existent profile ID: \(profile.id)")
+            Logger.dataModel.warning("Attempted to update non-existent profile ID: \(profile.id, privacy: .public)")
             throw AuthProfileError.profileNotFound
         }
 
@@ -99,13 +99,13 @@ class AuthProfileManager: ObservableObject {
         if !validation.isValid {
             // Check if it's a realm conflict (needs UI confirmation)
             if let conflictingProfile = validation.realmConflict {
-                Logger.dataModel.warning("⚠️ Realm conflict detected for '\(profile.displayName)' with existing profile '\(conflictingProfile.displayName)'")
+                Logger.dataModel.warning("⚠️ Realm conflict detected for '\(profile.displayName, privacy: .public)' with existing profile '\(conflictingProfile.displayName)'")
                 throw AuthProfileError.realmConflict(existingProfile: conflictingProfile, newProfile: profile)
             }
 
             // Regular validation errors
             if !validation.errors.isEmpty {
-                Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName)': \(validation.errors.joined(separator: ", "))")
+                Logger.dataModel.error("❌ Profile validation failed for '\(profile.displayName, privacy: .public)': \(validation.errors.joined(separator: ", "))")
                 throw AuthProfileError.validationFailed(validation.errors)
             }
         }
@@ -115,7 +115,7 @@ class AuthProfileManager: ObservableObject {
             objectWillChange.send()
         }
         saveProfiles() // Save metadata changes
-        Logger.dataModel.info("Updated profile '\(profile.displayName)' (ID: \(profile.id))")
+        Logger.dataModel.info("Updated profile '\(profile.displayName, privacy: .public)' (ID: \(profile.id, privacy: .public))")
     }
 
     /// Replaces an existing Kerberos profile with a new one for the same realm.
@@ -142,7 +142,7 @@ class AuthProfileManager: ObservableObject {
 
         // Basic validation only (skip realm conflict check)
         if newProfile.useKerberos && !newProfile.isValidKerberosProfile {
-            throw AuthProfileError.validationFailed(["Der Benutzername muss im Format benutzername@domäne.de eingegeben werden"])
+            throw AuthProfileError.validationFailed(["The username must be entered in the format username@domain.de."])
         }
 
         // Add the new profile
@@ -154,7 +154,7 @@ class AuthProfileManager: ObservableObject {
             try await savePassword(for: newProfile, password: pwd)
         }
 
-        Logger.dataModel.info("✅ Successfully replaced Kerberos profile. New profile ID: \(newProfile.id)")
+        Logger.dataModel.info("✅ Successfully replaced Kerberos profile. New profile ID: \(newProfile.id, privacy: .public)")
     }
 
     /// Removes a profile and its associated password from the Keychain.
@@ -165,7 +165,7 @@ class AuthProfileManager: ObservableObject {
 
         // Remove password from Keychain
         try await removePassword(for: profile)
-        Logger.dataModel.info("Removed profile '\(profile.displayName)' (ID: \(profile.id))")
+        Logger.dataModel.info("Removed profile '\(profile.displayName, privacy: .public)' (ID: \(profile.id, privacy: .public))")
     }
 
     /// Retrieves a profile by its unique ID.
@@ -195,7 +195,7 @@ class AuthProfileManager: ObservableObject {
     ///   - kerberosRealm: The Kerberos realm to match against
     /// - Returns: The profile ID if a match was found, nil otherwise
     func autoAssignKerberosProfile(shareURL: String, username: String?, kerberosRealm: String) -> String? {
-        Logger.dataModel.debug("🔍 Auto-assigning Kerberos profile for share: \(shareURL), realm: \(kerberosRealm)")
+        Logger.dataModel.debug("🔍 Auto-assigning Kerberos profile for share: \(shareURL, privacy: .public), realm: \(kerberosRealm, privacy: .public)")
 
         // Find all Kerberos profiles matching the realm
         let candidateProfiles = profiles.filter { profile in
@@ -205,26 +205,26 @@ class AuthProfileManager: ObservableObject {
 
         // No matching profiles found
         guard !candidateProfiles.isEmpty else {
-            Logger.dataModel.warning("⚠️ No Kerberos profile found for realm: \(kerberosRealm), share: \(shareURL)")
+            Logger.dataModel.warning("⚠️ No Kerberos profile found for realm: \(kerberosRealm, privacy: .public), share: \(shareURL, privacy: .public)")
             return nil
         }
 
         // Exactly one match - use it
         if candidateProfiles.count == 1 {
             let profile = candidateProfiles[0]
-            Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(profile.displayName)' to share: \(shareURL)")
+            Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(profile.displayName, privacy: .public)' to share: \(shareURL, privacy: .public)")
             return profile.id
         }
 
         // Multiple matches - use prioritization logic
-        Logger.dataModel.debug("🔍 Found \(candidateProfiles.count) Kerberos profiles for realm \(kerberosRealm), applying prioritization")
+        Logger.dataModel.debug("🔍 Found \(candidateProfiles.count) Kerberos profiles for realm \(kerberosRealm, privacy: .public), applying prioritization")
 
         // Priority 1: Username match (if share has username)
         if let username = username {
             if let usernameMatch = candidateProfiles.first(where: {
                 $0.username?.lowercased() == username.lowercased()
             }) {
-                Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(usernameMatch.displayName)' (username match) to share: \(shareURL)")
+                Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(usernameMatch.displayName, privacy: .public)' (username match) to share: \(shareURL, privacy: .public)")
                 return usernameMatch.id
             }
         }
@@ -233,13 +233,13 @@ class AuthProfileManager: ObservableObject {
         if let mainProfile = candidateProfiles.max(by: {
             ($0.associatedNetworkShares?.count ?? 0) < ($1.associatedNetworkShares?.count ?? 0)
         }) {
-            Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(mainProfile.displayName)' (most shares) to share: \(shareURL)")
+            Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(mainProfile.displayName, privacy: .public)' (most shares) to share: \(shareURL, privacy: .public)")
             return mainProfile.id
         }
 
         // Fallback: First profile (shouldn't happen but safe)
         let fallbackProfile = candidateProfiles[0]
-        Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(fallbackProfile.displayName)' (fallback) to share: \(shareURL)")
+        Logger.dataModel.info("✅ Auto-assigned Kerberos profile '\(fallbackProfile.displayName, privacy: .public)' (fallback) to share: \(shareURL, privacy: .public)")
         return fallbackProfile.id
     }
 
@@ -267,19 +267,19 @@ class AuthProfileManager: ObservableObject {
 
         // No matching profiles found
         guard !candidateProfiles.isEmpty else {
-            Logger.dataModel.warning("⚠️ No profile found for username: \(username), share: \(shareURL)")
+            Logger.dataModel.warning("⚠️ No profile found for username: \(username, privacy: .public), share: \(shareURL, privacy: .public)")
             return nil
         }
 
         // Exactly one match - auto-assign
         if candidateProfiles.count == 1 {
             let profile = candidateProfiles[0]
-            Logger.dataModel.info("✅ Auto-assigned profile '\(profile.displayName)' to password share: \(shareURL)")
+            Logger.dataModel.info("✅ Auto-assigned profile '\(profile.displayName, privacy: .public)' to password share: \(shareURL, privacy: .public)")
             return profile.id
         }
 
         // Multiple matches - ambiguous, requires user decision
-        Logger.dataModel.warning("⚠️ Found \(candidateProfiles.count) profiles for username '\(username)' - ambiguous, requires user selection")
+        Logger.dataModel.warning("⚠️ Found \(candidateProfiles.count) profiles for username '\(username, privacy: .public)' - ambiguous, requires user selection")
         Logger.dataModel.debug("   Candidates: \(candidateProfiles.map { $0.displayName }.joined(separator: ", "))")
         return nil
     }
@@ -294,16 +294,16 @@ class AuthProfileManager: ObservableObject {
         guard !password.isEmpty else {
             // If password is empty, consider removing it instead? Or do nothing?
             // For now, we'll remove it if an empty password is explicitly saved.
-            Logger.dataModel.info("Password for profile '\(profile.displayName)' is empty. Removing from keychain.")
+            Logger.dataModel.info("Password for profile '\(profile.displayName, privacy: .public)' is empty. Removing from keychain.")
             try await removePassword(for: profile)
             return
         }
         do {
             // Use profile ID as the 'account' in the Keychain query
             try keychainManager.saveCredential(forUsername: profile.id, andPassword: password, withService: keychainServiceForProfiles)
-            Logger.dataModel.debug("Saved password to keychain for profile ID: \(profile.id)")
+            Logger.dataModel.debug("Saved password to keychain for profile ID: \(profile.id, privacy: .public)")
         } catch {
-            Logger.dataModel.error("Failed to save password to keychain for profile ID \(profile.id): \(error.localizedDescription)")
+            Logger.dataModel.error("Failed to save password to keychain for profile ID \(profile.id, privacy: .public): \(error.localizedDescription)")
             throw error // Re-throw the error
         }
     }
@@ -314,13 +314,13 @@ class AuthProfileManager: ObservableObject {
     func retrievePassword(for profile: AuthProfile) async throws -> String? {
         do {
             let password = try keychainManager.retrievePassword(forUsername: profile.id, andService: keychainServiceForProfiles)
-            Logger.dataModel.debug("Retrieved password from keychain for profile ID: \(profile.id) - \(password == nil ? "Not Found" : "Found")")
+            Logger.dataModel.debug("Retrieved password from keychain for profile ID: \(profile.id, privacy: .public) - \(password == nil ? "Not Found" : "Found", privacy: .public)")
             return password
         } catch KeychainError.itemNotFound {
-             Logger.dataModel.info("Password not found in keychain for profile ID \(profile.id)")
+            Logger.dataModel.info("Password not found in keychain for profile ID \(profile.id, privacy: .public)")
              return nil // Return nil specifically for itemNotFound
          } catch {
-            Logger.dataModel.error("Failed to retrieve password from keychain for profile ID \(profile.id): \(error.localizedDescription)")
+             Logger.dataModel.error("Failed to retrieve password from keychain for profile ID \(profile.id, privacy: .public): \(error.localizedDescription)")
             throw error // Re-throw other errors
         }
     }
@@ -330,12 +330,12 @@ class AuthProfileManager: ObservableObject {
     func removePassword(for profile: AuthProfile) async throws {
         do {
             try keychainManager.removeCredential(forUsername: profile.id, andService: keychainServiceForProfiles)
-            Logger.dataModel.debug("Removed password from keychain for profile ID: \(profile.id)")
+            Logger.dataModel.debug("Removed password from keychain for profile ID: \(profile.id, privacy: .public)")
         } catch KeychainError.itemNotFound {
-             Logger.dataModel.info("Attempted to remove password for profile ID \(profile.id), but it was not found in keychain.")
+             Logger.dataModel.info("Attempted to remove password for profile ID \(profile.id, privacy: .public), but it was not found in keychain.")
              // Ignore itemNotFound, as the goal is achieved (password is gone)
          } catch {
-            Logger.dataModel.error("Failed to remove password from keychain for profile ID \(profile.id): \(error.localizedDescription)")
+            Logger.dataModel.error("Failed to remove password from keychain for profile ID \(profile.id, privacy: .public): \(error.localizedDescription)")
             throw error // Re-throw other errors
         }
     }
@@ -353,7 +353,7 @@ class AuthProfileManager: ObservableObject {
         do {
             let decoder = JSONDecoder()
             self.profiles = try decoder.decode([AuthProfile].self, from: data)
-            Logger.dataModel.info("Successfully loaded \(self.profiles.count) profiles from UserDefaults.")
+            Logger.dataModel.info("Successfully loaded \(self.profiles.count, privacy: .public) profiles from UserDefaults.")
         } catch {
             Logger.dataModel.error("Failed to decode profiles from UserDefaults: \(error.localizedDescription)")
             self.profiles = [] // Reset to empty on error
@@ -366,7 +366,7 @@ class AuthProfileManager: ObservableObject {
             let encoder = JSONEncoder()
             let data = try encoder.encode(profiles)
             UserDefaults.standard.set(data, forKey: Defaults.authProfileKey)
-            Logger.dataModel.debug("Successfully saved \(self.profiles.count) profiles to UserDefaults.")
+            Logger.dataModel.debug("Successfully saved \(self.profiles.count, privacy: .public) profiles to UserDefaults.")
         } catch {
             Logger.dataModel.error("Failed to encode profiles for UserDefaults: \(error.localizedDescription)")
         }
@@ -394,11 +394,11 @@ class AuthProfileManager: ObservableObject {
         do {
             // Get shares directly from UserDefaults/MDM configuration (not ShareManager)
             let shareConfigs = getAllShareConfigurations()
-            Logger.dataModel.info("Found \(shareConfigs.count) share configurations to analyze")
+            Logger.dataModel.info("Found \(shareConfigs.count, privacy: .public) share configurations to analyze")
 
         // Get FAU shared credentials for additional Kerberos profile creation
         let fauCredentials = try keychainManager.retrieveAllFAUSharedCredentials()
-        Logger.dataModel.info("Found \(fauCredentials.count) FAU shared credentials")
+        Logger.dataModel.info("Found \(fauCredentials.count, privacy: .public) FAU shared credentials")
 
         // Process each share individually based on AuthType and found keychain entries
         var kerberosProfiles: [String: KerberosProfileData] = [:]
@@ -407,7 +407,7 @@ class AuthProfileManager: ObservableObject {
         // Process each share configuration (only those with explicit usernames)
         for shareConfig in shareConfigs {
             guard let username = shareConfig.username else {
-                Logger.dataModel.debug("Skipping share without username: \(shareConfig.shareURL)")
+                Logger.dataModel.debug("Skipping share without username: \(shareConfig.shareURL, privacy: .public)")
                 continue
             }
 
@@ -415,7 +415,7 @@ class AuthProfileManager: ObservableObject {
 
             // Try to get password and determine keychain type for this specific share
             guard let credentialInfo = getPasswordForShareConfig(shareConfig) else {
-                Logger.dataModel.warning("⚠️ No password found for share: \(shareConfig.shareURL)")
+                Logger.dataModel.warning("⚠️ No password found for share: \(shareConfig.shareURL, privacy: .public)")
                 continue
             }
 
@@ -435,7 +435,7 @@ class AuthProfileManager: ObservableObject {
                         kerberosRealm: kerberosCheck.realm ?? fallbackRealm,
                         keychainType: credentialInfo.keychainType
                     )
-                    Logger.dataModel.debug("✅ Kerberos profile: \(username) (keychain: \(String(describing: credentialInfo.keychainType)))")
+                    Logger.dataModel.debug("✅ Kerberos profile: \(username, privacy: .public) (keychain: \(String(describing: credentialInfo.keychainType)))")
                 }
 
             case KeychainEntryType.shareBased:
@@ -449,7 +449,7 @@ class AuthProfileManager: ObservableObject {
                         password: credentialInfo.password,
                         shares: [shareConfig.shareURL]
                     )
-                    Logger.dataModel.debug("✅ Password profile: \(username) (share-based keychain)")
+                    Logger.dataModel.debug("✅ Password profile: \(username, privacy: .public) (share-based keychain)")
                 }
             }
         }
@@ -474,11 +474,11 @@ class AuthProfileManager: ObservableObject {
                         kerberosRealm: isKerberos.realm ?? fallbackRealm,
                         keychainType: KeychainEntryType.fauShared
                     )
-                Logger.dataModel.debug("✅ Added FAU Kerberos user: \(fauCredential.username)")
+                Logger.dataModel.debug("✅ Added FAU Kerberos user: \(fauCredential.username, privacy: .public)")
             }
         }
 
-        Logger.dataModel.info("Created \(kerberosProfiles.count) Kerberos profiles and \(passwordProfiles.count) password profiles")
+        Logger.dataModel.info("Created \(kerberosProfiles.count, privacy: .public) Kerberos profiles and \(passwordProfiles.count, privacy: .public) password profiles")
 
         // Create Kerberos profiles (reference existing keychain entries - DON'T migrate)
         for (_, profileData) in kerberosProfiles {
@@ -495,7 +495,7 @@ class AuthProfileManager: ObservableObject {
             )
 
             profiles.append(profile)
-            Logger.dataModel.info("✅ Created Kerberos profile for \(profileData.username) (references existing \(String(describing: profileData.keychainType)) keychain)")
+            Logger.dataModel.info("✅ Created Kerberos profile for \(profileData.username, privacy: .public) (references existing \(String(describing: profileData.keychainType)) keychain)")
         }
 
         // Create and migrate password profiles (migrate keychain entries)
@@ -521,7 +521,7 @@ class AuthProfileManager: ObservableObject {
                 )
 
                 profiles.append(profile)
-                Logger.dataModel.info("✅ Migrated password profile for \(profileData.username)")
+                Logger.dataModel.info("✅ Migrated password profile for \(profileData.username, privacy: .public)")
 
                 // TODO: Remove old share-based entries after successful migration
                 // This should be done carefully to avoid data loss
@@ -532,13 +532,13 @@ class AuthProfileManager: ObservableObject {
                 // }
 
             } catch {
-                Logger.dataModel.error("❌ Failed to migrate password for \(profileData.username): \(error)")
+                Logger.dataModel.error("❌ Failed to migrate password for \(profileData.username, privacy: .public): \(error)")
                 // Continue with other profiles instead of failing entire migration
                 continue
             }
         }
 
-        Logger.dataModel.info("Created \(kerberosProfiles.count) Kerberos profiles and \(passwordProfiles.count) password profiles")
+        Logger.dataModel.info("Created \(kerberosProfiles.count, privacy: .public) Kerberos profiles and \(passwordProfiles.count) password profiles")
 
         // Save all profiles to UserDefaults
         saveProfiles()
@@ -546,7 +546,7 @@ class AuthProfileManager: ObservableObject {
         // Update existing user shares to link with newly created profiles
         await updateExistingSharesWithProfiles()
 
-            Logger.dataModel.info("✅ Hybrid migration completed: \(kerberosProfiles.count) Kerberos profiles, \(passwordProfiles.count) password profiles")
+            Logger.dataModel.info("✅ Hybrid migration completed: \(kerberosProfiles.count, privacy: .public) Kerberos profiles, \(passwordProfiles.count, privacy: .public) password profiles")
 
         } catch {
             Logger.dataModel.error("❌ Migration failed: \(error.localizedDescription)")
@@ -620,7 +620,7 @@ class AuthProfileManager: ObservableObject {
         }
         // 2. Process legacy MDM shares if no new format found
         else if let nwShares = userDefaults.array(forKey: Defaults.networkSharesKey) as? [String], !nwShares.isEmpty {
-            Logger.dataModel.debug("Processing \(nwShares.count) legacy MDM shares")
+            Logger.dataModel.debug("Processing \(nwShares.count, privacy: .public) legacy MDM shares")
 
             for share in nwShares {
                 let shareRectified = share.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
@@ -634,7 +634,7 @@ class AuthProfileManager: ObservableObject {
 
         // 3. Process user-defined shares
         if let privSharesDict = userDefaults.array(forKey: Defaults.userNetworkShares) as? [[String: String]], !privSharesDict.isEmpty {
-            Logger.dataModel.debug("Processing \(privSharesDict.count) user-defined shares (new format)")
+            Logger.dataModel.debug("Processing \(privSharesDict.count, privacy: .public) user-defined shares (new format)")
 
             for shareElement in privSharesDict {
                 guard let shareUrlString = shareElement[Defaults.networkShare] else { continue }
@@ -648,7 +648,7 @@ class AuthProfileManager: ObservableObject {
         }
         // Legacy user shares
         else if let nwShares = userDefaults.array(forKey: Defaults.customSharesKey) as? [String], !nwShares.isEmpty {
-            Logger.dataModel.debug("Processing \(nwShares.count) legacy user shares")
+            Logger.dataModel.debug("Processing \(nwShares.count, privacy: .public) legacy user shares")
 
             for share in nwShares {
                 configurations.append(ShareConfiguration(
@@ -659,7 +659,7 @@ class AuthProfileManager: ObservableObject {
             }
         }
 
-        Logger.dataModel.info("Collected \(configurations.count) total share configurations")
+        Logger.dataModel.info("Collected \(configurations.count, privacy: .public) total share configurations")
         return configurations
     }
 
@@ -667,7 +667,7 @@ class AuthProfileManager: ObservableObject {
     /// Searches based on the share's AuthType to determine the correct keychain format
     private func getPasswordForShareConfig(_ shareConfig: ShareConfiguration) -> (password: String, keychainType: KeychainEntryType)? {
         guard let username = shareConfig.username else {
-            Logger.dataModel.warning("Invalid share config: \(shareConfig.shareURL)")
+            Logger.dataModel.warning("Invalid share config: \(shareConfig.shareURL, privacy: .public)")
             return nil
         }
 
@@ -675,13 +675,13 @@ class AuthProfileManager: ObservableObject {
         if shareConfig.authType == AuthType.krb.rawValue {
             // For Kerberos shares, try UPN-based entries first (these should stay in keychain)
             if let upnPassword = tryGetUPNPassword(for: username) {
-                Logger.dataModel.debug("✅ Found UPN-based Kerberos password for \(username)")
+                Logger.dataModel.debug("✅ Found UPN-based Kerberos password for \(username, privacy: .public)")
                 return (password: upnPassword, keychainType: KeychainEntryType.kerberosUPN)
             }
 
             // Try FAU shared keychain
             if let fauPassword = tryGetFAUPassword(for: username) {
-                Logger.dataModel.debug("✅ Found FAU shared Kerberos password for \(username)")
+                Logger.dataModel.debug("✅ Found FAU shared Kerberos password for \(username, privacy: .public)")
                 return (password: fauPassword, keychainType: KeychainEntryType.fauShared)
             }
         }
@@ -690,17 +690,17 @@ class AuthProfileManager: ObservableObject {
         if let url = URL(string: shareConfig.shareURL) {
             do {
                 if let password = try keychainManager.retrievePassword(forShare: url, withUsername: username) {
-                    Logger.dataModel.debug("✅ Found share-based password for \(shareConfig.shareURL)")
+                    Logger.dataModel.debug("✅ Found share-based password for \(shareConfig.shareURL, privacy: .public)")
                     return (password: password, keychainType: KeychainEntryType.shareBased)
                 }
             } catch KeychainError.itemNotFound {
-                Logger.dataModel.debug("No share-based password found for \(shareConfig.shareURL)")
+                Logger.dataModel.debug("No share-based password found for \(shareConfig.shareURL, privacy: .public)")
             } catch {
                 Logger.dataModel.warning("Error retrieving share-based password: \(error)")
             }
         }
 
-        Logger.dataModel.debug("❌ No password found for \(username) in any keychain location")
+        Logger.dataModel.debug("❌ No password found for \(username, privacy: .public) in any keychain location")
         return nil
     }
 
@@ -718,12 +718,12 @@ class AuthProfileManager: ObservableObject {
 
         do {
             let password = try keychainManager.retrievePassword(forUsername: fullUPN, andService: Defaults.keyChainService)
-            Logger.dataModel.debug("Found UPN password for \(fullUPN)")
+            Logger.dataModel.debug("Found UPN password for \(fullUPN, privacy: .public)")
             return password
         } catch KeychainError.itemNotFound {
-            Logger.dataModel.debug("No UPN password for \(fullUPN)")
+            Logger.dataModel.debug("No UPN password for \(fullUPN, privacy: .public)")
         } catch {
-            Logger.dataModel.warning("Error accessing UPN credentials for \(fullUPN): \(error)")
+            Logger.dataModel.warning("Error accessing UPN credentials for \(fullUPN, privacy: .public): \(error)")
         }
         return nil
     }
@@ -766,20 +766,20 @@ class AuthProfileManager: ObservableObject {
     /// Gets password for a specific share and username from keychain
     private func getPasswordForShare(_ share: Share, username: String) async -> String? {
         guard let url = URL(string: share.networkShare) else {
-            Logger.dataModel.warning("Invalid share URL: \(share.networkShare)")
+            Logger.dataModel.warning("Invalid share URL: \(share.networkShare, privacy: .public)")
             return nil
         }
 
         do {
             // Try to get password using existing KeychainManager methods
             let password = try keychainManager.retrievePassword(forShare: url, withUsername: username)
-            Logger.dataModel.debug("Found password for \(share.networkShare) with user \(username)")
+            Logger.dataModel.debug("Found password for \(share.networkShare, privacy: .public) with user \(username)")
             return password
         } catch KeychainError.itemNotFound {
-            Logger.dataModel.debug("No password found for \(share.networkShare) with user \(username)")
+            Logger.dataModel.debug("No password found for \(share.networkShare, privacy: .public) with user \(username)")
             return nil
         } catch {
-            Logger.dataModel.warning("Error retrieving password for \(share.networkShare): \(error)")
+            Logger.dataModel.warning("Error retrieving password for \(share.networkShare, privacy: .public): \(error)")
             return nil
         }
     }
@@ -789,7 +789,7 @@ class AuthProfileManager: ObservableObject {
         // Method 1: Check if username matches any DogeAccount UPN
         for account in dogeAccounts {
             if account.upn.lowercased() == username.lowercased() {
-                Logger.dataModel.debug("✅ Kerberos credential detected via DogeAccount: \(username)")
+                Logger.dataModel.debug("✅ Kerberos credential detected via DogeAccount: \(username, privacy: .public)")
                 return true
             }
         }
@@ -798,7 +798,7 @@ class AuthProfileManager: ObservableObject {
         if let realm = kerberosRealm, !realm.isEmpty,
            let userDomain = username.userDomain() {
             if userDomain.lowercased() == realm.lowercased() {
-                Logger.dataModel.debug("✅ Kerberos credential detected via realm match: \(username)")
+                Logger.dataModel.debug("✅ Kerberos credential detected via realm match: \(username, privacy: .public)")
                 return true
             }
         }
@@ -844,9 +844,9 @@ class AuthProfileManager: ObservableObject {
         }
 
         if !isValid {
-            Logger.dataModel.warning("⚠️ Kerberos profile validation failed: Username '\(username)' not found in DogeAccounts")
+            Logger.dataModel.warning("⚠️ Kerberos profile validation failed: Username '\(username, privacy: .public)' not found in DogeAccounts")
         } else {
-            Logger.dataModel.debug("✅ Kerberos profile validation passed for username: \(username)")
+            Logger.dataModel.debug("✅ Kerberos profile validation passed for username: \(username, privacy: .public)")
         }
 
         return isValid
@@ -861,10 +861,10 @@ class AuthProfileManager: ObservableObject {
         // Basic validation from AuthProfile
         if !profile.isValidKerberosProfile {
             if profile.useKerberos && !profile.isValidKerberosUsername {
-                errors.append("Der Benutzername muss im Format benutzername@domäne.de eingegeben werden")
+                errors.append("The username must be entered in the format username@domain.de")
             }
             if profile.useKerberos && !profile.hasConsistentKerberosRealm {
-                errors.append("Die Domäne im Benutzernamen stimmt nicht mit der konfigurierten Kerberos-Domäne überein")
+                errors.append("The domain in the username does not match the configured Kerberos domain")
             }
         }
 
@@ -883,7 +883,7 @@ class AuthProfileManager: ObservableObject {
         if profile.useKerberos {
             let kerbValid = await validateKerberosProfile(profile)
             if !kerbValid {
-                errors.append("Der Kerberos-Benutzername wurde nicht in den verfügbaren Konten gefunden")
+                errors.append("The Kerberos username was not found among the available accounts")
             }
         }
 
@@ -940,11 +940,11 @@ class AuthProfileManager: ObservableObject {
 
         // Check if default realm profile already exists
         if hasDefaultRealmProfile() {
-            Logger.dataModel.debug("Default realm profile already exists for realm: \(mdmRealm)")
+            Logger.dataModel.debug("Default realm profile already exists for realm: \(mdmRealm, privacy: .public)")
             return
         }
 
-        Logger.dataModel.info("Creating default realm profile for MDM realm: \(mdmRealm)")
+        Logger.dataModel.info("Creating default realm profile for MDM realm: \(mdmRealm, privacy: .public)")
 
         // Get username from DogeAccounts for the realm
         let accountsManager = AccountsManager.shared
@@ -1065,7 +1065,7 @@ class AuthProfileManager: ObservableObject {
             // Get share details
             guard let shareURL = shareConfig[Defaults.networkShare],
                   let username = shareConfig[Defaults.username] else {
-                Logger.dataModel.debug("⏭️ Share missing URL or username, skipping: \(shareConfig)")
+                Logger.dataModel.debug("⏭️ Share missing URL or username, skipping: \(shareConfig, privacy: .public)")
                 updatedShares.append(updatedShare)
                 continue
             }
@@ -1086,12 +1086,12 @@ class AuthProfileManager: ObservableObject {
             if let profile = matchingProfile {
                 updatedShare[Defaults.authProfileID] = profile.id
                 migrationCount += 1
-                Logger.dataModel.info("✅ Linked share \(shareURL) with AuthProfile '\(profile.displayName)' (ID: \(profile.id))")
+                Logger.dataModel.info("✅ Linked share \(shareURL, privacy: .public) with AuthProfile '\(profile.displayName, privacy: .public)' (ID: \(profile.id, privacy: .public))")
 
                 // For AuthProfile shares, determine correct authType
                 updatedShare[Defaults.authType] = profile.useKerberos ? AuthType.krb.rawValue : AuthType.pwd.rawValue
             } else {
-                Logger.dataModel.warning("⚠️ No matching AuthProfile found for share \(shareURL) with username \(username)")
+                Logger.dataModel.warning("⚠️ No matching AuthProfile found for share \(shareURL, privacy: .public) with username \(username, privacy: .public)")
             }
 
             updatedShares.append(updatedShare)
@@ -1100,7 +1100,7 @@ class AuthProfileManager: ObservableObject {
         // Save updated shares back to UserDefaults
         if migrationCount > 0 {
             UserDefaults.standard.set(updatedShares, forKey: Defaults.userNetworkShares)
-            Logger.dataModel.info("✅ Share migration completed: \(migrationCount) shares linked with AuthProfiles")
+            Logger.dataModel.info("✅ Share migration completed: \(migrationCount, privacy: .public) shares linked with AuthProfiles")
         } else {
             Logger.dataModel.info("📝 No shares needed AuthProfile linking")
         }

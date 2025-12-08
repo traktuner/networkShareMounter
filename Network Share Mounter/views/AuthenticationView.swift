@@ -368,9 +368,15 @@ struct AuthenticationView: View {
                 let tickets = await klistUtil.returnTickets()
                 
                 // Check if we have a valid ticket for this profile
-                let targetPrincipal = username.lowercased()
+                // Construct the full principal with realm (same logic as checkKerberosTicketStatus)
+                let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
+                let realm = profile.kerberosRealm ?? "FAUAD.FAU.DE"
+                let targetPrincipal = "\(baseUsername)@\(realm.uppercased())"
+
+                logger.debug("🔍 Checking for ticket: \(targetPrincipal, privacy: .public)")
+
                 let hasValidTicket = tickets.contains { ticket in
-                    ticket.principal.lowercased() == targetPrincipal && 
+                    ticket.principal.caseInsensitiveCompare(targetPrincipal) == .orderedSame &&
                     ticket.expires > Date()
                 }
                 
@@ -404,7 +410,6 @@ struct AuthenticationView: View {
                 }
                 
                 // Create authentication session
-                let realm = profile.kerberosRealm ?? "FAUAD.FAU.DE"
                 let session = dogeADSession(domain: realm, user: username)
                 session.setupSessionFromPrefs(prefs: PreferenceManager())
                 session.userPass = password
