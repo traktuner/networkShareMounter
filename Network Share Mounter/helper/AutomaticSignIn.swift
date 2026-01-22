@@ -166,40 +166,41 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     }
     
     /// Checks the user and performs sign-in
-    /// 
+    ///
     /// The process includes:
     /// 1. Checking existing Kerberos tickets
     /// 2. Optionally validating SRV records (non-blocking)
     /// 3. Retrieving user information or authentication
     func checkUser() async {
         Logger.automaticSignIn.debug("🔍 [Worker] checkUser started for account: \(self.account.upn, privacy: .public)")
-        
+
         let klist = KlistUtil()
         Logger.automaticSignIn.debug("🔍 [Worker] KlistUtil initialized")
-        
+
         let princs = await klist.klist().map({ $0.principal })
         Logger.automaticSignIn.debug("🔍 [Worker] Retrieved \(princs.count) principals: \(princs.joined(separator: ", "), privacy: .public)")
-        
-        // Check for existing valid ticket
-        let hasValidTicket = princs.contains(where: { $0.lowercased() == self.account.upn.lowercased() })
-        
-        if hasValidTicket {
+
+        // Check for existing valid ticket and extract the actual principal with correct case
+        let actualPrincipal = princs.first(where: { $0.lowercased() == self.account.upn.lowercased() })
+
+        if let actualPrincipal = actualPrincipal {
             Logger.automaticSignIn.info("✅ [Worker] Valid ticket found for: \(self.account.upn, privacy: .public)")
-            
+            Logger.automaticSignIn.debug("🔍 [Worker] Using actual principal from klist: \(actualPrincipal, privacy: .public)")
+
             Logger.automaticSignIn.debug("🔍 [Worker] Calling getUserInfo()")
-            await getUserInfo()
+            await getUserInfo(actualPrincipal: actualPrincipal)
             Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo() completed")
         } else {
             Logger.automaticSignIn.info("🔍 [Worker] No valid ticket found, starting authentication")
-            
+
             // Optionally try SRV validation (non-blocking, fires and forgets)
             await attemptSRVValidation()
-            
+
             Logger.automaticSignIn.debug("🔍 [Worker] Calling auth()")
             await auth()
             Logger.automaticSignIn.debug("🔍 [Worker] auth() completed")
         }
-        
+
         Logger.automaticSignIn.debug("🔍 [Worker] checkUser finished for account: \(self.account.upn, privacy: .public)")
     }
     
@@ -277,25 +278,27 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     }
     
     /// Retrieves user information from Active Directory
-    /// 
+    ///
     /// Switches to the user principal and retrieves detailed information
-    func getUserInfo() async {
+    /// - Parameter actualPrincipal: The actual principal name from klist with correct case sensitivity
+    func getUserInfo(actualPrincipal: String) async {
         Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo started for user: \(self.account.upn, privacy: .public)")
-        
+        Logger.automaticSignIn.debug("🔍 [Worker] Using actual principal: \(actualPrincipal, privacy: .public)")
+
         // Set flag to indicate we're in user info mode (not authentication mode)
         isInUserInfoMode = true
-        
+
         do {
-            // Switch to user principal
-            Logger.automaticSignIn.debug("🔍 [Worker] Executing kswitch for principal: \(self.session.userPrincipal)")
-            let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
+            // Switch to actual principal from klist (preserves correct case)
+            Logger.automaticSignIn.debug("🔍 [Worker] Executing kswitch for principal: \(actualPrincipal, privacy: .public)")
+            let output = try await cliTask("/usr/bin/kswitch -p \(actualPrincipal)")
             Logger.automaticSignIn.debug("🔍 [Worker] kswitch output: \(output, privacy: .public)")
-            
+
             // Since we have a valid ticket (verified by klist), post success notification
             Logger.automaticSignIn.debug("🔍 [Worker] Valid ticket confirmed, posting success notification")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification for valid ticket")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
-            
+
             // Retrieve user data (best effort - failure won't affect authentication status)
             Logger.automaticSignIn.debug("🔍 [Worker] Setting delegate and retrieving user info (best effort)")
             session.delegate = self
@@ -307,7 +310,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification despite kswitch error")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
         }
-        
+
         // Reset flag when done
         isInUserInfoMode = false
         Logger.automaticSignIn.debug("🔍 [Worker] getUserInfo completed for user: \(self.account.upn, privacy: .public)")
@@ -318,23 +321,37 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Called when authentication was successful
     func dogeADAuthenticationSucceded() async {
         Logger.automaticSignIn.info("✅ [Delegate] Authentication successful for: \(self.account.upn, privacy: .public)")
-        
+
         do {
-            Logger.automaticSignIn.debug("🔍 [Delegate] Switching to authenticated user")
-            let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
-            Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
-            
+            // After successful authentication, get the actual principal from klist
+            let klist = KlistUtil()
+            let princs = await klist.klist().map({ $0.principal })
+            Logger.automaticSignIn.debug("🔍 [Delegate] Retrieved \(princs.count, privacy: .public) principals after auth")
+
+            // Find the actual principal with correct case
+            if let actualPrincipal = princs.first(where: { $0.lowercased() == self.account.upn.lowercased() }) {
+                Logger.automaticSignIn.debug("🔍 [Delegate] Using actual principal from klist: \(actualPrincipal, privacy: .public)")
+                Logger.automaticSignIn.debug("🔍 [Delegate] Switching to authenticated user")
+                let output = try await cliTask("/usr/bin/kswitch -p \(actualPrincipal)")
+                Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
+            } else {
+                // Fallback to session.userPrincipal if we can't find the ticket (shouldn't happen)
+                Logger.automaticSignIn.warning("⚠️ [Delegate] Could not find actual principal in klist, using session principal")
+                let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
+                Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
+            }
+
             Logger.automaticSignIn.debug("🔍 [Delegate] Posting success notification")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbAuthenticated notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
-            
+
             Logger.automaticSignIn.debug("🔍 [Delegate] Retrieving user information")
             await session.userInfo()
             Logger.automaticSignIn.debug("🔍 [Delegate] User information retrieved")
         } catch {
             Logger.automaticSignIn.error("❌ [Delegate] Error after successful authentication: \(error.localizedDescription, privacy: .public)")
         }
-        
+
         Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationSucceded completed")
     }
     
