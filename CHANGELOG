@@ -1,3 +1,7 @@
+# 3.1.16
+### Bugfixes
+* Fixed: Kerberos authentication failures caused by case-sensitive principal name mismatches. The app now retrieves and uses the actual principal name from the Kerberos credential cache instead of reconstructing it, preventing `kswitch` failures when username case differs between stored accounts and Kerberos tickets.
+
 # 3.1.15
 ### Bugfixes
 * Fixed a regression that prevented mounts from occurring at app startup (#252 #246)
