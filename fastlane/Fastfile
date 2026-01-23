@@ -162,6 +162,8 @@ lane :testbuild do
     create_package(type: "Test")
   rescue => exception
     on_error(exception)
+  ensure
+    restore_default_keychain
   end
 end
 
@@ -177,6 +179,8 @@ lane :alpha do
     sentryUpload
   rescue => exception
     on_error(exception)
+  ensure
+    restore_default_keychain
   end
 end
 
@@ -192,6 +196,8 @@ lane :beta do
     sentryUpload
   rescue => exception
     on_error(exception)
+  ensure
+    restore_default_keychain
   end
 end
 
@@ -207,6 +213,8 @@ lane :release do
     sentryUpload
   rescue => exception
     on_error(exception)
+  ensure
+    restore_default_keychain
   end
 end
 
@@ -220,4 +228,15 @@ end
 
 def on_error(exception)
   UI.error("An error occurred: #{exception}")
+end
+
+def restore_default_keychain
+  if is_ci
+    begin
+      sh("security default-keychain -s login.keychain-db")
+      UI.success("✅ Default keychain restored")
+    rescue => e
+      UI.error("⚠️  Failed to restore default keychain: #{e}")
+    end
+  end
 end
