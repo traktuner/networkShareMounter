@@ -431,11 +431,41 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
         Logger.authUI.debug("Auth succeeded")
 
         do {
-            Logger.authUI.debug("Before kswitch execution - Principal: \(self.session?.userPrincipal ?? "none")")
-            // Switch to user principal - use uppercased domain for kswitch compatibility
-            let principal = self.session?.userPrincipal.uppercaseDomain() ?? ""
-            Logger.authUI.debug("Using uppercased principal for kswitch: \(principal)")
-            let output = try await cliTask("/usr/bin/kswitch -p \(principal)")
+            // Get the actual principal from klist to ensure correct case sensitivity
+            let klist = KlistUtil()
+            let principals = await klist.klist().map({ $0.principal })
+            Logger.authUI.debug("Retrieved \(principals.count) principals from klist: \(principals.joined(separator: ", "))")
+
+            // Find the actual principal matching our session (case-insensitive match)
+            let sessionPrincipal = self.session?.userPrincipal ?? ""
+            guard let actualPrincipal = principals.first(where: { $0.lowercased() == sessionPrincipal.lowercased() }) else {
+                Logger.authUI.warning("⚠️ Could not find matching principal in klist for: \(sessionPrincipal)")
+                Logger.authUI.info("ℹ️ Continuing without kswitch - ticket was successfully created")
+
+                // Continue with userInfo even without kswitch
+                Logger.authUI.debug("🔍 [DEBUG] Starting session.userInfo() call with timeout...")
+                let userInfoTask = Task {
+                    await session?.userInfo()
+                }
+
+                Logger.authUI.debug("🔍 [DEBUG] Waiting for userInfo to complete (5s timeout)...")
+                do {
+                    _ = try await withTimeout(seconds: 5) {
+                        await userInfoTask.value
+                    }
+                    Logger.authUI.debug("🔍 [DEBUG] userInfo call completed successfully")
+                } catch {
+                    Logger.authUI.warning("⚠️ [DEBUG] userInfo call timed out or failed: \(error.localizedDescription)")
+                    userInfoTask.cancel()
+                }
+
+                await handleSuccessfulAuthentication()
+                return
+            }
+
+            Logger.authUI.debug("Before kswitch execution - Session principal: \(sessionPrincipal)")
+            Logger.authUI.debug("Using actual principal from klist for kswitch: \(actualPrincipal)")
+            let output = try await cliTask("/usr/bin/kswitch -p \(actualPrincipal)")
             Logger.authUI.debug("kswitch output: \(output)")
 
             Logger.authUI.debug("After kswitch - before userInfo call")

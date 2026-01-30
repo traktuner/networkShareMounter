@@ -359,31 +359,38 @@ class ActivityController {
     /// Starts the automatic sign-in process for Kerberos
     ///
     /// Only executes when Kerberos authentication is configured.
-    @objc func processAutomaticSignIn() {
+    ///
+    /// - Parameter notification: Optional notification containing userInfo with forceAuth flag
+    @objc func processAutomaticSignIn(_ notification: Notification? = nil) {
         // Check if a Kerberos realm is configured
         guard let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty else {
             Logger.activityController.debug("No Kerberos realm configured, skipping AutomaticSignIn")
             return
         }
-        
-        // Prevent too frequent authentication attempts.
-        let lastAuthAttempt = UserDefaults.standard.object(forKey: "lastKrbAuthAttempt") as? Date ?? Date.distantPast
-        let timeSinceLastAttempt = Date().timeIntervalSince(lastAuthAttempt)
-        
-        // wait at least 30 seconds between authentication attempts
-        guard timeSinceLastAttempt > 30 else {
-            Logger.activityController.debug("Skipping auth attempt - too soon since last attempt (\(timeSinceLastAttempt, privacy: .public)s)")
-            return
+
+        // Extract forceAuth flag from notification userInfo
+        let forceAuth = notification?.userInfo?["forceAuth"] as? Bool ?? false
+
+        // Prevent too frequent authentication attempts (but allow forced auth to bypass this)
+        if !forceAuth {
+            let lastAuthAttempt = UserDefaults.standard.object(forKey: "lastKrbAuthAttempt") as? Date ?? Date.distantPast
+            let timeSinceLastAttempt = Date().timeIntervalSince(lastAuthAttempt)
+
+            // wait at least 30 seconds between authentication attempts
+            guard timeSinceLastAttempt > 30 else {
+                Logger.activityController.debug("Skipping auth attempt - too soon since last attempt (\(timeSinceLastAttempt, privacy: .public)s)")
+                return
+            }
         }
-        
+
         UserDefaults.standard.set(Date(), forKey: "lastKrbAuthAttempt")
-        
+
         Task { @MainActor in
-            Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn")
-            
+            Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn (forceAuth: \(forceAuth, privacy: .public))")
+
             do {
                 Logger.activityController.debug("🔄 Starting automatic sign-in task")
-                await appDelegate?.automaticSignIn.signInAllAccounts()
+                await appDelegate?.automaticSignIn.signInAllAccounts(forceAuth: forceAuth)
                 Logger.activityController.info("✅ Automatic sign-in completed successfully")
             } catch {
                 Logger.activityController.error("❌ Automatic sign-in failed with error: \(error.localizedDescription, privacy: .public)")
@@ -583,7 +590,11 @@ class ActivityController {
                 }
             }
 
-            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+            NotificationCenter.default.post(
+                name: Defaults.nsmAuthTriggerNotification,
+                object: nil,
+                userInfo: ["forceAuth": true]
+            )
 
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 30_000_000_000)
