@@ -473,6 +473,12 @@ class ActivityController {
 
         UserDefaults.standard.set(Date(), forKey: "lastActivityTimestamp")
 
+        // Daily heartbeat logging
+        if shouldLogDailyHeartbeat() {
+            appDelegate?.logAppVersion(context: "❤️ Daily heartbeat")
+            UserDefaults.standard.set(Date(), forKey: "lastHeartbeatLogDate")
+        }
+
         if !isInStartupPhase {
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
         } else {
@@ -515,6 +521,7 @@ class ActivityController {
         }
 
         Logger.activityController.info("🔄 Performing soft restart: \(reason, privacy: .public)")
+        appDelegate?.logAppVersion(context: "🔄 Soft restart (\(reason))")
 
         UserDefaults.standard.removeObject(forKey: "lastKrbAuthAttempt")
         Logger.activityController.debug("🔄 Reset authentication rate limiter")
@@ -614,9 +621,9 @@ class ActivityController {
     }
 
     // MARK: - Helpers for utilizing the cliTask method
-    
+
     /// Executes a CLI command asynchronously with error handling
-    /// 
+    ///
     /// - Parameter command: The command to execute
     /// - Returns: The command output if successful
     /// - Throws: Any errors that occur during command execution
@@ -627,6 +634,22 @@ class ActivityController {
             Logger.activityController.error("Command execution failed: \(command, privacy: .public), error: \(error.localizedDescription, privacy: .public)")
             throw error
         }
+    }
+
+    /// Checks if a daily heartbeat log should be generated
+    ///
+    /// - Returns: true if the last heartbeat was on a different day
+    private func shouldLogDailyHeartbeat() -> Bool {
+        let lastHeartbeat = UserDefaults.standard.object(forKey: "lastHeartbeatLogDate") as? Date
+        guard let lastHeartbeat = lastHeartbeat else {
+            return true
+        }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let lastHeartbeatDay = calendar.startOfDay(for: lastHeartbeat)
+
+        return today > lastHeartbeatDay
     }
 }
 
