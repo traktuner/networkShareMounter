@@ -68,10 +68,12 @@ actor AutomaticSignIn {
     private init() {}
     
     /// Automatically signs in all relevant accounts
-    /// 
+    ///
     /// Based on settings, either all accounts or only the default account will be signed in.
-    func signInAllAccounts() async {
-        Logger.automaticSignIn.info("🔍 [START] Starting automatic sign-in process")
+    ///
+    /// - Parameter forceAuth: When true, forces re-authentication even if valid tickets exist (used after mount failures). Default is false.
+    func signInAllAccounts(forceAuth: Bool = false) async {
+        Logger.automaticSignIn.info("🔍 [START] Starting automatic sign-in process (forceAuth: \(forceAuth, privacy: .public))")
         
         do {
             let klist = KlistUtil()
@@ -101,9 +103,9 @@ actor AutomaticSignIn {
                 
                 if shouldProcess {
                     Logger.automaticSignIn.info("🔍 Creating worker for account: \(account.upn, privacy: .public)")
-                    let worker = AutomaticSignInWorker(account: account)
+                    let worker = AutomaticSignInWorker(account: account, forceAuth: forceAuth)
                     Logger.automaticSignIn.debug("🔍 Worker created, calling checkUser")
-                    
+
                     await worker.checkUser()
                     Logger.automaticSignIn.debug("🔍 checkUser completed for: \(account.upn, privacy: .public)")
                 } else {
@@ -152,17 +154,24 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Flag to distinguish between authentication and user info retrieval modes
     /// When true, we're only retrieving user info and server unavailability should not be treated as auth failure
     var isInUserInfoMode: Bool = false
-    
+
+    /// Flag to force re-authentication even if valid tickets exist
+    /// Used after mount failures to obtain fresh Kerberos tickets
+    let forceAuth: Bool
+
     /// Initializes a new worker with a user account
-    /// 
-    /// - Parameter account: The user account for sign-in
-    init(account: DogeAccount) {
+    ///
+    /// - Parameters:
+    ///   - account: The user account for sign-in
+    ///   - forceAuth: When true, forces re-authentication even if valid tickets exist. Default is false.
+    init(account: DogeAccount, forceAuth: Bool = false) {
         self.account = account
+        self.forceAuth = forceAuth
         domain = account.upn.userDomain() ?? ""
         self.session = dogeADSession(domain: domain, user: account.upn.user())
         self.session.setupSessionFromPrefs(prefs: prefs)
-        
-        Logger.automaticSignIn.debug("Worker initialized for user: \(account.upn, privacy: .public), domain: \(self.domain, privacy: .public)")
+
+        Logger.automaticSignIn.debug("Worker initialized for user: \(account.upn, privacy: .public), domain: \(self.domain, privacy: .public), forceAuth: \(forceAuth, privacy: .public)")
     }
     
     /// Checks the user and performs sign-in
@@ -171,6 +180,9 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// 1. Checking existing Kerberos tickets
     /// 2. Optionally validating SRV records (non-blocking)
     /// 3. Retrieving user information or authentication
+    ///
+    /// When forceAuth is true, authentication is always performed regardless of existing tickets.
+    /// This is used after mount failures to obtain fresh Kerberos tickets.
     func checkUser() async {
         Logger.automaticSignIn.debug("🔍 [Worker] checkUser started for account: \(self.account.upn, privacy: .public)")
 
@@ -183,7 +195,16 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         // Check for existing valid ticket and extract the actual principal with correct case
         let actualPrincipal = princs.first(where: { $0.lowercased() == self.account.upn.lowercased() })
 
-        if let actualPrincipal = actualPrincipal {
+        if forceAuth {
+            Logger.automaticSignIn.info("🔄 [Worker] Force authentication requested - ignoring existing tickets")
+
+            // Optionally try SRV validation (non-blocking, fires and forgets)
+            await attemptSRVValidation()
+
+            Logger.automaticSignIn.debug("🔍 [Worker] Calling auth()")
+            await auth()
+            Logger.automaticSignIn.debug("🔍 [Worker] auth() completed")
+        } else if let actualPrincipal = actualPrincipal {
             Logger.automaticSignIn.info("✅ [Worker] Valid ticket found for: \(self.account.upn, privacy: .public)")
             Logger.automaticSignIn.debug("🔍 [Worker] Using actual principal from klist: \(actualPrincipal, privacy: .public)")
 

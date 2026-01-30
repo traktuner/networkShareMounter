@@ -110,9 +110,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Indicates whether a SIGUSR2-triggered mount is currently running.
     /// Used to guard against parallel mount runs when multiple signals arrive quickly.
     private var isMountInProgress: Bool = false
-    
+
     /// Stores the last mount run ID for logging purposes.
     private var lastMountRunID: String?
+
+    /// Timestamp when the app started, used for uptime calculations
+    var appStartTime: Date?
 
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
@@ -154,7 +157,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
+        appStartTime = Date()
+        logAppVersion(context: "🚀 App starting")
+
 #if DEBUG
         Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
 #else
@@ -768,6 +773,38 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return menuItem
     }
     
+    /// Logs the app version, build number, and uptime
+    ///
+    /// - Parameter context: Description of when this log is being generated
+    func logAppVersion(context: String) {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "UNKNOWN"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "UNKNOWN"
+        let uptime = getUptime()
+        Logger.app.info("📱 \(context, privacy: .public) - NSM v\(version, privacy: .public) (Build \(build, privacy: .public)) - Uptime: \(uptime, privacy: .public)")
+    }
+
+    /// Calculates the app uptime since launch
+    ///
+    /// - Returns: Formatted uptime string (e.g., "2h 34m" or "45m 12s")
+    private func getUptime() -> String {
+        guard let startTime = appStartTime else {
+            return "unknown"
+        }
+
+        let uptimeSeconds = Date().timeIntervalSince(startTime)
+        let hours = Int(uptimeSeconds) / 3600
+        let minutes = (Int(uptimeSeconds) % 3600) / 60
+        let seconds = Int(uptimeSeconds) % 60
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else if minutes > 0 {
+            return "\(minutes)m \(seconds)s"
+        } else {
+            return "\(seconds)s"
+        }
+    }
+
     func createMenuIcon(withIcon: String, backgroundColor: NSColor, symbolColor: NSColor) -> NSImage {
         let symbolImage = NSImage(systemSymbolName: "externaldrive.connected.to.line.below.fill", accessibilityDescription: nil)!
         let templateImage = symbolImage.copy() as! NSImage
