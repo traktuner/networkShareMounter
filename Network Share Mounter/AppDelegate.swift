@@ -189,7 +189,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
         }
 
-        // Asynchronously initialize the app
+        // Initialization will be triggered from SwiftUI after mounter injection
+
+        // Set up signal handlers for the app
+        setupSignalHandlers()
+
+        activityController = ActivityController(appDelegate: self)
+    }
+
+    /// Starts the asynchronous initialization after mounter has been injected from SwiftUI.
+    /// This ensures mounter is available before initialization begins.
+    func startInitialization() {
         Task {
             await initializeApp()
 
@@ -273,13 +283,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
             }
         }
-        
-        // Set up signal handlers for the app
-        setupSignalHandlers()
-
-        activityController = ActivityController(appDelegate: self)
     }
-    
+
     /// Migrates the old Sparkle enable preference to the new disable preference if necessary.
     /// The new key `.disableAutoUpdateFramework` takes precedence.
     private func migrateSparklePreference() {
@@ -362,9 +367,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
 
             // Initialize the mounter AFTER migration
-            await mounter?.asyncInit()
-            Logger.app.debug("✅ Mounter successfully initialized")
-            
+            if let mounter = self.mounter {
+                await mounter.asyncInit()
+                Logger.app.debug("✅ Mounter successfully initialized")
+            } else {
+                Logger.app.error("❌ Mounter is not available for initialization - SwiftUI injection failed")
+                return
+            }
+
             // NEW: Rescan existing mounts at app start, independent of network state
             if let mounter = self.mounter {
                 Logger.app.debug("🔍 Performing initial rescan of existing mounts")

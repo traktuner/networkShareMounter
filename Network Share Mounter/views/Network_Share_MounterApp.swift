@@ -80,6 +80,9 @@ struct Network_Share_MounterApp: App {
                     // Wire AppDelegate to use the same Mounter instance
                     appDelegate.mounter = mounter
 
+                    // Now that mounter is injected, start initialization
+                    appDelegate.startInitialization()
+
                     // Set the callback when the app starts
                     Logger.app.debug("🔧 [DEBUG] Setting openWindow callback")
                     settingsManager.openWindowCallback = { windowId in
