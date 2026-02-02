@@ -46,7 +46,7 @@ struct Credentials {
     var password: String
 }
 
-enum KeychainError: Error, Equatable {
+enum KeychainError: Error, Equatable, LocalizedError {
     case noPassword
     case malformedShare
     case unexpectedPasswordData
@@ -56,6 +56,45 @@ enum KeychainError: Error, Equatable {
     case errorAccessingPassword
     case errorWithStatus(status: OSStatus)
     case itemNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .noPassword:
+            return "No password found"
+        case .malformedShare:
+            return "Malformed share URL"
+        case .unexpectedPasswordData:
+            return "Unexpected password data format"
+        case .undefinedError:
+            return "Undefined keychain error"
+        case .errorRemovingEntry:
+            return "Error removing keychain entry"
+        case .errorRetrievingPassword:
+            return "Error retrieving password from keychain"
+        case .errorAccessingPassword:
+            return "Error accessing password in keychain"
+        case .errorWithStatus(let status):
+            return "Keychain error: OSStatus \(status) (\(Self.describeStatus(status)))"
+        }
+    }
+
+    private static func describeStatus(_ status: OSStatus) -> String {
+        switch status {
+        case errSecSuccess: return "Success"
+        case errSecItemNotFound: return "Item not found"
+        case errSecDuplicateItem: return "Duplicate item"
+        case errSecParam: return "Invalid parameter"
+        case errSecAuthFailed: return "Authentication failed"
+        case errSecInteractionRequired: return "User interaction required"
+        case errSecNotAvailable: return "Keychain not available"
+        case -34018: return "Missing entitlement or access denied"
+        case -25243: return "No access to item"
+        case -25291: return "Keychain not available (FileVault?)"
+        case -25308: return "User interaction required"
+        case -25293: return "Authentication failed"
+        default: return "Unknown error"
+        }
+    }
 }
 
 class KeychainManager: NSObject {
