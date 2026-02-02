@@ -110,9 +110,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Indicates whether a SIGUSR2-triggered mount is currently running.
     /// Used to guard against parallel mount runs when multiple signals arrive quickly.
     private var isMountInProgress: Bool = false
-    
+
     /// Stores the last mount run ID for logging purposes.
     private var lastMountRunID: String?
+
+    /// Timestamp when the app started, used for uptime calculations
+    var appStartTime: Date?
 
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
@@ -161,6 +164,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // Configure Sentry based on user preferences
         SentryManager.shared.configureSentry()
+        appStartTime = Date()
+        logAppVersion(context: "🚀 App starting")
+
+#if DEBUG
+        Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
+#else
+        if prefs.bool(for: .sendDiagnostics) == true {
+            Logger.app.debug("Initializing sentry SDK...")
+            SentrySDK.start { options in
+                options.dsn = Defaults.sentryDSN
+                options.debug = false
+                options.tracesSampleRate = 0.1
+            }
+        }
+#endif
+  
         
         // Synchronize Sparkle settings with current preferences
         synchronizeSparkleSettings()
@@ -170,7 +189,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
         }
 
-        // Asynchronously initialize the app
+        // Initialization will be triggered from SwiftUI after mounter injection
+
+        // Set up signal handlers for the app
+        setupSignalHandlers()
+
+        activityController = ActivityController(appDelegate: self)
+    }
+
+    /// Starts the asynchronous initialization after mounter has been injected from SwiftUI.
+    /// This ensures mounter is available before initialization begins.
+    func startInitialization() {
         Task {
             await initializeApp()
 
@@ -254,13 +283,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
             }
         }
-        
-        // Set up signal handlers for the app
-        setupSignalHandlers()
-
-        activityController = ActivityController(appDelegate: self)
     }
-    
+
     /// Migrates the old Sparkle enable preference to the new disable preference if necessary.
     /// The new key `.disableAutoUpdateFramework` takes precedence.
     private func migrateSparklePreference() {
@@ -343,9 +367,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
 
             // Initialize the mounter AFTER migration
-            await mounter?.asyncInit()
-            Logger.app.debug("✅ Mounter successfully initialized")
-            
+            if let mounter = self.mounter {
+                await mounter.asyncInit()
+                Logger.app.debug("✅ Mounter successfully initialized")
+            } else {
+                Logger.app.error("❌ Mounter is not available for initialization - SwiftUI injection failed")
+                return
+            }
+
             // NEW: Rescan existing mounts at app start, independent of network state
             if let mounter = self.mounter {
                 Logger.app.debug("🔍 Performing initial rescan of existing mounts")
@@ -962,6 +991,38 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return menuItem
     }
     
+    /// Logs the app version, build number, and uptime
+    ///
+    /// - Parameter context: Description of when this log is being generated
+    func logAppVersion(context: String) {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "UNKNOWN"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "UNKNOWN"
+        let uptime = getUptime()
+        Logger.app.info("📱 \(context, privacy: .public) - NSM v\(version, privacy: .public) (Build \(build, privacy: .public)) - Uptime: \(uptime, privacy: .public)")
+    }
+
+    /// Calculates the app uptime since launch
+    ///
+    /// - Returns: Formatted uptime string (e.g., "2h 34m" or "45m 12s")
+    private func getUptime() -> String {
+        guard let startTime = appStartTime else {
+            return "unknown"
+        }
+
+        let uptimeSeconds = Date().timeIntervalSince(startTime)
+        let hours = Int(uptimeSeconds) / 3600
+        let minutes = (Int(uptimeSeconds) % 3600) / 60
+        let seconds = Int(uptimeSeconds) % 60
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else if minutes > 0 {
+            return "\(minutes)m \(seconds)s"
+        } else {
+            return "\(seconds)s"
+        }
+    }
+
     func createMenuIcon(withIcon: String, backgroundColor: NSColor, symbolColor: NSColor) -> NSImage {
         let symbolImage = NSImage(systemSymbolName: "externaldrive.connected.to.line.below.fill", accessibilityDescription: nil)!
         let templateImage = symbolImage.copy() as! NSImage

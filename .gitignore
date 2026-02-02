@@ -80,11 +80,13 @@ Package.resolved
 .cursorrules
 .claude
 CLAUDE.md
+SESSION_STATE.md
 .swp
 .idea
 .env
 .env.default
 .swo
+bugreports/
 
 # fastlane
 #

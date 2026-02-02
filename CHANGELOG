@@ -1,3 +1,7 @@
+# 3.1.17
+### Bugfixes
+* Fixed: Force Kerberos re-auth on mount retry + improved error handling
+
 # 3.1.16
 ### Bugfixes
 * Fixed: Kerberos authentication failures caused by case-sensitive principal name mismatches. The app now retrieves and uses the actual principal name from the Kerberos credential cache instead of reconstructing it, preventing `kswitch` failures when username case differs between stored accounts and Kerberos tickets.
@@ -8,7 +12,7 @@
 
 ### Features
 * If a Kerberos-authenticated mount fails, an attempt will be made to re-authenticate, followed by a second mount attempt before an error occurs
-* After waking up the Mac, the internal mount structures will be fully reinitialized
+* After macOS wakes up, the internal mount structures will be fully reinitialized, which includes rereading the MDM profile and user configurations, as well as resetting the mount statuses and a few more things
 
 # 3.1.14
 ### Bugfixes
