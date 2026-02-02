@@ -193,7 +193,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         // Check for existing valid ticket and extract the actual principal with correct case
         let actualPrincipal = princs.first(where: { $0.lowercased() == self.account.upn.lowercased() })
 
-uth {
+        if forceAuth {
             Logger.automaticSignIn.info("🔄 [Worker] Force authentication requested - ignoring existing tickets")
 
             // Optionally try SRV validation (non-blocking, fires and forgets)
@@ -203,7 +203,6 @@ uth {
             await auth()
             Logger.automaticSignIn.debug("🔍 [Worker] auth() completed")
         } else if let actualPrincipal = actualPrincipal {
-            Logger.a
             Logger.automaticSignIn.info("✅ [Worker] Valid ticket found for: \(self.account.upn, privacy: .public)")
             Logger.automaticSignIn.debug("🔍 [Worker] Using actual principal from klist: \(actualPrincipal, privacy: .public)")
 
