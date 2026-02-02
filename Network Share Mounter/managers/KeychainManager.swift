@@ -73,6 +73,8 @@ enum KeychainError: Error, Equatable, LocalizedError {
             return "Error retrieving password from keychain"
         case .errorAccessingPassword:
             return "Error accessing password in keychain"
+        case .itemNotFound:
+            return "Error accessing entry, not found in keychain"
         case .errorWithStatus(let status):
             return "Keychain error: OSStatus \(status) (\(Self.describeStatus(status)))"
         }
@@ -261,10 +263,7 @@ class KeychainManager: NSObject {
                 throw KeychainError.errorWithStatus(status: status)
             }
         } catch let error as KeychainError {
-             // Don't re-throw itemNotFound if that was somehow thrown by makeQuery (unlikely)
-            if error != .itemNotFound {
-                 throw error
-            }
+            throw error
         } catch {
             throw KeychainError.errorRemovingEntry
         }
@@ -283,10 +282,7 @@ class KeychainManager: NSObject {
                 throw KeychainError.errorWithStatus(status: status)
             }
         } catch let error as KeychainError {
-             // Don't re-throw itemNotFound if that was somehow thrown by makeQuery (unlikely)
-            if error != .itemNotFound {
-                 throw error
-            }
+            throw error
         } catch {
             throw KeychainError.errorRemovingEntry
         }
