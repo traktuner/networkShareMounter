@@ -260,7 +260,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         
         do {
             // Retrieve password from keychain
-            Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from keychain for: \(account.upn, privacy: .public)")
+            Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from keychain for: \(self.account.upn, privacy: .public)")
 
             if let pass = try keyUtil.retrievePassword(forUsername: account.upn, andService: Defaults.keyChainService) {
                 Logger.automaticSignIn.debug("✅ [Worker] Password retrieved from keychain")
@@ -278,7 +278,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
                 // NOTE: Authentication result will be posted by delegate methods
                 // Do NOT post success notification here - delegate handles success/failure
             } else {
-                Logger.automaticSignIn.warning("⚠️ [Worker] No password found in keychain for: \(username, privacy: .public)")
+                Logger.automaticSignIn.warning("⚠️ [Worker] No password found in keychain for: \(self.account.upn, privacy: .public)")
                 account.hasKeychainEntry = false
                 Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification")
                 Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification")
