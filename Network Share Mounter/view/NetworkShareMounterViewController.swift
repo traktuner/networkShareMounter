@@ -129,10 +129,10 @@ class NetworkShareMounterViewController: NSViewController, NSTableViewDelegate, 
                     var needsAuth = false
                     
                     for account in accounts {
-                        if !singleUserMode || account.upn == lastUser || accountsCount == 1 {
+                        if !singleUserMode || account.upn.lowercased() == lastUser?.lowercased() || accountsCount == 1 {
                             let pwm = KeychainManager()
                             do {
-                                if try pwm.retrievePassword(forUsername: account.upn.lowercased()) != nil {
+                                if try pwm.retrievePassword(forUsername: account.upn) != nil {
                                     break
                                 }
                             } catch {

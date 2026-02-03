@@ -262,10 +262,9 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         
         do {
             // Retrieve password from keychain
-            let username = account.upn.lowercaseDomain()
-            Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from keychain for: \(username, privacy: .public)")
-            
-            if let pass = try keyUtil.retrievePassword(forUsername: username, andService: Defaults.keyChainService) {
+            Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from keychain for: \(account.upn, privacy: .public)")
+
+            if let pass = try keyUtil.retrievePassword(forUsername: account.upn, andService: Defaults.keyChainService) {
                 Logger.automaticSignIn.debug("✅ [Worker] Password retrieved from keychain")
                 account.hasKeychainEntry = true
                 session.userPass = pass

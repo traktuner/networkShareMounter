@@ -233,6 +233,7 @@ end
 def restore_default_keychain
   if is_ci
     begin
+      sh("security delete-keychain fastlane_tmp_keychain-db")
       sh("security default-keychain -s login.keychain-db")
       UI.success("✅ Default keychain restored")
     rescue => e
