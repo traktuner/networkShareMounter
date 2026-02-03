@@ -294,6 +294,7 @@ class KeychainManager: NSObject {
         do {
             Logger.keychain.debug("🔐 Retrieving password for share: \(share.absoluteString, privacy: .public), username: \(username, privacy: .public)")
 
+            // Try with original case first
             var query = try makeQuery(share: share, username: username, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainService)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -303,27 +304,54 @@ class KeychainManager: NSObject {
             Logger.keychain.debug("🔐 Keychain query: \(query, privacy: .public)")
 
             var ref: AnyObject? = nil
-
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
             Logger.keychain.debug("🔐 Keychain status: \(status, privacy: .public)")
 
-            if status == errSecItemNotFound {
+            if status == errSecSuccess {
+                if let parsedData = ref as? Data {
+                    let password = String(data: parsedData, encoding: .utf8)
+                    Logger.keychain.debug("🔐 Successfully retrieved password for \(share.absoluteString, privacy: .public)")
+                    return password
+                } else {
+                    Logger.keychain.error("🔐 Failed to parse password data from keychain for \(share.absoluteString, privacy: .public)")
+                    Logger.keychain.error("🔐 Retrieved data type: \(type(of: ref), privacy: .public)")
+                    return nil
+                }
+            } else if status == errSecItemNotFound {
                 Logger.keychain.debug("🔐 No keychain entry found for \(share.absoluteString, privacy: .public)")
+
+                // Fallback: Try with lowercase username if different from original
+                let lowercasedUsername = username.lowercased()
+                if lowercasedUsername != username {
+                    Logger.keychain.debug("🔍 Trying lowercase fallback for username: \(username)")
+
+                    var lowercaseQuery = try makeQuery(share: share, username: lowercasedUsername, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainService)
+                    lowercaseQuery[kSecReturnData as String] = kCFBooleanTrue!
+                    lowercaseQuery[kSecMatchLimit as String] = kSecMatchLimitOne
+                    lowercaseQuery[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+                    var lowercaseRef: AnyObject? = nil
+
+                    let lowercaseStatus = SecItemCopyMatching(lowercaseQuery as CFDictionary, &lowercaseRef)
+
+                    if lowercaseStatus == errSecSuccess, let parsedData = lowercaseRef as? Data, let password = String(data: parsedData, encoding: .utf8) {
+                        Logger.keychain.info("🔄 Found share credential with lowercase username, migrating: \(lowercasedUsername) -> \(username)")
+
+                        // Migrate: Save with correct case, then delete old entry
+                        do {
+                            try saveCredential(forShare: share, withUsername: username, andPassword: password, withLabel: Defaults.keyChainService, accessGroup: Defaults.keyChainAccessGroup)
+                            try removeCredential(forShare: share, withUsername: lowercasedUsername)
+                            Logger.keychain.info("✅ Successfully migrated share credential to correct case")
+                        } catch {
+                            Logger.keychain.warning("⚠️ Migration failed but password retrieved: \(error.localizedDescription)")
+                        }
+
+                        return password
+                    }
+                }
                 return nil
-            }
-            guard status == errSecSuccess else {
+            } else {
                 Logger.keychain.error("🔐 Keychain error: \(status, privacy: .public)")
                 throw KeychainError.errorWithStatus(status: status)
-            }
-
-            if let parsedData = ref as? Data {
-                let password = String(data: parsedData, encoding: .utf8)
-                Logger.keychain.debug("🔐 Successfully retrieved password for \(share.absoluteString, privacy: .public)")
-                return password
-            } else {
-                Logger.keychain.error("🔐 Failed to parse password data from keychain for \(share.absoluteString, privacy: .public)")
-                Logger.keychain.error("🔐 Retrieved data type: \(type(of: ref), privacy: .public)")
-                return nil
             }
         } catch let error as KeychainError {
             throw error
@@ -335,23 +363,52 @@ class KeychainManager: NSObject {
     
     func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
+            // Try with original case first
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
             // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             var ref: AnyObject? = nil
-            
+
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
-            if status == errSecItemNotFound {
+
+            if status == errSecSuccess {
+                if let parsedData = ref as? Data {
+                    return String(data: parsedData, encoding: .utf8)
+                }
+            } else if status == errSecItemNotFound {
+                // Fallback: Try with lowercase if different from original
+                let lowercasedUsername = username.lowercased()
+                if lowercasedUsername != username {
+                    Logger.keychain.debug("🔍 Entry not found with original case, trying lowercase fallback for: \(username)")
+
+                    var lowercaseQuery = try makeQuery(username: lowercasedUsername, service: service, accessGroup: accessGroup)
+                    lowercaseQuery[kSecReturnData as String] = kCFBooleanTrue!
+                    lowercaseQuery[kSecMatchLimit as String] = kSecMatchLimitOne
+                    lowercaseQuery[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+                    var lowercaseRef: AnyObject? = nil
+
+                    let lowercaseStatus = SecItemCopyMatching(lowercaseQuery as CFDictionary, &lowercaseRef)
+
+                    if lowercaseStatus == errSecSuccess, let parsedData = lowercaseRef as? Data, let password = String(data: parsedData, encoding: .utf8) {
+                        Logger.keychain.info("🔄 Found keychain entry with lowercase, migrating: \(lowercasedUsername) -> \(username)")
+
+                        // Migrate: Save with correct case, then delete old entry
+                        do {
+                            try saveCredential(forUsername: username, andPassword: password, withService: service, andLabel: nil, accessGroup: accessGroup)
+                            try removeCredential(forUsername: lowercasedUsername, andService: service, accessGroup: accessGroup)
+                            Logger.keychain.info("✅ Successfully migrated keychain entry to correct case")
+                        } catch {
+                            Logger.keychain.warning("⚠️ Migration failed but password retrieved: \(error.localizedDescription)")
+                        }
+
+                        return password
+                    }
+                }
                 return nil
-            }
-            guard status == errSecSuccess else {
+            } else {
                 throw KeychainError.errorWithStatus(status: status)
-            }
-            
-            if let parsedData = ref as? Data {
-                return String(data: parsedData, encoding: .utf8)
             }
         } catch let error as KeychainError {
             throw error
