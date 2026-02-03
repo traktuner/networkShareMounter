@@ -167,6 +167,14 @@ actor AccountsManager {
         accounts.removeAll { $0 == account }
         saveAccounts()
     }
+
+    /// Updates an existing account in the accounts list.
+    func updateAccount(_ updatedAccount: DogeAccount) async {
+        if let index = accounts.firstIndex(where: { $0.upn.lowercased() == updatedAccount.upn.lowercased() }) {
+            accounts[index] = updatedAccount
+            saveAccounts()
+        }
+    }
     
     /// Retrieves an account for a given principal.
     func accountForPrincipal(principal: String) -> DogeAccount? {

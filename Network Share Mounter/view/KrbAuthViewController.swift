@@ -209,12 +209,21 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         if let principal = session?.userPrincipal {
             Logger.authUI.debug("🔍 [DEBUG-AUTH] Checking if account exists for principal: \(principal)")
 
-            if let account = await accountsManager.accountForPrincipal(principal: principal) {
+            if var account = await accountsManager.accountForPrincipal(principal: principal) {
                 Logger.authUI.debug("🔍 [DEBUG-AUTH] Existing account found, updating password in keychain")
+
+                // Lazy migration: Update account UPN if case differs
+                if account.upn != principal {
+                    Logger.authUI.debug("🔄 [DEBUG-AUTH] Migrating account UPN case from \(account.upn) to \(principal)")
+                    account.upn = principal
+                    account.displayName = principal
+                    await accountsManager.updateAccount(account)
+                }
+
                 let pwm = KeychainManager()
                 do {
-                    try pwm.saveCredential(forUsername: account.upn.lowercased(), andPassword: password.stringValue)
-                    Logger.authUI.debug("✅ [DEBUG-AUTH] Password successfully updated in keychain for: \(account.upn.lowercased())")
+                    try pwm.saveCredential(forUsername: principal, andPassword: password.stringValue)
+                    Logger.authUI.debug("✅ [DEBUG-AUTH] Password successfully updated in keychain for: \(principal, privacy: .public)")
                 } catch {
                     Logger.authUI.error("❌ [DEBUG-AUTH] Failed saving password in keychain: \(error.localizedDescription)")
                 }
@@ -225,8 +234,8 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
 
                 let pwm = KeychainManager()
                 do {
-                    try pwm.saveCredential(forUsername: principal.lowercased(), andPassword: password.stringValue)
-                    Logger.authUI.debug("✅ [DEBUG-AUTH] New account successfully added to keychain for: \(principal.lowercased())")
+                    try pwm.saveCredential(forUsername: principal, andPassword: password.stringValue)
+                    Logger.authUI.debug("✅ [DEBUG-AUTH] New account successfully added to keychain for: \(principal, privacy: .public)")
                 } catch {
                     Logger.authUI.error("❌ [DEBUG-AUTH] Error adding account to Keychain: \(error.localizedDescription)")
                 }
@@ -341,9 +350,9 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
         if let lastUser = prefs.string(for: .lastUser) {
             let keyUtil = KeychainManager()
             do {
-                let retrievedPassword = try keyUtil.retrievePassword(forUsername: lastUser.lowercased()) ?? ""
+                let retrievedPassword = try keyUtil.retrievePassword(forUsername: lastUser) ?? ""
                 password.stringValue = retrievedPassword
-                username.stringValue = lastUser.lowercased()
+                username.stringValue = lastUser
                 authenticateButtonText.isEnabled = !retrievedPassword.isEmpty
             } catch {
                 Logger.KrbAuthViewController.debug("Unable to get user's password")
@@ -376,7 +385,7 @@ class KrbAuthViewController: NSViewController, AccountUpdate, NSTextFieldDelegat
                     if let isInKeychain = account.hasKeychainEntry, isInKeychain {
                         let keyUtil = KeychainManager()
                         do {
-                            let retrievedPassword = try keyUtil.retrievePassword(forUsername: account.upn.lowercased()) ?? ""
+                            let retrievedPassword = try keyUtil.retrievePassword(forUsername: account.upn) ?? ""
                             await MainActor.run {
                                 self.password.stringValue = retrievedPassword
                                 self.authenticateButtonText.isEnabled = !retrievedPassword.isEmpty
@@ -544,7 +553,7 @@ extension KrbAuthViewController: dogeADUserSessionDelegate {
                 if account.upn.lowercased() == session?.userPrincipal.lowercased() {
                     let pwm = KeychainManager()
                     do {
-                        try pwm.removeCredential(forUsername: account.upn.lowercased())
+                        try pwm.removeCredential(forUsername: account.upn)
                         Logger.authUI.debug("Password removed from Keychain")
                     } catch {
                         Logger.authUI.debug("Error removing password from Keychain")
