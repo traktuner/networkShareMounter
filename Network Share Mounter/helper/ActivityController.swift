@@ -221,6 +221,13 @@ class ActivityController {
             object: nil
         )
         
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(renewKerberosTicket),
+            name: .nsmDistributedRenewKerberosTrigger,
+            object: nil
+        )
+        
         Logger.activityController.debug("All observers successfully registered")
     }
     
@@ -440,6 +447,15 @@ class ActivityController {
         }
         
         _ = userMountTask
+    }
+    
+    /// Renews Kerberos tickets via soft reset
+    ///
+    /// Triggered by the RenewKerberosTicketIntent from Shortcuts/Siri.
+    /// Performs the same soft restart as after system wake.
+    @objc func renewKerberosTicket() {
+        Logger.activityController.info("🎫 Kerberos ticket renewal requested via App Intent")
+        performSoftRestart(reason: "Kerberos ticket renewal via Shortcuts")
     }
     
     /// Updates the app menu

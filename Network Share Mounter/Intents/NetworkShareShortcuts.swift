@@ -42,6 +42,9 @@ struct NetworkShareShortcuts: AppShortcutsProvider {
         // Localized short titles from the "Localizable" table.
         let mountShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.Mount.ShortTitle", table: "Localizable")
         let unmountShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.Unmount.ShortTitle", table: "Localizable")
+        let renewKerberosShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.RenewKerberos.ShortTitle", table: "Localizable")
+        let kerberosStatusShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.KerberosStatus.ShortTitle", table: "Localizable")
+        let mountStatusShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.MountStatus.ShortTitle", table: "Localizable")
 
         // Localized phrases from the "Localizable" table (with `%@` for the app name).
         let mountPhrase1String = String(format: String(localized: "Shortcuts.Phrase.Mount.1", table: "Localizable"), appName)
@@ -50,6 +53,12 @@ struct NetworkShareShortcuts: AppShortcutsProvider {
         let unmountPhrase1String = String(format: String(localized: "Shortcuts.Phrase.Unmount.1", table: "Localizable"), appName)
         let unmountPhrase2String = String(format: String(localized: "Shortcuts.Phrase.Unmount.2", table: "Localizable"), appName)
         let unmountPhrase3String = String(format: String(localized: "Shortcuts.Phrase.Unmount.3", table: "Localizable"), appName)
+        let renewKerberosPhrase1String = String(format: String(localized: "Shortcuts.Phrase.RenewKerberos.1", table: "Localizable"), appName)
+        let renewKerberosPhrase2String = String(format: String(localized: "Shortcuts.Phrase.RenewKerberos.2", table: "Localizable"), appName)
+        let kerberosStatusPhrase1String = String(format: String(localized: "Shortcuts.Phrase.KerberosStatus.1", table: "Localizable"), appName)
+        let kerberosStatusPhrase2String = String(format: String(localized: "Shortcuts.Phrase.KerberosStatus.2", table: "Localizable"), appName)
+        let mountStatusPhrase1String = String(format: String(localized: "Shortcuts.Phrase.MountStatus.1", table: "Localizable"), appName)
+        let mountStatusPhrase2String = String(format: String(localized: "Shortcuts.Phrase.MountStatus.2", table: "Localizable"), appName)
 
         return [
             AppShortcut(
@@ -71,6 +80,33 @@ struct NetworkShareShortcuts: AppShortcutsProvider {
                 ],
                 shortTitle: unmountShortTitle,
                 systemImageName: "externaldrive.badge.minus"
+            ),
+            AppShortcut(
+                intent: RenewKerberosTicketIntent(),
+                phrases: [
+                    .init(renewKerberosPhrase1String),
+                    .init(renewKerberosPhrase2String)
+                ],
+                shortTitle: renewKerberosShortTitle,
+                systemImageName: "ticket.fill"
+            ),
+            AppShortcut(
+                intent: GetKerberosStatusIntent(),
+                phrases: [
+                    .init(kerberosStatusPhrase1String),
+                    .init(kerberosStatusPhrase2String)
+                ],
+                shortTitle: kerberosStatusShortTitle,
+                systemImageName: "checkmark.shield.fill"
+            ),
+            AppShortcut(
+                intent: GetMountStatusIntent(),
+                phrases: [
+                    .init(mountStatusPhrase1String),
+                    .init(mountStatusPhrase2String)
+                ],
+                shortTitle: mountStatusShortTitle,
+                systemImageName: "chart.bar.doc.horizontal.fill"
             )
         ]
     }

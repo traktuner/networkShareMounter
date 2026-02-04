@@ -158,7 +158,7 @@ struct GetMountStatusIntent: AppIntent {
     /// - Returns: The extracted share name, or the full path if extraction fails.
     private func extractShareName(from networkPath: String) -> String {
         // Remove protocol
-        var path = networkPath
+        let path = networkPath
             .replacingOccurrences(of: "smb://", with: "")
             .replacingOccurrences(of: "afp://", with: "")
             .replacingOccurrences(of: "nfs://", with: "")

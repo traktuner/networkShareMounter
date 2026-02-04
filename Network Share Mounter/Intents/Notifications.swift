@@ -31,5 +31,11 @@ extension NSNotification.Name {
     /// Posted by the App Intents extension (see ``MountAllSharesIntent``),
     /// and observed by the main app to initiate the mount workflow.
     static let nsmDistributedMountTrigger = NSNotification.Name("nsmDistributedMountTrigger")
+    
+    /// Triggers Kerberos ticket renewal in the main app.
+    ///
+    /// Posted by the App Intents extension (see ``RenewKerberosTicketIntent``),
+    /// and observed by the main app to initiate ticket renewal via AutomaticSignIn.
+    static let nsmDistributedRenewKerberosTrigger = NSNotification.Name("nsmDistributedRenewKerberosTrigger")
 }
 
