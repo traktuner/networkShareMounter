@@ -242,11 +242,14 @@ struct AddShareView: View {
     /// Auto-fills mount point name when network share URL changes (only if empty)
     private func autoFillMountPointIfNeeded(from url: String) {
         guard !isEditing else { return }
-        guard mountPointName.isEmpty || mountPointName == extractShareName(from: networkShare) else { return }
+        
+        let previousGeneratedName = extractShareName(from: networkShare)
+        let newGeneratedName = extractShareName(from: url)
+        
+        guard mountPointName.isEmpty || mountPointName == previousGeneratedName else { return }
 
-        let generatedName = extractShareName(from: url)
-        mountPointName = generatedName
-        validateMountPoint(generatedName)
+        mountPointName = newGeneratedName
+        validateMountPoint(newGeneratedName)
     }
 
     /// Validates the mount point name for character constraints and duplicates
