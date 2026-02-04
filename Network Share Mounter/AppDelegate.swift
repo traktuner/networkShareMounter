@@ -584,6 +584,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func handleErrorNotification(_ notification: NSNotification) {
         if notification.userInfo?["KrbAuthError"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing KrbAuthError path")
+            
+            // Cache Kerberos error status for App Intents
+            let kerbStatus: [String: Any] = [
+                "hasValidTicket": false,
+                "lastUpdated": Date().timeIntervalSince1970
+            ]
+            UserDefaults.standard.set(kerbStatus, forKey: "kerberosTicketStatus")
+            
             Task { @MainActor in
                 let hasMountedShares = await mounter?.shareManager.allShares.contains { $0.mountStatus == .mounted } ?? false
                 if hasMountedShares {
@@ -625,6 +633,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         else if notification.userInfo?["krbAuthenticated"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing krbAuthenticated path")
+            
+            // Cache Kerberos status for App Intents
+            let kerbStatus: [String: Any] = [
+                "hasValidTicket": true,
+                "lastUpdated": Date().timeIntervalSince1970
+            ]
+            UserDefaults.standard.set(kerbStatus, forKey: "kerberosTicketStatus")
+            
             Task { @MainActor in
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))

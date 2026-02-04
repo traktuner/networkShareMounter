@@ -70,10 +70,42 @@ struct GetKerberosStatusIntent: AppIntent {
         return .result(value: statusString, dialog: dialog)
     }
     
-    /// Checks the current Kerberos ticket status by executing klist.
+    /// Checks the current Kerberos ticket status.
+    ///
+    /// First checks UserDefaults cache (updated by main app), then falls back to klist.
     ///
     /// - Returns: A KerberosTicketStatus structure with ticket information.
     private func checkKerberosStatus() async -> KerberosTicketStatus {
+        // Try to read cached status from UserDefaults (set by main app)
+        if let cachedStatus = UserDefaults.standard.dictionary(forKey: "kerberosTicketStatus"),
+           let hasValidTicket = cachedStatus["hasValidTicket"] as? Bool,
+           let lastUpdated = cachedStatus["lastUpdated"] as? TimeInterval {
+            
+            let cacheAge = Date().timeIntervalSince1970 - lastUpdated
+            
+            // Use cached value if less than 5 minutes old
+            if cacheAge < 300 {
+                NSLog("[GetKerberosStatus] Using cached status: \(hasValidTicket) (age: \(Int(cacheAge))s)")
+                
+                if hasValidTicket {
+                    // Try to get detailed info from klist
+                    if let detailedStatus = try? await checkKlistDirectly(), detailedStatus.hasValidTicket {
+                        return detailedStatus
+                    }
+                    // Fallback to basic status
+                    return KerberosTicketStatus(hasValidTicket: true)
+                } else {
+                    return KerberosTicketStatus(hasValidTicket: false)
+                }
+            }
+        }
+        
+        NSLog("[GetKerberosStatus] No valid cache, checking klist directly")
+        return (try? await checkKlistDirectly()) ?? KerberosTicketStatus(hasValidTicket: false)
+    }
+    
+    /// Executes klist directly to check ticket status.
+    private func checkKlistDirectly() async throws -> KerberosTicketStatus {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/klist")
         
@@ -81,19 +113,23 @@ struct GetKerberosStatusIntent: AppIntent {
         task.standardOutput = pipe
         task.standardError = pipe
         
-        do {
-            try task.run()
-            task.waitUntilExit()
-            
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            guard let output = String(data: data, encoding: .utf8) else {
-                return KerberosTicketStatus(hasValidTicket: false)
-            }
-            
-            return parseKlistOutput(output)
-        } catch {
-            return KerberosTicketStatus(hasValidTicket: false)
+        try task.run()
+        task.waitUntilExit()
+        
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        guard let output = String(data: data, encoding: .utf8) else {
+            NSLog("[GetKerberosStatus] Failed to decode klist output")
+            throw NSError(domain: "GetKerberosStatus", code: 1)
         }
+        
+        NSLog("[GetKerberosStatus] klist exit code: \(task.terminationStatus)")
+        
+        if task.terminationStatus != 0 {
+            NSLog("[GetKerberosStatus] klist failed with exit code \(task.terminationStatus)")
+            throw NSError(domain: "GetKerberosStatus", code: Int(task.terminationStatus))
+        }
+        
+        return parseKlistOutput(output)
     }
     
     /// Parses klist output to extract ticket information.
