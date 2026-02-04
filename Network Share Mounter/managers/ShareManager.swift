@@ -410,6 +410,11 @@ actor ShareManager {
 
         // Check for unassigned profiles after MDM/legacy share processing
         checkForUnassignedProfiles()
+
+        // Notify UI to update menu after share changes
+        Task { @MainActor in
+            NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
+        }
     }
     
     /// Processes MDM shares and updates the share array

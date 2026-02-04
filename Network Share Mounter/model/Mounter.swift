@@ -193,6 +193,7 @@ class Mounter: ObservableObject {
             Logger.mounter.info("Deleting share: \(share.networkShare, privacy: .public) at Index \(index, privacy: .public)")
             do {
                 try await shareManager.removeShare(at: index)
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch ShareError.invalidIndex(let badIndex) {
                 Logger.mounter.error("❌ Could not delete share \(share.networkShare, privacy: .public), index \(badIndex, privacy: .public) is not valid.")
             } catch {
