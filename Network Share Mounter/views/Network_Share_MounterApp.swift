@@ -8,6 +8,7 @@
 import SwiftUI
 import AppKit
 import OSLog
+import AppIntents
 
 // MARK: - Notification Extensions
 extension Notification.Name {
@@ -66,6 +67,11 @@ struct Network_Share_MounterApp: App {
 
     // Environment for opening windows
     @Environment(\.openWindow) private var openWindow
+    
+    // Register App Shortcuts for Siri and Shortcuts app
+    static var appShortcutsProvider: some AppShortcutsProvider {
+        NetworkShareShortcuts()
+    }
 
     var body: some Scene {
         // Hauptszene: Deine App ist menüleistenbasiert, daher ggf. keine Hauptfenster-UI nötig.

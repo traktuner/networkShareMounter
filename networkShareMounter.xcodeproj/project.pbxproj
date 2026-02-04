@@ -48,6 +48,10 @@
 		F791FCAA2DD23DD500F0445C /* ProfileDetailPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F791FCA32DD23DD500F0445C /* ProfileDetailPlaceholderView.swift */; };
 		F791FCAB2DD23DD500F0445C /* ProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F791FCA52DD23DD500F0445C /* ProfileEditorView.swift */; };
 		F791FCAC2DD23DD500F0445C /* ProfileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F791FCA62DD23DD500F0445C /* ProfileListView.swift */; };
+		F794F7922F3350A200CE3981 /* RenewKerberosTicketIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7912F3350A200CE3981 /* RenewKerberosTicketIntent.swift */; };
+		F794F7942F3350E300CE3981 /* GetKerberosStatusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7932F3350E300CE3981 /* GetKerberosStatusIntent.swift */; };
+		F794F7962F33525900CE3981 /* GetMountStatusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7952F33525900CE3981 /* GetMountStatusIntent.swift */; };
+		F794F7B92F33666D00CE3981 /* Network-Share-Mounter-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7A7A2182C8F0240006772D4 /* dogeADAuth */; };
@@ -127,6 +131,9 @@
 		F791FCA52DD23DD500F0445C /* ProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorView.swift; sourceTree = "<group>"; };
 		F791FCA62DD23DD500F0445C /* ProfileListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileListView.swift; sourceTree = "<group>"; };
 		F791FCA72DD23DD500F0445C /* ProfileRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRowView.swift; sourceTree = "<group>"; };
+		F794F7912F3350A200CE3981 /* RenewKerberosTicketIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenewKerberosTicketIntent.swift; sourceTree = "<group>"; };
+		F794F7932F3350E300CE3981 /* GetKerberosStatusIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetKerberosStatusIntent.swift; sourceTree = "<group>"; };
+		F794F7952F33525900CE3981 /* GetMountStatusIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetMountStatusIntent.swift; sourceTree = "<group>"; };
 		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F79B159B274E722100C322A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -225,6 +232,9 @@
 				F7341C502EAFC540005D3BD3 /* MountAllSharesIntent.swift */,
 				F7341C522EAFC551005D3BD3 /* UnmountAllSharesIntent.swift */,
 				F7341C5B2EB0E0BC005D3BD3 /* Notifications.swift */,
+				F794F7912F3350A200CE3981 /* RenewKerberosTicketIntent.swift */,
+				F794F7932F3350E300CE3981 /* GetKerberosStatusIntent.swift */,
+				F794F7952F33525900CE3981 /* GetMountStatusIntent.swift */,
 			);
 			path = Intents;
 			sourceTree = "<group>";
@@ -448,6 +458,7 @@
 		F79B1593274E722000C322A8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				F794F7B92F33666D00CE3981 /* Network-Share-Mounter-Info.plist in Resources */,
 				F79B159C274E722100C322A8 /* Assets.xcassets in Resources */,
 				F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */,
 				F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */,
@@ -466,6 +477,7 @@
 			files = (
 				F73B7D512ED60D22005BECD3 /* ActiveDirectoryProbe.swift in Sources */,
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
+				F794F7922F3350A200CE3981 /* RenewKerberosTicketIntent.swift in Sources */,
 				F791FC9E2DD23DAE00F0445C /* AddShareView.swift in Sources */,
 				F7EF65F52B3B5DDC00051D44 /* Data.swift in Sources */,
 				F7EF65DC2B3B575C00051D44 /* SRVRecord.swift in Sources */,
@@ -481,9 +493,11 @@
 				F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */,
 				F7EF65E62B3B582F00051D44 /* DogeAccount.swift in Sources */,
 				F7B9EEA02E4220DB00DF2814 /* DirectoryManager.swift in Sources */,
+				F794F7962F33525900CE3981 /* GetMountStatusIntent.swift in Sources */,
 				F73429F92DA5767C0025985F /* AuthenticationView.swift in Sources */,
 				F73429FA2DA5767C0025985F /* SettingsView.swift in Sources */,
 				F73429FB2DA5767C0025985F /* NetworkSharesView.swift in Sources */,
+				F794F7942F3350E300CE3981 /* GetKerberosStatusIntent.swift in Sources */,
 				F73429FC2DA5767C0025985F /* SettingsWindowManager.swift in Sources */,
 				F73429FE2DA5767C0025985F /* GeneralSettingsView.swift in Sources */,
 				F7341C512EAFC540005D3BD3 /* MountAllSharesIntent.swift in Sources */,
@@ -589,7 +603,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -649,7 +663,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -669,12 +683,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 388;
+				CURRENT_PROJECT_VERSION = 392;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -699,12 +713,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 388;
+				CURRENT_PROJECT_VERSION = 392;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterTests";
@@ -733,7 +747,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 389;
+				CURRENT_PROJECT_VERSION = 392;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -784,7 +798,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 389;
+				CURRENT_PROJECT_VERSION = 392;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;

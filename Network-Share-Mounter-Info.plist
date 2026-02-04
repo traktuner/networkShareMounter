@@ -7,6 +7,9 @@
 		<string>NetworkShareShortcuts</string>
 		<string>MountAllSharesIntent</string>
 		<string>UnmountAllSharesIntent</string>
+		<string>RenewKerberosTicketIntent</string>
+		<string>GetKerberosStatusIntent</string>
+		<string>GetMountStatusIntent</string>
 	</array>
 </dict>
 </plist>
