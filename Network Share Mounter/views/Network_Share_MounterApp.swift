@@ -62,9 +62,6 @@ struct Network_Share_MounterApp: App {
     // Use StateObject for the settings manager
     @StateObject private var settingsManager = SettingsManager.shared
 
-    // Single source of truth for Mounter in SwiftUI world
-    @StateObject private var mounter = Mounter()
-
     // Environment for opening windows
     @Environment(\.openWindow) private var openWindow
     
@@ -80,15 +77,8 @@ struct Network_Share_MounterApp: App {
             // Eine leere, unsichtbare Root-View – AppDelegate steuert das UI über Statusbar.
             EmptyView()
                 .frame(width: 0, height: 0)
-                .environmentObject(mounter)
                 .environmentObject(settingsManager)
                 .onAppear {
-                    // Wire AppDelegate to use the same Mounter instance
-                    appDelegate.mounter = mounter
-
-                    // Now that mounter is injected, start initialization
-                    appDelegate.startInitialization()
-
                     // Set the callback when the app starts
                     Logger.app.debug("🔧 [DEBUG] Setting openWindow callback")
                     settingsManager.openWindowCallback = { windowId in
@@ -104,15 +94,19 @@ struct Network_Share_MounterApp: App {
         // Einstellungen als eigenes Fenster (Scene)
         Window("Settings", id: "settings") {
             // SettingsView mit den (ggf. aus Notification) übernommenen Parametern
-            SettingsView(
-                autoOpenProfileCreation: settingsManager.pendingAutoOpenProfileCreation,
-                mdmRealm: settingsManager.pendingMDMRealm
-            )
-            .frame(minWidth: 900, minHeight: 580) // konsistent mit SettingsView
-            .environmentObject(settingsManager)
-            .environmentObject(mounter)
-            .onAppear {
-                Logger.app.debug("🔧 [DEBUG] Settings window appeared")
+            if let mounter = appDelegate.mounter {
+                SettingsView(
+                    autoOpenProfileCreation: settingsManager.pendingAutoOpenProfileCreation,
+                    mdmRealm: settingsManager.pendingMDMRealm
+                )
+                .frame(minWidth: 900, minHeight: 580) // konsistent mit SettingsView
+                .environmentObject(settingsManager)
+                .environmentObject(mounter)
+                .onAppear {
+                    Logger.app.debug("🔧 [DEBUG] Settings window appeared")
+                }
+            } else {
+                Text("Initializing...")
             }
         }
         .defaultSize(width: 900, height: 600)
