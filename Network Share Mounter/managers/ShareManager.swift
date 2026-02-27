@@ -153,11 +153,16 @@ actor ShareManager {
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
         }
+        let shareToRemove = _shares[index]
         // remove keychain entry for share
-        if let username = _shares[index].username {
-            removePasswordFromKeychain(for: _shares[index].networkShare, username: username)
+        if let username = shareToRemove.username {
+            removePasswordFromKeychain(for: shareToRemove.networkShare, username: username)
         }
         _shares.remove(at: index)
+        // persist the removal for non-managed shares
+        if !shareToRemove.managed {
+            saveModifiedShareConfigs()
+        }
     }
     
     /// Removes a password from the keychain for a share
