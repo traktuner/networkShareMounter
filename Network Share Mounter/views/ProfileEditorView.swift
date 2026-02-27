@@ -232,6 +232,7 @@ struct ProfileEditorView: View {
                             .font(.body.monospaced())
                             .disabled(isMDMKerberosProfile)
                             .onChange(of: kerberosRealm) { newValue in
+                                guard realmPart != newValue else { return }
                                 realmPart = newValue
                                 updateFullUsername()
                             }
@@ -400,52 +401,61 @@ struct ProfileEditorView: View {
     }
     
     private func updateFullUsername() {
-        if !realmPart.isEmpty {
-            username = "\(usernamePart)@\(realmPart)"
-        } else {
-            username = usernamePart
-        }
+        let newUsername = realmPart.isEmpty ? usernamePart : "\(usernamePart)@\(realmPart)"
+        guard username != newUsername else { return }
+        username = newUsername
     }
     
     private func detectUPNAndConfigureKerberos(_ usernameInput: String) {
-        if usernameInput.contains("@") {
-            let parts = usernameInput.split(separator: "@", maxSplits: 1)
-            if parts.count == 2 {
-                let userPart = String(parts[0])
-                let realmPart = String(parts[1]).uppercased()
-                usernamePart = userPart
-                self.realmPart = realmPart
-                useKerberos = true
-                kerberosRealm = realmPart
-                if selectedSymbol == "person.circle" {
-                    selectedSymbol = "ticket"
-                    selectedColor = .orange
-                }
+        guard usernameInput.contains("@") else {
+            if usernamePart != usernameInput {
+                usernamePart = usernameInput
             }
-        } else {
-            usernamePart = usernameInput
+            return
+        }
+        let parts = usernameInput.split(separator: "@", maxSplits: 1)
+        guard parts.count == 2 else { return }
+
+        let userPart = String(parts[0])
+        let newRealm = String(parts[1]).uppercased()
+
+        guard usernamePart != userPart || kerberosRealm != newRealm else { return }
+
+        usernamePart = userPart
+        realmPart = newRealm
+        useKerberos = true
+        kerberosRealm = newRealm
+        if selectedSymbol == "person.circle" {
+            selectedSymbol = "ticket"
+            selectedColor = .orange
         }
     }
     
     private func handleKerberosToggleChange(_ enabled: Bool) {
         if enabled {
             if kerberosRealm.isEmpty && existingProfile == nil {
-                let mdmRealm = mdmRealm ?? prefs.string(for: .kerberosRealm) ?? ""
-                let shouldUseMDMRealm = !mdmRealm.isEmpty && AuthProfileManager.shared.needsMDMKerberosSetup() != nil
-                if shouldUseMDMRealm {
-                    kerberosRealm = mdmRealm
+                let effectiveRealm = mdmRealm ?? prefs.string(for: .kerberosRealm) ?? ""
+                let shouldUseMDMRealm = !effectiveRealm.isEmpty && AuthProfileManager.shared.needsMDMKerberosSetup() != nil
+                if shouldUseMDMRealm && kerberosRealm != effectiveRealm {
+                    kerberosRealm = effectiveRealm
                 }
             }
-            realmPart = kerberosRealm
+            if realmPart != kerberosRealm {
+                realmPart = kerberosRealm
+            }
             if selectedSymbol == "person.circle" {
                 selectedSymbol = "ticket"
                 selectedColor = .orange
             }
             updateFullUsername()
         } else {
-            realmPart = ""
+            if !realmPart.isEmpty {
+                realmPart = ""
+            }
             if kerberosRealm == mdmRealm || AuthProfileManager.shared.isMDMConfiguredRealm(kerberosRealm) {
-                username = usernamePart
+                if username != usernamePart {
+                    username = usernamePart
+                }
             }
             if selectedSymbol == "ticket" {
                 selectedSymbol = "person.circle"
