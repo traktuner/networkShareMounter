@@ -21,93 +21,53 @@ import AppIntents
 /// - SeeAlso: ``UnmountAllSharesIntent``
 struct NetworkShareShortcuts: AppShortcutsProvider {
 
-    /// The collection of shortcuts made available to the Shortcuts app.
-    ///
-    /// This property constructs:
-    /// - The app name used to substitute the `%@` placeholder in localized phrases.
-    /// - Localized short titles for the mount and unmount actions.
-    /// - Localized phrases that users can speak or type to invoke the shortcuts.
-    ///
-    /// It then returns two ``AppShortcut`` instances:
-    /// 1. One for mounting all shares using ``MountAllSharesIntent``.
-    /// 2. One for unmounting all shares using ``UnmountAllSharesIntent``.
-    ///
-    /// - Returns: An array containing the mount and unmount shortcuts.
     static var appShortcuts: [AppShortcut] {
-        // Resolve the app name used to fill the `%@` placeholder in phrases.
-        let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
-            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
-            ?? "App"
-
-        // Localized short titles from the "Localizable" table.
-        let mountShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.Mount.ShortTitle", table: "Localizable")
-        let unmountShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.Unmount.ShortTitle", table: "Localizable")
-        let renewKerberosShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.RenewKerberos.ShortTitle", table: "Localizable")
-        let kerberosStatusShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.KerberosStatus.ShortTitle", table: "Localizable")
-        let mountStatusShortTitle: LocalizedStringResource = LocalizedStringResource("Shortcuts.MountStatus.ShortTitle", table: "Localizable")
-
-        // Localized phrases from the "Localizable" table (with `%@` for the app name).
-        let mountPhrase1String = String(format: String(localized: "Shortcuts.Phrase.Mount.1", table: "Localizable"), appName)
-        let mountPhrase2String = String(format: String(localized: "Shortcuts.Phrase.Mount.2", table: "Localizable"), appName)
-        let mountPhrase3String = String(format: String(localized: "Shortcuts.Phrase.Mount.3", table: "Localizable"), appName)
-        let unmountPhrase1String = String(format: String(localized: "Shortcuts.Phrase.Unmount.1", table: "Localizable"), appName)
-        let unmountPhrase2String = String(format: String(localized: "Shortcuts.Phrase.Unmount.2", table: "Localizable"), appName)
-        let unmountPhrase3String = String(format: String(localized: "Shortcuts.Phrase.Unmount.3", table: "Localizable"), appName)
-        let renewKerberosPhrase1String = String(format: String(localized: "Shortcuts.Phrase.RenewKerberos.1", table: "Localizable"), appName)
-        let renewKerberosPhrase2String = String(format: String(localized: "Shortcuts.Phrase.RenewKerberos.2", table: "Localizable"), appName)
-        let kerberosStatusPhrase1String = String(format: String(localized: "Shortcuts.Phrase.KerberosStatus.1", table: "Localizable"), appName)
-        let kerberosStatusPhrase2String = String(format: String(localized: "Shortcuts.Phrase.KerberosStatus.2", table: "Localizable"), appName)
-        let mountStatusPhrase1String = String(format: String(localized: "Shortcuts.Phrase.MountStatus.1", table: "Localizable"), appName)
-        let mountStatusPhrase2String = String(format: String(localized: "Shortcuts.Phrase.MountStatus.2", table: "Localizable"), appName)
-
-        return [
-            AppShortcut(
-                intent: MountAllSharesIntent(),
-                phrases: [
-                    .init(mountPhrase1String),
-                    .init(mountPhrase2String),
-                    .init(mountPhrase3String)
-                ],
-                shortTitle: mountShortTitle,
-                systemImageName: "externaldrive.connected.to.line.below"
-            ),
-            AppShortcut(
-                intent: UnmountAllSharesIntent(),
-                phrases: [
-                    .init(unmountPhrase1String),
-                    .init(unmountPhrase2String),
-                    .init(unmountPhrase3String)
-                ],
-                shortTitle: unmountShortTitle,
-                systemImageName: "externaldrive.badge.minus"
-            ),
-            AppShortcut(
-                intent: RenewKerberosTicketIntent(),
-                phrases: [
-                    .init(renewKerberosPhrase1String),
-                    .init(renewKerberosPhrase2String)
-                ],
-                shortTitle: renewKerberosShortTitle,
-                systemImageName: "ticket.fill"
-            ),
-            AppShortcut(
-                intent: GetKerberosStatusIntent(),
-                phrases: [
-                    .init(kerberosStatusPhrase1String),
-                    .init(kerberosStatusPhrase2String)
-                ],
-                shortTitle: kerberosStatusShortTitle,
-                systemImageName: "checkmark.shield.fill"
-            ),
-            AppShortcut(
-                intent: GetMountStatusIntent(),
-                phrases: [
-                    .init(mountStatusPhrase1String),
-                    .init(mountStatusPhrase2String)
-                ],
-                shortTitle: mountStatusShortTitle,
-                systemImageName: "chart.bar.doc.horizontal.fill"
-            )
-        ]
+        AppShortcut(
+            intent: MountAllSharesIntent(),
+            phrases: [
+                "Connect shares in \(.applicationName)",
+                "Mount shares in \(.applicationName)",
+                "Mount network drives in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.Mount.ShortTitle", table: "Localizable"),
+            systemImageName: "externaldrive.connected.to.line.below"
+        )
+        AppShortcut(
+            intent: UnmountAllSharesIntent(),
+            phrases: [
+                "Disconnect shares in \(.applicationName)",
+                "Unmount shares in \(.applicationName)",
+                "Unmount network drives in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.Unmount.ShortTitle", table: "Localizable"),
+            systemImageName: "externaldrive.badge.minus"
+        )
+        AppShortcut(
+            intent: RenewKerberosTicketIntent(),
+            phrases: [
+                "Renew Kerberos ticket in \(.applicationName)",
+                "Refresh authentication in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.RenewKerberos.ShortTitle", table: "Localizable"),
+            systemImageName: "ticket.fill"
+        )
+        AppShortcut(
+            intent: GetKerberosStatusIntent(),
+            phrases: [
+                "Check Kerberos status in \(.applicationName)",
+                "Show ticket status in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.KerberosStatus.ShortTitle", table: "Localizable"),
+            systemImageName: "checkmark.shield.fill"
+        )
+        AppShortcut(
+            intent: GetMountStatusIntent(),
+            phrases: [
+                "Check share status in \(.applicationName)",
+                "Show mount status in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.MountStatus.ShortTitle", table: "Localizable"),
+            systemImageName: "chart.bar.doc.horizontal.fill"
+        )
     }
 }

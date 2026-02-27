@@ -79,6 +79,7 @@ struct ProfileListView: View {
             HStack {
                 Button(action: onAddProfile) {
                     Image(systemName: "plus")
+                        .frame(width: 16, height: 16)
                 }
                 .help("Add profile")
                 
@@ -89,6 +90,7 @@ struct ProfileListView: View {
                     }
                 } label: {
                     Image(systemName: "minus")
+                        .frame(width: 16, height: 16)
                 }
                 .help({
                     guard let selectedID = selectedProfileID,
@@ -117,6 +119,7 @@ struct ProfileListView: View {
                     }
                 } label: {
                     Image(systemName: "arrow.clockwise")
+                        .frame(width: 16, height: 16)
                 }
                 .help("Update Kerberos ticket")
                 .disabled(selectedProfileID == nil ||

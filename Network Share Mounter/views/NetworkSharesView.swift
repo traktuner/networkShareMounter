@@ -160,32 +160,35 @@ struct NetworkSharesView: View {
             HStack {
                 Button(action: { showAddSheet = true }) {
                     Image(systemName: "plus")
+                        .frame(width: 16, height: 16)
                 }
+//                .frame(width: 28, height: 20)
                 .help("Add")
                 
                 Button(action: {
                     Task {
                         if let currentSelection = selectedNetworkShare,
                            let shareToRemove = shares.first(where: { $0.networkShare == currentSelection }),
-                           !shareToRemove.managed { // Only allow removing unmanaged shares
+                           !shareToRemove.managed {
                                 await mounter.removeShare(for: shareToRemove)
                                 selectedNetworkShare = nil
-                                await loadShares() // Reload after removal
+                                await loadShares()
                         }
                     }
                 }) {
                     Image(systemName: "minus")
+                        .frame(width: 16, height: 16)
                 }
+//                .frame(width: 28, height: 20)
                 .help("Remove")
-                // Disable if no share is selected or if the selected share is managed
                 .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
                 
-                // Edit button
                 Button(action: handleToolbarEdit) {
                     Image(systemName: "square.and.pencil")
+                        .frame(width: 16, height: 16)
                 }
+//                .frame(width: 28, height: 20)
                 .help("Edit")
-                // Disable if no share is selected or if the selected share is managed
                 .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
                 
                 // MDM hint for managed shares
@@ -223,8 +226,10 @@ struct NetworkSharesView: View {
                         if let selectedNetworkShare = selectedNetworkShare,
                            let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
                             Text(share.mountStatus == .mounted ? "Disconnect" : "Connect")
+                                .frame(height: 16)
                         } else {
                             Text("Connect/Disconnect")
+                                .frame(height: 16)
                         }
                     }
                 }
