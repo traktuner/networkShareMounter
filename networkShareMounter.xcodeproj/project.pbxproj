@@ -51,7 +51,6 @@
 		F794F7922F3350A200CE3981 /* RenewKerberosTicketIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7912F3350A200CE3981 /* RenewKerberosTicketIntent.swift */; };
 		F794F7942F3350E300CE3981 /* GetKerberosStatusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7932F3350E300CE3981 /* GetKerberosStatusIntent.swift */; };
 		F794F7962F33525900CE3981 /* GetMountStatusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7952F33525900CE3981 /* GetMountStatusIntent.swift */; };
-		F794F7B92F33666D00CE3981 /* Network-Share-Mounter-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
 		F79B159C274E722100C322A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F79B159B274E722100C322A8 /* Assets.xcassets */; };
 		F7A7A2192C8F0240006772D4 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7A7A2182C8F0240006772D4 /* dogeADAuth */; };
@@ -138,7 +137,7 @@
 		F79B1597274E722000C322A8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F79B159B274E722100C322A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F79B15A0274E722100C322A8 /* Network_Share_Mounter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Network_Share_Mounter.entitlements; sourceTree = "<group>"; };
-		F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Network-Share-Mounter-Info.plist"; sourceTree = SOURCE_ROOT; };
+		F79B15C2274E7D3600C322A8 /* Network-Share-Mounter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Network-Share-Mounter-Info.plist"; sourceTree = SOURCE_ROOT; };
 		F7B9EE9F2E4220DB00DF2814 /* DirectoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryManager.swift; sourceTree = "<group>"; };
 		F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F7D146D72B84CB7600BFD8F5 /* FileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager.swift; sourceTree = "<group>"; };
@@ -458,7 +457,6 @@
 		F79B1593274E722000C322A8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				F794F7B92F33666D00CE3981 /* Network-Share-Mounter-Info.plist in Resources */,
 				F79B159C274E722100C322A8 /* Assets.xcassets in Resources */,
 				F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */,
 				F739C41A2755297F003A3CC5 /* DefaultValues.plist in Resources */,
@@ -683,7 +681,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 397;
+				CURRENT_PROJECT_VERSION = 412;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -713,7 +711,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 397;
+				CURRENT_PROJECT_VERSION = 412;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -747,7 +745,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 397;
+				CURRENT_PROJECT_VERSION = 412;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -798,7 +796,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 397;
+				CURRENT_PROJECT_VERSION = 412;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;

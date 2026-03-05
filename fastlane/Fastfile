@@ -158,8 +158,9 @@ lane :testbuild do
       xcodeproj: "networkShareMounter.xcodeproj"
     )
     ensure_correct_build_number
-    build
-    create_package(type: "Test")
+    #build
+    #create_package(type: "Test")
+    sparkle(type: "Test")
   rescue => exception
     on_error(exception)
   ensure
@@ -224,6 +225,49 @@ lane :runbuild do
   tag = getlatestag
   signing_id = ENV["SIGNING_ID"]
   output = sh("../build.sh", "#{id}", "#{tag}", "#{signing_id}")
+end
+
+# generates Sparkle appcast file
+lane :sparkle do |options|
+  desc "Starting sparkle lane..."
+  appversion = getappversion
+  build_type = options[:type] || ""
+  suffix = build_type.empty? ? "" : "#{build_type}-"
+
+  desc "creating Sparkle workspace"
+  workspace = "../build/sparkle_workspace"
+  sh("rm -rf #{workspace} ; mkdir -p #{workspace}")
+
+  desc "copying dmg file into workspace"
+  sh("cp ../build/NetworkShareMounter-#{suffix}#{appversion}.dmg #{workspace}/")
+
+  desc "getting actual Sparkle appcast file"
+  live_appcast_url = "https://faumac.rrze.fau.de/nsm-appcast"
+  begin
+    sh("curl -f -s -o #{workspace}/nsm-appcast #{live_appcast_url}")
+    UI.success("✅ got live appcast file.")
+  rescue
+    UI.important("⚠️ Error on loading live appcast file.")
+  end
+
+  desc "generating Sparkle appcast file"
+  generate_appcast = sh("ls -d /opt/homebrew/Caskroom/sparkle/*/bin/generate_appcast | sort -V | tail -n 1").strip
+  appversion = getappversion
+  begin
+    sh("#{generate_appcast}", 
+      "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{suffix}#{appversion}/", 
+      "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
+      "#{workspace}")  
+    UI.success("✅ generated appcast file.")
+  rescue
+    UI.error("🔴 Generation of appcast file failed.")
+  end
+
+  desc "move appcast file to website source"  
+  sh("mkdir -p ../nsm-website/public")
+  # https://SITE/nsm-appcast is a redirect to https://SITE/NetworkShareMounter-appcast.xml
+  #sh("cp #{workspace}/nsm-appcast ../public/nsm-appcast.xml")
+  sh("cp #{workspace}/nsm-appcast ../nsm-website/public/NetworkShareMounter-appcast.xml")
 end
 
 def on_error(exception)
