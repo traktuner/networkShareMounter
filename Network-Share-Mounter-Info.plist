@@ -11,5 +11,9 @@
 		<string>GetKerberosStatusIntent</string>
 		<string>GetMountStatusIntent</string>
 	</array>
+	<key>SUFeedURL</key>
+	<string>https://faumac.rrze.fau.de/nsm-appcast</string>
+	<key>SUPublicEDKey</key>
+	<string>tPzwpKRVdCjP2EFDrkmcX9A2XxTQRVKg6dLMaXoA8cc=</string>
 </dict>
 </plist>
