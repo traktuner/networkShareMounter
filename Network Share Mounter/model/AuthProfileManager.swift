@@ -828,31 +828,7 @@ class AuthProfileManager: ObservableObject {
         }
     }
 
-    /// Validates a Kerberos profile against existing DogeAccounts.
-    /// Returns true if the profile's username exists in DogeAccounts or if validation is not applicable.
-    func validateKerberosProfile(_ profile: AuthProfile) async -> Bool {
-        guard profile.useKerberos, let username = profile.username else {
-            // Non-Kerberos profiles don't need DogeAccount validation
-            return !profile.useKerberos
-        }
-
-        let accountsManager = AccountsManager.shared
-        let dogeAccounts = await accountsManager.accounts
-
-        let isValid = dogeAccounts.contains { account in
-            account.upn.lowercased() == username.lowercased()
-        }
-
-        if !isValid {
-            Logger.dataModel.warning("⚠️ Kerberos profile validation failed: Username '\(username, privacy: .public)' not found in DogeAccounts")
-        } else {
-            Logger.dataModel.debug("✅ Kerberos profile validation passed for username: \(username, privacy: .public)")
-        }
-
-        return isValid
-    }
-
-    /// Comprehensive profile validation including basic checks and DogeAccount validation for Kerberos.
+    /// Comprehensive profile validation including basic checks for Kerberos.
     /// Returns validation result and user-friendly error messages.
     func validateProfile(_ profile: AuthProfile) async -> (isValid: Bool, errors: [String], realmConflict: AuthProfile?) {
         var errors: [String] = []
@@ -879,13 +855,10 @@ class AuthProfileManager: ObservableObject {
             }
         }
 
-        // DogeAccount validation for Kerberos profiles
-        if profile.useKerberos {
-            let kerbValid = await validateKerberosProfile(profile)
-            if !kerbValid {
-                errors.append("The Kerberos username was not found among the available accounts")
-            }
-        }
+        // DogeAccount validation removed: DogeAccounts are a runtime concept
+        // (created after successful Kerberos auth). Profile creation must work
+        // before any DogeAccount exists. UPN format and realm consistency
+        // checks above are sufficient; invalid credentials are caught at login.
 
         return (errors.isEmpty && realmConflict == nil, errors, realmConflict)
     }

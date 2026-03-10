@@ -1196,6 +1196,11 @@ class Mounter: ObservableObject {
             
             return mountDirectory
             
+        case 1:
+            Logger.mounter.info("❌ \(url, privacy: .public): operation not permitted - EPERM (rc=\(rc)). This may indicate a Kerberos ticket issue or insufficient privileges.")
+            removeDirectory(atPath: mountDirectory)
+            throw MounterError.permissionDenied
+
         case 2:
             Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
             removeDirectory(atPath: mountDirectory)
