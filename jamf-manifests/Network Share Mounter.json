@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
-    "description": "Jamf Manifest for Network Share Mounter v3.1",
-    "__version": "3.0",
+    "description": "Jamf Manifest for Network Share Mounter v4",
+    "__version": "4.0",
     "__feedback": "rrze-mac@fau.de",
     "type": "object",
     "options": {
@@ -10,7 +10,7 @@
     },
     "links": [{
             "rel": "More information",
-            "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
+            "href": "https://www.nsm.faumac.rrze.de/"
         }
     ],
     "properties": {
@@ -62,22 +62,27 @@
                         "options": {
                             "infoText": "If not set, the share name will be used."
                         }
+                    },
+                    "displayName": {
+                        "title": "Display name (Optional)",
+                        "description": "Optional: App display name for configured share.",
+                        "type": "string"
                     }
                 }
             }
         },
-        "enableAutoUpdater": {
-            "title": "Enable AutoUpdater Framework",
+        "disableAutoUpdateFramework": {
+            "title": "Disable AutoUpdater Framework",
             "description": "Turns the auto update framework on or off, so the App can update itself.",
             "type": "boolean",
-            "default": true
+            "default": false
         },
         "location": {
             "title": "Mount path",
             "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended)",
             "links": [{
                 "rel": "More information",
-                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
+                "href": "https://www.nsm.faumac.rrze.de/docs/mdm-admin/"
                 }
             ],
             "type": "string",
@@ -87,7 +92,7 @@
             "title": "Clean up obstructing files and directories",
             "links": [{
                 "rel": "More information",
-                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
+                "href": "https://www.nsm.faumac.rrze.de/docs/mdm-admin/"
                 }
             ],
             "description": "If set to true, the mount location will be cleaned up from obstructing files and directories. Please read the wiki before enabling this option and use it with caution!",
@@ -148,7 +153,7 @@
             "description": "⚠️ Deprecated with version 3. Value will be removed in a future version of the Network Share Mounter.",
             "links": [{
                 "rel": "More information",
-                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
+                "href": "https://www.nsm.faumac.rrze.de/docs/mdm-admin/"
             }],
             "type": "array",
             "items": {
