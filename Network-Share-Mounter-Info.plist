@@ -11,6 +11,8 @@
 		<string>GetKerberosStatusIntent</string>
 		<string>GetMountStatusIntent</string>
 	</array>
+	<key>NSNetwork​Volumes​Usage​Description</key>
+	<string>Bla</string>
 	<key>SUFeedURL</key>
 	<string>https://faumac.rrze.fau.de/nsm-appcast</string>
 	<key>SUPublicEDKey</key>
