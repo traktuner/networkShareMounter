@@ -4739,6 +4739,9 @@
         }
       }
     },
+    "Operation not permitted" : {
+      "comment" : "Operation not permitted (EPERM) - may indicate a Kerberos ticket or system privilege issue"
+    },
     "Other error" : {
       "comment" : "Other error",
       "localizations" : {

@@ -837,6 +837,9 @@ class Mounter: ObservableObject {
         case MounterError.permissionDenied:
              Logger.mounter.debug("🚫 Permission denied for mount: \(share.networkShare, privacy: .public)")
              await updateShare(mountStatus: .errorOnMount, for: share)
+        case MounterError.operationNotPermitted:
+             Logger.mounter.debug("🚫 Operation not permitted (EPERM) for mount: \(share.networkShare, privacy: .public)")
+             await updateShare(mountStatus: .errorOnMount, for: share)
         case MounterError.targetNotReachable:
              Logger.mounter.debug("🚫 Target not reachable (pre-mount check): \(share.networkShare, privacy: .public)")
              await updateShare(mountStatus: .unreachable, for: share)
@@ -1196,6 +1199,11 @@ class Mounter: ObservableObject {
             
             return mountDirectory
             
+        case 1:
+            Logger.mounter.info("❌ \(url, privacy: .public): operation not permitted - EPERM (rc=\(rc)). This may indicate a Kerberos ticket issue, stale NetAuthSysAgent credential cache, or insufficient system privileges.")
+            removeDirectory(atPath: mountDirectory)
+            throw MounterError.operationNotPermitted
+
         case 2:
             Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
             removeDirectory(atPath: mountDirectory)
