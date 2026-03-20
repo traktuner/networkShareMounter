@@ -13,6 +13,7 @@ struct DogeAccount: Codable, Equatable {
     var displayName: String
     var upn: String
     var hasKeychainEntry: Bool? = nil
+    var authProfileID: String? = nil
 }
 
 struct DogeAccounts: Codable {
