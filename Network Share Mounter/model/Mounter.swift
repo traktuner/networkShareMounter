@@ -503,7 +503,7 @@ class Mounter: ObservableObject {
     ///   - userTriggered: Whether the unmount was triggered by user action (defaults to false)
     func unmountShare(for share: Share, userTriggered: Bool = false) async {
         if let mountpoint = share.actualMountPoint {
-            // [WORKAROUND macOS 15.4] Remove symlink from configured mount path before unmounting
+            // [WORKAROUND macOS 26.4] Remove symlink from configured mount path before unmounting
             if needsVolumesWorkaround { removeSymlinkForWorkaround(share: share) }
             let result = await unmountShare(atPath: mountpoint)
             switch result {
@@ -549,7 +549,7 @@ class Mounter: ObservableObject {
     func unmountAllMountedShares(userTriggered: Bool = false) async {
         for share in await shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
-                // [WORKAROUND macOS 15.4] Remove symlink from configured mount path before unmounting
+                // [WORKAROUND macOS 26.4] Remove symlink from configured mount path before unmounting
                 if needsVolumesWorkaround { removeSymlinkForWorkaround(share: share) }
                 let result = await unmountShare(atPath: mountpoint, skipFinderRefresh: true)
                 switch result {
@@ -1292,7 +1292,7 @@ class Mounter: ObservableObject {
         try await validateMountComponent(forShare: share)
         Logger.mounter.debug("  Mount component validated")
         
-        // [WORKAROUND macOS 15.4] Use /Volumes as actual mount base when OS restricts mounts to /Volumes only.
+        // [WORKAROUND macOS 26.4] Use /Volumes as actual mount base when OS restricts mounts to /Volumes only.
         // Apple confirmed this is a bug; remove this block once the fix ships.
         let effectiveMountPath = needsVolumesWorkaround ? "/Volumes" : mountPath
 
@@ -1375,7 +1375,7 @@ class Mounter: ObservableObject {
         let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, osMountedPath: osMountedPath, url: url)
         // Standardize before returning/persisting (the caller will persist after this returns)
         let canonicalFinal = URL(fileURLWithPath: finalMountPoint).standardizedFileURL.path
-        // [WORKAROUND macOS 15.4] Create symlink in configured mount path pointing to actual /Volumes mount
+        // [WORKAROUND macOS 26.4] Create symlink in configured mount path pointing to actual /Volumes mount
         if needsVolumesWorkaround {
             createSymlinkForWorkaround(share: share, actualMountPoint: canonicalFinal)
         }
@@ -1399,7 +1399,7 @@ class Mounter: ObservableObject {
             do {
                 // Validate and compute expected mount directory
                 guard let url = URL(string: share.networkShare) else { continue }
-                // [WORKAROUND macOS 15.4] Check in /Volumes when workaround is active
+                // [WORKAROUND macOS 26.4] Check in /Volumes when workaround is active
                 let effectiveBasePath = needsVolumesWorkaround ? "/Volumes" : defaultMountPath
                 let expectedMountDir = determineMountDirectory(forShare: share, url: url, basePath: effectiveBasePath)
                 let canonical = URL(fileURLWithPath: expectedMountDir).standardizedFileURL.path
@@ -1408,7 +1408,7 @@ class Mounter: ObservableObject {
                     // Persist mounted state
                     await updateShare(actualMountPoint: canonical, for: share)
                     await updateShare(mountStatus: .mounted, for: share)
-                    // [WORKAROUND macOS 15.4] Recreate symlink in configured mount path if needed
+                    // [WORKAROUND macOS 26.4] Recreate symlink in configured mount path if needed
                     if needsVolumesWorkaround { createSymlinkForWorkaround(share: share, actualMountPoint: canonical) }
                     Logger.mounter.debug("  ✅ Rescan: \(share.networkShare, privacy: .public) is mounted at \(canonical, privacy: .public)")
                 } else {
@@ -1469,14 +1469,14 @@ class Mounter: ObservableObject {
         NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
     }
 
-    // MARK: - macOS 15.4 /Volumes-only Mount Workaround
-    // Apple confirmed that macOS 15.4 introduced a regression where NetFSMountURLSync fails with
+    // MARK: - macOS 26.4 /Volumes-only Mount Workaround
+    // Apple confirmed that macOS 26.4 introduced a regression where NetFSMountURLSync fails with
     // EPERM (rc=1) for any mount path outside /Volumes. This section provides a temporary workaround:
     // shares are mounted under /Volumes and a symlink is created at the configured mount path so
     // that user scripts and workflows continue to work. Remove this entire MARK section once Apple
     // ships the fix.
 
-    /// Returns true when the macOS 15.4 /Volumes-only mount restriction applies.
+    /// Returns true when the macOS 26.4 /Volumes-only mount restriction applies.
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
