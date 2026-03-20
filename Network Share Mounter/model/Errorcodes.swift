@@ -97,6 +97,12 @@ enum MounterError: Error {
     
     /// An existing directory is blocking the mount point
     case obstructingDirectory
+
+    /// Share has no assigned authentication profile
+    case unassignedProfile
+
+    /// The mount operation is not permitted at the system level (EPERM)
+    case operationNotPermitted
 }
 
 extension MounterError: LocalizedError {
@@ -241,6 +247,16 @@ extension MounterError: LocalizedError {
             return NSLocalizedString(
                 "Can nout mount share because of obstructing directory",
                 comment: "Can nout mount share because of obstructing directory"
+            )
+        case .unassignedProfile:
+            return NSLocalizedString(
+                "Profile assignment required",
+                comment: "Profile assignment required"
+            )
+        case .operationNotPermitted:
+            return NSLocalizedString(
+                "Operation not permitted",
+                comment: "Operation not permitted (EPERM) - may indicate a Kerberos ticket or system privilege issue"
             )
         }
     }

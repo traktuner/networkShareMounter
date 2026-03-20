@@ -55,13 +55,15 @@ final class ShareManagerTests: XCTestCase {
     ///   - username: Optional username
     ///   - password: Optional password
     ///   - managed: Whether the share is managed
+    ///   - shareDisplayName: Optional display name for the share
     /// - Returns: A Share object for testing
     private func createTestShare(
         networkShare: String = "smb://testserver.example.com/testshare",
         authType: AuthType = .krb,
         username: String? = "testuser",
         password: String? = nil,
-        managed: Bool = false
+        managed: Bool = false,
+        shareDisplayName: String? = nil
     ) -> Share {
         return Share.createShare(
             networkShare: networkShare,
@@ -69,7 +71,8 @@ final class ShareManagerTests: XCTestCase {
             mountStatus: .unmounted,
             username: username,
             password: password,
-            managed: managed
+            managed: managed,
+            shareDisplayName: shareDisplayName
         )
     }
     
@@ -174,7 +177,8 @@ final class ShareManagerTests: XCTestCase {
             authType: .pwd,
             username: "newuser",
             password: "newpassword",
-            managed: true
+            managed: true,
+            shareDisplayName: "Updated Share"
         )
         
         // When
@@ -185,6 +189,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(shares[0].authType, .pwd, "Share's auth type should be updated")
         XCTAssertEqual(shares[0].username, "newuser", "Share's username should be updated")
         XCTAssertEqual(shares[0].managed, true, "Share's managed status should be updated")
+        XCTAssertEqual(shares[0].shareDisplayName, "Updated Share", "Share's display name should be updated")
     }
     
     /// Test: Trying to update a share at an invalid index
@@ -219,7 +224,8 @@ final class ShareManagerTests: XCTestCase {
             Defaults.networkShare: testShare1,
             Defaults.authType: AuthType.krb.rawValue,
             Defaults.username: testUsername,
-            Defaults.mountPoint: "/Volumes/Test"
+            Defaults.mountPoint: "/Volumes/Test",
+            Defaults.shareDisplayNameKey: "MDM Test Share"
         ]
         
         // When
@@ -232,6 +238,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(resultShare?.username, testUsername, "Username should match")
         XCTAssertEqual(resultShare?.mountPoint, "/Volumes/Test", "Mount point should match")
         XCTAssertEqual(resultShare?.managed, true, "Share should be marked as managed")
+        XCTAssertEqual(resultShare?.shareDisplayName, "MDM Test Share", "Display name should match")
     }
     
     /// Test: Processing legacy share configuration
@@ -247,6 +254,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(resultShare?.networkShare, testShare1, "Network share URL should match")
         XCTAssertEqual(resultShare?.authType, .krb, "Auth type should be Kerberos by default")
         XCTAssertEqual(resultShare?.managed, true, "Share should be marked as managed")
+        XCTAssertNil(resultShare?.shareDisplayName, "Legacy shares should have nil display name")
     }
     
     /// Test: Processing user share configuration
@@ -255,7 +263,8 @@ final class ShareManagerTests: XCTestCase {
         let shareConfig: [String: String] = [
             Defaults.networkShare: testShare1,
             Defaults.authType: AuthType.pwd.rawValue,
-            Defaults.username: testUsername
+            Defaults.username: testUsername,
+            Defaults.shareDisplayNameKey: "User Test Share"
         ]
         
         // When
@@ -267,6 +276,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(resultShare?.authType, .pwd, "Auth type should match")
         XCTAssertEqual(resultShare?.username, testUsername, "Username should match")
         XCTAssertEqual(resultShare?.managed, false, "Share should be marked as unmanaged")
+        XCTAssertEqual(resultShare?.shareDisplayName, "User Test Share", "Display name should match")
     }
     
     /// Test: Processing user share configuration with invalid URL
@@ -334,12 +344,170 @@ final class ShareManagerTests: XCTestCase {
         await sut.addShare(createTestShare(networkShare: testShare2))
         let initialCount = await sut.allShares.count
         XCTAssertEqual(initialCount, 2, "Setup: Should have 2 shares")
-        
+
         // When
         await sut.removeAllShares()
-        
+
         // Then
         let finalCount = await sut.allShares.count
         XCTAssertEqual(finalCount, 0, "Should have no shares after removal")
+    }
+
+    // MARK: - Tests: Mount Point Management
+
+    /// Test: isDuplicateMountPoint detects duplicate names (case-insensitive)
+    func testIsDuplicateMountPointDetectsDuplicates() async throws {
+        // Given
+        let share1 = Share.createShare(
+            networkShare: "smb://server1/share1",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: "MyShare",
+            managed: false
+        )
+        await sut.addShare(share1)
+
+        // When/Then - exact match
+        let isDuplicate1 = await sut.isDuplicateMountPoint("MyShare")
+        XCTAssertTrue(isDuplicate1, "Should detect exact duplicate mount point")
+
+        // When/Then - case-insensitive match
+        let isDuplicate2 = await sut.isDuplicateMountPoint("myshare")
+        XCTAssertTrue(isDuplicate2, "Should detect duplicate (case-insensitive)")
+
+        let isDuplicate3 = await sut.isDuplicateMountPoint("MYSHARE")
+        XCTAssertTrue(isDuplicate3, "Should detect duplicate (uppercase)")
+
+        // When/Then - no duplicate
+        let isDuplicate4 = await sut.isDuplicateMountPoint("DifferentShare")
+        XCTAssertFalse(isDuplicate4, "Should not detect non-duplicate")
+    }
+
+    /// Test: isDuplicateMountPoint excludes specified share URL
+    func testIsDuplicateMountPointExcludesShare() async throws {
+        // Given
+        let share1 = Share.createShare(
+            networkShare: "smb://server1/share1",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: "MyShare",
+            managed: false
+        )
+        await sut.addShare(share1)
+
+        // When - check same name but exclude the share itself
+        let isDuplicate = await sut.isDuplicateMountPoint("MyShare", excludingShareURL: "smb://server1/share1")
+
+        // Then
+        XCTAssertFalse(isDuplicate, "Should not detect duplicate when excluding the share itself")
+    }
+
+    /// Test: isDuplicateMountPoint with auto-generated mount points
+    func testIsDuplicateMountPointWithAutoGenerated() async throws {
+        // Given - share without explicit mountPoint (will auto-generate from URL)
+        let share1 = Share.createShare(
+            networkShare: "smb://server1/testshare",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: nil, // Will auto-generate "testshare"
+            managed: false
+        )
+        await sut.addShare(share1)
+
+        // When/Then - check against auto-generated name
+        let isDuplicate1 = await sut.isDuplicateMountPoint("testshare")
+        XCTAssertTrue(isDuplicate1, "Should detect duplicate with auto-generated mount point")
+
+        let isDuplicate2 = await sut.isDuplicateMountPoint("TESTSHARE")
+        XCTAssertTrue(isDuplicate2, "Should detect duplicate (case-insensitive) with auto-generated")
+    }
+
+    /// Test: isDuplicateMountPoint across managed and user shares
+    func testIsDuplicateMountPointAcrossManagedAndUser() async throws {
+        // Given
+        let managedShare = Share.createShare(
+            networkShare: "smb://mdm-server/share",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: "ManagedShare",
+            managed: true
+        )
+        let userShare = Share.createShare(
+            networkShare: "smb://user-server/share",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: "UserShare",
+            managed: false
+        )
+
+        await sut.addShare(managedShare)
+        await sut.addShare(userShare)
+
+        // When/Then - check duplicates across both types
+        XCTAssertTrue(await sut.isDuplicateMountPoint("ManagedShare"), "Should detect managed share")
+        XCTAssertTrue(await sut.isDuplicateMountPoint("UserShare"), "Should detect user share")
+        XCTAssertTrue(await sut.isDuplicateMountPoint("managedshare"), "Should be case-insensitive")
+    }
+
+    // MARK: - Tests: Share.effectiveMountPoint
+
+    /// Test: effectiveMountPoint uses explicit mountPoint when set
+    func testEffectiveMountPointWithExplicitMountPoint() {
+        // Given
+        let share = Share.createShare(
+            networkShare: "smb://server.com/original",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: "CustomName",
+            managed: false
+        )
+
+        // When/Then
+        XCTAssertEqual(share.effectiveMountPoint, "CustomName", "Should use explicit mountPoint")
+    }
+
+    /// Test: effectiveMountPoint auto-generates from URL when mountPoint is nil
+    func testEffectiveMountPointAutoGeneratesFromURL() {
+        // Given
+        let share = Share.createShare(
+            networkShare: "smb://server.com/testshare",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: nil,
+            managed: false
+        )
+
+        // When/Then
+        XCTAssertEqual(share.effectiveMountPoint, "testshare", "Should auto-generate from URL")
+    }
+
+    /// Test: effectiveMountPoint auto-generates when mountPoint is empty
+    func testEffectiveMountPointAutoGeneratesWhenEmpty() {
+        // Given
+        let share = Share.createShare(
+            networkShare: "smb://server.com/myshare",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: "",
+            managed: false
+        )
+
+        // When/Then
+        XCTAssertEqual(share.effectiveMountPoint, "myshare", "Should auto-generate when empty")
+    }
+
+    /// Test: effectiveMountPoint with nested path
+    func testEffectiveMountPointWithNestedPath() {
+        // Given
+        let share = Share.createShare(
+            networkShare: "smb://server.com/path/to/share",
+            authType: .krb,
+            mountStatus: .unmounted,
+            mountPoint: nil,
+            managed: false
+        )
+
+        // When/Then
+        XCTAssertEqual(share.effectiveMountPoint, "share", "Should extract last component from nested path")
     }
 } 

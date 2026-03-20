@@ -1,0 +1,3 @@
+[submodule "nsm-website"]
+	path = nsm-website
+	url = git@gitlab.rrze.fau.de:faumac/nsm-website.git

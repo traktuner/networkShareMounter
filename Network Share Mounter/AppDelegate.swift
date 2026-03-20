@@ -6,9 +6,9 @@
 //  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
-import Cocoa
+@preconcurrency import Cocoa
 import Network
-import LaunchAtLogin
+import ServiceManagement
 import OSLog
 import Sparkle
 import Sentry
@@ -44,7 +44,6 @@ import dogeADAuth
 /// - Green: Kerberos authentication successful
 /// - Yellow: Authentication issue (non-Kerberos)
 /// - Red: Kerberos authentication failure
-@main
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// The status item displayed in the system menu bar.
@@ -52,7 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     
     /// The main application window used for displaying preferences.
-    var window: NSWindow?
+    var window = NSWindow()
     
     /// The path where network shares are mounted.
     /// This path is used as the default location for all mounted shares.
@@ -60,6 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     
     /// The object responsible for mounting network shares.
     /// This handles all operations related to connecting, authenticating, and mounting shares.
+    /// NOTE: Instance is created by Network_Share_MounterApp and injected here.
     var mounter: Mounter?
     
     /// Manages user preferences for the application.
@@ -130,7 +130,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         super.init()
         
         // First check if auto-updater is enabled
-        if prefs.bool(for: .enableAutoUpdater) == true {
+        if prefs.bool(for: .disableAutoUpdateFramework) == false {
             // Configure Sparkle defaults before initializing the controller
             let sparkleDefaults = UserDefaults.standard
             
@@ -157,6 +157,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
+        // --- Preference Migration Logic for Sparkle ---
+        migrateSparklePreference()
+        // --- End Migration Logic ---
+
+        // Configure Sentry based on user preferences
+        SentryManager.shared.configureSentry()
         appStartTime = Date()
         logAppVersion(context: "🚀 App starting")
 
@@ -172,45 +179,153 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
 #endif
+  
         
         // Synchronize Sparkle settings with current preferences
         synchronizeSparkleSettings()
         
-        // Initialize the Mounter instance
-        mounter = Mounter()
-        
         // Set up the status item in the menu bar
         if let button = statusItem.button {
-            button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+            button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
         }
-        
-        // Asynchronously initialize the app
-        Task {
-            await initializeApp()
-        }
-        
+
         // Set up signal handlers for the app
         setupSignalHandlers()
-        
-        activityController = ActivityController(appDelegate: self)
 
-        Task.detached(priority: .background) { [weak self] in
+        activityController = ActivityController(appDelegate: self)
+        
+        // Create mounter instance immediately (not waiting for SwiftUI)
+        mounter = Mounter()
+        
+        // Start asynchronous initialization
+        Task { @MainActor in
+            await initializeApp()
+            await performPostInitializationTasks()
+        }
+    }
+
+    /// Handles autostart configuration after app initialization.
+    @MainActor
+    private func performPostInitializationTasks() async {
+        // Handle autostart configuration (MDM or first-time setup)
+        Task.detached(priority: .utility) { [weak self] in
             guard let self = self else { return }
-            Logger.app.debug("Setting LaunchAtLogin state asynchronously via Task...")
-            LaunchAtLogin.isEnabled = self.prefs.bool(for: .autostart)
-            Logger.app.debug("LaunchAtLogin state set via Task.")
+
+            let defaults = UserDefaults.standard
+            let service = SMAppService.mainApp
+            let hasCompletedSetup = defaults.bool(forKey: PreferenceKeys.hasCompletedInitialAutostartSetup.rawValue)
+
+            // Check if MDM has set an autostart preference.
+            // MDM is considered active if either 'autostart' or 'canChangeAutostart' is forced,
+            // since locking 'canChangeAutostart' implies MDM intends to control the autostart state.
+            let hasMDMAutostart = defaults.objectIsForced(forKey: PreferenceKeys.autostart.rawValue)
+                || defaults.objectIsForced(forKey: PreferenceKeys.canChangeAutostart.rawValue)
+
+            if hasMDMAutostart {
+                let mdmAutostart = self.prefs.bool(for: .autostart)
+                let canChangeAutostart = self.prefs.bool(for: .canChangeAutostart)
+                let currentStatus = service.status
+
+                if !canChangeAutostart {
+                    // Scenario 1: MDM enforces autostart on EVERY launch (not changeable by user)
+                    Logger.app.info("🔧 MDM autostart enforced (canChangeAutostart=false): \(mdmAutostart), current system: \(String(describing: currentStatus), privacy: .public)")
+
+                    let needsSync = (mdmAutostart && currentStatus != .enabled) || (!mdmAutostart && currentStatus == .enabled)
+
+                    if needsSync {
+                        do {
+                            if mdmAutostart {
+                                try service.register()
+                                Logger.app.info("✅ Enforced MDM autostart: enabled")
+                            } else {
+                                try await service.unregister()
+                                Logger.app.info("✅ Enforced MDM autostart: disabled")
+                            }
+                        } catch {
+                            Logger.app.error("❌ Failed to enforce MDM autostart: \(error.localizedDescription, privacy: .public)")
+                        }
+                    }
+                } else {
+                    // Scenario 2: MDM provides initial value but user can change (canChangeAutostart=true)
+                    if !hasCompletedSetup {
+                        Logger.app.info("🎉 First launch with MDM default (canChangeAutostart=true): \(mdmAutostart)")
+
+                        do {
+                            if mdmAutostart {
+                                try service.register()
+                                Logger.app.info("✅ Applied MDM initial autostart: enabled")
+                            } else {
+                                try await service.unregister()
+                                Logger.app.info("✅ Applied MDM initial autostart: disabled")
+                            }
+                        } catch {
+                            Logger.app.error("❌ Failed to apply MDM initial autostart: \(error.localizedDescription, privacy: .public)")
+                        }
+
+                        // Mark setup as completed - from now on user controls it
+                        defaults.set(true, forKey: PreferenceKeys.hasCompletedInitialAutostartSetup.rawValue)
+                    } else {
+                        // Setup already done - user has control, ignore MDM value
+                        Logger.app.debug("Setup completed - user controls autostart (MDM value ignored)")
+                    }
+                }
+            } else {
+                // Scenario 3: No MDM - enable autostart on first launch
+                if !hasCompletedSetup {
+                    Logger.app.info("🎉 First launch without MDM - enabling autostart by default")
+
+                    do {
+                        try service.register()
+                        Logger.app.info("✅ Autostart enabled on first launch")
+                    } catch {
+                        Logger.app.error("❌ Failed to enable autostart on first launch: \(error.localizedDescription, privacy: .public)")
+                    }
+
+                    // Mark setup as completed
+                    defaults.set(true, forKey: PreferenceKeys.hasCompletedInitialAutostartSetup.rawValue)
+                } else {
+                    // Setup already done - respect user's choice
+                    Logger.app.debug("Autostart setup completed - respecting user's system state")
+                }
+            }
+        }
+    }
+
+    /// Migrates the old Sparkle enable preference to the new disable preference if necessary.
+    /// The new key `.disableAutoUpdateFramework` takes precedence.
+    private func migrateSparklePreference() {
+        let defaults = UserDefaults.standard
+        let newKey = PreferenceKeys.disableAutoUpdateFramework.rawValue
+        let oldKey = PreferenceKeys.enableAutoUpdater.rawValue
+
+        // Check if the new key is already set (by user or MDM)
+        if defaults.object(forKey: newKey) != nil {
+            Logger.app.info("New preference key '\(newKey)' found. Ignoring old key '\(oldKey)'.")
+            // New key exists, no migration needed, its value takes precedence.
+        }
+        // Check if the old key exists and the new one doesn't
+        else if defaults.object(forKey: oldKey) != nil {
+            let oldValue = defaults.bool(forKey: oldKey) // Read the old value
+            let newValue = !oldValue // Invert the logic for the new key
+            prefs.set(for: .disableAutoUpdateFramework, value: newValue)
+            Logger.app.warning("Old preference key '\(oldKey)' found and migrated to '\(newKey)=\(newValue)'. Please update configuration profiles.")
+        } else {
+            Logger.app.info("Neither new ('\(newKey)') nor old ('\(oldKey)') Sparkle preference key found. Using default value.")
+            // Neither key exists, rely on the default registered for disableAutoUpdateFramework (likely false).
         }
     }
     
     private func synchronizeSparkleSettings() {
         let sparkleDefaults = UserDefaults.standard
-        let autoUpdaterEnabled = prefs.bool(for: .enableAutoUpdater)
+        // Use the new preference key to determine if the framework is globally disabled
+        let autoUpdaterFrameworkDisabled = prefs.bool(for: .disableAutoUpdateFramework)
         
-        if !autoUpdaterEnabled {
+        // If framework is disabled, ensure all Sparkle settings reflect this
+        if autoUpdaterFrameworkDisabled {
             sparkleDefaults.set(false, forKey: "SUEnableAutomaticChecks")
             sparkleDefaults.set(false, forKey: "SUAutomaticallyUpdate")
             sparkleDefaults.set(true, forKey: "SUHasLaunchedBefore")
-            Logger.app.info("Auto-updater disabled: Setting all Sparkle settings to false")
+            Logger.app.info("Sparkle framework disabled via 'disableAutoUpdateFramework': Setting all Sparkle settings to false")
             return
         }
         
@@ -223,19 +338,49 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         sparkleDefaults.set(hasLaunchedBefore, forKey: "SUHasLaunchedBefore")
         
         Logger.app.info("Sparkle settings synchronized: ")
-        Logger.app.info("     enableAutoUpdater=\(autoUpdaterEnabled, privacy: .public)")
         Logger.app.info("     enableChecks=\(enableChecks, privacy: .public)")
         Logger.app.info("     autoUpdate=\(autoUpdate, privacy: .public)")
         Logger.app.info("     hasLaunchedBefore=\(hasLaunchedBefore, privacy: .public)")
     }
     
+    @MainActor
     private func initializeApp() async {
-        Task { @MainActor in
-            Logger.app.debug("🔄 Starting asynchronous app initialization")
+        Logger.app.debug("🔄 Starting asynchronous app initialization")
             
-            await mounter?.asyncInit()
-            Logger.app.debug("✅ Mounter successfully initialized")
-            
+            // Perform one-time migration from legacy credentials to profiles BEFORE mounter init
+            let migrationKey = "AuthProfileMigrationCompleted_v3.0"
+            if !UserDefaults.standard.bool(forKey: migrationKey) {
+                do {
+                    try await AuthProfileManager.shared.migrateFromLegacyCredentials()
+                    UserDefaults.standard.set(true, forKey: migrationKey)
+                    Logger.app.info("✅ Profile migration completed successfully")
+                } catch {
+                    Logger.app.error("❌ Profile migration failed: \(error)")
+                }
+            } else {
+                Logger.app.debug("Profile migration already completed, skipping")
+            }
+
+            // Perform share-linking migration (v3.0 → v4.0) - runs independently of AuthProfile migration
+            let shareMigrationKey = "ShareLinkingMigrationCompleted_v4.0"
+            if !UserDefaults.standard.bool(forKey: shareMigrationKey) {
+                Logger.app.info("🔗 Starting share linking migration...")
+                await AuthProfileManager.shared.updateExistingSharesWithProfiles()
+                UserDefaults.standard.set(true, forKey: shareMigrationKey)
+                Logger.app.info("✅ Share linking migration completed successfully")
+            } else {
+                Logger.app.debug("Share linking migration already completed, skipping")
+            }
+
+            // Initialize the mounter AFTER migration
+            if let mounter = self.mounter {
+                await mounter.asyncInit()
+                Logger.app.debug("✅ Mounter successfully initialized")
+            } else {
+                Logger.app.error("❌ Mounter is not available for initialization - SwiftUI injection failed")
+                return
+            }
+
             // NEW: Rescan existing mounts at app start, independent of network state
             if let mounter = self.mounter {
                 Logger.app.debug("🔍 Performing initial rescan of existing mounts")
@@ -244,23 +389,57 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             
             await self.constructMenu(withMounter: self.mounter)
             Logger.app.debug("✅ Initial menu constructed")
-            
-            if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
-                Logger.app.info("Enabling Kerberos Realm \(krbRealm, privacy: .public).")
+
+            // Check for shares without assigned profiles after initialization
+            if let mounter = self.mounter {
+                await mounter.shareManager.checkForUnassignedProfiles()
+            }
+
+            // Check if Mac is bound to Active Directory
+            if await isActiveDirectoryBound() {
+                Logger.app.info("🎯 Mac is bound to Active Directory - using system Kerberos")
+
+                // Inform the mounter about AD binding status
+                if let mounter = self.mounter {
+                    mounter.isActiveDirectoryBound = true
+                }
+
+                // Check for system Kerberos tickets (for icon feedback only)
+                let klist = KlistUtil()
+                let tickets = await klist.klist()
+
+                if !tickets.isEmpty {
+                    Logger.app.info("✅ System Kerberos tickets available - AD authentication ready")
+                    await MainActor.run {
+                        if let button = self.statusItem.button {
+                            button.image = NSImage(named: NSImage.Name("networkShareMounterAD"))
+                        }
+                    }
+                } else {
+                    Logger.app.info("ℹ️ No system Kerberos tickets found (off-domain?) - using neutral icon")
+                    // Icon bleibt normal (wurde bereits bei app launch gesetzt)
+                }
+
+                // No app-managed Kerberos authentication needed
+                self.enableKerberos = false
+
+            } else if let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty {
+                // Not AD-bound but Kerberos realm configured: use app-managed authentication
+                Logger.app.info("Enabling app-managed Kerberos for Realm \(krbRealm, privacy: .public).")
                 self.enableKerberos = true
-                
+
                 let klist = KlistUtil()
                 let principals = await klist.klist()
                 if !principals.isEmpty {
                     Logger.app.info("Found existing Kerberos tickets, updating menu icon.")
-                    Task { @MainActor in
+                    await MainActor.run {
                         if let button = self.statusItem.button {
-                            button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                            button.image = NSImage(named: NSImage.Name(MenuImageName.green.imageName))
                         }
                     }
                 }
             } else {
-                Logger.app.info("No Kerberos Realm found.")
+                Logger.app.info("No Kerberos configuration found.")
             }
             
             let stats = AppStatistics.init()
@@ -269,6 +448,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             
             await AccountsManager.shared.initialize()
             Logger.app.debug("✅ Account manager initialized")
+            
+            // Create default realm profile if needed (always check on startup)
+            do {
+                try await AuthProfileManager.shared.createDefaultRealmProfileIfNeeded()
+                Logger.app.debug("✅ Default realm profile check completed")
+            } catch {
+                Logger.app.error("❌ Default realm profile creation failed: \(error)")
+            }
+
+            // Check if MDM requires Kerberos setup and auto-open settings if needed
+            if let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
+                Logger.app.info("🔧 MDM Kerberos realm '\(mdmRealm)' configured but no profile exists. Auto-opening settings for user setup.")
+                await MainActor.run {
+                    // Auto-open settings window with profile creation dialog using the new SwiftUI system
+                    NotificationCenter.default.post(
+                        name: .showSettingsScene,
+                        object: nil,
+                        userInfo: [
+                            "autoOpenProfileCreation": true,
+                            "mdmRealm": mdmRealm
+                        ]
+                    )
+                }
+            }
             
             if mounter != nil {
                 NotificationCenter.default.addObserver(self, selector: #selector(handleErrorNotification(_:)), name: .nsmNotification, object: nil)
@@ -317,15 +520,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
 
             if self.enableKerberos {
-                Logger.app.debug("Kerberos enabled - waiting for authentication before initial mount")
+                Logger.app.debug("App-managed Kerberos enabled - waiting for authentication before initial mount")
                 await self.performInitialMountWithKerberosAuth()
             } else {
-                Logger.app.debug("No Kerberos authentication required - performing initial mount")
+                Logger.app.debug("No app-managed Kerberos authentication required (AD-bound or no Kerberos) - performing initial mount")
                 NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
             }
 
             Logger.app.debug("🎉 App initialization completed successfully")
-        }
     }
 
     @MainActor
@@ -387,6 +589,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func handleErrorNotification(_ notification: NSNotification) {
         if notification.userInfo?["KrbAuthError"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing KrbAuthError path")
+            
+            // Cache Kerberos error status for App Intents
+            let kerbStatus: [String: Any] = [
+                "hasValidTicket": false,
+                "lastUpdated": Date().timeIntervalSince1970
+            ]
+            UserDefaults.standard.set(kerbStatus, forKey: "kerberosTicketStatus")
+            
             Task { @MainActor in
                 let hasMountedShares = await mounter?.shareManager.allShares.contains { $0.mountStatus == .mounted } ?? false
                 if hasMountedShares {
@@ -394,10 +604,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     return
                 }
                 Logger.app.debug("🔔 [DEBUG] No mounted shares - proceeding with Kerberos error handling")
-                if let button = statusItem.button, enableKerberos {
+                if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
-                    mounter?.setErrorStatus(.krbAuthenticationError)
-                    await constructMenu(withMounter: mounter, andStatus: .krbAuthenticationError)
+                    self.mounter?.setErrorStatus(.krbAuthenticationError)
+                    await self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
                 }
             }
         }
@@ -420,7 +630,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             Logger.app.debug("🔔 [DEBUG] Processing ClearError path")
             Task { @MainActor in
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
                     self.mounter?.setErrorStatus(.noError)
                     await self.constructMenu(withMounter: self.mounter)
                 }
@@ -428,6 +638,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         else if notification.userInfo?["krbAuthenticated"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing krbAuthenticated path")
+            
+            // Cache Kerberos status for App Intents
+            let kerbStatus: [String: Any] = [
+                "hasValidTicket": true,
+                "lastUpdated": Date().timeIntervalSince1970
+            ]
+            UserDefaults.standard.set(kerbStatus, forKey: "kerberosTicketStatus")
+            
             Task { @MainActor in
                 if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
@@ -448,20 +666,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         else if notification.userInfo?["krbOffDomain"] is Error {
             Logger.app.debug("🔔 [DEBUG] Processing krbOffDomain path")
             Task { @MainActor in
-                if let button = statusItem.button, enableKerberos {
+                // Change the color of the menu symbol to default when off domain
+                if let button = self.statusItem.button, self.enableKerberos {
                     button.image = NSImage(named: NSImage.Name("networkShareMounter"))
-                    mounter?.setErrorStatus(.offDomain)
-                    await constructMenu(withMounter: mounter)
+                    self.mounter?.setErrorStatus(.offDomain)
+                    await self.constructMenu(withMounter: self.mounter)
                 }
             }
         }
-        else if notification.userInfo?["krbUnreachable"] is Error {
-            Logger.app.debug("🔔 [DEBUG] Processing krbUnreachable path")
+        else if notification.userInfo?["UnassignedProfiles"] is Error {
+            Logger.app.debug("🔔 [DEBUG] Processing UnassignedProfiles path")
             Task { @MainActor in
-                if let button = statusItem.button, enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounter")) // Farblos
-                    mounter?.setErrorStatus(.offDomain)
-                    await constructMenu(withMounter: mounter)
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                    self.mounter?.setErrorStatus(.unassignedProfile)
+                    await self.constructMenu(withMounter: self.mounter, andStatus: .unassignedProfile)
                 }
             }
         }
@@ -525,25 +744,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSWorkspace.shared.open(openURL)
     }
 
-    @objc func showWindow(_ sender: Any?) {
-        if window == nil {
-            let contentRect = NSRect(x: 0, y: 0, width: 600, height: 500)
-            window = NSWindow(contentRect: contentRect,
-                            styleMask: [.titled, .closable, .miniaturizable],
-                            backing: .buffered,
-                            defer: false)
-            window?.isReleasedWhenClosed = false
-            window?.delegate = self
-        }
-        
-        window?.title = NSLocalizedString("Preferences", comment: "Preferences")
-        window?.contentViewController = NetworkShareMounterViewController.newInstance()
-        window?.center()
+    /// Shows the new SwiftUI settings window.
+    @objc func showSettingsWindowSwiftUI(_ sender: Any?) {
+        Logger.app.debug("🔧 [DEBUG] showSettingsWindowSwiftUI called")
+
+        // Activate the app to bring it to foreground (necessary for menu bar apps)
+        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
-        window?.orderFrontRegardless()
-        window?.makeKey()
+
+        // Use the new SwiftUI app notification system
+        NotificationCenter.default.post(name: .showSettingsScene, object: nil)
+        Logger.app.debug("🔧 [DEBUG] Posted showSettingsScene notification")
     }
     
+    /// Sets up signal handlers for mounting and unmounting shares.
+    ///
+    /// This method configures the application to respond to UNIX signals:
+    /// - SIGUSR1: Unmount all shares
+    /// - SIGUSR2: Mount all configured shares
+    ///
+    /// These signals allow external processes to trigger mount/unmount operations.
     func setupSignalHandlers() {
         let unmountSignal = SIGUSR1
         let mountSignal = SIGUSR2
@@ -613,22 +833,40 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @MainActor func constructMenu(withMounter mounter: Mounter?, andStatus: MounterError? = nil) async {
         let menu = NSMenu()
         menu.autoenablesItems = false
-        
+
         let statusToUse = andStatus ?? mounter?.errorStatus
-        
+
+        // Check MDM policy for settings menu access
+        let menuSettingsValue = prefs.string(for: .menuSettings) ?? ""
+        let canShowSettings = menuSettingsValue != "hidden"
+
         if let mounter = mounter {
             switch statusToUse {
             case .krbAuthenticationError:
                 Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
-                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Kerberos SSO Authentication problem...", comment: "Kerberos Authentication problem"),
-                                        action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+                let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Kerberos SSO Authentication problem..."), comment: "Kerberos Authentication problem"),
+                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          keyEquivalent: "")
+                errorItem.isEnabled = canShowSettings
+                menu.addItem(errorItem)
                 menu.addItem(NSMenuItem.separator())
             case .authenticationError:
                 Logger.app.debug("🏗️ Constructing authentication problem menu.")
-                menu.addItem(NSMenuItem(title: NSLocalizedString("⚠️ Authentication problem...", comment: "Authentication problem"),
-                                        action: #selector(AppDelegate.showWindow(_:)), keyEquivalent: ""))
+                let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Authentication problem..."), comment: "Authentication problem"),
+                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          keyEquivalent: "")
+                errorItem.isEnabled = canShowSettings
+                menu.addItem(errorItem)
                 menu.addItem(NSMenuItem.separator())
-                
+            case .unassignedProfile:
+                Logger.app.debug("🏗️ Constructing unassigned profile menu.")
+                let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Profile assignment required..."), comment: "Profile assignment required"),
+                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          keyEquivalent: "")
+                errorItem.isEnabled = canShowSettings
+                menu.addItem(errorItem)
+                menu.addItem(NSMenuItem.separator())
+
             default:
                 mounter.setErrorStatus(.noError)
                 Logger.app.debug("🏗️ Constructing default menu.")
@@ -638,7 +876,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if let urlString = prefs.string(for: .helpURL), URL(string: urlString) != nil {
-            if let newMenuItem = createMenuItem(title: "About Network Share Mounter",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("About Network Share Mounter"), comment: "About Network Share Mounter"),
                                                   comment: "About Network Share Mounter",
                                                   action: #selector(AppDelegate.openHelpURL(_:)),
                                                   keyEquivalent: "",
@@ -649,7 +887,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if mounter != nil {
-            if let newMenuItem = createMenuItem(title: "Mount shares",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Mount shares"), comment: "Mount shares"),
                                                   comment: "Mount share",
                                                   action: #selector(AppDelegate.mountManually(_:)),
                                                   keyEquivalent: "m",
@@ -657,7 +895,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                                                   prefs: prefs) {
                 menu.addItem(newMenuItem)
             }
-            if let newMenuItem = createMenuItem(title: "Unmount shares",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Unmount shares"), comment: "Unmount shares"),
                                                   comment: "Unmount shares",
                                                   action: #selector(AppDelegate.unmountShares(_:)),
                                                   keyEquivalent: "u",
@@ -665,7 +903,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                                                   prefs: prefs) {
                 menu.addItem(newMenuItem)
             }
-            if let newMenuItem = createMenuItem(title: "Show mounted shares",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Show mounted shares"), comment: "Show mounted shares"),
                                                   comment: "Show mounted shares",
                                                   action: #selector(AppDelegate.openDirectory(_:)),
                                                   keyEquivalent: "f",
@@ -677,7 +915,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if prefs.bool(for: .enableAutoUpdater) == true && updaterController != nil {
-            if let newMenuItem = createMenuItem(title: "Check for Updates...",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Check for Updates..."), comment: "Check for Updates"),
                                                 comment: "Check for Updates",
                                                 action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
                                                 keyEquivalent: "",
@@ -697,11 +935,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     var menuItem: NSMenuItem
                     
                     if let mountpoint = share.actualMountPoint {
-                        let mountDir = (mountpoint as NSString).lastPathComponent
+                        let mountDir = URL(fileURLWithPath: mountpoint).lastPathComponent
                         Logger.app.debug("  Menu: 🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
-                        
+
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
-                        menuItem = NSMenuItem(title: NSLocalizedString(mountDir, comment: ""),
+                        menuItem = NSMenuItem(title: mountDir,
                                               action: #selector(AppDelegate.openDirectory(_:)),
                                               keyEquivalent: "")
                         menuItem.representedObject = mountpoint
@@ -709,7 +947,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     } else {
                         Logger.app.debug("  Menu: 🍰 Adding remote share \(share.networkShare, privacy: .public).")
                         let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
-                        menuItem = NSMenuItem(title: NSLocalizedString(share.networkShare, comment: ""),
+                        // Use effectiveMountPoint for menu display
+                        let menuItemTitle = share.effectiveMountPoint
+                        menuItem = NSMenuItem(title: menuItemTitle,
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),
                                               keyEquivalent: "")
                         menuItem.representedObject = share.id
@@ -730,9 +970,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
         
-        if let newMenuItem = createMenuItem(title: "Preferences ...",
+        if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Preferences ..."), comment: "Preferences"),
                                               comment: "Preferences",
-                                              action: #selector(AppDelegate.showWindow(_:)),
+                                              action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)),
                                               keyEquivalent: ",",
                                               preferenceKey: .menuSettings,
                                               prefs: prefs) {
@@ -741,7 +981,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         if prefs.bool(for: .canQuit) != false {
-            if let newMenuItem = createMenuItem(title: "Quit Network Share Mounter",
+            if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Quit Network Share Mounter"), comment: "Quit Network Share Mounter"),
                                                 comment: "Quit Network Share Mounter",
                                                 action: #selector(NSApplication.terminate(_:)),
                                                 keyEquivalent: "q",
@@ -755,13 +995,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         statusItem.menu = menu
     }
     
-    func createMenuItem(title: String, comment: String, action: Selector, keyEquivalent: String, preferenceKey: PreferenceKeys, prefs: PreferenceManager) -> NSMenuItem? {
+    func createMenuItem(title: String, comment: StaticString, action: Selector, keyEquivalent: String, preferenceKey: PreferenceKeys, prefs: PreferenceManager) -> NSMenuItem? {
         let preferenceValue = prefs.string(for: preferenceKey) ?? ""
-        let localizedTitle = NSLocalizedString(title, comment: "")
-        let menuItem = NSMenuItem(title: NSLocalizedString(localizedTitle, comment: comment),
+        let menuItem = NSMenuItem(title: String(localized: String.LocalizationValue(title), comment: comment),
                                   action: action,
                                   keyEquivalent: keyEquivalent)
-        
+
         switch preferenceValue {
         case "hidden":
             return nil

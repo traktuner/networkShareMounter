@@ -127,7 +127,18 @@ struct Defaults {
     // MARK: - Path Settings
     
     /// Legacy default path for mounted shares (NSM versions 1 and 2)
-    static let oldDefaultsMountPath = NSString(string: "~/\(Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!)").expandingTildeInPath
+    static let oldDefaultsMountPath: String = {
+        let langCode: String
+        if #available(macOS 13.0, *) {
+            langCode = Locale.current.language.languageCode?.identifier ?? "en"
+        } else {
+            langCode = Locale.current.languageCode ?? "en"
+        }
+        let folder = Defaults.translation[langCode] ?? Defaults.translation["en"]!
+        // Build path using URL semantics to avoid NSString bridging and to resolve "~"
+        let home = URL(fileURLWithPath: NSHomeDirectory())
+        return home.appendingPathComponent(folder).path
+    }()
     
     /// Current default mount path (macOS standard)
     static let defaultMountPath = "/Volumes"
@@ -157,9 +168,18 @@ struct Defaults {
     /// Optional username to use on mount
     static let username = "username"
     
+    /// Optional display name for the share
+    static let shareDisplayNameKey = "shareDisplayName"
+
+    /// Optional AuthProfile ID for shares using the new AuthProfile system
+    static let authProfileID = "authProfileID"
+    
     /// Legacy key for user-defined shares
     static let customSharesKey = "customNetworkShares"
     
     /// Current key for user-defined shares
     static let userNetworkShares = "userNetworkShares"
+    
+    static let authProfileKey = "authProfiles"
 }
+

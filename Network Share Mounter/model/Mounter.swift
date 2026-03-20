@@ -12,6 +12,7 @@ import SystemConfiguration
 import OpenDirectory
 import AppKit
 import OSLog
+import dogeADAuth
 
 // swiftlint:disable type_body_length
 /// Class responsible for performing mount/unmount operations for network shares.
@@ -26,7 +27,11 @@ import OSLog
 class Mounter: ObservableObject {
     var prefs = PreferenceManager()
     @Published var shareManager = ShareManager()
-    
+
+    /// Indicates whether the Mac is bound to Active Directory
+    /// When true, system Kerberos tickets are used automatically by macOS
+    var isActiveDirectoryBound: Bool = false
+
     /// Published error status that automatically notifies observers
     @Published private var _errorStatus: MounterError = .noError
     
@@ -147,12 +152,20 @@ class Mounter: ObservableObject {
         if prefs.bool(for: .useNewDefaultLocation) {
             self.defaultMountPath = Defaults.defaultMountPath
         } else {
-            // Use actual/legacy default location
-            self.defaultMountPath = NSString(string: "~/\(localizedFolder)").expandingTildeInPath
+            // Use actual/legacy default location (resolve "~" safely without NSString)
+            let homeURL = URL(fileURLWithPath: NSHomeDirectory())
+            self.defaultMountPath = homeURL.appendingPathComponent(localizedFolder).path
         }
         // Set default mount location to profile-defined value if available
-        if let location = prefs.string(for: .location), !location.isEmpty {
-            self.defaultMountPath = NSString(string: prefs.string(for: .location)!).expandingTildeInPath
+        if let locationPref = prefs.string(for: .location), !locationPref.isEmpty {
+            if locationPref.hasPrefix("~") {
+                // Safely expand tilde without NSString
+                let trimmed = String(locationPref.dropFirst()).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                let homeURL = URL(fileURLWithPath: NSHomeDirectory())
+                self.defaultMountPath = homeURL.appendingPathComponent(trimmed).path
+            } else {
+                self.defaultMountPath = locationPref
+            }
         }
         Logger.mounter.debug("defaultMountPath is \(self.defaultMountPath, privacy: .public)")
         createMountFolder(atPath: self.defaultMountPath)
@@ -180,6 +193,7 @@ class Mounter: ObservableObject {
             Logger.mounter.info("Deleting share: \(share.networkShare, privacy: .public) at Index \(index, privacy: .public)")
             do {
                 try await shareManager.removeShare(at: index)
+                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch ShareError.invalidIndex(let badIndex) {
                 Logger.mounter.error("❌ Could not delete share \(share.networkShare, privacy: .public), index \(badIndex, privacy: .public) is not valid.")
             } catch {
@@ -326,7 +340,46 @@ class Mounter: ObservableObject {
         return result
     }
 
-    
+
+    /// Validates if a path is safe for cleanup operations
+    ///
+    /// This method protects against accidental deletion of system directories.
+    /// It uses a blacklist approach for system-critical paths and validates that
+    /// the path is either in standard mount locations or is a subdirectory of
+    /// the configured defaultMountPath.
+    ///
+    /// - Parameter path: The path to validate
+    /// - Returns: true if path is safe for cleanup, false otherwise
+    private func isSafePathForCleanup(_ path: String) -> Bool {
+        let normalizedPath = URL(fileURLWithPath: path).standardizedFileURL.path
+        let normalizedDefaultMountPath = URL(fileURLWithPath: self.defaultMountPath).standardizedFileURL.path
+
+        // System-critical directories that must NEVER be cleaned up
+        let forbiddenPaths: Set<String> = [
+            "/",
+            "/usr", "/bin", "/sbin", "/etc", "/var", "/tmp", "/cores",
+            "/System", "/Library", "/Applications", "/private",
+            "/dev", "/home", "/opt", "/.vol"
+        ]
+
+        if forbiddenPaths.contains(normalizedPath) {
+            Logger.mounter.warning("🛡️ SECURITY: Blocked cleanup attempt on system directory: \(normalizedPath, privacy: .public)")
+            return false
+        }
+
+        // Allow cleanup in standard mount locations OR within configured defaultMountPath
+        let isInUsers = normalizedPath.hasPrefix("/Users/")
+        let isInVolumes = normalizedPath.hasPrefix("/Volumes/")
+        let isInDefaultMountPath = normalizedPath.hasPrefix(normalizedDefaultMountPath + "/") || normalizedPath == normalizedDefaultMountPath
+
+        guard isInUsers || isInVolumes || isInDefaultMountPath else {
+            Logger.mounter.warning("🛡️ SECURITY: Blocked cleanup attempt on non-whitelisted path: \(normalizedPath, privacy: .public)")
+            return false
+        }
+
+        return true
+    }
+
     /// Deletes unwanted files and empty directories in mount locations
     ///
     /// This function cleans up:
@@ -337,9 +390,13 @@ class Mounter: ObservableObject {
     ///   - path: The path of the directory containing the mountpoints
     ///   - filename: Optional name of file to delete if found (if nil, directories are processed)
     func deleteUnneededFiles(path: String, filename: String?) async {
+        guard isSafePathForCleanup(path) else {
+            Logger.mounter.error("🚨 SECURITY: Cleanup operation aborted for unsafe path: \(path, privacy: .public)")
+            return
+        }
+
         do {
-            var filePaths = try fm.contentsOfDirectory(atPath: path)
-            filePaths.append("/")
+            let filePaths = try fm.contentsOfDirectory(atPath: path)
             for filePath in filePaths {
                 // Check if directory should be protected from deletion
                 // If directory is safe to clean up, proceed
@@ -362,7 +419,7 @@ class Mounter: ObservableObject {
                             // Do not remove the top level directory containing the mountpoints
                             if filePath != "/" {
                                 let deleteFile = path.appendingPathComponent(filePath)
-                                removeDirectory(atPath: URL(string: deleteFile)!.relativePath)
+                                removeDirectory(atPath: URL(fileURLWithPath: deleteFile).path)
                             }
                         }
                     }
@@ -422,7 +479,7 @@ class Mounter: ObservableObject {
             let url = URL(fileURLWithPath: path)
             do {
                 try await fm.unmountVolume(at: url, options: [.allPartitionsAndEjectDisk, .withoutUI])
-                removeDirectory(atPath: URL(string: url.absoluteString)!.relativePath)
+                removeDirectory(atPath: url.path)
                 
                 // Refresh Finder for specific unmounted path (use killall for unmount)
                 if !skipFinderRefresh {
@@ -545,17 +602,26 @@ class Mounter: ObservableObject {
         // The directory with the mounts for the network-shares should be empty. All
         // former directories not deleted by the mounter should be removed to avoid
         // creating new mount-points (=> directories) like projekte-1 projekte-2 and so on
-        
-        // TODO: check if this is not too dangerous
+
+        // Clean up parent directories where shares are mounted
+        // This removes old mountpoint-1, mountpoint-2 style duplicates
         for share in await shareManager.allShares {
-            // Check if there is a specific mountpoint for the share. If yes, get the
-            // parent directory. This is the path where the mountpoint itself is located
-            if let path = share.mountPoint {
-                let url = URL(fileURLWithPath: path)
-                // Remove the last component (aka mountpoint) to get the containing
-                // parent directory
-                let parentDirectory = url.deletingLastPathComponent().path
+            // Calculate the actual full mount directory path for this share
+            guard let shareURL = URL(string: share.networkShare) else {
+                continue
+            }
+
+            // Use the same logic as mounting to determine where this share would be mounted
+            let fullMountDirectory = determineMountDirectory(forShare: share, url: shareURL, basePath: self.defaultMountPath)
+
+            // Get the parent directory that contains the mount point
+            let parentDirectory = URL(fileURLWithPath: fullMountDirectory).deletingLastPathComponent().path
+
+            // Safety check: Only clean up if parent is within safe bounds
+            if isSafePathForCleanup(parentDirectory) {
                 await deleteUnneededFiles(path: parentDirectory, filename: nil)
+            } else {
+                Logger.mounter.warning("⚠️ Skipping cleanup for share '\(share.networkShare, privacy: .public)' - parent directory '\(parentDirectory, privacy: .public)' is outside safe cleanup zone")
             }
         }
         // Look for unneeded files at the defaultMountPath
@@ -632,7 +698,10 @@ class Mounter: ObservableObject {
             sharesToMount = allShares
             Logger.mounter.debug("🔄 Preparing to mount \(sharesToMount.count, privacy: .public) shares sequentially")
         }
-        
+
+        // Sort shares for optimal mount order (password first, then kerberos with tickets, then kerberos without tickets)
+        sharesToMount = await sortSharesByMountability(sharesToMount)
+
         Logger.mounter.debug("📋 Shares to mount: \(sharesToMount.map { $0.networkShare }.joined(separator: ", "), privacy: .public)")
 
         // Mount shares sequentially to avoid race conditions
@@ -640,6 +709,36 @@ class Mounter: ObservableObject {
 
         for share in sharesToMount {
             Logger.mounter.debug("--- [Sequential Mount] Processing share: \(share.networkShare, privacy: .public) ---")
+
+            // Early check: Skip Kerberos shares without valid tickets to avoid 60s timeout
+            // EXCEPT when Mac is AD-bound (system Kerberos tickets are used automatically)
+            if share.authType == .krb && !isActiveDirectoryBound {
+                var shouldSkip = false
+
+                if let profileID = share.authProfileID {
+                    let profiles = await AuthProfileManager.shared.profiles
+                    if let profile = profiles.first(where: { $0.id == profileID }),
+                       profile.useKerberos,
+                       let kerberosRealm = profile.kerberosRealm {
+                        if !(await hasValidKerberosTicket(forRealm: kerberosRealm)) {
+                            Logger.mounter.info("⏭️ Skipping Kerberos share without valid ticket: \(share.networkShare, privacy: .public)")
+                            shouldSkip = true
+                        }
+                    }
+                } else if let defaultRealm = prefs.string(for: .kerberosRealm), !defaultRealm.isEmpty {
+                    if !(await hasValidKerberosTicket(forRealm: defaultRealm)) {
+                        Logger.mounter.info("⏭️ Skipping Kerberos share without valid ticket: \(share.networkShare, privacy: .public)")
+                        shouldSkip = true
+                    }
+                }
+
+                if shouldSkip {
+                    Logger.mounter.debug("--- [Sequential Mount] Skipped share: \(share.networkShare, privacy: .public) ---")
+                    continue
+                }
+            } else if share.authType == .krb && isActiveDirectoryBound {
+                Logger.mounter.debug("🎯 AD-bound Mac: Attempting Kerberos share mount with system tickets: \(share.networkShare, privacy: .public)")
+            }
 
             do {
                 // Reset mount status for user-triggered mounts or if specifically mounting this share
@@ -738,6 +837,9 @@ class Mounter: ObservableObject {
         case MounterError.permissionDenied:
              Logger.mounter.debug("🚫 Permission denied for mount: \(share.networkShare, privacy: .public)")
              await updateShare(mountStatus: .errorOnMount, for: share)
+        case MounterError.operationNotPermitted:
+             Logger.mounter.debug("🚫 Operation not permitted (EPERM) for mount: \(share.networkShare, privacy: .public)")
+             await updateShare(mountStatus: .errorOnMount, for: share)
         case MounterError.targetNotReachable:
              Logger.mounter.debug("🚫 Target not reachable (pre-mount check): \(share.networkShare, privacy: .public)")
              await updateShare(mountStatus: .unreachable, for: share)
@@ -775,7 +877,87 @@ class Mounter: ObservableObject {
     }
     
     // MARK: - Share Mounting Private Helpers
-    
+
+    // MARK: - Kerberos Ticket Management
+
+    /// Checks if valid Kerberos tickets exist for a given realm
+    ///
+    /// - Parameter realm: The Kerberos realm to check (e.g., "FAUAD.FAU.DE")
+    /// - Returns: true if valid tickets exist for the realm, false otherwise
+    private func hasValidKerberosTicket(forRealm realm: String) async -> Bool {
+        let klist = KlistUtil()
+        let tickets = await klist.klist()
+
+        // Check if we have any valid (non-expired) tickets for this realm
+        let hasValidTicket = tickets.contains { ticket in
+            ticket.principal.uppercased().contains(realm.uppercased())
+        }
+
+        if hasValidTicket {
+            Logger.mounter.debug("✅ Found valid Kerberos ticket for realm: \(realm, privacy: .public)")
+        } else {
+            Logger.mounter.debug("⚠️ No valid Kerberos ticket for realm: \(realm, privacy: .public)")
+        }
+
+        return hasValidTicket
+    }
+
+    /// Sorts shares by mountability to optimize mount order
+    ///
+    /// Order:
+    /// 1. Password-authenticated shares (fast, always work)
+    /// 2. Kerberos shares with valid tickets (fast with ticket)
+    /// 3. Kerberos shares without tickets (slow timeout, will be skipped)
+    ///
+    /// - Parameter shares: The shares to sort
+    /// - Returns: Sorted array of shares
+    private func sortSharesByMountability(_ shares: [Share]) async -> [Share] {
+        var passwordShares: [Share] = []
+        var kerberosWithTickets: [Share] = []
+        var kerberosWithoutTickets: [Share] = []
+
+        for share in shares {
+            if share.authType == .krb {
+                // If Mac is AD-bound, treat all Kerberos shares as "with tickets"
+                // because system Kerberos tickets are used automatically by macOS
+                if isActiveDirectoryBound {
+                    kerberosWithTickets.append(share)
+                } else {
+                    // Check if this Kerberos share has valid app-managed tickets
+                    var hasTicket = false
+
+                    if let profileID = share.authProfileID {
+                        // Share uses AuthProfile - check realm from profile
+                        let profiles = await AuthProfileManager.shared.profiles
+                        if let profile = profiles.first(where: { $0.id == profileID }),
+                           profile.useKerberos,
+                           let kerberosRealm = profile.kerberosRealm {
+                            hasTicket = await hasValidKerberosTicket(forRealm: kerberosRealm)
+                        }
+                    } else {
+                        // Legacy Kerberos share - check default realm from preferences
+                        if let defaultRealm = prefs.string(for: .kerberosRealm), !defaultRealm.isEmpty {
+                            hasTicket = await hasValidKerberosTicket(forRealm: defaultRealm)
+                        }
+                    }
+
+                    if hasTicket {
+                        kerberosWithTickets.append(share)
+                    } else {
+                        kerberosWithoutTickets.append(share)
+                    }
+                }
+            } else {
+                // Password, guest, or other auth types - always fast
+                passwordShares.append(share)
+            }
+        }
+
+        Logger.mounter.debug("📊 Share sorting: \(passwordShares.count) password, \(kerberosWithTickets.count) krb+ticket, \(kerberosWithoutTickets.count) krb-no-ticket")
+
+        return passwordShares + kerberosWithTickets + kerberosWithoutTickets
+    }
+
     /// Validates the network share URL and extracts the host
     ///
     /// - Parameter share: The share to validate
@@ -835,30 +1017,26 @@ class Mounter: ObservableObject {
     ///   - basePath: The base path where the share will be mounted
     /// - Returns: The full path where the share will be mounted
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
-        Logger.mounter.debug("🤔 Determining mount directory: Input ShareMP=\(share.mountPoint ?? "(using share dir)", privacy: .public)', URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
-        var mountDirectory = basePath
-        
-        if basePath != "/Volumes" {
-            // Check if there is a share-specific mountpoint
-            if let mountPoint = share.mountPoint, !mountPoint.isEmpty {
-                mountDirectory += "/" + mountPoint
-            } else if !url.lastPathComponent.isEmpty {
-                // Use the export path of the share as mount directory
+        Logger.mounter.debug("🤔 Determining mount directory: URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
+
+        if basePath == "/Volumes" {
+            // Special case: /Volumes is controlled by Finder/OS
+            // Cannot specify custom mount point, must use share export name from URL
+            var mountDirectory = basePath
+            if !url.lastPathComponent.isEmpty {
                 mountDirectory += "/" + url.lastPathComponent
             } else if let host = url.host {
-                // Use share's server name as mount directory
                 mountDirectory += "/" + host
             }
-        } else if !url.lastPathComponent.isEmpty {
-            // Use the export path of the share as mount directory
-            mountDirectory += "/" + url.lastPathComponent
-        } else if let host = url.host {
-            // Use share's server name as mount directory
-            mountDirectory += "/" + host
+            Logger.mounter.debug("🗺️ Determined mount directory (Volumes): '\(mountDirectory, privacy: .public)'")
+            return mountDirectory
+        } else {
+            // Normal case: use effectiveMountPoint (respects mountPoint or auto-generates)
+            let effectiveMountPoint = share.effectiveMountPoint
+            let mountDirectory = basePath + "/" + effectiveMountPoint
+            Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
+            return mountDirectory
         }
-        
-        Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
-        return mountDirectory
     }
     
     /// Checks if a directory can be used as a mount point
@@ -879,7 +1057,12 @@ class Mounter: ObservableObject {
                     Logger.mounter.info("❗ Obstructing directory at \(directory, privacy: .public): can not mount share \(url, privacy: .public)")
                     throw MounterError.obstructingDirectory
                 } else {
-                    removeDirectory(atPath: URL(string: directory)!.relativePath)
+                    let removed = removeDirectorySync(atPath: URL(fileURLWithPath: directory).path)
+                    if removed {
+                        Logger.mounter.debug("🗑️ Removed obstructing directory: \(directory, privacy: .public)")
+                    } else {
+                        Logger.mounter.warning("⚠️ Failed to remove obstructing directory: \(directory, privacy: .public)")
+                    }
                 }
             }
         }
@@ -1016,6 +1199,11 @@ class Mounter: ObservableObject {
             
             return mountDirectory
             
+        case 1:
+            Logger.mounter.info("❌ \(url, privacy: .public): operation not permitted - EPERM (rc=\(rc)). This may indicate a Kerberos ticket issue, stale NetAuthSysAgent credential cache, or insufficient system privileges.")
+            removeDirectory(atPath: mountDirectory)
+            throw MounterError.operationNotPermitted
+
         case 2:
             Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
             removeDirectory(atPath: mountDirectory)
@@ -1136,20 +1324,25 @@ class Mounter: ObservableObject {
         )
         Logger.mounter.debug("  Prepared mount options. Real mount point target: \(realMountPoint, privacy: .public)")
         
+        // Resolve credentials for AuthProfile shares
+        Logger.mounter.info("🚀 About to resolve credentials for share: \(share.networkShare, privacy: .public)")
+        let (finalUsername, finalPassword) = try await resolveCredentials(for: share)
+        Logger.mounter.info("✅ Credential resolution completed. Username: \(finalUsername ?? "nil", privacy: .public), Has password: \(finalPassword != nil ? "yes" : "no")")
+
         // Perform the mount operation
         Logger.mounter.info("""
             🚀 Calling NetFSMountURLSync: URL=\(url, privacy: .public),
                             Path=\(realMountPoint, privacy: .public),
-                            User=\(share.username ?? "(nil)", privacy: .public),
-                            Pwd=\(share.password == nil ? "(nil)" : "(set)", privacy: .public)
+                            User=\(finalUsername ?? "(nil)", privacy: .public),
+                            Pwd=\(finalPassword == nil ? "(nil)" : "(set)", privacy: .public)
         """)
-        
-        
+
+
         let rc = NetFSMountURLSync(url as CFURL,
                                    // Use fileURLWithPath for the mount point path
                                    URL(fileURLWithPath: realMountPoint) as CFURL,
-                                   share.username as CFString?,
-                                   share.password as CFString?,
+                                   finalUsername as CFString?,
+                                   finalPassword as CFString?,
                                    openOptions as! CFMutableDictionary,
                                    mountOptions as! CFMutableDictionary,
                                    nil) // Resulting mount path (we don't use this directly)
@@ -1245,6 +1438,58 @@ class Mounter: ObservableObject {
         }
         
         NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
+    }
+
+    // MARK: - AuthProfile Credential Resolution
+
+    /// Resolves credentials for a share, handling both legacy username/password and AuthProfile-based authentication
+    ///
+    /// - Parameter share: The share for which to resolve credentials
+    /// - Returns: A tuple containing the resolved username and password
+    /// - Throws: MounterError if credentials cannot be resolved
+    private func resolveCredentials(for share: Share) async throws -> (username: String?, password: String?) {
+        Logger.mounter.info("🔍 resolveCredentials called for share: \(share.networkShare, privacy: .public)")
+        Logger.mounter.info("🔍 Share authProfileID: \(share.authProfileID ?? "nil", privacy: .public)")
+        Logger.mounter.info("🔍 Share username: \(share.username ?? "nil", privacy: .public)")
+        Logger.mounter.info("🔍 Share has password: \(share.password != nil ? "yes" : "no")")
+
+        // If share has AuthProfile ID, resolve credentials from AuthProfile system
+        if let authProfileID = share.authProfileID {
+            Logger.mounter.debug("🔑 Resolving credentials from AuthProfile ID: \(authProfileID)")
+
+            // Take a MainActor snapshot to avoid autoclosure isolation violations
+            let profilesSnapshot = await AuthProfileManager.shared.profiles
+
+            // Get the AuthProfile by ID from the snapshot
+            guard let authProfile = profilesSnapshot.first(where: { $0.id == authProfileID }) else {
+                Logger.mounter.error("❌ AuthProfile not found for ID: \(authProfileID)")
+                let availableIDs = profilesSnapshot.map { $0.id }
+                Logger.mounter.error("❌ Available AuthProfile IDs: \(availableIDs, privacy: .public)")
+                throw MounterError.authenticationError
+            }
+
+            // For Kerberos profiles, no explicit username/password needed (uses ticket)
+            if authProfile.useKerberos {
+                Logger.mounter.debug("🎫 Using Kerberos authentication for profile: \(authProfile.displayName)")
+                return (nil, nil) // NetFS will use Kerberos ticket
+            }
+
+            // For password-based profiles, retrieve credentials
+            do {
+                let password = try await AuthProfileManager.shared.retrievePassword(for: authProfile)
+                Logger.mounter.debug("✅ Retrieved credentials from AuthProfile: \(authProfile.displayName)")
+                return (authProfile.username, password)
+            } catch {
+                Logger.mounter.error("❌ Failed to retrieve password for AuthProfile \(authProfile.displayName): \(error.localizedDescription)")
+                throw MounterError.authenticationError
+            }
+        }
+
+        // Fallback: Use legacy username/password from share (backward compatibility)
+        Logger.mounter.info("🔄 Using legacy credentials from share")
+        Logger.mounter.info("🔄 Legacy username: \(share.username ?? "nil", privacy: .public)")
+        Logger.mounter.info("🔄 Legacy has password: \(share.password != nil ? "yes" : "no")")
+        return (share.username, share.password)
     }
 }
 

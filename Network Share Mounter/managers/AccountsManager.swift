@@ -33,14 +33,6 @@ actor AccountsManager {
     func initialize() async {
         guard !isInitialized else { return }
         
-        // Perform FAU-specific tasks if the Kerberos realm matches.
-        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
-            if !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator()
-                await migrator.migrate()
-            }
-        }
-        
         // Load accounts from persistent storage.
         loadAccounts()
         
@@ -166,6 +158,14 @@ actor AccountsManager {
     func deleteAccount(account: DogeAccount) async {
         accounts.removeAll { $0 == account }
         saveAccounts()
+    }
+
+    /// Updates an existing account in the accounts list.
+    func updateAccount(_ updatedAccount: DogeAccount) async {
+        if let index = accounts.firstIndex(where: { $0.upn.lowercased() == updatedAccount.upn.lowercased() }) {
+            accounts[index] = updatedAccount
+            saveAccounts()
+        }
     }
     
     /// Retrieves an account for a given principal.

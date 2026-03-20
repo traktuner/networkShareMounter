@@ -3,6 +3,10 @@
 
 skip_docs
 
+# Build number offset: CI_PIPELINE_IID started at 214, last manual build was 360.
+# Offset ensures CI build numbers are always > last manual build number.
+BUILD_NUMBER_OFFSET = 160
+
 # git url of match
 @match_git_url = ENV["MATCH_GIT_URL"]
 
@@ -15,6 +19,32 @@ platform :mac do
   end
 end
 
+# ─────────────────────────────────────────────────────────────
+# SINGLE SOURCE OF TRUTH: Build Number
+# ─────────────────────────────────────────────────────────────
+def resolve_build_number
+  if is_ci && ENV["CI_PIPELINE_IID"]
+    offset = BUILD_NUMBER_OFFSET
+    new_build = (ENV["CI_PIPELINE_IID"].to_i + offset).to_s
+    UI.message("🔢 CI pipeline #{ENV["CI_PIPELINE_IID"]} + offset #{offset} = build #{new_build}")
+  else
+    # Lokal normal hochzählen und den neuen Wert abfangen
+    new_build = increment_build_number(
+      xcodeproj: "networkShareMounter.xcodeproj"
+    ).to_s
+    UI.message("🔢 Locally incremented build number to: #{new_build}")
+  end
+
+  # Build Number konsistent im Projekt verankern
+  increment_build_number(
+    build_number: new_build,
+    xcodeproj: "networkShareMounter.xcodeproj"
+  )
+
+  UI.success("✅ Build number safely locked to: #{new_build}")
+  new_build
+end
+
 lane :setupCI do
   desc "Setup the keychain and match to work with CI"
   setup_ci
@@ -25,21 +55,9 @@ lane :getbundleid do
   get_product_bundle_id(project_filepath: 'networkShareMounter.xcodeproj', scheme: 'NetworkShareMounter')
 end
 
-lane :ensure_correct_build_number do
-  desc "Ensure CFBundleVersion matches current Xcode build number"
-  current_build = get_build_number(xcodeproj: "networkShareMounter.xcodeproj")
-  UI.message("Current build number from Xcode: #{current_build}")
-  
-  # Setze die Build Number explizit
-  increment_build_number(
-    xcodeproj: "networkShareMounter.xcodeproj",
-    build_number: current_build
-  )
-end
-
 lane :getappversion do
   desc "gets the version of the app. It first looks in the plist and then for '$(MARKETING_VERSION)'"
-  get_version_number(xcodeproj: "networkShareMounter.xcodeproj",target: "Network Share Mounter")  
+  get_version_number(xcodeproj: "networkShareMounter.xcodeproj", target: "Network Share Mounter")  
 end
 
 lane :getlatestag do
@@ -66,7 +84,6 @@ lane :sync_certificates do
   match(
     type: "developer_id",
     readonly: is_ci,
-    #readonly: true,
     platform: "macos",
     app_identifier: 'de.fau.rrze.NetworkShareMounter',
     additional_cert_types: ["mac_installer_distribution"]
@@ -74,7 +91,7 @@ lane :sync_certificates do
 end
 
 lane :commonTasks do
-  desc "perform some commont build tasks"
+  desc "perform some common build tasks"
   id = getbundleid
   tag = getlatestag
   
@@ -87,9 +104,7 @@ lane :commonTasks do
     output_file: "swiftlint.result",
     config_file: ".swiftlint-ci.yml",
     files: [
-      # Your file list here
       "Network Share Mounter/preferences/config.swift",
-      # ... other files
     ],
     raise_if_swiftlint_error: true,
     ignore_exit_status: true
@@ -132,7 +147,7 @@ lane :create_package do |options|
             "--sign",  "#{signing_id}", 
             "--scripts", "../pkgscripts", 
             "--version", "#{appversion}", 
-            "--component", "../build/Network\ Share\ Mounter.app", 
+            "--component", "../build/Network Share Mounter.app", 
             "/Applications", 
             "../build/NetworkShareMounter-#{suffix}#{appversion}.pkg")
 
@@ -151,15 +166,18 @@ lane :create_package do |options|
   )
 end
 
+# ─────────────────────────────────────────────────────────────
+# Build Lanes
+# ─────────────────────────────────────────────────────────────
+
 lane :testbuild do
   begin
-    desc "increment Xcodes build number"
-    increment_build_number(
-      xcodeproj: "networkShareMounter.xcodeproj"
-    )
-    ensure_correct_build_number
+    desc "Resolve and set consistent build number"
+    resolve_build_number
+    
     build
     create_package(type: "Test")
+    sparkle(type: "Test")
   rescue => exception
     on_error(exception)
   ensure
@@ -169,11 +187,9 @@ end
 
 lane :alpha do
   begin
-    desc "increment Xcodes build number"
-    increment_build_number(
-      xcodeproj: "networkShareMounter.xcodeproj"
-    )
-    ensure_correct_build_number
+    desc "Resolve and set consistent build number"
+    resolve_build_number
+    
     build
     create_package(type: "Alpha")
     sentryUpload
@@ -186,11 +202,9 @@ end
 
 lane :beta do
   begin
-    desc "increment Xcodes build number"
-    increment_build_number(
-      xcodeproj: "networkShareMounter.xcodeproj"
-    )
-    ensure_correct_build_number
+    desc "Resolve and set consistent build number"
+    resolve_build_number
+    
     build
     create_package(type: "Beta")
     sentryUpload
@@ -203,11 +217,9 @@ end
 
 lane :release do
   begin
-    desc "increment Xcodes build number"
-    increment_build_number(
-      xcodeproj: "networkShareMounter.xcodeproj"
-    )
-    ensure_correct_build_number
+    desc "Resolve and set consistent build number"
+    resolve_build_number
+    
     build
     create_package
     sentryUpload
@@ -226,6 +238,47 @@ lane :runbuild do
   output = sh("../build.sh", "#{id}", "#{tag}", "#{signing_id}")
 end
 
+# generates Sparkle appcast file
+lane :sparkle do |options|
+  desc "Starting sparkle lane..."
+  appversion = getappversion
+  build_type = options[:type] || ""
+  suffix = build_type.empty? ? "" : "#{build_type}-"
+
+  desc "creating Sparkle workspace"
+  workspace = "../build/sparkle_workspace"
+  sh("rm -rf #{workspace} ; mkdir -p #{workspace}")
+
+  desc "copying dmg file into workspace"
+  sh("cp ../build/NetworkShareMounter-#{suffix}#{appversion}.dmg #{workspace}/")
+
+  desc "getting actual Sparkle appcast file"
+  live_appcast_url = "https://faumac.rrze.fau.de/nsm-appcast"
+  begin
+    sh("curl -f -s -o #{workspace}/nsm-appcast #{live_appcast_url}")
+    UI.success("✅ got live appcast file.")
+  rescue
+    UI.important("⚠️ Error on loading live appcast file.")
+  end
+
+  desc "generating Sparkle appcast file"
+  generate_appcast = sh("ls -d /opt/homebrew/Caskroom/sparkle/*/bin/generate_appcast | sort -V | tail -n 1").strip
+  appversion = getappversion
+  begin
+    sh("#{generate_appcast}", 
+      "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{suffix}#{appversion}/", 
+      "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
+      "#{workspace}")  
+    UI.success("✅ generated appcast file.")
+  rescue
+    UI.error("🔴 Generation of appcast file failed.")
+  end
+
+  desc "move appcast file to website source"  
+  sh("mkdir -p ../nsm-website/public")
+  sh("cp #{workspace}/nsm-appcast ../nsm-website/public/NetworkShareMounter-appcast.xml")
+end
+
 def on_error(exception)
   UI.error("An error occurred: #{exception}")
 end
@@ -233,6 +286,7 @@ end
 def restore_default_keychain
   if is_ci
     begin
+      sh("security delete-keychain fastlane_tmp_keychain-db")
       sh("security default-keychain -s login.keychain-db")
       UI.success("✅ Default keychain restored")
     rescue => e

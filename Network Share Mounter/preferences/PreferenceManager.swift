@@ -144,8 +144,8 @@ struct PreferenceManager {
     /// - Parameter user: The AD user record to store
     func setADUserInfo(user: ADUserRecord) {
         Self.logger.debug("Setting AD user info for user: \(user.userPrincipal)")
-        
-        defaults.set(user.userPrincipal.lowercased(), forKey: PreferenceKeys.lastUser.rawValue)
+
+        defaults.set(user.userPrincipal, forKey: PreferenceKeys.lastUser.rawValue)
         
         if let passwordAging = user.passwordAging, passwordAging {
             if let expireDate = user.computedExpireDate {

@@ -66,6 +66,25 @@ actor AutomaticSignIn {
     
     /// Private initialization for Singleton pattern
     private init() {}
+
+    /// Builds DogeAccount list from Kerberos AuthProfiles as fallback when AccountsManager has no accounts.
+    private func buildAccountsFromKerberosProfiles() async -> [DogeAccount] {
+        let profiles = await MainActor.run {
+            AuthProfileManager.shared.profiles.filter { $0.useKerberos && $0.username != nil }
+        }
+        return profiles.compactMap { profile in
+            guard let username = profile.username else { return nil }
+            let upn: String
+            if username.contains("@") {
+                upn = username
+            } else if let realm = profile.kerberosRealm {
+                upn = "\(username)@\(realm.uppercased())"
+            } else {
+                return nil
+            }
+            return DogeAccount(displayName: profile.displayName, upn: upn, hasKeychainEntry: true, authProfileID: profile.id)
+        }
+    }
     
     /// Automatically signs in all relevant accounts
     ///
@@ -86,20 +105,25 @@ actor AutomaticSignIn {
             let defaultPrinc = await klist.defaultPrincipal
             Logger.automaticSignIn.debug("🔍 Default principal: \(defaultPrinc ?? "None", privacy: .public)")
             
-            // Retrieve accounts and determine sign-in strategy
-            let accounts = await accountsManager.accounts
-            let accountsCount = accounts.count
-            Logger.automaticSignIn.debug("🔍 Retrieved \(accountsCount) accounts: \(accounts.map { $0.upn }, privacy: .public)")
-            
+            // Retrieve accounts: try AccountsManager first, fall back to AuthProfile Kerberos profiles
+            var accounts = await accountsManager.accounts
+            Logger.automaticSignIn.debug("🔍 Retrieved \(accounts.count) accounts from AccountsManager: \(accounts.map { $0.upn }, privacy: .public)")
+
+            if accounts.isEmpty {
+                Logger.automaticSignIn.info("ℹ️ No accounts in AccountsManager, checking AuthProfile Kerberos profiles")
+                accounts = await buildAccountsFromKerberosProfiles()
+                Logger.automaticSignIn.debug("🔍 Built \(accounts.count) accounts from Kerberos profiles")
+            }
+
             if accounts.isEmpty {
                 Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
                 return
             }
-            
+
             for (index, account) in accounts.enumerated() {
-                Logger.automaticSignIn.debug("🔍 Processing account \(index+1)/\(accountsCount): \(account.upn, privacy: .public)")
+                Logger.automaticSignIn.debug("🔍 Processing account \(index+1)/\(accounts.count): \(account.upn, privacy: .public)")
                 let singleUserMode = prefs.bool(for: .singleUserMode)
-                let shouldProcess = !singleUserMode || account.upn == defaultPrinc || accountsCount == 1
+                let shouldProcess = !singleUserMode || account.upn == defaultPrinc || accounts.count == 1
                 
                 if shouldProcess {
                     Logger.automaticSignIn.info("🔍 Creating worker for account: \(account.upn, privacy: .public)")
@@ -125,8 +149,6 @@ actor AutomaticSignIn {
             }
             
             Logger.automaticSignIn.info("🔍 [END] Automatic sign-in process completed")
-        } catch {
-            Logger.automaticSignIn.error("❌ Unexpected error in signInAllAccounts: \(error.localizedDescription)")
         }
     }
 }
@@ -261,11 +283,31 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         let keyUtil = KeychainManager()
         
         do {
-            // Retrieve password from keychain
-            let username = account.upn.lowercaseDomain()
-            Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from keychain for: \(username, privacy: .public)")
-            
-            if let pass = try keyUtil.retrievePassword(forUsername: username, andService: Defaults.keyChainService) {
+            // Retrieve password: new AuthProfile keychain format (by profile ID) or legacy format (by UPN)
+            var pass: String?
+            if let profileID = account.authProfileID {
+                let profileService = Bundle.main.bundleIdentifier ?? Defaults.defaultsDomain
+                Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from AuthProfile keychain (profileID: \(profileID, privacy: .public))")
+                pass = try keyUtil.retrievePassword(forUsername: profileID, andService: profileService)
+
+                // Fallback: try UPN in legacy format (accounts created before password was saved, or after UserDefaults reset)
+                if pass == nil {
+                    Logger.automaticSignIn.debug("🔍 [Worker] No AuthProfile password found, trying legacy UPN formats")
+                    let upnVariants = [account.upn, account.upn.lowercased()]
+                    for upn in upnVariants {
+                        if let found = try keyUtil.retrievePassword(forUsername: upn, andService: Defaults.keyChainService) {
+                            pass = found
+                            Logger.automaticSignIn.info("✅ [Worker] Found password in legacy keychain for: \(upn, privacy: .public)")
+                            break
+                        }
+                    }
+                }
+            } else {
+                Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from legacy keychain for: \(self.account.upn, privacy: .public)")
+                pass = try keyUtil.retrievePassword(forUsername: account.upn, andService: Defaults.keyChainService)
+            }
+
+            if let pass = pass {
                 Logger.automaticSignIn.debug("✅ [Worker] Password retrieved from keychain")
                 account.hasKeychainEntry = true
                 session.userPass = pass
@@ -281,7 +323,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
                 // NOTE: Authentication result will be posted by delegate methods
                 // Do NOT post success notification here - delegate handles success/failure
             } else {
-                Logger.automaticSignIn.warning("⚠️ [Worker] No password found in keychain for: \(username, privacy: .public)")
+                Logger.automaticSignIn.warning("⚠️ [Worker] No password found in keychain for: \(self.account.upn, privacy: .public)")
                 account.hasKeychainEntry = false
                 Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification")
                 Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification")
@@ -439,3 +481,4 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         Logger.automaticSignIn.debug("🔍 [Delegate] User information saved to preferences")
     }
 }
+

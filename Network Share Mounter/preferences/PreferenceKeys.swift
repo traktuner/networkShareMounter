@@ -120,17 +120,30 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Whether application starts automatically at login
     case autostart = "autostart"
-    
-    /// Whether auto-updater is enabled
+
+    /// Whether the initial autostart setup has been completed
+    case hasCompletedInitialAutostartSetup = "hasCompletedInitialAutostartSetup"
+
+    /// Whether auto-updater is enabled.
+    /// Since NSM 4 this is a legacy value and is essentially serving as an inverted alias for disableAutoUpdateFramework
     case enableAutoUpdater = "enableAutoUpdater"
     
+    /// Wheter Sparkle framework is enabled/loaded
+    case disableAutoUpdateFramework = "disableAutoUpdateFramework"
+    
     /// Sparkle: Whether to automatically check for updates
-    case SUEnableAutomaticChecks = "SUEnableAutomaticChecks"
+    case automaticallyChecksForUpdates = "automaticallyChecksForUpdates"
     
     /// Sparkle: Whether to automatically install updates
+    case automaticallyDownloadsUpdates = "automaticallyDownloadsUpdates"
+    
+    /// OBSOLETE: Sparkle: Whether to automatically check for updates
+    case SUEnableAutomaticChecks = "SUEnableAutomaticChecks"
+    
+    /// OBSOLETE: Sparkle: Whether to automatically install updates
     case SUAutomaticallyUpdate = "SUAutomaticallyUpdate"
     
-    /// Sparkle: Whether the app has been launched before
+    /// OBSOLETE: Sparkle: Whether the app has been launched before
     case SUHasLaunchedBefore = "SUHasLaunchedBefore"
     
     /// Whether to automatically check for updates
@@ -197,9 +210,6 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Comment for keychain entries
     case keyChainComment = "keyChainComment"
-    
-    /// Whether keychain migration from Prefix Manager is done
-    case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
     
     // MARK: - Menu Items
     

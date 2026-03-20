@@ -1,0 +1,131 @@
+//
+//  GeneralSettingsView.swift
+//  Network Share Mounter
+//
+//  Created by Longariva, Gregor (RRZE) on 10.04.25.
+//  Copyright © 2024 RRZE. All rights reserved.
+//
+
+import SwiftUI
+
+/// The main settings view that provides a sidebar navigation for different setting categories
+struct SettingsView: View {
+    /// The currently selected settings tab
+    @State private var selection: SettingsTab = .networkShares
+
+    /// Auto-open profile creation dialog on startup
+    let autoOpenProfileCreation: Bool
+
+    /// MDM-configured realm for pre-filling profile creation
+    let mdmRealm: String?
+
+    /// Initializer with optional auto-open parameters
+    init(autoOpenProfileCreation: Bool = false, mdmRealm: String? = nil) {
+        self.autoOpenProfileCreation = autoOpenProfileCreation
+        self.mdmRealm = mdmRealm
+
+        // If we should auto-open profile creation, start with authentication tab
+        if autoOpenProfileCreation {
+            self._selection = State(initialValue: .authentication)
+        }
+    }
+    
+    /// Enum representing the available settings tabs
+    enum SettingsTab: String, CaseIterable, Identifiable {
+        case networkShares = "Network Shares"
+        case authentication = "Authentication"
+        case general = "General"
+        
+        var id: String { self.rawValue }
+        
+        /// Returns a localized title for each tab
+        var title: LocalizedStringKey {
+            switch self {
+            case .networkShares:
+                return LocalizedStringKey("Network Shares")
+            case .authentication:
+                return LocalizedStringKey("Authentication")
+            case .general:
+                return LocalizedStringKey("General")
+            }
+        }
+
+        /// Returns the SF Symbol name for each tab
+        var icon: String {
+            switch self {
+            case .networkShares:
+                return "externaldrive.connected.to.line.below"
+            case .authentication:
+                return "person.badge.key"
+            case .general:
+                return "gearshape"
+            }
+        }
+        
+        /// Returns the background color for the icon
+        var iconBackgroundColor: Color {
+            switch self {
+            case .networkShares:
+                return .blue
+            case .authentication:
+                return .orange
+            case .general:
+                return .gray
+            }
+        }
+    }
+    
+    var body: some View {
+        NavigationSplitView {
+            // Sidebar with icons and labels
+            List(selection: $selection) {
+                ForEach(SettingsTab.allCases) { tab in
+                    NavigationLink(value: tab) {
+                        Label {
+                            Text(tab.title) // Use LocalizedStringKey here
+                                .padding(.leading, 8)
+                        } icon: {
+                            // Create the colored square icon view
+                            Image(systemName: tab.icon)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 18, height: 18) // Adjust symbol size
+                                .foregroundColor(.white)
+                                .padding(5) // Adjust padding inside the square
+                                .background(tab.iconBackgroundColor) // Use defined background color
+                                .cornerRadius(6) // Adjust corner radius
+                                .frame(width: 28, height: 28) // Set overall icon size
+                        }
+                    }
+                    .padding(4)
+                }
+            }
+            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+            .listStyle(.sidebar)
+        } detail: {
+            // Wrap the content in a VStack and add a Spacer at the bottom
+            VStack(spacing: 0) { 
+                // Content view that changes based on selection
+                switch selection {
+                case .networkShares:
+                    NetworkSharesView()
+                case .authentication:
+                    AuthenticationView(
+                        autoOpenProfileCreation: autoOpenProfileCreation,
+                        mdmRealm: mdmRealm
+                    )
+                case .general:
+                    GeneralSettingsView()
+                }
+                
+                Spacer() // Pushes the content above it to the top
+            }
+        }
+        // Set appropriate minimum dimensions for consistent layout of all views
+        .frame(minWidth: 900, minHeight: 580)
+    }
+}
+
+#Preview {
+    SettingsView()
+}

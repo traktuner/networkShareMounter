@@ -1,6 +1,7 @@
 # 3.1.17
 ### Bugfixes
 * Fixed: Force Kerberos re-auth on mount retry + improved error handling
+* Fixed: Preserve case-sensitive Kerberos principals in keychain
 
 # 3.1.16
 ### Bugfixes

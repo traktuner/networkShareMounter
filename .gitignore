@@ -86,6 +86,7 @@ SESSION_STATE.md
 .env
 .env.default
 .swo
+bugreports/
 
 # fastlane
 #
@@ -98,3 +99,4 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
+.aider*
