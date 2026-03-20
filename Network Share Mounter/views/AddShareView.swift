@@ -24,6 +24,10 @@ struct AddShareView: View {
     @State private var mountPointError: String? = nil
     @State private var isValidatingMountPoint = false
 
+    // Focus tracking for auto-fill
+    @FocusState private var networkShareFocused: Bool
+    @FocusState private var mountPointFocused: Bool
+
     // Logger
     private let logger = Logger.networkSharesView // Use logger from parent view category for now
 
@@ -124,9 +128,11 @@ struct AddShareView: View {
                 TextField("smb://server/path", text: $networkShare)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
+                    .focused($networkShareFocused)
                     .disabled(isEditing && (existingShare?.managed == true))
-                    .onChange(of: networkShare) { newValue in
-                        autoFillMountPointIfNeeded(from: newValue)
+                    .onChange(of: networkShareFocused) { focused in
+                        // When focus leaves the network path field, auto-fill share name if still empty
+                        if !focused { autoFillMountPointIfNeeded() }
                     }
             }
             
@@ -136,6 +142,11 @@ struct AddShareView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     TextField("Share name", text: $mountPointName)
                         .textFieldStyle(.roundedBorder)
+                        .focused($mountPointFocused)
+                        .onChange(of: mountPointFocused) { focused in
+                            // When the share name field gains focus, auto-fill if still empty
+                            if focused { autoFillMountPointIfNeeded() }
+                        }
                         .onChange(of: mountPointName) { newValue in
                             validateMountPoint(newValue)
                         }
@@ -239,17 +250,12 @@ struct AddShareView: View {
         logger.info("Setup editing for share: \(share.networkShare)")
     }
 
-    /// Auto-fills mount point name when network share URL changes (only if empty)
-    private func autoFillMountPointIfNeeded(from url: String) {
-        guard !isEditing else { return }
-        
-        let previousGeneratedName = extractShareName(from: networkShare)
-        let newGeneratedName = extractShareName(from: url)
-        
-        guard mountPointName.isEmpty || mountPointName == previousGeneratedName else { return }
-
-        mountPointName = newGeneratedName
-        validateMountPoint(newGeneratedName)
+    /// Auto-fills the mount point name from the network share URL's last path component, if still empty.
+    private func autoFillMountPointIfNeeded() {
+        guard !isEditing, mountPointName.isEmpty, !networkShare.isEmpty else { return }
+        let generated = extractShareName(from: networkShare)
+        mountPointName = generated
+        validateMountPoint(generated)
     }
 
     /// Validates the mount point name for character constraints and duplicates
