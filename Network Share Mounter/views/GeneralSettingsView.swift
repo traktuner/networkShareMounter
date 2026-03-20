@@ -30,12 +30,21 @@ import zlib
 struct GeneralSettingsView: View {
     // Use PreferenceManager to interact with UserDefaults
     private var prefs = PreferenceManager()
-    
+
     /// Controls whether the application starts automatically when the user logs in.
-    /// Initialized from `SMAppService.mainApp.status` in `.onAppear`.
-    /// Changes are saved back to `prefs` and applied via `SMAppService` register/unregister in `.onChange`,
-    /// respecting the `.canChangeAutostart` preference.
-    @State private var startAtLogin: Bool = false
+    /// Initialized directly in `init()` to ensure the correct value is shown on first render,
+    /// avoiding the visual glitch of onAppear-based state updates.
+    @State private var startAtLogin: Bool
+
+    init() {
+        let prefs = PreferenceManager()
+        let canChange = prefs.bool(for: .canChangeAutostart)
+        if !canChange {
+            _startAtLogin = State(initialValue: prefs.bool(for: .autostart))
+        } else {
+            _startAtLogin = State(initialValue: SMAppService.mainApp.status == .enabled)
+        }
+    }
     
     /// Controls whether anonymous diagnostic data should be sent.
     /// Initialized from `prefs.bool(for: .sendDiagnostics)` in `.onAppear`.
@@ -246,9 +255,10 @@ struct GeneralSettingsView: View {
         // Apply consistent 20pt padding to the entire view, matching other views
         .padding(20)
         .onAppear {
-            // Load autostart state from macOS System (not UserDefaults)
-            let service = SMAppService.mainApp
-            startAtLogin = (service.status == .enabled)
+            let canChange = prefs.bool(for: .canChangeAutostart)
+            let mdmAutostart = prefs.bool(for: .autostart)
+            let systemStatus = SMAppService.mainApp.status
+            Logger.app.info("⚙️ [GeneralSettingsView] onAppear – canChangeAutostart=\(canChange, privacy: .public), mdmAutostart=\(mdmAutostart, privacy: .public), systemStatus=\(String(describing: systemStatus), privacy: .public), startAtLogin=\(startAtLogin, privacy: .public)")
 
             sendDiagnosticData = prefs.bool(for: .sendDiagnostics)
             automaticallyChecksForUpdates = prefs.bool(for: .SUEnableAutomaticChecks)
@@ -257,11 +267,7 @@ struct GeneralSettingsView: View {
         // MARK: - State Change Handlers
         .onChange(of: startAtLogin) { newValue in
             guard prefs.bool(for: .canChangeAutostart) else {
-                // MDM prevents changes - revert to system state
-                Task { @MainActor in
-                    let service = SMAppService.mainApp
-                    startAtLogin = (service.status == .enabled)
-                }
+                // MDM controls autostart - ignore all onChange triggers (from onAppear or disabled toggle)
                 return
             }
 

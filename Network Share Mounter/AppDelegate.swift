@@ -215,8 +215,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let service = SMAppService.mainApp
             let hasCompletedSetup = defaults.bool(forKey: PreferenceKeys.hasCompletedInitialAutostartSetup.rawValue)
 
-            // Check if MDM has set an autostart preference
+            // Check if MDM has set an autostart preference.
+            // MDM is considered active if either 'autostart' or 'canChangeAutostart' is forced,
+            // since locking 'canChangeAutostart' implies MDM intends to control the autostart state.
             let hasMDMAutostart = defaults.objectIsForced(forKey: PreferenceKeys.autostart.rawValue)
+                || defaults.objectIsForced(forKey: PreferenceKeys.canChangeAutostart.rawValue)
 
             if hasMDMAutostart {
                 let mdmAutostart = self.prefs.bool(for: .autostart)
