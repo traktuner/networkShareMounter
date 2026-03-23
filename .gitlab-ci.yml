@@ -22,6 +22,13 @@ variables:
   FILE: "NetworkShareMounter"
 
 before_script:
+  - export ASDF_DIR="/opt/homebrew/opt/asdf"
+  - export PATH="$HOME/.asdf/shims:$HOME/.asdf/bin:$ASDF_DIR/bin:$PATH"
+  - . $HOME/.asdf/asdf.sh || true
+  - asdf reshim ruby
+  - asdf local ruby 3.2.10
+  - ruby -v
+  
   - source /opt/homebrew/opt/asdf/libexec/asdf.sh || source $HOME/.asdf/asdf.sh
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
   - bundle install --path vendor/bundle
