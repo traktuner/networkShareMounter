@@ -22,7 +22,7 @@ variables:
   FILE: "NetworkShareMounter"
 
 before_script:
-  - export PATH="$HOME/.asdf/shims:$PATH"
+  - export PATH="$HOME/.asdf/shims:/opt/homebrew/opt/asdf/libexec/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
   - echo $PATH
   - ruby -v
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
