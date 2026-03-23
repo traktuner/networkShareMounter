@@ -157,9 +157,8 @@ beta release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - export RELEASE_NOTES=$(ruby scripts/extract_changelog.rb "$APP_VERSION")
-    - echo "$RELEASE_NOTES" > current_release_notes.txt
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg\"}"'
+    - (ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt)
+    - '/usr/local/bin/release-cli create --description-file current_release_notes.txt --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg\"}"'
   dependencies:
     - beta build
     - beta upload
@@ -172,9 +171,8 @@ release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - export RELEASE_NOTES=$(ruby scripts/extract_changelog.rb "$APP_VERSION")
-    - echo "$RELEASE_NOTES" > current_release_notes.txt
-    - '/usr/local/bin/release-cli create --description "$(cat current_release_notes.txt)" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
+    - (ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt)
+    - '/usr/local/bin/release-cli create --description-file current_release_notes.txt --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
   dependencies:
     - release build
     - release upload
@@ -199,12 +197,18 @@ pages:
     - export HUGO_PARAMS_APPVERSION="$APP_VERSION"
     - export HUGO_PARAMS_DOWNLOADURL="${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.dmg"
     
+    - ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt
+    
     - |
-      jq -n --arg ver "$APP_VERSION" --arg date "$(date +%Y-%m-%d)" --arg desc "$(cat release_notes.txt)" \
-      '[{version: $ver, date: $date, description: $desc}]' > nsm-website/data/auto_changelog.json
+      jq -n \
+        --arg ver "$APP_VERSION" \
+        --arg date "$(date +%Y-%m-%d)" \
+        --rawfile desc current_release_notes.txt \
+        '[{version: $ver, date: $date, description: $desc}]' > nsm-website/data/auto_changelog.json
+
     
     - cd nsm-website
-    - hugo --minify --baseURL "$CI_PAGES_URL"
+    - hugo --minify --baseURL "https://nsm.faumac.de/"
     
     - mv public ../public
     - (rsync -av ../public/ unrz06wm@kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.nsm.faumac.rrze.de/websource/)
