@@ -24,9 +24,6 @@ variables:
 before_script:
   - export ASDF_DATA_DIR="/opt/homebrew/opt/asdf"
   - export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-  - . $HOME/.asdf/asdf.sh || true
-  - asdf reshim ruby
-  - asdf local ruby 3.2.10
   - ruby -v
   
   - source /opt/homebrew/opt/asdf/libexec/asdf.sh || source $HOME/.asdf/asdf.sh
