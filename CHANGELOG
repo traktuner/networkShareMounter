@@ -1,3 +1,9 @@
+# 3.1.18
+### Workarounds
+With macOS 26, Apple introduced a bug that prevents network drives from being mounted outside of `/Volumes`. We are in contact with Apple, and the issue is expected to be resolved in version 26.5. 
+* If the mount directory is set to `/Volumes`, there will be no difference.
+* Otherwise, mounts will be performed in `/Volumes` and soft-linked to the configured mount directory.
+
 # 3.1.17
 ### Bugfixes
 * Fixed: Force Kerberos re-auth on mount retry + improved error handling
