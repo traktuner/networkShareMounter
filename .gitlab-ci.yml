@@ -23,9 +23,6 @@ variables:
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
-  # Sicherstellen, dass bundler installiert ist
-  - gem install bundler --no-document || true
-  # Installiert exakt die Versionen aus der Gemfile.lock
   - bundle install --path vendor/bundle
   - export APP_VERSION=`echo "$CI_COMMIT_TAG" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'`
 
@@ -180,7 +177,7 @@ release:
     - fastlane
     - xcode
 
-.pages:
+pages:
   stage: pages
   tags:
     - fastlane
