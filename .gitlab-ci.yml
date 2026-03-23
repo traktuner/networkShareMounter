@@ -12,7 +12,7 @@ stages:
   - build
   - upload
   - release
-  #- pages
+  - pages
 
 variables:
   GIT_SUBMODULE_STRATEGY: normal
@@ -23,6 +23,10 @@ variables:
 
 before_script:
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
+  # Sicherstellen, dass bundler installiert ist
+  - gem install bundler --no-document || true
+  # Installiert exakt die Versionen aus der Gemfile.lock
+  - bundle install --path vendor/bundle
   - export APP_VERSION=`echo "$CI_COMMIT_TAG" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'`
 
 test_build:
@@ -30,7 +34,7 @@ test_build:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^test-/'
   script:
-    - fastlane test
+    - bundle exec fastlane test
     - 'echo will do beta upload dmg:  --upload-file build/${FILE}-Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg'
     - 'echo will do beta upload pkg:  --upload-file build/${FILE}-Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-${APP_VERSION}.pkg'
     - 'echo will do release upload dmg: --upload-file build/${FILE}-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg'
@@ -52,7 +56,7 @@ alpha build:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^alpha-/'
   script:
-    - fastlane alpha
+    - bundle exec fastlane alpha
   artifacts:
     paths:
       - swiftlint.result.json
@@ -68,7 +72,7 @@ beta build:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - fastlane beta
+    - bundle exec fastlane beta
   artifacts:
     paths:
       - swiftlint.result.json
@@ -84,7 +88,7 @@ release build:
   rules:
   - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - fastlane release
+    - bundle exec fastlane release
   artifacts:
     paths:
       - swiftlint.result.json
@@ -166,7 +170,9 @@ release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
+    - export RELEASE_NOTES=$(ruby extract_changelog.rb "$APP_VERSION")
+    - echo "$RELEASE_NOTES" > current_release_notes.txt
+    - '/usr/local/bin/release-cli create --description "$(cat current_release_notes.txt)" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
   dependencies:
     - release build
     - release upload
@@ -174,7 +180,7 @@ release:
     - fastlane
     - xcode
 
-.pages:    # <--- Dieser Punkt deaktiviert - vorerst - den kompletten Job
+.pages:
   stage: pages
   tags:
     - fastlane
@@ -182,33 +188,21 @@ release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-/' 
   script:
-    # 1. Sicherstellen, dass Hugo und jq auf dem Mac-Runner installiert sind
     - if ! command -v hugo &> /dev/null; then brew install hugo; fi
     - if ! command -v jq &> /dev/null; then brew install jq; fi
     
-    # 2. Submodule (die Hugo Website) aktualisieren
     - git submodule update --init
     
-    # 3. Variablen an Hugo übergeben (wir nutzen einfach deine globalen Variablen!)
     - export HUGO_PARAMS_APPVERSION="$APP_VERSION"
     - export HUGO_PARAMS_DOWNLOADURL="${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.dmg"
     
-    # 4. Release Notes über die GitLab API abfragen (exakt für diesen Tag)
-    - RELEASE_DATA=$(curl -s --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}")
-    
-    # 5. Changelog-JSON für Hugo generieren (Datum und Description aus der API)
     - |
-      echo "$RELEASE_DATA" | jq '[{
-        version: "'"$APP_VERSION"'",
-        date: (.released_at | split("T")[0]),
-        description: .description
-      }]' > nsm-website/data/auto_changelog.json
+      jq -n --arg ver "$APP_VERSION" --arg date "$(date +%Y-%m-%d)" --arg desc "$(cat release_notes.txt)" \
+      '[{version: $ver, date: $date, description: $desc}]' > nsm-website/data/auto_changelog.json
     
-    # 6. Hugo bauen
     - cd nsm-website
     - hugo --minify --baseURL "$CI_PAGES_URL"
     
-    # 7. Den public-Ordner für GitLab Pages eine Ebene nach oben schieben
     - mv public ../public
   artifacts:
     paths:

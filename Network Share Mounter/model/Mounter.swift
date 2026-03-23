@@ -193,6 +193,7 @@ class Mounter: ObservableObject {
             Logger.mounter.info("Deleting share: \(share.networkShare, privacy: .public) at Index \(index, privacy: .public)")
             do {
                 try await shareManager.removeShare(at: index)
+                await AuthProfileManager.shared.removeShareFromAllProfiles(shareURL: share.networkShare)
                 NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch ShareError.invalidIndex(let badIndex) {
                 Logger.mounter.error("❌ Could not delete share \(share.networkShare, privacy: .public), index \(badIndex, privacy: .public) is not valid.")
@@ -503,6 +504,8 @@ class Mounter: ObservableObject {
     ///   - userTriggered: Whether the unmount was triggered by user action (defaults to false)
     func unmountShare(for share: Share, userTriggered: Bool = false) async {
         if let mountpoint = share.actualMountPoint {
+            // [WORKAROUND macOS 26.4] Remove symlink from configured mount path before unmounting
+            if needsVolumesWorkaround { removeSymlinkForWorkaround(share: share) }
             let result = await unmountShare(atPath: mountpoint)
             switch result {
             case .success:
@@ -547,6 +550,8 @@ class Mounter: ObservableObject {
     func unmountAllMountedShares(userTriggered: Bool = false) async {
         for share in await shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
+                // [WORKAROUND macOS 26.4] Remove symlink from configured mount path before unmounting
+                if needsVolumesWorkaround { removeSymlinkForWorkaround(share: share) }
                 let result = await unmountShare(atPath: mountpoint, skipFinderRefresh: true)
                 switch result {
                 case .success:
@@ -1053,7 +1058,7 @@ class Mounter: ObservableObject {
                 Logger.mounter.info("ℹ️  \(url, privacy: .public): seems to be already mounted on \(directory, privacy: .public)")
                 return true
             } else {
-                if self.defaultMountPath == "/Volumes" {
+                if self.defaultMountPath == "/Volumes" || directory.hasPrefix("/Volumes/") {
                     Logger.mounter.info("❗ Obstructing directory at \(directory, privacy: .public): can not mount share \(url, privacy: .public)")
                     throw MounterError.obstructingDirectory
                 } else {
@@ -1171,34 +1176,37 @@ class Mounter: ObservableObject {
     ///
     /// - Parameters:
     ///   - returnCode: The return code from NetFSMountURLSync
-    ///   - mountDirectory: The directory where the share was mounted
+    ///   - mountDirectory: The expected directory (used for cleanup on failure)
+    ///   - osMountedPath: The actual path reported by the OS (may differ, e.g. "/Volumes/share-1")
     ///   - url: The share URL
-    /// - Returns: The mount directory if mount was successful
+    /// - Returns: The actual mount point path if mount was successful
     /// - Throws: MounterError with appropriate status based on return code
-    private func processMountResult(returnCode rc: Int32, mountDirectory: String, url: URL) async throws -> String {
+    private func processMountResult(returnCode rc: Int32, mountDirectory: String, osMountedPath: String?, url: URL) async throws -> String {
         switch rc {
         case 0:
-            Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(mountDirectory, privacy: .public)")
-            
-            // Make the directory visible after successful mount
-            if mountDirectory != "/Volumes" {
-                var url = URL(fileURLWithPath: mountDirectory)
+            // Prefer the OS-reported path; fall back to our expected directory
+            let effectivePath = osMountedPath ?? mountDirectory
+            Logger.mounter.info("✅ \(url, privacy: .public): successfully mounted on \(effectivePath, privacy: .public)")
+
+            // Make the directory visible after successful mount (only for non-/Volumes paths)
+            if !effectivePath.hasPrefix("/Volumes") {
+                var dirURL = URL(fileURLWithPath: effectivePath)
                 var resourceValues = URLResourceValues()
                 resourceValues.isHidden = false
                 do {
-                    try url.setResourceValues(resourceValues)
-                    Logger.mounter.debug("👁️ Successfully unhidden mount directory: \(mountDirectory, privacy: .public)")
+                    try dirURL.setResourceValues(resourceValues)
+                    Logger.mounter.debug("👁️ Successfully unhidden mount directory: \(effectivePath, privacy: .public)")
                 } catch {
-                    Logger.mounter.warning("⚠️ Could not unhide mount directory \(mountDirectory, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                    Logger.mounter.warning("⚠️ Could not unhide mount directory \(effectivePath, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 }
             }
-            
+
             // Refresh Finder for newly mounted path
             let finderController = FinderController()
-            await finderController.refreshFinder(forPaths: [mountDirectory])
-            
-            return mountDirectory
-            
+            await finderController.refreshFinder(forPaths: [effectivePath])
+
+            return effectivePath
+
         case 1:
             Logger.mounter.info("❌ \(url, privacy: .public): operation not permitted - EPERM (rc=\(rc)). This may indicate a Kerberos ticket issue, stale NetAuthSysAgent credential cache, or insufficient system privileges.")
             removeDirectory(atPath: mountDirectory)
@@ -1215,13 +1223,13 @@ class Mounter: ObservableObject {
             throw MounterError.permissionDenied
             
         case 17:
-            Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(mountDirectory, privacy: .public) (rc=\(rc))")
-            
-            // Refresh Finder even for already mounted shares (ensures visibility)
-            let finderController = FinderController()
-            await finderController.refreshFinder(forPaths: [mountDirectory])
-            
-            return mountDirectory
+            let effectivePath17 = osMountedPath ?? mountDirectory
+            Logger.mounter.info("❇️  \(url, privacy: .public): already mounted on \(effectivePath17, privacy: .public) (rc=\(rc))")
+
+            let finderController17 = FinderController()
+            await finderController17.refreshFinder(forPaths: [effectivePath17])
+
+            return effectivePath17
             
         case 60:
             Logger.mounter.info("🚫 \(url, privacy: .public): timeout reaching host (rc=\(rc))")
@@ -1285,8 +1293,12 @@ class Mounter: ObservableObject {
         try await validateMountComponent(forShare: share)
         Logger.mounter.debug("  Mount component validated")
         
+        // [WORKAROUND macOS 26.4] Use /Volumes as actual mount base when OS restricts mounts to /Volumes only.
+        // Apple confirmed this is a bug; remove this block once the fix ships.
+        let effectiveMountPath = needsVolumesWorkaround ? "/Volumes" : mountPath
+
         // Determine the mount directory path
-        let mountDirectory = determineMountDirectory(forShare: share, url: url, basePath: mountPath)
+        let mountDirectory = determineMountDirectory(forShare: share, url: url, basePath: effectiveMountPath)
         Logger.mounter.debug("  Determined mount directory: \(mountDirectory, privacy: .public)")
         
         // Check if directory can be used as mount point
@@ -1319,7 +1331,7 @@ class Mounter: ObservableObject {
         // Set up mount options
         let (mountOptions, openOptions, realMountPoint) = try await prepareMountOperation(
             mountDirectory: mountDirectory,
-            basePath: mountPath,
+            basePath: effectiveMountPath,
             share: share
         )
         Logger.mounter.debug("  Prepared mount options. Real mount point target: \(realMountPoint, privacy: .public)")
@@ -1338,22 +1350,36 @@ class Mounter: ObservableObject {
         """)
 
 
+        // Capture the actual mount path(s) reported by the OS so we know the real location
+        // even if macOS appended "-1", "-2", etc. to avoid name conflicts.
+        var mountedPathsRef: Unmanaged<CFArray>?
         let rc = NetFSMountURLSync(url as CFURL,
-                                   // Use fileURLWithPath for the mount point path
                                    URL(fileURLWithPath: realMountPoint) as CFURL,
                                    finalUsername as CFString?,
                                    finalPassword as CFString?,
                                    openOptions as! CFMutableDictionary,
                                    mountOptions as! CFMutableDictionary,
-                                   nil) // Resulting mount path (we don't use this directly)
-        
-        // Record end time and calculate duration
+                                   &mountedPathsRef)
+
+        // Extract the first (and usually only) actual mount path returned by the OS
+        let osMountedPath: String?
+        if let paths = mountedPathsRef?.takeRetainedValue() as? [String], let first = paths.first {
+            osMountedPath = first
+            Logger.mounter.info("📍 OS reported actual mount path: \(first, privacy: .public)")
+        } else {
+            osMountedPath = nil
+        }
+
         Logger.mounter.info("🏁 NetFSMountURLSync finished for \(url, privacy: .public) with return code: \(rc, privacy: .public))")
-        
+
         // Process the mount result
-        let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, url: url)
+        let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, osMountedPath: osMountedPath, url: url)
         // Standardize before returning/persisting (the caller will persist after this returns)
         let canonicalFinal = URL(fileURLWithPath: finalMountPoint).standardizedFileURL.path
+        // [WORKAROUND macOS 26.4] Create symlink in configured mount path pointing to actual /Volumes mount
+        if needsVolumesWorkaround {
+            createSymlinkForWorkaround(share: share, actualMountPoint: canonicalFinal)
+        }
         Logger.mounter.debug("--- Finished mountShare successfully for: \(share.networkShare, privacy: .public) at \(canonicalFinal, privacy: .public) --- ")
         return canonicalFinal
     }
@@ -1374,13 +1400,17 @@ class Mounter: ObservableObject {
             do {
                 // Validate and compute expected mount directory
                 guard let url = URL(string: share.networkShare) else { continue }
-                let expectedMountDir = determineMountDirectory(forShare: share, url: url, basePath: defaultMountPath)
+                // [WORKAROUND macOS 26.4] Check in /Volumes when workaround is active
+                let effectiveBasePath = needsVolumesWorkaround ? "/Volumes" : defaultMountPath
+                let expectedMountDir = determineMountDirectory(forShare: share, url: url, basePath: effectiveBasePath)
                 let canonical = URL(fileURLWithPath: expectedMountDir).standardizedFileURL.path
-                
+
                 if fm.isDirectoryFilesystemMount(atPath: canonical) {
                     // Persist mounted state
                     await updateShare(actualMountPoint: canonical, for: share)
                     await updateShare(mountStatus: .mounted, for: share)
+                    // [WORKAROUND macOS 26.4] Recreate symlink in configured mount path if needed
+                    if needsVolumesWorkaround { createSymlinkForWorkaround(share: share, actualMountPoint: canonical) }
                     Logger.mounter.debug("  ✅ Rescan: \(share.networkShare, privacy: .public) is mounted at \(canonical, privacy: .public)")
                 } else {
                     // If we previously thought it was mounted, clear it
@@ -1438,6 +1468,50 @@ class Mounter: ObservableObject {
         }
         
         NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
+    }
+
+    // MARK: - macOS 26.4 /Volumes-only Mount Workaround
+    // Apple confirmed that macOS 26.4 introduced a regression where NetFSMountURLSync fails with
+    // EPERM (rc=1) for any mount path outside /Volumes. This section provides a temporary workaround:
+    // shares are mounted under /Volumes and a symlink is created at the configured mount path so
+    // that user scripts and workflows continue to work. Remove this entire MARK section once Apple
+    // ships the fix.
+
+    /// Returns true when the macOS 26.4 /Volumes-only mount restriction applies.
+    private var needsVolumesWorkaround: Bool {
+        guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
+        let v = ProcessInfo.processInfo.operatingSystemVersion
+        return v.majorVersion == 26 && v.minorVersion == 4
+    }
+
+    /// Creates a symlink at `defaultMountPath/<share.effectiveMountPoint>` pointing to the actual /Volumes mount.
+    private func createSymlinkForWorkaround(share: Share, actualMountPoint: String) {
+        let symlinkPath = defaultMountPath + "/" + share.effectiveMountPoint
+        do {
+            // Use destinationOfSymbolicLink (does NOT follow links) to detect existing symlinks
+            if (try? fm.destinationOfSymbolicLink(atPath: symlinkPath)) != nil {
+                try fm.removeItem(atPath: symlinkPath)
+            } else if fm.fileExists(atPath: symlinkPath) {
+                Logger.mounter.warning("⚠️ [Workaround] Cannot create symlink at \(symlinkPath, privacy: .public): path occupied by non-symlink item")
+                return
+            }
+            try fm.createSymbolicLink(atPath: symlinkPath, withDestinationPath: actualMountPoint)
+            Logger.mounter.info("🔗 [Workaround] Symlink created: \(symlinkPath, privacy: .public) → \(actualMountPoint, privacy: .public)")
+        } catch {
+            Logger.mounter.warning("⚠️ [Workaround] Failed to create symlink at \(symlinkPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Removes the workaround symlink for a share from `defaultMountPath`.
+    private func removeSymlinkForWorkaround(share: Share) {
+        let symlinkPath = defaultMountPath + "/" + share.effectiveMountPoint
+        guard (try? fm.destinationOfSymbolicLink(atPath: symlinkPath)) != nil else { return }
+        do {
+            try fm.removeItem(atPath: symlinkPath)
+            Logger.mounter.info("🔗 [Workaround] Symlink removed: \(symlinkPath, privacy: .public)")
+        } catch {
+            Logger.mounter.warning("⚠️ [Workaround] Failed to remove symlink at \(symlinkPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     // MARK: - AuthProfile Credential Resolution

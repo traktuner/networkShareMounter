@@ -185,6 +185,25 @@ class AuthProfileManager: ObservableObject {
         }
     }
 
+    /// Removes a share URL from all profiles that reference it in `associatedNetworkShares`.
+    /// Call this whenever a share is deleted so no profile retains a stale reference.
+    /// - Parameter shareURL: The network share URL string to remove.
+    func removeShareFromAllProfiles(shareURL: String) async {
+        for profile in profiles {
+            guard var shares = profile.associatedNetworkShares,
+                  shares.contains(shareURL) else { continue }
+            shares.removeAll { $0 == shareURL }
+            var updatedProfile = profile
+            updatedProfile.associatedNetworkShares = shares.isEmpty ? nil : shares
+            do {
+                try await updateProfile(updatedProfile)
+                Logger.dataModel.info("🗑️ Removed stale share '\(shareURL, privacy: .public)' from profile '\(profile.displayName, privacy: .public)'")
+            } catch {
+                Logger.dataModel.error("❌ Failed to remove stale share from profile '\(profile.displayName, privacy: .public)': \(error.localizedDescription, privacy: .public)")
+            }
+        }
+    }
+
     // MARK: - Auto-Assignment
 
     /// Automatically assigns a Kerberos profile to a share based on realm and username matching.
