@@ -189,6 +189,7 @@ pages:
     - xcode
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-/' 
+    - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
     - if ! command -v hugo &> /dev/null; then brew install hugo; fi
     - if ! command -v jq &> /dev/null; then brew install jq; fi
@@ -209,3 +210,4 @@ pages:
   artifacts:
     paths:
       - public
+
