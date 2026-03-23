@@ -80,8 +80,42 @@ struct Share: Identifiable {
         }
     }
     
+    /// Returns the effective mount point name for this share.
+        /// Uses mountPoint if set, otherwise auto-generates from networkShare URL.
+        var effectiveMountPoint: String {
+            if let mountPoint = mountPoint, !mountPoint.isEmpty {
+                return mountPoint
+            }
+            return extractShareName(from: networkShare)
+        }
+    
     /// factory-method, to create a new Share object
     static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true) -> Share {
         return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, id: UUID().uuidString)
     }
+    
+    /// Extracts the share name from a network path.
+    ///
+    /// Handles paths like:
+    /// - `smb://server/share` → "share"
+    /// - `afp://server/share` → "share"
+    ///
+    /// - Parameter networkPath: The full network share URL.
+    /// - Returns: The extracted share name, or the full path if extraction fails.
+    private func extractShareName(from networkPath: String) -> String {
+        // Remove protocol
+        let path = networkPath
+            .replacingOccurrences(of: "smb://", with: "")
+            .replacingOccurrences(of: "afp://", with: "")
+            .replacingOccurrences(of: "nfs://", with: "")
+        
+        // Get the last component
+        let components = path.split(separator: "/")
+        if let lastComponent = components.last {
+            return String(lastComponent)
+        }
+        
+        return networkPath
+    }
+
 }
