@@ -1,4 +1,6 @@
-# <img src="networkShareMounter.png" alt="drawing" width="90px"/> Network Share Mounter
+##### `⚠️ Warning for macOS 26.4: macOS 26.4 contains a bug that prevents mounting volumes outside of /Volumes! NSM versions 3.1.18 and 4.0.0 include a workaround when using macOS 26.4: The volume is mounted under /Volumes and a symbolic link is created in the target directory. ⚠️`
+
+# <img src="networkShareMounter.png" width="45px"/> Network Share Mounter
 
 Network Share Mounter connects SMB, AFP, and WebDAV shares automatically – at login, on network changes, without any manual interaction. With built-in Kerberos Ticket Management, authentication runs silently in the background. Configurable via MDM, enterprise-ready, and Open Source.
 
