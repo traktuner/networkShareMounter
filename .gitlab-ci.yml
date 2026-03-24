@@ -196,7 +196,7 @@ pages:
     - git submodule update --init
     - |
       if [[ "$CI_COMMIT_TAG" =~ ^(release|beta)- ]]; then
-        export SPARKLE_SUFFIX=$(echo "$CI_COMMIT_TAG" | grep -o '^[a-z]*-')
+        export SPARKLE_SUFFIX=$(echo "$CI_COMMIT_TAG" | grep -o '^[a-z]*')
         bundle exec fastlane sparkle type:"$SPARKLE_SUFFIX"
       fi
     - |
