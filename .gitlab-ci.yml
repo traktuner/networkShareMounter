@@ -197,7 +197,7 @@ pages:
     - |
       if [[ "$CI_COMMIT_TAG" =~ ^(release|beta)- ]]; then
         export SPARKLE_SUFFIX=$(echo "$CI_COMMIT_TAG" | grep -o '^[a-z]*')
-        bundle exec fastlane sparkle type:"$SPARKLE_SUFFIX"
+        bundle exec fastlane sparkle
       fi
     - |
       if [[ "$CI_COMMIT_TAG" =~ ^website- ]]; then
