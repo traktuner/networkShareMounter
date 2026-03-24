@@ -188,24 +188,26 @@ pages:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-/' 
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
+    - if: '$CI_COMMIT_TAG =~ /^website-/'
   script:
     - if ! command -v hugo &> /dev/null; then brew install hugo; fi
     - if ! command -v jq &> /dev/null; then brew install jq; fi
     
     - git submodule update --init
+    - |
+      if [[ "$CI_COMMIT_TAG" =~ ^(release|beta)- ]]; then
+        export SPARKLE_SUFFIX=$(echo "$CI_COMMIT_TAG" | grep -o '^[a-z]*-')
+        bundle exec fastlane sparkle type:"$SPARKLE_SUFFIX"
+      fi
+    - |
+      if [[ "$CI_COMMIT_TAG" =~ ^website- ]]; then
+        curl -f -s -o nsm-website/static/nsm-appcast https://www.nsm.faumac.rrze.de/nsm-appcast || true
+      fi
     
     - export HUGO_PARAMS_APPVERSION="$APP_VERSION"
     - export HUGO_PARAMS_DOWNLOADURL="${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.dmg"
-    
-    - ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt
-    
-    - |
-      jq -n \
-        --arg ver "$APP_VERSION" \
-        --arg date "$(date +%Y-%m-%d)" \
-        --rawfile desc current_release_notes.txt \
-        '[{version: $ver, date: $date, description: $desc}]' > nsm-website/data/auto_changelog.json
 
+    - ruby scripts/extract_changelog.rb --all --json > nsm-website/data/auto_changelog.json
     
     - cd nsm-website
     - hugo --minify --baseURL "https://nsm.faumac.de/"

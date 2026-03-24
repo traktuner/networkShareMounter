@@ -244,7 +244,7 @@ lane :sparkle do |options|
   appversion = getappversion
   build_type = options[:type] || ""
   suffix = build_type.empty? ? "" : "#{build_type}-"
-
+  sh("pwd")
   desc "creating Sparkle workspace"
   workspace = "../build/sparkle_workspace"
   sh("rm -rf #{workspace} ; mkdir -p #{workspace}")
@@ -253,7 +253,7 @@ lane :sparkle do |options|
   sh("cp ../build/NetworkShareMounter-#{suffix}#{appversion}.dmg #{workspace}/")
 
   desc "getting actual Sparkle appcast file"
-  live_appcast_url = "https://faumac.rrze.fau.de/nsm-appcast"
+  live_appcast_url = "https://www.nsm.faumac.rrze.de/nsm-appcast"
   begin
     sh("curl -f -s -o #{workspace}/nsm-appcast #{live_appcast_url}")
     UI.success("✅ got live appcast file.")
@@ -275,8 +275,10 @@ lane :sparkle do |options|
   end
 
   desc "move appcast file to website source"  
-  sh("mkdir -p ../nsm-website/public")
-  sh("cp #{workspace}/nsm-appcast ../nsm-website/public/NetworkShareMounter-appcast.xml")
+  sh("mkdir -p ../nsm-website/static/")
+  sh("cp #{workspace}/nsm-appcast ../nsm-website/static/nsm-appcast")
+  # copy appcast also to old channel URL for backward compatibility
+  sh("scp #{workspace}/nsm-appcast unrz06wm@kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.faumac.rrze.uni-erlangen.de/websource/apps/")
 end
 
 def on_error(exception)
