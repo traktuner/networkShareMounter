@@ -196,16 +196,8 @@ pages:
     
     - export HUGO_PARAMS_APPVERSION="$APP_VERSION"
     - export HUGO_PARAMS_DOWNLOADURL="${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.dmg"
-    
-    - ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt
-    
-    - |
-      jq -n \
-        --arg ver "$APP_VERSION" \
-        --arg date "$(date +%Y-%m-%d)" \
-        --rawfile desc current_release_notes.txt \
-        '[{version: $ver, date: $date, description: $desc}]' > nsm-website/data/auto_changelog.json
 
+    - ruby scripts/extract_changelog.rb --all --json > nsm-website/data/auto_changelog.json
     
     - cd nsm-website
     - hugo --minify --baseURL "https://nsm.faumac.de/"

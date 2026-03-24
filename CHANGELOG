@@ -67,28 +67,28 @@ You can now choose custom local names for your network shares, solving the dupli
 ### Fixed
 - Fixed a regression where the Sparkle framework was accidentally rolled back to an older version.
 
-## [3.1.13]
+## [3.1.13] - 2025-09-30
 
 ### Fixed
 - Fixed a bug where the shares did not mount after the app was started (#242).
 
-## [3.1.12]
+## [3.1.12] - 2025-09-23
 
 ### Fixed
 - Fixed a few UI regressions.
 - Fixed a race condition in Preferences view.
 
-## [3.1.11]
+## [3.1.11] - 2025-09-09
 
 ### Changed
 - Some minor improvements in responsiveness.
 
-## [3.1.10]
+## [3.1.10] - 2025-09-08
 
 ### Fixed
 - Resolved "App hanging" reported by Sentry (#232).
 
-## [3.1.9]
+## [3.1.9] - 2025-08-07
 
 ### Fixed
 - Ignore spaces at the beginning and end of shares in profiles (#223).
@@ -101,12 +101,12 @@ You can now choose custom local names for your network shares, solving the dupli
 - Clarification in the README: Using SMBHome as users' home share only works if the Mac is bound
   to Active Directory.
 
-## [3.1.8]
+## [3.1.8] - 2025-07-18
 
 ### Fixed
 - Fixed a race condition during app startup that caused issues with obtaining Kerberos tickets.
 
-## [3.1.7]
+## [3.1.7] - 2025-07-15
 
 ### Fixed
 - Fixed a bug where shares mounted at various levels could result in the removal of directories.
@@ -114,7 +114,7 @@ You can now choose custom local names for your network shares, solving the dupli
   constantly rebuilding the app menu.
 - Minor fix in displaying authentication errors by changing the menu app icon color.
 
-## [3.1.6]
+## [3.1.6] - 2025-06-12
 
 ### Fixed
 - Fixed a race condition.
@@ -122,12 +122,12 @@ You can now choose custom local names for your network shares, solving the dupli
 ### Changed
 - Improved directory and file handling (using FileManager instead of calling shell commands).
 
-## [3.1.5]
+## [3.1.5]A - 2025-05-16
 
 ### Changed
 - Improved the management of network changes.
 
-## [3.1.4]
+## [3.1.4] - 2025-05-13
 
 ### Added
 - Added more logging output to enhance bug detection.
@@ -135,7 +135,7 @@ You can now choose custom local names for your network shares, solving the dupli
 ### Fixed
 - Fixed several minor bugs, including one related to hidden shares.
 
-## [3.1.3]
+## [3.1.3] - 2025-04-15
 
 ### Fixed
 - Fixed a few problems reported by Sentry (#179, #180, #181, #182, #186, #188).
@@ -145,7 +145,7 @@ You can now choose custom local names for your network shares, solving the dupli
 ### Changed
 - Added a few more useful logging points for debugging.
 
-## [3.1.2]
+## [3.1.2] - 2025-04-06
 
 ### Fixed
 - Fixed a problem where shares ended with the special character `$` (aka hidden share) (#165).
@@ -160,12 +160,12 @@ You can now choose custom local names for your network shares, solving the dupli
 - Created and enhanced XCTest functions.
 - Improved the core mounter class.
 
-## [3.1.1]
+## [3.1.1] - 2024-12-14
 
 ### Fixed
 - Various runtime bugs and crashes found and fixed via Sentry (#144, #145, #146, #147, #148).
 
-## [3.1.0]
+## [3.1.0] - 2024-12-13
 
 ### Added
 - List mounted/unmounted shares in menu bar; clicking a mounted share opens its directory (#46,
@@ -191,7 +191,7 @@ You can now choose custom local names for your network shares, solving the dupli
 - Fixed two race conditions (one in the DogeAD library).
 - Fixed a possible memory management crash in `PreferenceManager.setADUserInfo` (#142).
 
-## [3.0.4]
+## [3.0.4] - 2024-09-19
 
 ### Added
 - Mount and unmount can now be triggered via UNIX signals: `kill -SIGUSR1 <PID>` unmounts all
@@ -209,7 +209,7 @@ You can now choose custom local names for your network shares, solving the dupli
   time (#113).
 - Workaround for Finder showing already disconnected drives after wakeup (#109).
 
-## [3.0.3]
+## [3.0.3] - 2024-02-20
 
 ### Fixed
 - Fixed a bug where mounts under `/Volumes` as the default mount path generated `sharename-1` etc.
@@ -222,7 +222,7 @@ You can now choose custom local names for your network shares, solving the dupli
     also removed after a macOS reboot.
 - Fixed a bug where the menu bar icon color did not reflect the Kerberos ticket status.
 
-## [3.0.2]
+## [3.0.2] - 2024-02-13
 
 ### Fixed
 - Fixed a crash that occurred when the Mac wakes up from sleep.
@@ -231,12 +231,12 @@ You can now choose custom local names for your network shares, solving the dupli
 - User-triggered "mount all shares" will also re-authenticate/renew Kerberos tickets when Kerberos
   is enabled (Beta).
 
-## [3.0.1]
+## [3.0.1] - 2024-02-05
 
 ### Fixed
 - Fixed migration of `FAU Prefix Assistant` account to NSM's keychain.
 
-## [3.0.0]
+## [3.0.0] - 2024-02-01
 
 *For usage and configuration examples please consult the
 [documentation](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/dev/README.md?ref_type=heads).*
