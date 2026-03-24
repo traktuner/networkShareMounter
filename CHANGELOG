@@ -1,6 +1,40 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [4.0.0] - 2026-03-23
+
+### What's new
+#### Modern SwiftUI Interface
+Version 4 features a completely redesigned user interface built with SwiftUI:
+- Clean, modern settings window with tabbed navigation
+- Better organization of shares and authentication profiles
+
+#### Authentication Profiles - Reusable Credentials
+Instead of storing credentials separately for each share, you can now create reusable authentication profiles.
+- **Fewer duplicates**: Credentials stored once in Keychain instead of multiple times
+- **Easier management**: Update passwords centrally, not per-share
+- **Clear overview**: See which shares use which profiles
+- **Flexible**: Reassign shares to different profiles anytime
+
+#### Custom Mount Point Names
+You can now choose custom local names for your network shares, solving the duplicate share name problem:
+- Previously, mounting shares with identical names from different servers would cause conflicts
+- Now you can assign individual local names to each share
+- Note:
+  - Shares are mounted with your chosen name, Applications and scripts see the correct path
+  - For macOS systems, due to a limitation on mounts, **Finder still displays the original share name from the server**.
+
+#### Additional Improvements
+- **Active Directory binding**: - Can differentiate between Macs bound to Active Directory and those that use Kerberos authentication
+- **Native autostart**: Uses macOS 13+ `SMAppService` API instead of using an external library
+- **Better error messages**: Clear, actionable error descriptions
+- **Modern Swift architecture**: Full async/await and Actor implementation
+- **Comprehensive testing**: Unit tests for critical components
+
+#### System Requirements
+- **macOS 13.5 (Ventura) or later**
+- Optional: Kerberos configuration for Active Directory 
+
 
 ## [3.1.17] - 2026-03-23
 
