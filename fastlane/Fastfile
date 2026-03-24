@@ -241,6 +241,7 @@ end
 # generates Sparkle appcast file
 lane :sparkle do |options|
   desc "Starting sparkle lane..."
+  ENV['SUPrivateEDKey'] = ENV['SPARKLE_PRIVATE_KEY'] if ENV['SPARKLE_PRIVATE_KEY']
   appversion = getappversion
   desc "creating Sparkle workspace"
   workspace = "../build/sparkle_workspace"
