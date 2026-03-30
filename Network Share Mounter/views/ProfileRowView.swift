@@ -10,16 +10,6 @@ struct ProfileRowView: View {
     @ObservedObject var profileManager: AuthProfileManager
     let profileId: String
     
-    // Computed property to get the current profile
-    private var profile: AuthProfile {
-        profileManager.getProfile(by: profileId) ?? AuthProfile(displayName: "Unknown")
-    }
-    
-    // Check if this is a default realm profile
-    private var isDefaultProfile: Bool {
-        profileManager.isDefaultRealmProfile(profile)
-    }
-    
     // State to hold the result of the Kerberos ticket check
     @State private var ticketStatus: TicketStatus = .unknown
 
@@ -27,9 +17,15 @@ struct ProfileRowView: View {
     private static var logger = Logger.authenticationView // Assuming this logger is accessible
     
     var body: some View {
-        HStack(spacing: 10) { // Increase spacing between elements
-            // Profile Icon
-            Image(systemName: profile.symbolName ?? "person.circle") 
+        if let profile = profileManager.getProfile(by: profileId) {
+            rowContent(for: profile)
+        }
+    }
+
+    @ViewBuilder
+    private func rowContent(for profile: AuthProfile) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: profile.symbolName ?? "person.circle")
                 .foregroundColor(.white)
                 .padding(6)
                 .background(
@@ -37,22 +33,20 @@ struct ProfileRowView: View {
                         .fill(profile.symbolColor)
                         .frame(width: 28, height: 28)
                 )
-            
-            // Profile Name and Details
-            VStack(alignment: .leading, spacing: 4) { // Add consistent spacing
+
+            VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(profile.displayName) 
+                    Text(profile.displayName)
                         .font(.headline)
-                    
-                    // Show indicator for default realm profile
-                    if isDefaultProfile {
+
+                    if profileManager.isDefaultRealmProfile(profile) {
                         Image(systemName: "lock.fill")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                             .help("Default Kerberos profile (not deletable)")
                     }
                 }
-                
+
                 if profile.useKerberos {
                     HStack(spacing: 4) {
                         Text("Kerberos:")
@@ -72,34 +66,27 @@ struct ProfileRowView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            
+
             Spacer()
-            
-            // Kerberos Ticket Status Indicator (only if using Kerberos)
+
             if profile.useKerberos {
                 Circle()
                     .fill(ticketStatus.color)
-                    .frame(width: 10, height: 10) // Increase size slightly for better visibility
+                    .frame(width: 10, height: 10)
                     .help(ticketStatus.helpText)
             }
         }
-        .padding(.vertical, 6) // Add consistent vertical padding
+        .padding(.vertical, 6)
         .task(id: profile.id) {
-            // Check ticket status for this profile
-            await checkTicketStatus()
+            await checkTicketStatus(for: profile)
         }
     }
-    
-    // Check if a Kerberos ticket exists for this profile
-    private func checkTicketStatus() async {
-        // Use the global ticket status checker
+
+    private func checkTicketStatus(for profile: AuthProfile) async {
         let status = await checkKerberosTicketStatus(for: profile)
-        
-        // Update the status on the main thread
         await MainActor.run {
             ticketStatus = status
         }
-        
         Self.logger.debug("(RowView) Ticket status for profile '\(profile.displayName)': \(status.displayText)")
     }
 }
