@@ -99,28 +99,27 @@ struct Network_Share_MounterApp: App {
                     autoOpenProfileCreation: settingsManager.pendingAutoOpenProfileCreation,
                     mdmRealm: settingsManager.pendingMDMRealm
                 )
-                .frame(minWidth: 900, minHeight: 580) // konsistent mit SettingsView
+                .frame(minWidth: 900, minHeight: 580)
                 .environmentObject(settingsManager)
                 .environmentObject(mounter)
-                .onAppear {
-                    Logger.app.debug("🔧 [DEBUG] Settings window appeared")
-                }
             } else {
                 Text("Initializing...")
             }
         }
         .defaultSize(width: 900, height: 600)
         .windowResizability(.contentSize)
-        .keyboardShortcut(",", modifiers: [.command])
         .handlesExternalEvents(matching: Set(arrayLiteral: "settings"))
 
         // Menü-Kommandos
         .commands {
-            // Ersetze den Standard-App-Einstellungen-Eintrag und öffne unsere Scene
+            // Ersetze den Standard-App-Einstellungen-Eintrag und öffne unsere Scene.
+            // Wichtig: openWindow hier NICHT verwenden – das erzeugt eine zirkuläre
+            // Environment-Abhängigkeit während der Body-Auswertung (→ Stack Overflow).
+            // Stattdessen den SettingsManager-Callback nutzen, der erst nach dem
+            // ersten Render (onAppear) gesetzt wird.
             CommandGroup(replacing: .appSettings) {
                 Button("Settings …") {
-                    Logger.app.debug("🔧 [DEBUG] Einstellungen menu button clicked")
-                    openWindow(id: "settings")
+                    SettingsManager.shared.requestShowSettings()
                 }
                 .keyboardShortcut(",", modifiers: [.command])
             }
