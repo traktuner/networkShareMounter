@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [4.0.1] - 2026-03-23
+
+### Fixed
+- Fix SwiftUI stack overflow in profile views (#307)
+- Fix stack overflow in App scene body (EXC_BAD_ACCESS) (#308)
+
 ## [4.0.0] - 2026-03-23
 
 ### What's new
