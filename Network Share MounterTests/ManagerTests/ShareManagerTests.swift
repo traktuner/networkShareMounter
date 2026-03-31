@@ -115,7 +115,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertEqual(shares.count, 1, "Setup: ShareManager should contain one share")
         
         // When
-        await sut.removeShare(at: 0)
+        try await sut.removeShare(at: 0)
         
         // Then
         let updatedShares = await sut.allShares
@@ -313,7 +313,7 @@ final class ShareManagerTests: XCTestCase {
         XCTAssertTrue(hasSharesAfterAdd, "Should return true after adding a share")
         
         // When
-        await sut.removeShare(at: 0)
+        try await sut.removeShare(at: 0)
         
         // Then
         let hasSharesAfterRemove = await sut.hasShares()
@@ -444,9 +444,13 @@ final class ShareManagerTests: XCTestCase {
         await sut.addShare(userShare)
 
         // When/Then - check duplicates across both types
-        XCTAssertTrue(await sut.isDuplicateMountPoint("ManagedShare"), "Should detect managed share")
-        XCTAssertTrue(await sut.isDuplicateMountPoint("UserShare"), "Should detect user share")
-        XCTAssertTrue(await sut.isDuplicateMountPoint("managedshare"), "Should be case-insensitive")
+        // await must be extracted before passing to XCTAssertTrue (no async in autoclosures)
+        let isManagedDetected = await sut.isDuplicateMountPoint("ManagedShare")
+        let isUserDetected = await sut.isDuplicateMountPoint("UserShare")
+        let isCaseInsensitive = await sut.isDuplicateMountPoint("managedshare")
+        XCTAssertTrue(isManagedDetected, "Should detect managed share")
+        XCTAssertTrue(isUserDetected, "Should detect user share")
+        XCTAssertTrue(isCaseInsensitive, "Should be case-insensitive")
     }
 
     // MARK: - Tests: Share.effectiveMountPoint
