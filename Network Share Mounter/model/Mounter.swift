@@ -1481,7 +1481,8 @@ class Mounter: ObservableObject {
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
-        return v.majorVersion == 26 && v.minorVersion == 4
+        return v.majorVersion == 26 && ( v.minorVersion == 4 || v.minorVersion == 5 )
+        // return v.majorVersion == 26 && [4, 5].contains(v.minorVersion)
     }
 
     /// Creates a symlink at `defaultMountPath/<share.effectiveMountPoint>` pointing to the actual /Volumes mount.
