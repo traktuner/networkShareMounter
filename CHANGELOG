@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fix SwiftUI stack overflow in profile views (#307)
 - Fix stack overflow in App scene body (EXC_BAD_ACCESS) (#308)
+- Workaround for the issue where the Settings window displayed an icon in the Dock that wouldn't go away (#264)
 
 ## [4.0.0] - 2026-03-23
 

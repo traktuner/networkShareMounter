@@ -240,6 +240,15 @@ end
 
 # generates Sparkle appcast file
 lane :sparkle do |options|
+  build_type = options[:type] || "release"
+
+  SKIP_SPARKLE_FOR = ["release", "beta"].freeze
+  if SKIP_SPARKLE_FOR.include?(build_type.downcase)
+    UI.important("⏭️  Sparkle appcast wird für '#{build_type}'-Builds übersprungen.")
+    next
+  end
+
+  UI.message("🚀 Starting sparkle lane for type: #{build_type}")
   desc "Starting sparkle lane..."
   ENV['SUPrivateEDKey'] = ENV['SPARKLE_PRIVATE_KEY'] if ENV['SPARKLE_PRIVATE_KEY']
   appversion = getappversion
