@@ -197,6 +197,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Create mounter instance immediately (not waiting for SwiftUI)
         mounter = Mounter()
         
+        // Restore accessory activation policy (no Dock icon) when all regular windows close
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleWindowWillClose(_:)),
+            name: NSWindow.willCloseNotification,
+            object: nil
+        )
+
         // Start asynchronous initialization
         Task { @MainActor in
             await initializeApp()
@@ -757,6 +765,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         Logger.app.debug("🔧 [DEBUG] Posted showSettingsScene notification")
     }
     
+    /// Restores the app's accessory activation policy (hiding Dock icon) when all
+    /// regular-sized windows close. The hidden SwiftUI placeholder window (10×10 pt)
+    /// is excluded from the check via its minimal frame width.
+    @objc private func handleWindowWillClose(_ notification: Notification) {
+        guard NSApp.activationPolicy() == .regular,
+              let closingWindow = notification.object as? NSWindow else { return }
+        let hasOtherVisibleWindows = NSApp.windows.contains { window in
+            window !== closingWindow && window.isVisible && window.frame.width > 100
+        }
+        if !hasOtherVisibleWindows {
+            NSApp.setActivationPolicy(.accessory)
+        }
+    }
+
     /// Sets up signal handlers for mounting and unmounting shares.
     ///
     /// This method configures the application to respond to UNIX signals:
