@@ -25,7 +25,12 @@ actor ShareManager {
     func addShare(_ share: Share) {
         if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
             _shares.append(share)
-            //
+
+            // Persist user-defined shares to UserDefaults immediately
+            if !share.managed {
+                saveModifiedShareConfigs()
+            }
+
             // save password in keychain
             if let password = share.password, let username = share.username {
                 savePasswordToKeychain(for: share.networkShare, username: username, password: password)
