@@ -110,10 +110,7 @@ class AuthProfileManager: ObservableObject {
             }
         }
 
-        await MainActor.run {
-            profiles[index] = profile
-            objectWillChange.send()
-        }
+        profiles[index] = profile
         saveProfiles() // Save metadata changes
         Logger.dataModel.info("Updated profile '\(profile.displayName, privacy: .public)' (ID: \(profile.id, privacy: .public))")
     }
@@ -908,12 +905,10 @@ class AuthProfileManager: ObservableObject {
             }
         }
 
-        // DogeAccount validation for Kerberos profiles
+        // DogeAccount validation for Kerberos profiles: advisory only, does not block creation.
+        // Accounts from other realms or profiles created before login would fail here unnecessarily.
         if profile.useKerberos {
-            let kerbValid = await validateKerberosProfile(profile)
-            if !kerbValid {
-                errors.append("The Kerberos username was not found among the available accounts")
-            }
+            _ = await validateKerberosProfile(profile)
         }
 
         return (errors.isEmpty && realmConflict == nil, errors, realmConflict)

@@ -2010,6 +2010,46 @@
         }
       }
     },
+    "Developed with ❤️ by FAUmac @ RRZE/FAU" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit ❤️ entwickelt von FAUmac @ RRZE/FAU\""
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Developed with ❤️ by FAUmac @ RRZE/FAU"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desarrollado con ❤️ por FAUmac @ RRZE/FAU"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Développé avec ❤️ par FAUmac @ RRZE/FAU"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sviluppato con ❤️ da FAUmac @ RRZE/FAU"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontwikkeld met ❤️ door FAUmac @ RRZE/FAU"
+          }
+        }
+      }
+    },
     "Diagnostics" : {
       "localizations" : {
         "de" : {
@@ -3398,7 +3438,44 @@
       }
     },
     "Initializing..." : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initialisiere..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initializing..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicializando..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initialisation..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inizializzazione..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initialiseren..."
+          }
+        }
+      }
     },
     "Invalid mount options" : {
       "comment" : "Invalid mount options",
@@ -4254,6 +4331,46 @@
         }
       }
     },
+    "Need Help?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brauchst du Hilfe?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Need Help?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Necesitas ayuda?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Besoin d'aide ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hai bisogno di aiuto?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hulp nodig?"
+          }
+        }
+      }
+    },
     "Network connectivity cannot be tested" : {
       "comment" : "Network connectivity cannot be tested",
       "localizations" : {
@@ -4740,7 +4857,39 @@
       }
     },
     "Operation not permitted" : {
-      "comment" : "Operation not permitted (EPERM) - may indicate a Kerberos ticket or system privilege issue"
+      "comment" : "Operation not permitted (EPERM) - may indicate a Kerberos ticket or system privilege issue",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operation nicht erlaubt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operación no permitida"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opération non autorisée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operazione non consentita"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bewerking niet toegestaan"
+          }
+        }
+      }
     },
     "Other error" : {
       "comment" : "Other error",

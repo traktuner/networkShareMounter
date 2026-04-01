@@ -1044,6 +1044,11 @@ class Mounter: ObservableObject {
         }
     }
     
+    /// Returns the remote URL of the volume mounted at the given path, used to verify mount identity.
+    private func mountedShareURL(atPath path: String) -> URL? {
+        (try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeURLForRemountingKey]))?.volumeURLForRemounting
+    }
+
     /// Checks if a directory can be used as a mount point
     ///
     /// - Parameters:
@@ -1055,6 +1060,17 @@ class Mounter: ObservableObject {
         if fm.isDirectory(atPath: directory) {
             // Check if the directory is already a mount point
             if fm.isDirectoryFilesystemMount(atPath: directory) {
+                // Verify the existing mount is actually our share, not a different share with the same name.
+                // If they don't match, return false so the OS can assign a -1/-2 suffix.
+                let existingURL = mountedShareURL(atPath: directory)
+                let sameShare = existingURL.map {
+                    $0.host?.lowercased() == url.host?.lowercased() &&
+                    $0.path.lowercased() == url.path.lowercased()
+                } ?? true  // if we can't determine, assume same (safe fallback)
+                guard sameShare else {
+                    Logger.mounter.info("ℹ️  Different share at \(directory, privacy: .public), continuing for \(url, privacy: .public) – OS will resolve naming conflict")
+                    return false
+                }
                 Logger.mounter.info("ℹ️  \(url, privacy: .public): seems to be already mounted on \(directory, privacy: .public)")
                 return true
             } else {
@@ -1481,12 +1497,25 @@ class Mounter: ObservableObject {
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
-        return v.majorVersion == 26 && v.minorVersion == 4
+        return v.majorVersion == 26 && ( v.minorVersion == 4 || v.minorVersion == 5 )
+        // return v.majorVersion == 26 && [4, 5].contains(v.minorVersion)
     }
 
-    /// Creates a symlink at `defaultMountPath/<share.effectiveMountPoint>` pointing to the actual /Volumes mount.
+    /// Returns the symlink path for the workaround, derived from the OS-assigned mount name (e.g. "myshare-1")
+    /// to handle same-name shares. Custom `mountPoint` takes priority.
+    private func workaroundSymlinkPath(for share: Share, actualMountPoint: String) -> String {
+        let name: String
+        if let custom = share.mountPoint, !custom.isEmpty {
+            name = custom
+        } else {
+            name = URL(fileURLWithPath: actualMountPoint).lastPathComponent
+        }
+        return defaultMountPath + "/" + name
+    }
+
+    /// Creates a symlink in `defaultMountPath` pointing to the actual /Volumes mount.
     private func createSymlinkForWorkaround(share: Share, actualMountPoint: String) {
-        let symlinkPath = defaultMountPath + "/" + share.effectiveMountPoint
+        let symlinkPath = workaroundSymlinkPath(for: share, actualMountPoint: actualMountPoint)
         do {
             // Use destinationOfSymbolicLink (does NOT follow links) to detect existing symlinks
             if (try? fm.destinationOfSymbolicLink(atPath: symlinkPath)) != nil {
@@ -1504,7 +1533,8 @@ class Mounter: ObservableObject {
 
     /// Removes the workaround symlink for a share from `defaultMountPath`.
     private func removeSymlinkForWorkaround(share: Share) {
-        let symlinkPath = defaultMountPath + "/" + share.effectiveMountPoint
+        guard let actual = share.actualMountPoint else { return }
+        let symlinkPath = workaroundSymlinkPath(for: share, actualMountPoint: actual)
         guard (try? fm.destinationOfSymbolicLink(atPath: symlinkPath)) != nil else { return }
         do {
             try fm.removeItem(atPath: symlinkPath)

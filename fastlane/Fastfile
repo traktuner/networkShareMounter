@@ -240,6 +240,15 @@ end
 
 # generates Sparkle appcast file
 lane :sparkle do |options|
+  build_type = options[:type] || "release"
+
+  SKIP_SPARKLE_FOR = ["alpha", "test"].freeze
+  if SKIP_SPARKLE_FOR.include?(build_type.downcase)
+    UI.important("⏭️  Sparkle appcast wird für '#{build_type}'-Builds übersprungen.")
+    next
+  end
+
+  UI.message("🚀 Starting sparkle lane for type: #{build_type}")
   desc "Starting sparkle lane..."
   ENV['SUPrivateEDKey'] = ENV['SPARKLE_PRIVATE_KEY'] if ENV['SPARKLE_PRIVATE_KEY']
   appversion = getappversion
@@ -262,9 +271,10 @@ lane :sparkle do |options|
   desc "generating Sparkle appcast file"
   generate_appcast = sh("ls -d /opt/homebrew/Caskroom/sparkle/*/bin/generate_appcast | sort -V | tail -n 1").strip
   appversion = getappversion
+  commit_tag = ENV["CI_COMMIT_TAG"] || "release-#{appversion}"
   begin
     sh("#{generate_appcast}", 
-      "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{appversion}/", 
+      "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{commit_tag}/",  
       "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
       "#{workspace}")  
     UI.success("✅ generated appcast file.")

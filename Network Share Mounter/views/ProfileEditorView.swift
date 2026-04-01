@@ -232,8 +232,13 @@ struct ProfileEditorView: View {
                             .font(.body.monospaced())
                             .disabled(isMDMKerberosProfile)
                             .onChange(of: kerberosRealm) { newValue in
-                                guard realmPart != newValue else { return }
-                                realmPart = newValue
+                                let normalized = newValue.uppercased()
+                                if kerberosRealm != normalized {
+                                    kerberosRealm = normalized
+                                    return
+                                }
+                                guard realmPart != normalized else { return }
+                                realmPart = normalized
                                 updateFullUsername()
                             }
                     }
@@ -419,7 +424,7 @@ struct ProfileEditorView: View {
         let userPart = String(parts[0])
         let newRealm = String(parts[1]).uppercased()
 
-        guard usernamePart != userPart || kerberosRealm != newRealm else { return }
+        guard usernamePart != userPart || kerberosRealm.uppercased() != newRealm else { return }
 
         usernamePart = userPart
         realmPart = newRealm
@@ -436,8 +441,8 @@ struct ProfileEditorView: View {
             if kerberosRealm.isEmpty && existingProfile == nil {
                 let effectiveRealm = mdmRealm ?? prefs.string(for: .kerberosRealm) ?? ""
                 let shouldUseMDMRealm = !effectiveRealm.isEmpty && AuthProfileManager.shared.needsMDMKerberosSetup() != nil
-                if shouldUseMDMRealm && kerberosRealm != effectiveRealm {
-                    kerberosRealm = effectiveRealm
+                if shouldUseMDMRealm && kerberosRealm != effectiveRealm.uppercased() {
+                    kerberosRealm = effectiveRealm.uppercased()
                 }
             }
             if realmPart != kerberosRealm {
@@ -518,7 +523,7 @@ struct ProfileEditorView: View {
             displayName: profileName,
             username: username.isEmpty ? nil : username,
             useKerberos: useKerberos,
-            kerberosRealm: kerberosRealm.isEmpty ? nil : kerberosRealm,
+            kerberosRealm: kerberosRealm.isEmpty ? nil : kerberosRealm.uppercased(),
             associatedNetworkShares: editingAssociatedShares.isEmpty ? nil : editingAssociatedShares,
             symbolName: selectedSymbol
         )
@@ -548,7 +553,7 @@ struct ProfileEditorView: View {
             displayName: profileName,
             username: username.isEmpty ? nil : username,
             useKerberos: useKerberos,
-            kerberosRealm: kerberosRealm.isEmpty ? nil : kerberosRealm,
+            kerberosRealm: kerberosRealm.isEmpty ? nil : kerberosRealm.uppercased(),
             associatedNetworkShares: editingAssociatedShares.isEmpty ? nil : editingAssociatedShares,
             symbolName: selectedSymbol
         )
