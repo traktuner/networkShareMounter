@@ -242,7 +242,7 @@ end
 lane :sparkle do |options|
   build_type = options[:type] || "release"
 
-  SKIP_SPARKLE_FOR = ["release", "beta"].freeze
+  SKIP_SPARKLE_FOR = ["alpha", "testbuild"].freeze
   if SKIP_SPARKLE_FOR.include?(build_type.downcase)
     UI.important("⏭️  Sparkle appcast wird für '#{build_type}'-Builds übersprungen.")
     next
