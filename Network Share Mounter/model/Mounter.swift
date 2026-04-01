@@ -504,12 +504,19 @@ class Mounter: ObservableObject {
     ///   - userTriggered: Whether the unmount was triggered by user action (defaults to false)
     func unmountShare(for share: Share, userTriggered: Bool = false) async {
         if let mountpoint = share.actualMountPoint {
-            // [WORKAROUND macOS 26.4] Remove symlink from configured mount path before unmounting
-            if needsVolumesWorkaround { removeSymlinkForWorkaround(share: share) }
-            let result = await unmountShare(atPath: mountpoint)
+            // [WORKAROUND macOS 26.4] actualMountPoint is the symlink path; resolve it to the real /Volumes
+            // path before removing the symlink so unmountShare(atPath:) receives a valid mount point.
+            var pathToUnmount = mountpoint
+            if needsVolumesWorkaround {
+                if let resolved = try? fm.destinationOfSymbolicLink(atPath: mountpoint) {
+                    pathToUnmount = resolved
+                }
+                removeSymlinkForWorkaround(share: share)
+            }
+            let result = await unmountShare(atPath: pathToUnmount)
             switch result {
             case .success:
-                Logger.mounter.info("💪 Successfully unmounted \(mountpoint, privacy: .public).")
+                Logger.mounter.info("💪 Successfully unmounted \(pathToUnmount, privacy: .public).")
                 // Share status update
                 if userTriggered {
                     // If unmount was triggered by the user, set mountStatus in share to userUnmounted
@@ -550,12 +557,19 @@ class Mounter: ObservableObject {
     func unmountAllMountedShares(userTriggered: Bool = false) async {
         for share in await shareManager.allShares {
             if let mountpoint = share.actualMountPoint {
-                // [WORKAROUND macOS 26.4] Remove symlink from configured mount path before unmounting
-                if needsVolumesWorkaround { removeSymlinkForWorkaround(share: share) }
-                let result = await unmountShare(atPath: mountpoint, skipFinderRefresh: true)
+                // [WORKAROUND macOS 26.4] actualMountPoint is the symlink path; resolve it to the real /Volumes
+                // path before removing the symlink so unmountShare(atPath:) receives a valid mount point.
+                var pathToUnmount = mountpoint
+                if needsVolumesWorkaround {
+                    if let resolved = try? fm.destinationOfSymbolicLink(atPath: mountpoint) {
+                        pathToUnmount = resolved
+                    }
+                    removeSymlinkForWorkaround(share: share)
+                }
+                let result = await unmountShare(atPath: pathToUnmount, skipFinderRefresh: true)
                 switch result {
                 case .success:
-                    Logger.mounter.info("💪 Successfully unmounted \(mountpoint, privacy: .public).")
+                    Logger.mounter.info("💪 Successfully unmounted \(pathToUnmount, privacy: .public).")
                     // Share status update
                     if userTriggered {
                         // If unmount was triggered by the user, set mountStatus in share to userUnmounted
@@ -1323,16 +1337,25 @@ class Mounter: ObservableObject {
             // Normalize the path we store to avoid inconsistencies
             let canonicalPath = URL(fileURLWithPath: mountDirectory).standardizedFileURL.path
             Logger.mounter.info("  ℹ️ Share \(url, privacy: .public) seems already mounted at \(canonicalPath, privacy: .public). Persisting status and returning existing path.")
-            
+
+            // [WORKAROUND macOS 26.4] Ensure symlink exists and persist its path as the mount point.
+            let persistedPath: String
+            if needsVolumesWorkaround,
+               let symlinkPath = createSymlinkForWorkaround(share: share, actualMountPoint: canonicalPath) {
+                persistedPath = symlinkPath
+            } else {
+                persistedPath = canonicalPath
+            }
+
             // Persist state to Share object
-            await updateShare(actualMountPoint: canonicalPath, for: share)
+            await updateShare(actualMountPoint: persistedPath, for: share)
             await updateShare(mountStatus: .mounted, for: share)
-            
+
             // Gentle Finder refresh to ensure visibility (no killall)
             let finderController = FinderController()
-            await finderController.refreshFinder(forPaths: [canonicalPath])
-            
-            return canonicalPath
+            await finderController.refreshFinder(forPaths: [persistedPath])
+
+            return persistedPath
         }
         Logger.mounter.debug("  Mount directory check passed (not already mounted here)")
         
@@ -1392,9 +1415,12 @@ class Mounter: ObservableObject {
         let finalMountPoint = try await processMountResult(returnCode: rc, mountDirectory: mountDirectory, osMountedPath: osMountedPath, url: url)
         // Standardize before returning/persisting (the caller will persist after this returns)
         let canonicalFinal = URL(fileURLWithPath: finalMountPoint).standardizedFileURL.path
-        // [WORKAROUND macOS 26.4] Create symlink in configured mount path pointing to actual /Volumes mount
-        if needsVolumesWorkaround {
-            createSymlinkForWorkaround(share: share, actualMountPoint: canonicalFinal)
+        // [WORKAROUND macOS 26.4] Create symlink and return its path so actualMountPoint reflects the
+        // user-visible location (correct menu name, correct Finder target).
+        if needsVolumesWorkaround,
+           let symlinkPath = createSymlinkForWorkaround(share: share, actualMountPoint: canonicalFinal) {
+            Logger.mounter.debug("--- Finished mountShare successfully for: \(share.networkShare, privacy: .public) at \(symlinkPath, privacy: .public) --- ")
+            return symlinkPath
         }
         Logger.mounter.debug("--- Finished mountShare successfully for: \(share.networkShare, privacy: .public) at \(canonicalFinal, privacy: .public) --- ")
         return canonicalFinal
@@ -1422,12 +1448,17 @@ class Mounter: ObservableObject {
                 let canonical = URL(fileURLWithPath: expectedMountDir).standardizedFileURL.path
 
                 if fm.isDirectoryFilesystemMount(atPath: canonical) {
-                    // Persist mounted state
-                    await updateShare(actualMountPoint: canonical, for: share)
+                    // [WORKAROUND macOS 26.4] Recreate symlink and use its path as the persisted mount point.
+                    let persistedPath: String
+                    if needsVolumesWorkaround,
+                       let symlinkPath = createSymlinkForWorkaround(share: share, actualMountPoint: canonical) {
+                        persistedPath = symlinkPath
+                    } else {
+                        persistedPath = canonical
+                    }
+                    await updateShare(actualMountPoint: persistedPath, for: share)
                     await updateShare(mountStatus: .mounted, for: share)
-                    // [WORKAROUND macOS 26.4] Recreate symlink in configured mount path if needed
-                    if needsVolumesWorkaround { createSymlinkForWorkaround(share: share, actualMountPoint: canonical) }
-                    Logger.mounter.debug("  ✅ Rescan: \(share.networkShare, privacy: .public) is mounted at \(canonical, privacy: .public)")
+                    Logger.mounter.debug("  ✅ Rescan: \(share.networkShare, privacy: .public) is mounted at \(persistedPath, privacy: .public)")
                 } else {
                     // If we previously thought it was mounted, clear it
                     if share.actualMountPoint != nil || share.mountStatus == .mounted {
@@ -1514,7 +1545,8 @@ class Mounter: ObservableObject {
     }
 
     /// Creates a symlink in `defaultMountPath` pointing to the actual /Volumes mount.
-    private func createSymlinkForWorkaround(share: Share, actualMountPoint: String) {
+    @discardableResult
+    private func createSymlinkForWorkaround(share: Share, actualMountPoint: String) -> String? {
         let symlinkPath = workaroundSymlinkPath(for: share, actualMountPoint: actualMountPoint)
         do {
             // Use destinationOfSymbolicLink (does NOT follow links) to detect existing symlinks
@@ -1522,12 +1554,14 @@ class Mounter: ObservableObject {
                 try fm.removeItem(atPath: symlinkPath)
             } else if fm.fileExists(atPath: symlinkPath) {
                 Logger.mounter.warning("⚠️ [Workaround] Cannot create symlink at \(symlinkPath, privacy: .public): path occupied by non-symlink item")
-                return
+                return nil
             }
             try fm.createSymbolicLink(atPath: symlinkPath, withDestinationPath: actualMountPoint)
             Logger.mounter.info("🔗 [Workaround] Symlink created: \(symlinkPath, privacy: .public) → \(actualMountPoint, privacy: .public)")
+            return symlinkPath
         } catch {
             Logger.mounter.warning("⚠️ [Workaround] Failed to create symlink at \(symlinkPath, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            return nil
         }
     }
 
