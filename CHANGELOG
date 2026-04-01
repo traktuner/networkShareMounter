@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Fix stack overflow in App scene body (EXC_BAD_ACCESS) (#308)
 - Workaround for the issue where the Settings window displayed an icon in the Dock that wouldn't go away (#264)
 - Fix for an issue where shares were not always saved correctly (#315)
+- Fix for mounting multiple network shares under /Volumes from different servers but with the same share name (#310)
 
 ## [4.0.0] - 2026-03-23
 

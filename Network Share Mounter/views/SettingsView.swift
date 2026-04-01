@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 /// The main settings view that provides a sidebar navigation for different setting categories
 struct SettingsView: View {
@@ -18,6 +19,13 @@ struct SettingsView: View {
 
     /// MDM-configured realm for pre-filling profile creation
     let mdmRealm: String?
+
+    private var helpURL: URL {
+        let lang = Locale.current.language.languageCode?.identifier ?? "en"
+        let supported = ["de", "fr", "es", "it", "nl"]
+        let path = supported.contains(lang) ? "/\(lang)/docs/" : "/docs/"
+        return URL(string: "https://www.nsm.faumac.rrze.de\(path)")!
+    }
 
     /// Initializer with optional auto-open parameters
     init(autoOpenProfileCreation: Bool = false, mdmRealm: String? = nil) {
@@ -102,6 +110,33 @@ struct SettingsView: View {
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200)
             .listStyle(.sidebar)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(spacing: 0) {
+                    Divider()
+                    Button {
+                        NSWorkspace.shared.open(helpURL)
+                    } label: {
+                        Label {
+                            Text("Need Help?")
+                                .padding(.leading, 8)
+                        } icon: {
+                            Image(systemName: "questionmark.circle")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 18, height: 18)
+                                .foregroundColor(.white)
+                                .padding(5)
+                                .background(Color.teal)
+                                .cornerRadius(6)
+                                .frame(width: 28, height: 28)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         } detail: {
             // Wrap the content in a VStack and add a Spacer at the bottom
             VStack(spacing: 0) { 

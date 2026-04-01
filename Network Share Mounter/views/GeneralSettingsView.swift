@@ -249,6 +249,14 @@ struct GeneralSettingsView: View {
                     }
                 }
                 .padding(.vertical, 8)
+
+                HStack {
+                    Spacer()
+                    Text(LocalizedStringResource("Developed with ❤️ by FAUmac @ RRZE/FAU"))
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.top, 4)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
