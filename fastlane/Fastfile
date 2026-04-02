@@ -1,6 +1,7 @@
 # This file contains the fastlane.tools configuration
 # You can find the documentation at https://docs.fastlane.tools
 
+require 'tempfile'
 skip_docs
 
 # Build number offset: CI_PIPELINE_IID started at 214, last manual build was 360.
@@ -250,7 +251,7 @@ lane :sparkle do |options|
 
   UI.message("🚀 Starting sparkle lane for type: #{build_type}")
   desc "Starting sparkle lane..."
-  ENV['SUPrivateEDKey'] = ENV['SPARKLE_PRIVATE_KEY'] if ENV['SPARKLE_PRIVATE_KEY']
+  
   appversion = getappversion
   desc "creating Sparkle workspace"
   workspace = "../build/sparkle_workspace"
@@ -270,16 +271,39 @@ lane :sparkle do |options|
 
   desc "generating Sparkle appcast file"
   generate_appcast = sh("ls -d /opt/homebrew/Caskroom/sparkle/*/bin/generate_appcast | sort -V | tail -n 1").strip
-  appversion = getappversion
   commit_tag = ENV["CI_COMMIT_TAG"] || "release-#{appversion}"
+  
   begin
-    sh("#{generate_appcast}", 
-      "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{commit_tag}/",  
-      "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
-      "#{workspace}")  
-    UI.success("✅ generated appcast file.")
-  rescue
-    UI.error("🔴 Generation of appcast file failed.")
+    if ENV['SPARKLE_PRIVATE_KEY'] && !ENV['SPARKLE_PRIVATE_KEY'].empty?
+      
+      # 100% sichere Methode: Ruby Tempfile nutzen. 
+      # Die Datei wird nach dem "do...end" Block von Ruby automatisch gelöscht.
+      Tempfile.create('sparkle_key') do |temp_key_file|
+        temp_key_file.write(ENV['SPARKLE_PRIVATE_KEY'])
+        temp_key_file.close # Wichtig: Schließen, damit generate_appcast sie fehlerfrei lesen kann
+        
+        # Aufruf als Array-Parameter: Verhindert Shell-Injection und fängt Exit-Codes sauber ab
+        sh(
+          generate_appcast, 
+          "--ed-key-file", temp_key_file.path,
+          "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{commit_tag}/",  
+          "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
+          workspace
+        )  
+      end
+      
+      UI.success("✅ generated appcast file with signatures.")
+    else
+      UI.error("🔴 SPARKLE_PRIVATE_KEY is not set. Generating WITHOUT signatures!")
+      sh(
+        generate_appcast, 
+        "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{commit_tag}/",  
+        "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
+        workspace
+      )  
+    end
+  rescue => ex
+    UI.error("🔴 Generation of appcast file failed: #{ex.message}")
   end
 
   desc "move appcast file to website source"  

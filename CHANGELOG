@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [4.0.1] - 2026-03-23
+## [4.0.2] - 2026-04-02
+
+### Fixed
+- Fixed a bug where, under certain circumstances, the app icon does not appear in the menu bar
+- Revisited the workaround for the macOS 26.4 bug: the defined share names now appear correctly in the menu
+- Fixed a bug that prevented the newly created entry in Sparkle's appcast file from being signed
+- Changed a few minor flaws in the text and documentation
+
+
+## [4.0.1] - 2026-04-01
 
 ### Fixed
 - Fix SwiftUI stack overflow in profile views (#307)
