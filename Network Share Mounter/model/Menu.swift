@@ -9,7 +9,7 @@
 import Foundation
 
 enum MenuImageName: String {
-    case normal = "networkShareMounterMenu"
+    case normal = "networkShareMounter"
     case green = "networkShareMounterMenuGreen"
     case yellow = "networkShareMounterMenuYellow"
     case red = "networkShareMounterMenuRed"

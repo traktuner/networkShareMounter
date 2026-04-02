@@ -186,7 +186,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         
         // Set up the status item in the menu bar
         if let button = statusItem.button {
-            button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
+            let imageName = MenuImageName.normal.imageName
+            if let image = NSImage(named: NSImage.Name(imageName)) {
+                button.image = image
+            } else {
+                Logger.app.error("❌ Status bar icon image not found: \(imageName, privacy: .public) — falling back to system symbol")
+                button.image = NSImage(systemSymbolName: "externaldrive.connected.to.line.below", accessibilityDescription: "Network Share Mounter")
+            }
         }
 
         // Set up signal handlers for the app
@@ -613,7 +619,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
                 Logger.app.debug("🔔 [DEBUG] No mounted shares - proceeding with Kerberos error handling")
                 if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuRed"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.red.imageName))
                     self.mounter?.setErrorStatus(.krbAuthenticationError)
                     await self.constructMenu(withMounter: self.mounter, andStatus: .krbAuthenticationError)
                 }
@@ -628,7 +634,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     return
                 }
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.yellow.imageName))
                     self.mounter?.setErrorStatus(.authenticationError)
                     await self.constructMenu(withMounter: self.mounter, andStatus: .authenticationError)
                 }
@@ -656,7 +662,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             
             Task { @MainActor in
                 if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuGreen"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.green.imageName))
                     self.mounter?.setErrorStatus(.noError)
                     await self.constructMenu(withMounter: self.mounter)
                 }
@@ -665,7 +671,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         else if notification.userInfo?["FailError"] is Error {
             Task { @MainActor in
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuFail"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.yellow.imageName))
                     self.mounter?.setErrorStatus(.otherError)
                     await self.constructMenu(withMounter: self.mounter)
                 }
@@ -676,7 +682,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             Task { @MainActor in
                 // Change the color of the menu symbol to default when off domain
                 if let button = self.statusItem.button, self.enableKerberos {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounter"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
                     self.mounter?.setErrorStatus(.offDomain)
                     await self.constructMenu(withMounter: self.mounter)
                 }
@@ -686,7 +692,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             Logger.app.debug("🔔 [DEBUG] Processing UnassignedProfiles path")
             Task { @MainActor in
                 if let button = self.statusItem.button {
-                    button.image = NSImage(named: NSImage.Name("networkShareMounterMenuYellow"))
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.yellow.imageName))
                     self.mounter?.setErrorStatus(.unassignedProfile)
                     await self.constructMenu(withMounter: self.mounter, andStatus: .unassignedProfile)
                 }
@@ -1015,6 +1021,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         
         statusItem.menu = menu
+
+        // Ensure the status bar icon is always set after menu reconstruction.
+        // macOS 26 Liquid Glass can lose the icon when the status item scene is rebuilt.
+        if let button = statusItem.button, button.image == nil {
+            let imageName = MenuImageName.normal.imageName
+            if let image = NSImage(named: NSImage.Name(imageName)) {
+                button.image = image
+            }
+        }
     }
     
     func createMenuItem(title: String, comment: StaticString, action: Selector, keyEquivalent: String, preferenceKey: PreferenceKeys, prefs: PreferenceManager) -> NSMenuItem? {
