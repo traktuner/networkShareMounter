@@ -4655,46 +4655,6 @@
         }
       }
     },
-    "No prodile defined." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kein Profil definiert"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No prodile defined"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se ha definido ningún perfil"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun profil défini"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun profilo definito"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geen profiel gedefinieerd"
-          }
-        }
-      }
-    },
     "No Profile (System Default)" : {
       "localizations" : {
         "de" : {
@@ -4731,6 +4691,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Geen profiel (systeemstandaard)"
+          }
+        }
+      }
+    },
+    "No profile defined." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Profil definiert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No profile defined"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha definido ningún perfil"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun profil défini"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun profilo definito"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen profiel gedefinieerd"
           }
         }
       }
@@ -5380,48 +5380,6 @@
         }
       }
     },
-    "Refresh authentication in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Refresh authentication",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktualisiere Authentifizierung in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Refresh authentication in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualizar autenticación en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualiser l'authentification dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiorna autenticazione in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualiseer authenticatie in ${applicationName}"
-          }
-        }
-      }
-    },
     "Refresh kerberos ticket" : {
       "localizations" : {
         "de" : {
@@ -5658,48 +5616,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Share verwijderen"
-          }
-        }
-      }
-    },
-    "Renew Kerberos ticket in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Renew Kerberos ticket",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erneuere Kerberos-Ticket in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renew Kerberos ticket in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renovar ticket de Kerberos en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renouveler le ticket Kerberos dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rinnova ticket Kerberos in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vernieuw Kerberos-ticket in ${applicationName}"
           }
         }
       }
@@ -6715,48 +6631,6 @@
         }
       }
     },
-    "Show mount status in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Show mount status",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeige Mount-Status in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show mount status in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar estado de montaje en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher l'état de montage dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra stato di montaggio in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toon koppelstatus in ${applicationName}"
-          }
-        }
-      }
-    },
     "Show mounted shares" : {
       "comment" : "Show mounted shares",
       "localizations" : {
@@ -6794,48 +6668,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gemounte shares tonen"
-          }
-        }
-      }
-    },
-    "Show ticket status in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Show ticket status",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeige Ticket-Status in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show ticket status in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar estado del ticket en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher l'état du ticket dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra stato del ticket in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toon ticketstatus in %@"
           }
         }
       }
@@ -7405,48 +7237,6 @@
         }
       }
     },
-    "Unmount network drives in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Unmount network drives",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trenne Netzwerklaufwerke in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unmount network drives in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desconectar unidades de red en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnecter les lecteurs réseau dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scollega unità di rete in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Koppel netwerkschijven af in ${applicationName}"
-          }
-        }
-      }
-    },
     "Unmount shares" : {
       "comment" : "Unmount shares",
       "localizations" : {
@@ -7484,48 +7274,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shares ontkoppelen"
-          }
-        }
-      }
-    },
-    "Unmount shares in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Unmount shares",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trenne Netzwerkshares in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unmount shares in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desconectar recursos compartidos de red en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnecter les partages réseau dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scollega le condivisioni di rete in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Koppel netwerkshares af in ${applicationName}"
           }
         }
       }
