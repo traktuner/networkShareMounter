@@ -27,7 +27,7 @@ struct ProfileListView: View {
                             .foregroundColor(.secondary.opacity(0.6))
                             .padding(.bottom, 8)
                         
-                        Text("No prodile defined.")
+                        Text("No profile defined.")
                             .font(.headline)
                             .foregroundColor(.secondary)
                             
