@@ -507,7 +507,7 @@ private class TicketRefreshDelegate: dogeADUserSessionDelegate, @unchecked Senda
         self.completion = completion
     }
     
-    func dogeADAuthenticationSucceded() async {
+    func dogeADAuthenticationSucceeded() async {
         logger.info("Authentication succeeded for ticket refresh: \(self.profile.displayName, privacy: .public)")
         
         do {

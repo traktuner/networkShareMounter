@@ -425,7 +425,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     // MARK: - dogeADUserSessionDelegate Methods
 
     /// Called when authentication was successful
-    func dogeADAuthenticationSucceded() async {
+    func dogeADAuthenticationSucceeded() async {
         // Password-change path: update keychain and resume the caller's continuation.
         if let continuation = passwordChangeContinuation {
             passwordChangeContinuation = nil
@@ -474,7 +474,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.error("❌ [Delegate] Error after successful authentication: \(error.localizedDescription, privacy: .public)")
         }
 
-        Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationSucceded completed")
+        Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationSucceeded completed")
     }
     
     /// Called when authentication failed
