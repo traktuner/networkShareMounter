@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.3] - 2026-05-12
+
+### Added
+- Password expiration warnings for Active Directory/Kerberos environments: users are notified when their AD password is about to expire
+- Configurable warning threshold via MDM (`ExpirationCountdownStartDay`, `ExpirationNotificationStartDay`, both default to 14 days)
+- Optional `passwordChangeURL` MDM key: configures a web URL (SSPR portal) opened when the user clicks "Change Password"
+- In-app password change via kpasswd: when no `passwordChangeURL` is configured, a "Change Password" sheet allows changing the AD password directly within the app — the new password is automatically saved to the correct Keychain entry
+- Menu bar countdown item showing days remaining (aligned with Apple Kerberos SSO Extension and Jamf Connect behaviour)
+- Automatic once-per-day dialog within the notification threshold
+- Respects the Active Directory "password never expires" account flag (UAC 0x10000)
+
+### Fixed
+- Setting `ExpirationCountdownStartDay` to `0` now correctly disables the password expiration feature entirely
+
 ## [4.0.2] - 2026-04-02
 
 ### Fixed

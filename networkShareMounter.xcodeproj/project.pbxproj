@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F70457ED2B31A62E00506DF4 /* Errorcodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70457EC2B31A62E00506DF4 /* Errorcodes.swift */; };
+		F72422752FB9E9EC002C6983 /* ChangePasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72422742FB9E9EC002C6983 /* ChangePasswordView.swift */; };
 		F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */; };
 		F72B13EA2B332987001BDEEA /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72B13E92B332987001BDEEA /* Menu.swift */; };
 		F7341C512EAFC540005D3BD3 /* MountAllSharesIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7341C502EAFC540005D3BD3 /* MountAllSharesIntent.swift */; };
@@ -35,6 +36,7 @@
 		F77107BB274EC7D200556B20 /* config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77107BA274EC7D200556B20 /* config.swift */; };
 		F7796E122AFBE5AB008F6A26 /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7796E112AFBE5AB008F6A26 /* ActivityController.swift */; };
 		F77A1E772ED0B08C00D7A218 /* ShareHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77A1E762ED0B08C00D7A218 /* ShareHelpers.swift */; };
+		F7810F992FB36C8B0091CFCF /* PasswordExpirationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7810F982FB36C8B0091CFCF /* PasswordExpirationView.swift */; };
 		F7885F642C623084000B96AC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F7885F632C623084000B96AC /* Sparkle */; };
 		F78AF9D02D035D5500E32EEA /* FinderController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78AF9CF2D035D5500E32EEA /* FinderController.swift */; };
 		F78B9D752B0BA7EF00043327 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78B9D742B0BA7EF00043327 /* KeychainManager.swift */; };
@@ -94,6 +96,7 @@
 /* Begin PBXFileReference section */
 		F70457EC2B31A62E00506DF4 /* Errorcodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errorcodes.swift; sourceTree = "<group>"; };
 		F706FED12D8EABCF001C2785 /* Network Share MounterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Network Share MounterTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F72422742FB9E9EC002C6983 /* ChangePasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangePasswordView.swift; sourceTree = "<group>"; };
 		F727CFE02B35C99E0075351D /* DisplayShareTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayShareTypes.swift; sourceTree = "<group>"; };
 		F72B13E92B332987001BDEEA /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 		F7341C502EAFC540005D3BD3 /* MountAllSharesIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountAllSharesIntent.swift; sourceTree = "<group>"; };
@@ -118,6 +121,7 @@
 		F77107BA274EC7D200556B20 /* config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = config.swift; sourceTree = "<group>"; };
 		F7796E112AFBE5AB008F6A26 /* ActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityController.swift; sourceTree = "<group>"; };
 		F77A1E762ED0B08C00D7A218 /* ShareHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareHelpers.swift; sourceTree = "<group>"; };
+		F7810F982FB36C8B0091CFCF /* PasswordExpirationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordExpirationView.swift; sourceTree = "<group>"; };
 		F78AF9CF2D035D5500E32EEA /* FinderController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderController.swift; sourceTree = "<group>"; };
 		F78B9D742B0BA7EF00043327 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		F791FC8A2DD22E5F00F0445C /* AuthProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProfileManager.swift; sourceTree = "<group>"; };
@@ -255,6 +259,8 @@
 				F73429F52DA5767C0025985F /* SettingsView.swift */,
 				F73429F62DA5767C0025985F /* SettingsWindowManager.swift */,
 				F767A8C72E7962EA0037060A /* Network_Share_MounterApp.swift */,
+				F7810F982FB36C8B0091CFCF /* PasswordExpirationView.swift */,
+				F72422742FB9E9EC002C6983 /* ChangePasswordView.swift */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -476,6 +482,7 @@
 				F73B7D512ED60D22005BECD3 /* ActiveDirectoryProbe.swift in Sources */,
 				F77107B7274EC51600556B20 /* Monitor.swift in Sources */,
 				F794F7922F3350A200CE3981 /* RenewKerberosTicketIntent.swift in Sources */,
+				F7810F992FB36C8B0091CFCF /* PasswordExpirationView.swift in Sources */,
 				F791FC9E2DD23DAE00F0445C /* AddShareView.swift in Sources */,
 				F7EF65F52B3B5DDC00051D44 /* Data.swift in Sources */,
 				F7EF65DC2B3B575C00051D44 /* SRVRecord.swift in Sources */,
@@ -525,6 +532,7 @@
 				F7E801AC2E797BF2009D4D3B /* SentryManager.swift in Sources */,
 				F7341C5C2EB0E0BC005D3BD3 /* Notifications.swift in Sources */,
 				F7EF65F32B3B5DBB00051D44 /* String.swift in Sources */,
+				F72422752FB9E9EC002C6983 /* ChangePasswordView.swift in Sources */,
 				F747F8662B6F81D400AC0772 /* MountStatus.swift in Sources */,
 				F791FCA82DD23DD500F0445C /* ProfileRowView.swift in Sources */,
 				F791FCA92DD23DD500F0445C /* ProfileDetailView.swift in Sources */,
@@ -681,7 +689,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 439;
+				CURRENT_PROJECT_VERSION = 440;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -711,7 +719,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 439;
+				CURRENT_PROJECT_VERSION = 440;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -745,7 +753,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 439;
+				CURRENT_PROJECT_VERSION = 440;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -798,7 +806,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 439;
+				CURRENT_PROJECT_VERSION = 440;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;

@@ -163,6 +163,88 @@
         }
       }
     },
+    "⚠️ Password expires in %d days..." : {
+      "comment" : "Password expiration countdown menu item",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Passwort läuft in %d Tagen ab..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Password expires in %d days..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ La contraseña expira en %d días..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Le mot de passe expire dans %d jours..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ La password scade tra %d giorni..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Wachtwoord verloopt over %d dagen..."
+          }
+        }
+      }
+    },
+    "⚠️ Password expires tomorrow..." : {
+      "comment" : "Password expires tomorrow menu item",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Passwort läuft morgen ab..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Password expires tomorrow..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ La contraseña expira mañana..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Le mot de passe expire demain..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ La password scade domani..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Wachtwoord verloopt morgen..."
+          }
+        }
+      }
+    },
     "⚠️ Profile assignment required..." : {
       "comment" : "Profile assignment required",
       "localizations" : {
@@ -200,6 +282,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "⚠️ Profieltoewijzing vereist..."
+          }
+        }
+      }
+    },
+    "🔴 Password has expired..." : {
+      "comment" : "Password expired menu item",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🔴 Passwort ist abgelaufen..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🔴 Password has expired..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🔴 La contraseña ha expirado..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🔴 Le mot de passe a expiré..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🔴 La password è scaduta..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🔴 Wachtwoord is verlopen..."
           }
         }
       }
@@ -1088,6 +1211,7 @@
       }
     },
     "Cancel" : {
+      "comment" : "Cancel password change",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1205,6 +1329,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kan gedeelde map niet afkoppelen."
+          }
+        }
+      }
+    },
+    "Change Password" : {
+      "comment" : "Change password sheet title\nConfirm in-app password change",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort ändern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar contraseña"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changer le mot de passe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia password"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoord wijzigen"
+          }
+        }
+      }
+    },
+    "Change Password…" : {
+      "comment" : "Open URL to change AD password\nOpen in-app kpasswd sheet",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort ändern..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Password…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar contraseña..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changer le mot de passe..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia password..."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoord wijzigen..."
           }
         }
       }
@@ -1330,90 +1536,6 @@
         }
       }
     },
-    "Check Kerberos status in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Check Kerberos status",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prüfe Kerberos-Status in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check Kerberos status in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprobar estado de Kerberos en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérifier l'état Kerberos dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Controlla stato Kerberos in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Controleer Kerberos-status in ${applicationName}"
-          }
-        }
-      }
-    },
-    "Check share status in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Check share status",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prüfe Laufwerk-Status in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check share status in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprobar estado de las unidades en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérifier l'état des lecteurs dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Controlla stato delle unità in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Controleer schijfstatus in ${applicationName}"
-          }
-        }
-      }
-    },
     "Choose an authentication profile for this share." : {
       "localizations" : {
         "de" : {
@@ -1500,6 +1622,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Klicke auf '+' um ein neues Profil anzulegen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click '+' to create a new profile."
           }
         },
         "es" : {
@@ -1648,6 +1776,47 @@
         }
       }
     },
+    "Confirm New Password" : {
+      "comment" : "Confirm new password field label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neues Passwort bestätigen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm New Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmar nueva contraseña"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmer le nouveau mot de passe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conferma nuova password"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bevestig nieuw wachtwoord"
+          }
+        }
+      }
+    },
     "Connect" : {
       "localizations" : {
         "de" : {
@@ -1684,48 +1853,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verbinden"
-          }
-        }
-      }
-    },
-    "Connect shares in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Connect shares",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbinde Shares in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connect shares in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conectar recursos compartidos en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecter les partages dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collega condivisioni in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbind shares in ${applicationName}"
           }
         }
       }
@@ -1806,6 +1933,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inloggegevens"
+          }
+        }
+      }
+    },
+    "Current Password" : {
+      "comment" : "Old password field label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktuelles Passwort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraseña actual"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot de passe actuel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password attuale"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Huidig wachtwoord"
           }
         }
       }
@@ -2126,48 +2294,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verbreken"
-          }
-        }
-      }
-    },
-    "Disconnect shares in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Disconnect shares",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trenne Shares in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disconnect shares in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desconectar recursos compartidos en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnecter les partages dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scollega condivisioni in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Koppel shares af in ${applicationName}"
           }
         }
       }
@@ -3437,6 +3563,47 @@
         }
       }
     },
+    "in %d days" : {
+      "comment" : "Used in: 'your password expires in N days'",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in %d Tagen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in %d days"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en %d días"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dans %d jours"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tra %d giorni"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "over %d dagen"
+          }
+        }
+      }
+    },
     "Initializing..." : {
       "localizations" : {
         "de" : {
@@ -3841,6 +4008,47 @@
         }
       }
     },
+    "Later" : {
+      "comment" : "Dismiss password expiration warning",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Später"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más tarde"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plus tard"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Più tardi"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        }
+      }
+    },
     "Loading available shares…" : {
       "localizations" : {
         "de" : {
@@ -3961,44 +4169,43 @@
         }
       }
     },
-    "Mount network drives in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Mount network drives",
-      "extractionState" : "stale",
+    "Mount failed — macOS 26.4 bug causes NetAuthSysAgent to crash for paths outside /Volumes" : {
+      "comment" : "macOS 26.4 bug: NetAuthSysAgent crashes (NSInvalidArgumentException) when mounting outside /Volumes (rc=-6600)",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbinde Netzwerklaufwerke in ${applicationName}"
+            "value" : "Mount fehlgeschlagen — ein Bug in macOS 26.5 verursacht, dass NetAuthSysAgent bei Pfaden außerhalb von /Volumes abstürzt"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mount network drives in ${applicationName}"
+            "value" : "Mount failed — macOS 26.5 bug causes NetAuthSysAgent to crash for paths outside /Volumes"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectar unidades de red en ${applicationName}"
+            "value" : "Error de montaje — un error de macOS 26.5 provoca que NetAuthSysAgent se bloquee para rutas fuera de /Volumes"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecter les lecteurs réseau dans ${applicationName}"
+            "value" : "Échec du montage — un bug de macOS 26.5 provoque le plantage de NetAuthSysAgent pour les chemins en dehors de /Volumes"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Collega unità di rete in ${applicationName}"
+            "value" : "Montaggio fallito — un bug di macOS 26.5 causa il crash di NetAuthSysAgent per i percorsi al di fuori di /Volumes"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbind netwerkschijven in ${applicationName}"
+            "value" : "Koppelen mislukt — een bug in macOS 26.5 veroorzaakt dat NetAuthSysAgent crasht voor paden buiten /Volumes"
           }
         }
       }
@@ -4081,48 +4288,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shares koppelen"
-          }
-        }
-      }
-    },
-    "Mount shares in ${applicationName}" : {
-      "comment" : "App Shortcut phrase: Mount shares",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbinde Netzwerkshares in ${applicationName}"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mount shares in ${applicationName}"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conectar recursos compartidos de red en ${applicationName}"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecter les partages réseau dans ${applicationName}"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collegare le condivisioni di rete in ${applicationName}"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verbind netwerkshares in ${applicationName}"
           }
         }
       }
@@ -4534,6 +4699,47 @@
         }
       }
     },
+    "New Password" : {
+      "comment" : "New password field label",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neues Passwort"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Password"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nueva contraseña"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau mot de passe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuova password"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieuw wachtwoord"
+          }
+        }
+      }
+    },
     "no error occured" : {
       "comment" : "no error occured",
       "localizations" : {
@@ -4856,6 +5062,47 @@
         }
       }
     },
+    "OK" : {
+      "comment" : "Dismiss informational password expiration dialog",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
     "Operation not permitted" : {
       "comment" : "Operation not permitted (EPERM) - may indicate a Kerberos ticket or system privilege issue",
       "localizations" : {
@@ -4863,6 +5110,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Operation nicht erlaubt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operation not permitted"
           }
         },
         "es" : {
@@ -5009,6 +5262,211 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wachtwoord"
+          }
+        }
+      }
+    },
+    "Password Expiration Warning" : {
+      "comment" : "Password expiration window title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwortablaufwarnung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Expiration Warning"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advertencia de expiración de contraseña"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avertissement d'expiration du mot de passe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avviso di scadenza della password"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoordvervalwaarschuwing"
+          }
+        }
+      }
+    },
+    "Password Expired" : {
+      "comment" : "Password expiration title - already expired",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort abgelaufen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Expired"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraseña expirada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot de passe expiré"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password scaduta"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoord verlopen"
+          }
+        }
+      }
+    },
+    "Password Expires in %d Days" : {
+      "comment" : "Password expiration title - expires in N days",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort läuft in %d Tagen ab"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Expires in %d Days"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La contraseña expira en %d días"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mot de passe expire dans %d jours"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La password scade tra %d giorni"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoord verloopt over %d dagen"
+          }
+        }
+      }
+    },
+    "Password Expires Tomorrow" : {
+      "comment" : "Password expiration title - expires in one day",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort läuft morgen ab"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password Expires Tomorrow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La contraseña expira mañana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mot de passe expire demain"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La password scade domani"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoord verloopt morgen"
+          }
+        }
+      }
+    },
+    "Passwords do not match." : {
+      "comment" : "Password mismatch validation message",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Passwörter stimmen nicht überein."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwords do not match."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las contraseñas no coinciden."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les mots de passe ne correspondent pas."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le password non corrispondono."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachtwoorden komen niet overeen."
           }
         }
       }
@@ -7155,6 +7613,47 @@
         }
       }
     },
+    "tomorrow" : {
+      "comment" : "Used in: 'your password expires tomorrow'",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morgen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tomorrow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mañana"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demain"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domani"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morgen"
+          }
+        }
+      }
+    },
     "unknown" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7638,6 +8137,170 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zonder een profiel worden systeemstandaarden (bijv. Kerberos) gebruikt."
+          }
+        }
+      }
+    },
+    "Your Active Directory password expires %@. Please change it now to avoid being locked out." : {
+      "comment" : "Body text - password expiring soon, change action available",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihr Active Directory-Passwort läuft %@ ab. Bitte ändern Sie es jetzt, um eine Sperrung zu vermeiden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Active Directory password expires %@. Please change it now to avoid being locked out."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu contraseña de Active Directory expira %@. Por favor, cámbiala ahora para evitar ser bloqueado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre mot de passe Active Directory expire %@. Veuillez le changer maintenant pour éviter d'être verrouillé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua password di Active Directory scade %@. Ti preghiamo di cambiarla ora per evitare di essere bloccato."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je Active Directory-wachtwoord verloopt %@. Verander het nu om te voorkomen dat je wordt vergrendeld."
+          }
+        }
+      }
+    },
+    "Your Active Directory password expires %@. Please contact your IT administrator to change it in time." : {
+      "comment" : "Body text - password expiring soon, no change action",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihr Active Directory-Passwort läuft %@ ab. Bitte kontaktieren Sie Ihren IT-Administrator, um es rechtzeitig zu ändern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Active Directory password expires %@. Please contact your IT administrator to change it in time."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu contraseña de Active Directory expira %@. Por favor, contacta a tu administrador de TI para cambiarla a tiempo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre mot de passe Active Directory expire %@. Veuillez contacter votre administrateur informatique pour le changer à temps."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua password di Active Directory scade %@. Ti preghiamo di contattare il tuo amministratore IT per cambiarla in tempo."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je Active Directory-wachtwoord verloopt %@. Neem contact op met je IT-beheerder om het op tijd te wijzigen."
+          }
+        }
+      }
+    },
+    "Your Active Directory password has expired. Please change it immediately to regain access." : {
+      "comment" : "Body text - password expired, change action available",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihr Active Directory-Passwort ist abgelaufen. Bitte ändern Sie es sofort, um wieder Zugriff zu erhalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Active Directory password has expired. Please change it immediately to regain access."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu contraseña de Active Directory ha expirado. Por favor, cámbiala inmediatamente para recuperar el acceso."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre mot de passe Active Directory a expiré. Veuillez le changer immédiatement pour retrouver l'accès."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua password di Active Directory è scaduta. Ti preghiamo di cambiarla immediatamente per riottenere l'accesso."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je Active Directory-wachtwoord is verlopen. Verander het onmiddellijk om weer toegang te krijgen."
+          }
+        }
+      }
+    },
+    "Your Active Directory password has expired. Please contact your IT administrator to reset it." : {
+      "comment" : "Body text - password expired, no change action",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihr Active Directory-Passwort ist abgelaufen. Bitte kontaktieren Sie Ihren IT-Administrator, um es zurückzusetzen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Active Directory password has expired. Please contact your IT administrator to reset it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu contraseña de Active Directory ha expirado. Por favor, contacta a tu administrador de TI para restablecerla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre mot de passe Active Directory a expiré. Veuillez contacter votre administrateur informatique pour le réinitialiser."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tua password di Active Directory è scaduta. Ti preghiamo di contattare il tuo amministratore IT per reimpostarla."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je Active Directory-wachtwoord is verlopen. Neem contact op met je IT-beheerder om het opnieuw in te stellen."
           }
         }
       }
