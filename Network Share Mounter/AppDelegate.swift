@@ -7,6 +7,7 @@
 //
 
 @preconcurrency import Cocoa
+import SwiftUI
 import Network
 import ServiceManagement
 import OSLog
@@ -116,6 +117,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Timestamp when the app started, used for uptime calculations
     var appStartTime: Date?
+
+    /// Days remaining until the AD password expires; nil when no warning is active.
+    /// Set from the main thread only (inside Task { @MainActor in }).
+    var passwordExpirationDaysRemaining: Int?
+
+    /// The UPN of the user whose password expiration was detected.
+    var passwordExpirationUserPrincipal: String = ""
+
+    /// Retains the password expiration dialog window to prevent early deallocation.
+    var passwordExpirationWindow: NSWindow?
 
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
@@ -698,6 +709,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
             }
         }
+        else if let days = notification.userInfo?["passwordExpirationWarning"] as? Int {
+            let userPrincipal = notification.userInfo?["passwordExpirationUser"] as? String ?? ""
+            Logger.app.debug("🔔 Processing passwordExpirationWarning: \(days) days for \(userPrincipal, privacy: .public)")
+            Task { @MainActor in
+                self.passwordExpirationDaysRemaining = days
+                self.passwordExpirationUserPrincipal = userPrincipal
+                if days <= 0, let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.yellow.imageName))
+                }
+                await self.constructMenu(withMounter: self.mounter)
+            }
+        }
+        else if notification.userInfo?["showPasswordExpirationDialog"] != nil {
+            Task { @MainActor in
+                self.showPasswordExpirationWindow()
+            }
+        }
+        else if notification.userInfo?["clearPasswordExpiration"] != nil {
+            Task { @MainActor in
+                guard self.passwordExpirationDaysRemaining != nil else { return }
+                self.passwordExpirationDaysRemaining = nil
+                self.passwordExpirationUserPrincipal = ""
+                await self.constructMenu(withMounter: self.mounter)
+            }
+        }
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -718,6 +754,61 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
     
+    /// Shows the password expiration warning dialog.
+    ///
+    /// Presents a non-modal SwiftUI panel with expiration details.
+    /// - If `passwordChangeURL` is set via MDM → "Change Password" opens that URL.
+    /// - Otherwise → "Change Password" opens an in-app kpasswd sheet.
+    @objc func showPasswordExpirationWindow(_ sender: Any? = nil) {
+        guard let days = passwordExpirationDaysRemaining else { return }
+
+        let changeURL: URL?
+        if let urlString = prefs.string(for: .passwordChangeURL),
+           !urlString.isEmpty,
+           let url = URL(string: urlString) {
+            changeURL = url
+        } else {
+            changeURL = nil
+        }
+
+        let userPrincipal = passwordExpirationUserPrincipal
+
+        let onChangePassword: ((String, String) async throws -> Void)? = changeURL == nil ? { [weak self] old, new in
+            try await AutomaticSignIn.shared.changePassword(for: userPrincipal, oldPass: old, newPass: new)
+            await MainActor.run { [weak self] in
+                self?.passwordExpirationDaysRemaining = nil
+                self?.passwordExpirationUserPrincipal = ""
+                self?.passwordExpirationWindow?.close()
+            }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await constructMenu(withMounter: mounter)
+            }
+        } : nil
+
+        let view = PasswordExpirationView(
+            daysRemaining: days,
+            userPrincipal: userPrincipal,
+            passwordChangeURL: changeURL,
+            onChangePassword: onChangePassword,
+            onDismiss: { [weak self] in
+                self?.passwordExpirationWindow?.close()
+            }
+        )
+
+        let controller = NSHostingController(rootView: view)
+        let window = NSWindow(contentViewController: controller)
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.isMovableByWindowBackground = true
+        window.title = NSLocalizedString("Password Expiration Warning", comment: "Password expiration window title")
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        passwordExpirationWindow = window
+    }
+
     @objc func mountManually(_ sender: Any?) {
         Logger.app.debug("User triggered mount all shares")
         NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
@@ -867,6 +958,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Check MDM policy for settings menu access
         let menuSettingsValue = prefs.string(for: .menuSettings) ?? ""
         let canShowSettings = menuSettingsValue != "hidden"
+
+        // Password expiration countdown – shown independently of all other states
+        if let days = passwordExpirationDaysRemaining {
+            let expirationTitle: String
+            if days <= 0 {
+                expirationTitle = String(localized: String.LocalizationValue("🔴 Password has expired..."), comment: "Password expired menu item")
+            } else if days == 1 {
+                expirationTitle = String(localized: String.LocalizationValue("⚠️ Password expires tomorrow..."), comment: "Password expires tomorrow menu item")
+            } else {
+                expirationTitle = String(format: NSLocalizedString("⚠️ Password expires in %d days...", comment: "Password expiration countdown menu item"), days)
+            }
+            let expirationItem = NSMenuItem(
+                title: expirationTitle,
+                action: #selector(AppDelegate.showPasswordExpirationWindow(_:)),
+                keyEquivalent: ""
+            )
+            expirationItem.isEnabled = true
+            menu.addItem(expirationItem)
+            menu.addItem(NSMenuItem.separator())
+        }
 
         if let mounter = mounter {
             switch statusToUse {

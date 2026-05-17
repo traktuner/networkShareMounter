@@ -37,4 +37,5 @@ extension Logger {
     static let networkSharesView = Logger(subsystem: subsystem, category: "networkSharesView")
     static let authProfile = Logger(subsystem: subsystem, category: "authProfile")
     static let keychain = Logger(subsystem: subsystem, category: "keychain")
+    static let passwordExpiration = Logger(subsystem: subsystem, category: "passwordExpiration")
 }

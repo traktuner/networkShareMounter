@@ -1285,7 +1285,16 @@ class Mounter: ObservableObject {
             Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc == -1073741275 ? "(" + rc.description + ")" : "", privacy: .public) (rc=\(rc))")
             removeDirectory(atPath: mountDirectory)
             throw MounterError.shareDoesNotExist
-            
+
+        case -6600:
+            // NetAuthSysAgent crashes with NSInvalidArgumentException (-[__NSArrayM objectForKey:]) when
+            // mounting outside /Volumes on macOS 26.4+. TCC grants Full Disk Access correctly, but the
+            // new approval code path in NetAuthSysAgent has a bug. The workaround (mount to /Volumes +
+            // symlink) avoids this code path entirely. FB: rdar://NetAuthSysAgent-26.4-crash
+            Logger.mounter.error("🚫 \(url, privacy: .public): mount failed (rc=\(rc)) — macOS 26.4 bug: NetAuthSysAgent crashes when mounting outside /Volumes. The /Volumes workaround avoids this.")
+            removeDirectory(atPath: mountDirectory)
+            throw MounterError.osMountRestriction
+
         default:
             Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public) (rc=\(rc))")
             removeDirectory(atPath: mountDirectory)
@@ -1518,18 +1527,20 @@ class Mounter: ObservableObject {
     }
 
     // MARK: - macOS 26.4 /Volumes-only Mount Workaround
-    // Apple confirmed that macOS 26.4 introduced a regression where NetFSMountURLSync fails with
-    // EPERM (rc=1) for any mount path outside /Volumes. This section provides a temporary workaround:
-    // shares are mounted under /Volumes and a symlink is created at the configured mount path so
-    // that user scripts and workflows continue to work. Remove this entire MARK section once Apple
+    // Root cause (confirmed via syslog): NetAuthSysAgent crashes with NSInvalidArgumentException
+    // (-[__NSArrayM objectForKey:]) in the new Beta 3 code path that handles TCC approval for mounts
+    // outside /Volumes. TCC correctly grants Full Disk Access, but the system daemon then crashes,
+    // returning rc=-6600 to NetFSMountURLSync. Workaround: mount directly under /Volumes (bypasses
+    // the broken NetAuthSysAgent code path) and create a symlink at the configured mount path so
+    // existing scripts and workflows continue to work. Remove this entire MARK section once Apple
     // ships the fix.
 
     /// Returns true when the macOS 26.4 /Volumes-only mount restriction applies.
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
-        return v.majorVersion == 26 && ( v.minorVersion == 4 || v.minorVersion == 5 )
-        // return v.majorVersion == 26 && [4, 5].contains(v.minorVersion)
+//        return v.majorVersion == 26 && v.minorVersion >= 4
+        return v.majorVersion == 26 && v.minorVersion >= 99
     }
 
     /// Returns the symlink path for the workaround, derived from the OS-assigned mount name (e.g. "myshare-1")
