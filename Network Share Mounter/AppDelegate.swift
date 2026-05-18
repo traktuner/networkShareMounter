@@ -561,21 +561,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @MainActor
     private func performInitialMountWithKerberosAuth() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            var authObserver: NSObjectProtocol?
+            let observerBox = ObserverBox()
             var hasResumed = false
 
-            authObserver = NotificationCenter.default.addObserver(
+            observerBox.value = NotificationCenter.default.addObserver(
                 forName: .nsmNotification,
                 object: nil,
                 queue: .main
-            ) { [weak self] notification in
-                guard let self = self, !hasResumed else { return }
+            ) { notification in
+                guard !hasResumed else { return }
 
                 if notification.userInfo?["krbAuthenticated"] is Error {
                     Logger.app.debug("✅ Kerberos authentication successful - triggering initial mount")
                     hasResumed = true
 
-                    if let observer = authObserver {
+                    if let observer = observerBox.value {
                         NotificationCenter.default.removeObserver(observer)
                     }
 
@@ -593,7 +593,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 guard !hasResumed else { return }
                 hasResumed = true
 
-                if let observer = authObserver {
+                if let observer = observerBox.value {
                     NotificationCenter.default.removeObserver(observer)
                 }
 
@@ -1282,5 +1282,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         sender.orderOut(nil)
         return false
     }
+}
+
+/// Reference-type box used to safely share an `NSObjectProtocol` observer token across
+/// `@Sendable` closures without triggering "variable mutated after capture" warnings.
+private final class ObserverBox: @unchecked Sendable {
+    var value: (any NSObjectProtocol)?
 }
 
