@@ -125,8 +125,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// The UPN of the user whose password expiration was detected.
     var passwordExpirationUserPrincipal: String = ""
 
-    /// Retains the password expiration dialog window to prevent early deallocation.
+    /// Retains the password expiration / change password dialog window to prevent early deallocation.
     var passwordExpirationWindow: NSWindow?
+
+    /// The UPN of the currently authenticated Kerberos user; set on every successful auth regardless of expiry state.
+    var kerberosUserPrincipal: String = ""
 
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
@@ -734,6 +737,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 await self.constructMenu(withMounter: self.mounter)
             }
         }
+        else if let upn = notification.userInfo?["kerberosUserAuthenticated"] as? String {
+            Task { @MainActor in
+                let wasEmpty = self.kerberosUserPrincipal.isEmpty
+                self.kerberosUserPrincipal = upn
+                if wasEmpty, self.prefs.bool(for: .allowPasswordChange) {
+                    await self.constructMenu(withMounter: self.mounter)
+                }
+            }
+        }
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -802,6 +814,45 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
         window.title = NSLocalizedString("Password Expiration Warning", comment: "Password expiration window title")
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        passwordExpirationWindow = window
+    }
+
+    /// Shows the proactive change-password dialog (no expiry context).
+    ///
+    /// Called when the user clicks "Change Password…" from the menu while the password is not yet
+    /// close to expiry. If `passwordChangeURL` is configured, opens that URL in the default browser.
+    /// Otherwise presents the in-app kpasswd sheet directly.
+    @objc func showChangePasswordWindow(_ sender: Any? = nil) {
+        if let urlString = prefs.string(for: .passwordChangeURL),
+           !urlString.isEmpty,
+           let url = URL(string: urlString) {
+            NSWorkspace.shared.open(url)
+            return
+        }
+
+        let userPrincipal = kerberosUserPrincipal
+        guard !userPrincipal.isEmpty else { return }
+
+        let view = ChangePasswordView(
+            userPrincipal: userPrincipal,
+            onChangePassword: { old, new in
+                try await AutomaticSignIn.shared.changePassword(for: userPrincipal, oldPass: old, newPass: new)
+            },
+            onDismiss: { [weak self] in
+                self?.passwordExpirationWindow?.close()
+            }
+        )
+
+        let controller = NSHostingController(rootView: view)
+        let window = NSWindow(contentViewController: controller)
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.isMovableByWindowBackground = true
+        window.title = NSLocalizedString("Change Password", comment: "Change password window title")
         window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -959,7 +1010,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let menuSettingsValue = prefs.string(for: .menuSettings) ?? ""
         let canShowSettings = menuSettingsValue != "hidden"
 
-        // Password expiration countdown – shown independently of all other states
+        // Password change / expiration slot – one slot, two states
         if let days = passwordExpirationDaysRemaining {
             let expirationTitle: String
             if days <= 0 {
@@ -976,6 +1027,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             )
             expirationItem.isEnabled = true
             menu.addItem(expirationItem)
+            menu.addItem(NSMenuItem.separator())
+        } else if prefs.bool(for: .allowPasswordChange), !kerberosUserPrincipal.isEmpty {
+            let changeItem = NSMenuItem(
+                title: NSLocalizedString("Change Password\u{2026}", comment: "Proactive change password menu item"),
+                action: #selector(AppDelegate.showChangePasswordWindow(_:)),
+                keyEquivalent: ""
+            )
+            changeItem.isEnabled = true
+            menu.addItem(changeItem)
             menu.addItem(NSMenuItem.separator())
         }
 

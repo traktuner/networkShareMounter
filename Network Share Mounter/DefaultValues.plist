@@ -48,5 +48,7 @@
 	<integer>14</integer>
 	<key>ExpirationNotificationStartDay</key>
 	<integer>14</integer>
+	<key>allowPasswordChange</key>
+	<false/>
 </dict>
 </plist>

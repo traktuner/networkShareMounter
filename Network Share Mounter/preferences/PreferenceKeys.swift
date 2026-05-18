@@ -89,6 +89,9 @@ enum PreferenceKeys: String, CaseIterable {
     /// Optional URL opened when the user clicks "Change Password" in the expiration dialog (MDM-configurable)
     case passwordChangeURL = "passwordChangeURL"
 
+    /// Whether to show a permanent "Change Password…" menu item (default: false, MDM-configurable)
+    case allowPasswordChange = "allowPasswordChange"
+
     /// Last date the password expiration warning dialog was shown (once-per-day throttle)
     case lastPasswordExpirationWarningDate = "LastPasswordExpirationWarningDate"
 

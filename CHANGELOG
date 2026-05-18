@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Menu bar countdown item showing days remaining (aligned with Apple Kerberos SSO Extension and Jamf Connect behaviour)
 - Automatic once-per-day dialog within the notification threshold
 - Respects the Active Directory "password never expires" account flag (UAC 0x10000)
+- Optional `allowPasswordChange` MDM key (default: `false`): when enabled, a permanent "Change Password…" item is shown in the menu bar at all times — transforms into the standard expiry countdown when the threshold is reached
 
 ### Fixed
 - Setting `ExpirationCountdownStartDay` to `0` now correctly disables the password expiration feature entirely

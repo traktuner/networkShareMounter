@@ -543,6 +543,11 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         Logger.automaticSignIn.debug("🔍 [Delegate] User information received for: \(user.userPrincipal, privacy: .public)")
 
         prefs.setADUserInfo(user: user)
+        NotificationCenter.default.post(
+            name: .nsmNotification,
+            object: nil,
+            userInfo: ["kerberosUserAuthenticated": user.userPrincipal]
+        )
         checkPasswordExpiration(for: user)
 
         Logger.automaticSignIn.debug("🔍 [Delegate] User information saved to preferences")
