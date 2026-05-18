@@ -4700,43 +4700,43 @@
         }
       }
     },
-    "Network Share Mounter needs Full Disk Access to mount network shares to \"%@\". Without this permission, shares can only be mounted under /Volumes.\n\nGrant Full Disk Access in System Settings → Privacy & Security → Full Disk Access." : {
-      "comment" : "FDA alert message; %@ is the configured mount path",
+    "Network Share Mounter needs Full Disk Access to mount network shares.\n\nEnable the toggle next to “Network Share Mounter” in the settings panel that opens. You may be asked for your password or Touch ID." : {
+      "comment" : "FDA alert body",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Network Share Mounter benötigt vollständigen Festplattenzugriff (Full Disk Access), um Netzwerkfreigaben unter \"%@\" einzubinden. Ohne diese Berechtigung können Freigaben nur unter /Volumes eingebunden werden.\n\nFull Disk Access erteilen: Systemeinstellungen → Datenschutz & Sicherheit → Vollständiger Festplattenzugriff."
+            "value" : "Network Share Mounter benötigt Vollzugriff auf die Festplatte, um Netzwerklaufwerke einzubinden.\n\nAktiviere den Schalter neben „Network Share Mounter“ im sich öffnenden Einstellungsfenster. Möglicherweise wirst du nach deinem Passwort oder Touch ID gefragt"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Network Share Mounter needs Full Disk Access to mount network shares to \"%@\". Without this permission, shares can only be mounted under /Volumes.\n\nGrant Full Disk Access in System Settings → Privacy & Security → Full Disk Access."
+            "value" : "Network Share Mounter needs Full Disk Access to mount network shares.\n\nEnable the toggle next to “Network Share Mounter” in the settings panel that opens. You may be asked for your password or Touch ID."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Network Share Mounter necesita acceso completo al disco para montar recursos compartidos de red en \"%@\". Sin este permiso, los recursos solo se pueden montar en /Volumes.\n\nOtorga el acceso completo al disco en Configuración del Sistema → Privacidad y seguridad → Acceso completo al disco."
+            "value" : "Network Share Mounter necesita acceso completo al disco para montar recursos compartidos de red.\n\nActiva el interruptor junto a “Network Share Mounter” en el panel de configuración que se abre. Puede que se te pida tu contraseña o Touch ID"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Network Share Mounter nécessite un accès complet au disque pour monter des partages réseau dans \"%@\". Sans cette autorisation, les partages ne peuvent être montés que sous /Volumes.\n\nAccordez l'accès complet au disque dans Réglages Système → Confidentialité et sécurité → Accès complet au disque."
+            "value" : "Network Share Mounter nécessite un accès complet au disque pour monter les partages réseau.\n\nActivez le commutateur à côté de « Network Share Mounter » dans le panneau des paramètres qui s'ouvre. Il se peut que l'on vous demande votre mot de passe ou Touch ID"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Network Share Mounter ha bisogno dell'accesso completo al disco per montare condivisioni di rete in \"%@\". Senza questa autorizzazione, le condivisioni possono essere montate solo sotto /Volumes.\n\nConcedi l'accesso completo al disco in Impostazioni di Sistema → Privacy e sicurezza → Accesso completo al disco."
+            "value" : "Network Share Mounter ha bisogno di accesso completo al disco per montare le condivisioni di rete.\n\nAbilita l'interruttore accanto a “Network Share Mounter” nel pannello delle impostazioni che si apre. Potrebbe esserti chiesto di inserire la tua password o di utilizzare Touch ID"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Network Share Mounter heeft volledige schijftoegang nodig om netwerkshares te koppelen in \"%@\". Zonder deze toestemming kunnen shares alleen worden gekoppeld onder /Volumes.\n\nVerleen volledige schijftoegang via Systeeminstellingen → Privacy en beveiliging → Volledige schijftoegang."
+            "value" : "Network Share Mounter heeft volledige schijftoegang nodig om netwerkschijven te koppelen.\n\nSchakel de schakelaar naast “Network Share Mounter” in het instellingenpaneel dat opent in. Mogelijk wordt je om je wachtwoord of Touch ID gevraagd"
           }
         }
       }
@@ -5186,7 +5186,7 @@
       }
     },
     "Open System Settings…" : {
-      "comment" : "FDA open settings button",
+      "comment" : "FDA: open settings button",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8059,47 +8059,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kerberos-ticket bijwerken"
-          }
-        }
-      }
-    },
-    "Use /Volumes Instead" : {
-      "comment" : "FDA fallback to /Volumes button",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stattdessen /Volumes verwenden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use /Volumes Instead"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar /Volumes en su lugar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser /Volumes à la place"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usa /Volumes invece"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gebruik /Volumes in plaats hiervan"
           }
         }
       }

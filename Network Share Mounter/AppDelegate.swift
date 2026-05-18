@@ -134,12 +134,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Set to true after the user chose "Open System Settings" in the Full Disk Access prompt.
     /// Cleared when `applicationDidBecomeActive` fires so the app can retry mounts after FDA is granted.
     var waitingForFullDiskAccess: Bool = false
-
-=======
-    /// The UPN of the currently authenticated Kerberos user; set on every successful auth regardless of expiry state.
-    var kerberosUserPrincipal: String = ""
-
->>>>>>> file.txt
+    
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
     /// This method:
@@ -439,10 +434,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
                             NSWorkspace.shared.open(url)
                         }
-                    },
-                    onSwitchToVolumes: {
-                        mounter.defaultMountPath = "/Volumes"
-                        Logger.app.info("ℹ️ User chose /Volumes fallback — defaultMountPath updated")
                     }
                 )
             }

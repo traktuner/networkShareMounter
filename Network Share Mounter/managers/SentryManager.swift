@@ -2,7 +2,7 @@
 //  SentryManager.swift
 //  Network Share Mounter
 //
-//  Created by AI Assistant on 16.09.25.
+//  Created by Gregor Longariva on 16.09.25.
 //  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 

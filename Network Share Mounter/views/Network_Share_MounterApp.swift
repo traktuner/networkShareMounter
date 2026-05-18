@@ -2,7 +2,8 @@
 //  Network_Share_MounterApp.swift
 //  Network Share Mounter
 //
-//  Created by AI Assistant on 16.09.25.
+//  Created by Longariva, Gregor (RRZE) on 17.05.26.
+//  Copyright © 2026 RRZE. All rights reserved.
 //
 
 import SwiftUI
@@ -85,8 +86,6 @@ struct Network_Share_MounterApp: App {
     }
 
     var body: some Scene {
-        // Hauptszene: Deine App ist menüleistenbasiert, daher ggf. keine Hauptfenster-UI nötig.
-        // Wir lassen die Default-WindowGroup leer, damit der AppDelegate weiterhin die Menülogik steuert.
         WindowGroup(id: "main-hidden") {
             // Invisible host view — needed only to obtain the openWindow environment value.
             // WindowAccessor immediately hides the window that SwiftUI creates automatically.
@@ -104,7 +103,7 @@ struct Network_Share_MounterApp: App {
         .defaultSize(width: 1, height: 1)
         .commandsRemoved()
 
-        // Einstellungen als eigenes Fenster (Scene)
+        // Settings as window (scene)
         Window("Settings", id: "settings") {
             // SettingsView mit den (ggf. aus Notification) übernommenen Parametern
             if let mounter = appDelegate.mounter {
