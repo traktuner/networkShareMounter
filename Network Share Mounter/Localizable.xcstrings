@@ -1334,7 +1334,7 @@
       }
     },
     "Change Password" : {
-      "comment" : "Change password sheet title\nConfirm in-app password change",
+      "comment" : "Change password sheet title\nChange password window title\nConfirm in-app password change",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1375,7 +1375,7 @@
       }
     },
     "Change Password…" : {
-      "comment" : "Open URL to change AD password\nOpen in-app kpasswd sheet",
+      "comment" : "Open URL to change AD password\nOpen in-app kpasswd sheet\nProactive change password menu item",
       "localizations" : {
         "de" : {
           "stringUnit" : {

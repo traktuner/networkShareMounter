@@ -15,6 +15,20 @@ extension Notification.Name {
     static let showSettingsScene = Notification.Name("showSettingsScene")
 }
 
+// MARK: - Window Hider
+/// Hides the host NSWindow that SwiftUI's WindowGroup creates automatically on launch.
+/// Menu-bar apps have no main window; this prevents the blank white window from appearing.
+private struct WindowAccessor: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            view.window?.orderOut(nil)
+        }
+        return view
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
 // MARK: - Settings Manager
 @MainActor
 class SettingsManager: ObservableObject {
@@ -74,22 +88,21 @@ struct Network_Share_MounterApp: App {
         // Hauptszene: Deine App ist menüleistenbasiert, daher ggf. keine Hauptfenster-UI nötig.
         // Wir lassen die Default-WindowGroup leer, damit der AppDelegate weiterhin die Menülogik steuert.
         WindowGroup(id: "main-hidden") {
-            // Eine leere, unsichtbare Root-View – AppDelegate steuert das UI über Statusbar.
-            EmptyView()
+            // Invisible host view — needed only to obtain the openWindow environment value.
+            // WindowAccessor immediately hides the window that SwiftUI creates automatically.
+            Color.clear
                 .frame(width: 0, height: 0)
+                .background(WindowAccessor())
                 .environmentObject(settingsManager)
                 .onAppear {
-                    // Set the callback when the app starts
-                    Logger.app.debug("🔧 [DEBUG] Setting openWindow callback")
                     settingsManager.openWindowCallback = { windowId in
-                        Logger.app.debug("🔧 [DEBUG] Opening window: \(windowId)")
                         openWindow(id: windowId)
                     }
                 }
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 10, height: 10)
-        .commandsRemoved() // keine Standard-Kommandos für diese versteckte Szene
+        .defaultSize(width: 1, height: 1)
+        .commandsRemoved()
 
         // Einstellungen als eigenes Fenster (Scene)
         Window("Settings", id: "settings") {

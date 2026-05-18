@@ -1038,24 +1038,14 @@ class Mounter: ObservableObject {
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
         Logger.mounter.debug("🤔 Determining mount directory: URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
 
-        if basePath == "/Volumes" {
-            // Special case: /Volumes is controlled by Finder/OS
-            // Cannot specify custom mount point, must use share export name from URL
-            var mountDirectory = basePath
-            if !url.lastPathComponent.isEmpty {
-                mountDirectory += "/" + url.lastPathComponent
-            } else if let host = url.host {
-                mountDirectory += "/" + host
-            }
-            Logger.mounter.debug("🗺️ Determined mount directory (Volumes): '\(mountDirectory, privacy: .public)'")
-            return mountDirectory
-        } else {
-            // Normal case: use effectiveMountPoint (respects mountPoint or auto-generates)
-            let effectiveMountPoint = share.effectiveMountPoint
-            let mountDirectory = basePath + "/" + effectiveMountPoint
-            Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
-            return mountDirectory
-        }
+        // Use effectiveMountPoint in all cases: honours the user-assigned custom name if set,
+        // otherwise falls back to the share name extracted from the URL.
+        // Note: under /Volumes, Finder still displays the server's share name, but all
+        // file-system paths (scripts, apps) use the custom name correctly.
+        let effectiveMountPoint = share.effectiveMountPoint
+        let mountDirectory = basePath + "/" + effectiveMountPoint
+        Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
+        return mountDirectory
     }
     
     /// Returns the remote URL of the volume mounted at the given path, used to verify mount identity.
