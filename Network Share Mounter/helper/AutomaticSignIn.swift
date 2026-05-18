@@ -526,11 +526,6 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.debug("🔍 [Delegate] Handling network/reachability error")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbUnreachable notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbUnreachable": MounterError.offDomain])
-
-        default:
-            Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error in auth mode: \(error, privacy: .public)")
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification for unhandled error")
-            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
         }
         
         Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationFailed completed")
@@ -543,6 +538,11 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         Logger.automaticSignIn.debug("🔍 [Delegate] User information received for: \(user.userPrincipal, privacy: .public)")
 
         prefs.setADUserInfo(user: user)
+        NotificationCenter.default.post(
+            name: .nsmNotification,
+            object: nil,
+            userInfo: ["kerberosUserAuthenticated": user.userPrincipal]
+        )
         checkPasswordExpiration(for: user)
 
         Logger.automaticSignIn.debug("🔍 [Delegate] User information saved to preferences")
