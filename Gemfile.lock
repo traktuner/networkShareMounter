@@ -126,7 +126,7 @@ GEM
     fastlane-plugin-get_product_bundle_id (0.1.4)
       xcodeproj
     fastlane-plugin-git_tags (0.1.1)
-    fastlane-plugin-sentry (2.5.0)
+    fastlane-plugin-sentry (2.5.4)
       os (~> 1.1, >= 1.1.4)
     fastlane-sirp (1.1.0)
     gh_inspector (1.1.3)

@@ -2621,6 +2621,47 @@
         }
       }
     },
+    "Full Disk Access Required" : {
+      "comment" : "FDA alert title",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vollständiger Festplattenzugriff erforderlich"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Disk Access Required"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se requiere acceso completo al disco"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès complet au disque requis"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesso completo al disco richiesto"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volledige schijftoegang vereist"
+          }
+        }
+      }
+    },
     "General" : {
       "localizations" : {
         "de" : {
@@ -4659,6 +4700,47 @@
         }
       }
     },
+    "Network Share Mounter needs Full Disk Access to mount network shares to \"%@\". Without this permission, shares can only be mounted under /Volumes.\n\nGrant Full Disk Access in System Settings → Privacy & Security → Full Disk Access." : {
+      "comment" : "FDA alert message; %@ is the configured mount path",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Network Share Mounter benötigt vollständigen Festplattenzugriff (Full Disk Access), um Netzwerkfreigaben unter \"%@\" einzubinden. Ohne diese Berechtigung können Freigaben nur unter /Volumes eingebunden werden.\n\nFull Disk Access erteilen: Systemeinstellungen → Datenschutz & Sicherheit → Vollständiger Festplattenzugriff."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter needs Full Disk Access to mount network shares to \"%@\". Without this permission, shares can only be mounted under /Volumes.\n\nGrant Full Disk Access in System Settings → Privacy & Security → Full Disk Access."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter necesita acceso completo al disco para montar recursos compartidos de red en \"%@\". Sin este permiso, los recursos solo se pueden montar en /Volumes.\n\nOtorga el acceso completo al disco en Configuración del Sistema → Privacidad y seguridad → Acceso completo al disco."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter nécessite un accès complet au disque pour monter des partages réseau dans \"%@\". Sans cette autorisation, les partages ne peuvent être montés que sous /Volumes.\n\nAccordez l'accès complet au disque dans Réglages Système → Confidentialité et sécurité → Accès complet au disque."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter ha bisogno dell'accesso completo al disco per montare condivisioni di rete in \"%@\". Senza questa autorizzazione, le condivisioni possono essere montate solo sotto /Volumes.\n\nConcedi l'accesso completo al disco in Impostazioni di Sistema → Privacy e sicurezza → Accesso completo al disco."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network Share Mounter heeft volledige schijftoegang nodig om netwerkshares te koppelen in \"%@\". Zonder deze toestemming kunnen shares alleen worden gekoppeld onder /Volumes.\n\nVerleen volledige schijftoegang via Systeeminstellingen → Privacy en beveiliging → Volledige schijftoegang."
+          }
+        }
+      }
+    },
     "Network Shares" : {
       "localizations" : {
         "de" : {
@@ -5099,6 +5181,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
+          }
+        }
+      }
+    },
+    "Open System Settings…" : {
+      "comment" : "FDA open settings button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemeinstellungen öffnen…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Configuración del Sistema…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir les Réglages Système…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri Impostazioni di Sistema…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Systeeminstellingen…"
           }
         }
       }
@@ -7936,6 +8059,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kerberos-ticket bijwerken"
+          }
+        }
+      }
+    },
+    "Use /Volumes Instead" : {
+      "comment" : "FDA fallback to /Volumes button",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stattdessen /Volumes verwenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use /Volumes Instead"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar /Volumes en su lugar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser /Volumes à la place"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa /Volumes invece"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruik /Volumes in plaats hiervan"
           }
         }
       }
