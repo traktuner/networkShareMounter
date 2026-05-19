@@ -81,7 +81,7 @@ lane :sync_certificates do
     is_key_content_base64: true
   )
   
-  # Sync certificates for Developer ID
+  # Aufruf 1: developer_id + mac_installer_distribution → funktioniert mit API Key
   match(
     type: "developer_id",
     readonly: is_ci,
@@ -89,7 +89,20 @@ lane :sync_certificates do
     app_identifier: 'de.fau.rrze.NetworkShareMounter',
     additional_cert_types: ["mac_installer_distribution"]
   )
+  
+  # Aufruf 2: developer_id_installer → API Key unterstützt diesen Typ NICHT.
+  # Daher: immer readonly + skip_certificate_matching, nur aus dem Match-Repo installieren.
+  match(
+    type: "developer_id",
+    readonly: true,
+    platform: "macos",
+    app_identifier: 'de.fau.rrze.NetworkShareMounter',
+    additional_cert_types: ["developer_id_installer"],
+    skip_provisioning_profiles: true,   # kein Profil nötig, nur das Zertifikat
+    skip_certificate_matching: true     # NICHT gegen Apple Developer Portal prüfen!
+  )
 end
+
 
 lane :commonTasks do
   desc "perform some common build tasks"
