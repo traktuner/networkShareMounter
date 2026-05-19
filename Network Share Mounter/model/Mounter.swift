@@ -1157,6 +1157,20 @@ class Mounter: ObservableObject {
             realMountPoint = basePath // For /Volumes, NetFS handles the final path component
             Logger.mounter.debug("📂 Using /Volumes base path, realMountPoint set to base: \(realMountPoint, privacy: .public)")
         } else {
+            // Remove stale symlinks left by the macOS 26.4 /Volumes workaround.
+            // destinationOfSymbolicLink(atPath:) returns non-nil for both live and
+            // dangling symlinks, unlike fileExists which can't see dangling ones.
+            // A dangling symlink causes createDirectory to throw EEXIST even though
+            // fileExists returns false — the filesystem entry still occupies the path.
+            if let symlinkDest = try? fm.destinationOfSymbolicLink(atPath: mountDirectory) {
+                if symlinkDest.hasPrefix("/Volumes/") {
+                    Logger.mounter.info("🔗 Removing stale workaround symlink at \(mountDirectory, privacy: .public) → \(symlinkDest, privacy: .public)")
+                    try fm.removeItem(atPath: mountDirectory)
+                } else {
+                    Logger.mounter.warning("⚠️ Unexpected symlink at mount path \(mountDirectory, privacy: .public) → \(symlinkDest, privacy: .public) — not removed; mount will likely fail")
+                }
+            }
+
             // Create the directory as mount point only if it doesn't exist
             if !fm.fileExists(atPath: mountDirectory) {
                 Logger.mounter.debug("📂 Creating mount directory: \(mountDirectory, privacy: .public)")

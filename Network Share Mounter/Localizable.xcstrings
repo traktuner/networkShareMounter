@@ -3646,6 +3646,7 @@
       }
     },
     "Initializing..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3684,6 +3685,9 @@
           }
         }
       }
+    },
+    "Initializing…" : {
+
     },
     "Invalid mount options" : {
       "comment" : "Invalid mount options",
@@ -6766,6 +6770,7 @@
       }
     },
     "Settings …" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6804,6 +6809,9 @@
           }
         }
       }
+    },
+    "Settings…" : {
+
     },
     "Share Details" : {
       "localizations" : {
