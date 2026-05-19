@@ -1,3 +1,11 @@
+//
+//  ProfileEditor.swift
+//  Network Share Mounter
+//
+//  Created by Longariva, Gregor (RRZE) on 10.04.25.
+//  Copyright © 2026 RRZE. All rights reserved.
+//
+
 import SwiftUI
 import OSLog
 
@@ -411,6 +419,7 @@ struct ProfileEditorView: View {
         username = newUsername
     }
     
+    // Detect UPN-like input to split username/realm, but do not auto-enable Kerberos.
     private func detectUPNAndConfigureKerberos(_ usernameInput: String) {
         guard usernameInput.contains("@") else {
             if usernamePart != usernameInput {
@@ -424,15 +433,16 @@ struct ProfileEditorView: View {
         let userPart = String(parts[0])
         let newRealm = String(parts[1]).uppercased()
 
-        guard usernamePart != userPart || kerberosRealm.uppercased() != newRealm else { return }
+        // Update split parts if changed
+        guard usernamePart != userPart || realmPart.uppercased() != newRealm else { return }
 
         usernamePart = userPart
         realmPart = newRealm
-        useKerberos = true
-        kerberosRealm = newRealm
-        if selectedSymbol == "person.circle" {
-            selectedSymbol = "ticket"
-            selectedColor = .orange
+
+        // Do NOT auto-enable Kerberos here.
+        // Only prepare the realm; if Kerberos is already enabled, sync kerberosRealm.
+        if useKerberos {
+            kerberosRealm = newRealm
         }
     }
     
@@ -722,3 +732,4 @@ struct ProfileEditorView_Previews: PreviewProvider {
         .previewDisplayName("Edit Profile")
     }
 }
+

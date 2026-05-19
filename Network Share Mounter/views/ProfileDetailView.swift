@@ -1,3 +1,11 @@
+//
+//  ProfileDetail.swift
+//  Network Share Mounter
+//
+//  Created by Longariva, Gregor (RRZE) on 10.04.25.
+//  Copyright © 2026 RRZE. All rights reserved.
+//
+
 import SwiftUI
 import OSLog
 import dogeADAuth // For KlistUtil - Assuming it's here

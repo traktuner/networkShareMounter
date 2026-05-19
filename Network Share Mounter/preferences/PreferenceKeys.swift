@@ -79,7 +79,22 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Date when user's password was last set
     case userPasswordSetDate = "UserPasswordSetDate"
-    
+
+    /// Days before password expiry when a countdown appears in the menu (default: 14, MDM-overridable)
+    case expirationCountdownStartDay = "ExpirationCountdownStartDay"
+
+    /// Days before password expiry when the warning dialog is shown once per day (default: 14, MDM-overridable)
+    case expirationNotificationStartDay = "ExpirationNotificationStartDay"
+
+    /// Optional URL opened when the user clicks "Change Password" in the expiration dialog (MDM-configurable)
+    case passwordChangeURL = "passwordChangeURL"
+
+    /// Whether to show a permanent "Change Password…" menu item (default: false, MDM-configurable)
+    case allowPasswordChange = "allowPasswordChange"
+
+    /// Last date the password expiration warning dialog was shown (once-per-day throttle)
+    case lastPasswordExpirationWarningDate = "LastPasswordExpirationWarningDate"
+
     /// Whether to use Keychain for password storage
     case useKeychain = "UseKeychain"
     

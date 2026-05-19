@@ -1,3 +1,11 @@
+//
+//  ProfileRowView.swift
+//  Network Share Mounter
+//
+//  Created by Longariva, Gregor (RRZE) on 10.08.25.
+//  Copyright © 2026 RRZE. All rights reserved.
+//
+
 import SwiftUI
 import OSLog
 import dogeADAuth // For KlistUtil - Assuming it's here
@@ -39,7 +47,12 @@ struct ProfileRowView: View {
                     Text(profile.displayName)
                         .font(.headline)
 
-                    if profileManager.isDefaultRealmProfile(profile) {
+                    if profile.isExternallyManaged {
+                        Label("External", systemImage: "externaldrive.badge.checkmark")
+                            .font(.caption2)
+                            .foregroundColor(.teal)
+                            .help("Kerberos is managed externally (AD binding / Jamf Connect / SSO Extension)")
+                    } else if profileManager.isDefaultRealmProfile(profile) {
                         Image(systemName: "lock.fill")
                             .font(.caption2)
                             .foregroundColor(.secondary)

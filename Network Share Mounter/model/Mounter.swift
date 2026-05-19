@@ -1038,24 +1038,14 @@ class Mounter: ObservableObject {
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
         Logger.mounter.debug("🤔 Determining mount directory: URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
 
-        if basePath == "/Volumes" {
-            // Special case: /Volumes is controlled by Finder/OS
-            // Cannot specify custom mount point, must use share export name from URL
-            var mountDirectory = basePath
-            if !url.lastPathComponent.isEmpty {
-                mountDirectory += "/" + url.lastPathComponent
-            } else if let host = url.host {
-                mountDirectory += "/" + host
-            }
-            Logger.mounter.debug("🗺️ Determined mount directory (Volumes): '\(mountDirectory, privacy: .public)'")
-            return mountDirectory
-        } else {
-            // Normal case: use effectiveMountPoint (respects mountPoint or auto-generates)
-            let effectiveMountPoint = share.effectiveMountPoint
-            let mountDirectory = basePath + "/" + effectiveMountPoint
-            Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
-            return mountDirectory
-        }
+        // Use effectiveMountPoint in all cases: honours the user-assigned custom name if set,
+        // otherwise falls back to the share name extracted from the URL.
+        // Note: under /Volumes, Finder still displays the server's share name, but all
+        // file-system paths (scripts, apps) use the custom name correctly.
+        let effectiveMountPoint = share.effectiveMountPoint
+        let mountDirectory = basePath + "/" + effectiveMountPoint
+        Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
+        return mountDirectory
     }
     
     /// Returns the remote URL of the volume mounted at the given path, used to verify mount identity.
@@ -1167,6 +1157,20 @@ class Mounter: ObservableObject {
             realMountPoint = basePath // For /Volumes, NetFS handles the final path component
             Logger.mounter.debug("📂 Using /Volumes base path, realMountPoint set to base: \(realMountPoint, privacy: .public)")
         } else {
+            // Remove stale symlinks left by the macOS 26.4 /Volumes workaround.
+            // destinationOfSymbolicLink(atPath:) returns non-nil for both live and
+            // dangling symlinks, unlike fileExists which can't see dangling ones.
+            // A dangling symlink causes createDirectory to throw EEXIST even though
+            // fileExists returns false — the filesystem entry still occupies the path.
+            if let symlinkDest = try? fm.destinationOfSymbolicLink(atPath: mountDirectory) {
+                if symlinkDest.hasPrefix("/Volumes/") {
+                    Logger.mounter.info("🔗 Removing stale workaround symlink at \(mountDirectory, privacy: .public) → \(symlinkDest, privacy: .public)")
+                    try fm.removeItem(atPath: mountDirectory)
+                } else {
+                    Logger.mounter.warning("⚠️ Unexpected symlink at mount path \(mountDirectory, privacy: .public) → \(symlinkDest, privacy: .public) — not removed; mount will likely fail")
+                }
+            }
+
             // Create the directory as mount point only if it doesn't exist
             if !fm.fileExists(atPath: mountDirectory) {
                 Logger.mounter.debug("📂 Creating mount directory: \(mountDirectory, privacy: .public)")
@@ -1285,7 +1289,16 @@ class Mounter: ObservableObject {
             Logger.mounter.info("❌ \(url, privacy: .public): share does not exist \(rc == -1073741275 ? "(" + rc.description + ")" : "", privacy: .public) (rc=\(rc))")
             removeDirectory(atPath: mountDirectory)
             throw MounterError.shareDoesNotExist
-            
+
+        case -6600:
+            // NetAuthSysAgent crashes with NSInvalidArgumentException (-[__NSArrayM objectForKey:]) when
+            // mounting outside /Volumes on macOS 26.4+. TCC grants Full Disk Access correctly, but the
+            // new approval code path in NetAuthSysAgent has a bug. The workaround (mount to /Volumes +
+            // symlink) avoids this code path entirely. FB: rdar://NetAuthSysAgent-26.4-crash
+            Logger.mounter.error("🚫 \(url, privacy: .public): mount failed (rc=\(rc)) — macOS 26.4 bug: NetAuthSysAgent crashes when mounting outside /Volumes. The /Volumes workaround avoids this.")
+            removeDirectory(atPath: mountDirectory)
+            throw MounterError.osMountRestriction
+
         default:
             Logger.mounter.warning("❌ \(url, privacy: .public) unknown return code: \(rc.description, privacy: .public) (rc=\(rc))")
             removeDirectory(atPath: mountDirectory)
@@ -1518,18 +1531,20 @@ class Mounter: ObservableObject {
     }
 
     // MARK: - macOS 26.4 /Volumes-only Mount Workaround
-    // Apple confirmed that macOS 26.4 introduced a regression where NetFSMountURLSync fails with
-    // EPERM (rc=1) for any mount path outside /Volumes. This section provides a temporary workaround:
-    // shares are mounted under /Volumes and a symlink is created at the configured mount path so
-    // that user scripts and workflows continue to work. Remove this entire MARK section once Apple
+    // Root cause (confirmed via syslog): NetAuthSysAgent crashes with NSInvalidArgumentException
+    // (-[__NSArrayM objectForKey:]) in the new Beta 3 code path that handles TCC approval for mounts
+    // outside /Volumes. TCC correctly grants Full Disk Access, but the system daemon then crashes,
+    // returning rc=-6600 to NetFSMountURLSync. Workaround: mount directly under /Volumes (bypasses
+    // the broken NetAuthSysAgent code path) and create a symlink at the configured mount path so
+    // existing scripts and workflows continue to work. Remove this entire MARK section once Apple
     // ships the fix.
 
     /// Returns true when the macOS 26.4 /Volumes-only mount restriction applies.
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
-        return v.majorVersion == 26 && ( v.minorVersion == 4 || v.minorVersion == 5 )
-        // return v.majorVersion == 26 && [4, 5].contains(v.minorVersion)
+//        return v.majorVersion == 26 && v.minorVersion >= 4
+        return v.majorVersion == 26 && v.minorVersion >= 99
     }
 
     /// Returns the symlink path for the workaround, derived from the OS-assigned mount name (e.g. "myshare-1")

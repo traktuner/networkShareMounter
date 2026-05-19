@@ -151,6 +151,27 @@ actor AutomaticSignIn {
             Logger.automaticSignIn.info("🔍 [END] Automatic sign-in process completed")
         }
     }
+
+    /// Changes the AD password for the given user principal via kpasswd.
+    ///
+    /// Finds the matching account (from AccountsManager or Kerberos AuthProfiles),
+    /// delegates to `AutomaticSignInWorker.changePassword`, and updates the Keychain on success.
+    ///
+    /// - Parameters:
+    ///   - userPrincipal: The UPN whose password is being changed.
+    ///   - oldPass: The current (old) password.
+    ///   - newPass: The desired new password.
+    func changePassword(for userPrincipal: String, oldPass: String, newPass: String) async throws {
+        var accounts = await accountsManager.accounts
+        if accounts.isEmpty {
+            accounts = await buildAccountsFromKerberosProfiles()
+        }
+        guard let account = accounts.first(where: { $0.upn.lowercased() == userPrincipal.lowercased() }) else {
+            throw AutoSignInError.authenticationFailed("No Kerberos account found for \(userPrincipal)")
+        }
+        let worker = AutomaticSignInWorker(account: account)
+        try await worker.changePassword(oldPass: oldPass, newPass: newPass)
+    }
 }
 
 /// Worker-Actor for signing in a single account
@@ -180,6 +201,12 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// Flag to force re-authentication even if valid tickets exist
     /// Used after mount failures to obtain fresh Kerberos tickets
     let forceAuth: Bool
+
+    /// Continuation held during an in-progress in-app password change; nil at all other times.
+    private var passwordChangeContinuation: CheckedContinuation<Void, Error>?
+
+    /// The new password supplied for a pending in-app password change, cleared after keychain update.
+    private var pendingNewPassword = ""
 
     /// Initializes a new worker with a user account
     ///
@@ -381,8 +408,40 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     
     // MARK: - dogeADUserSessionDelegate Methods
     
+    /// Changes the AD password via kpasswd and updates the keychain on success.
+    ///
+    /// Bridges the delegate-based `dogeADSession.changePassword()` into an async/throws call.
+    func changePassword(oldPass: String, newPass: String) async throws {
+        pendingNewPassword = newPass
+        session.delegate = self
+        session.oldPass = oldPass
+        session.newPass = newPass
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            passwordChangeContinuation = continuation
+            Task { await self.session.changePassword() }
+        }
+    }
+
+    // MARK: - dogeADUserSessionDelegate Methods
+
     /// Called when authentication was successful
-    func dogeADAuthenticationSucceded() async {
+    func dogeADAuthenticationSucceeded() async {
+        // Password-change path: update keychain and resume the caller's continuation.
+        if let continuation = passwordChangeContinuation {
+            passwordChangeContinuation = nil
+            let keyUtil = KeychainManager()
+            if let profileID = account.authProfileID {
+                let service = Bundle.main.bundleIdentifier ?? Defaults.defaultsDomain
+                try? keyUtil.saveCredential(forUsername: profileID, andPassword: pendingNewPassword, withService: service)
+            } else {
+                try? keyUtil.saveCredential(forUsername: account.upn, andPassword: pendingNewPassword)
+            }
+            Logger.passwordExpiration.info("✅ Keychain updated after password change for \(self.account.upn, privacy: .public)")
+            pendingNewPassword = ""
+            continuation.resume(returning: ())
+            return
+        }
+
         Logger.automaticSignIn.info("✅ [Delegate] Authentication successful for: \(self.account.upn, privacy: .public)")
 
         do {
@@ -415,7 +474,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.error("❌ [Delegate] Error after successful authentication: \(error.localizedDescription, privacy: .public)")
         }
 
-        Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationSucceded completed")
+        Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationSucceeded completed")
     }
     
     /// Called when authentication failed
@@ -424,8 +483,16 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     ///   - error: Error type
     ///   - description: Error description
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {
+        // Password-change path: surface the error to the caller's continuation.
+        if let continuation = passwordChangeContinuation {
+            passwordChangeContinuation = nil
+            pendingNewPassword = ""
+            continuation.resume(throwing: AutoSignInError.authenticationFailed(description))
+            return
+        }
+
         Logger.automaticSignIn.warning("⚠️ [Delegate] Authentication failed for: \(self.account.upn, privacy: .public), Error: \(description, privacy: .public)")
-        
+
         // If we're in user info mode (we already have a valid ticket), don't treat server unavailability as auth failure
         if isInUserInfoMode {
             Logger.automaticSignIn.info("ℹ️ [Delegate] In user info mode - treating server error as availability issue, not auth failure")
@@ -459,26 +526,97 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             Logger.automaticSignIn.debug("🔍 [Delegate] Handling network/reachability error")
             Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbUnreachable notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbUnreachable": MounterError.offDomain])
-
-        default:
-            Logger.automaticSignIn.warning("⚠️ [Delegate] Unhandled Authentication Error in auth mode: \(error, privacy: .public)")
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification for unhandled error")
-            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
         }
         
         Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationFailed completed")
     }
     
     /// Called when user information was successfully retrieved
-    /// 
+    ///
     /// - Parameter user: Retrieved user information
     func dogeADUserInformation(user: ADUserRecord) async {
         Logger.automaticSignIn.debug("🔍 [Delegate] User information received for: \(user.userPrincipal, privacy: .public)")
-        
-        // Save user information in PreferenceManager
+
         prefs.setADUserInfo(user: user)
-        
+        NotificationCenter.default.post(
+            name: .nsmNotification,
+            object: nil,
+            userInfo: ["kerberosUserAuthenticated": user.userPrincipal]
+        )
+        checkPasswordExpiration(for: user)
+
         Logger.automaticSignIn.debug("🔍 [Delegate] User information saved to preferences")
+    }
+
+    // MARK: - Password Expiration
+
+    /// Checks whether the password is close to expiring and posts the appropriate notifications.
+    ///
+    /// Behaviour mirrors Apple's Kerberos SSO Extension and Jamf Connect:
+    /// - Within `ExpirationCountdownStartDay` days: always posts `passwordExpirationWarning`
+    ///   so the menu shows a countdown item.
+    /// - Within `ExpirationNotificationStartDay` days: additionally posts
+    ///   `showPasswordExpirationDialog` once per calendar day.
+    /// - If password aging is disabled or the "never expires" UAC flag is set: posts
+    ///   `clearPasswordExpiration` so any previous warning is removed from the menu.
+    private func checkPasswordExpiration(for user: ADUserRecord) {
+        guard !user.isPasswordNeverExpires,
+              let aging = user.passwordAging, aging,
+              let expireDate = user.computedExpireDate else {
+            NotificationCenter.default.post(
+                name: .nsmNotification,
+                object: nil,
+                userInfo: ["clearPasswordExpiration": true]
+            )
+            return
+        }
+
+        let daysRemaining = Calendar.current.dateComponents([.day], from: Date(), to: expireDate).day ?? Int.max
+        let countdownThreshold = prefs.int(for: .expirationCountdownStartDay)
+
+        guard countdownThreshold > 0 else {
+            NotificationCenter.default.post(
+                name: .nsmNotification,
+                object: nil,
+                userInfo: ["clearPasswordExpiration": true]
+            )
+            return
+        }
+
+        guard daysRemaining <= countdownThreshold else {
+            NotificationCenter.default.post(
+                name: .nsmNotification,
+                object: nil,
+                userInfo: ["clearPasswordExpiration": true]
+            )
+            return
+        }
+
+        Logger.passwordExpiration.info("⚠️ Password expires in \(daysRemaining) days for \(user.userPrincipal, privacy: .public)")
+
+        NotificationCenter.default.post(
+            name: .nsmNotification,
+            object: nil,
+            userInfo: [
+                "passwordExpirationWarning": daysRemaining,
+                "passwordExpirationUser": user.userPrincipal
+            ]
+        )
+
+        let notificationThreshold = prefs.int(for: .expirationNotificationStartDay)
+        guard daysRemaining <= notificationThreshold else { return }
+
+        let lastWarning = prefs.date(for: .lastPasswordExpirationWarningDate)
+        let alreadyWarnedToday = lastWarning.map { Calendar.current.isDateInToday($0) } ?? false
+        guard !alreadyWarnedToday else { return }
+
+        prefs.set(for: .lastPasswordExpirationWarningDate, value: Date())
+
+        NotificationCenter.default.post(
+            name: .nsmNotification,
+            object: nil,
+            userInfo: ["showPasswordExpirationDialog": true]
+        )
     }
 }
 

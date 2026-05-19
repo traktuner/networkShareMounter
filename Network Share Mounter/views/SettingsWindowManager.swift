@@ -3,7 +3,7 @@
 //  Network Share Mounter
 //
 //  Created by Longariva, Gregor (RRZE) on 10.04.25.
-//  Copyright © 2024 RRZE. All rights reserved.
+//  Copyright © 2025 RRZE. All rights reserved.
 //
 
 import Foundation

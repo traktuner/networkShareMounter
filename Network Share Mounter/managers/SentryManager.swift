@@ -2,7 +2,7 @@
 //  SentryManager.swift
 //  Network Share Mounter
 //
-//  Created by AI Assistant on 16.09.25.
+//  Created by Gregor Longariva on 16.09.25.
 //  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
@@ -73,6 +73,7 @@ class SentryManager {
             options.sessionTrackingIntervalMillis = 30000
             options.attachStacktrace = true
             options.maxBreadcrumbs = 100
+            options.enableAppHangTracking = false
 
             // Privacy: Don't capture personally identifiable information
             options.beforeSend = { event in

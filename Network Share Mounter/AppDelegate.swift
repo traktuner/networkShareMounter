@@ -7,6 +7,7 @@
 //
 
 @preconcurrency import Cocoa
+import SwiftUI
 import Network
 import ServiceManagement
 import OSLog
@@ -117,6 +118,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Timestamp when the app started, used for uptime calculations
     var appStartTime: Date?
 
+    /// Days remaining until the AD password expires; nil when no warning is active.
+    /// Set from the main thread only (inside Task { @MainActor in }).
+    var passwordExpirationDaysRemaining: Int?
+
+    /// The UPN of the user whose password expiration was detected.
+    var passwordExpirationUserPrincipal: String = ""
+
+    /// Retains the password expiration / change password dialog window to prevent early deallocation.
+    var passwordExpirationWindow: NSWindow?
+
+    /// The UPN of the currently authenticated Kerberos user; set on every successful auth regardless of expiry state.
+    var kerberosUserPrincipal: String = ""
+
+    /// Set to true after the user chose "Open System Settings" in the Full Disk Access prompt.
+    /// Cleared when `applicationDidBecomeActive` fires so the app can retry mounts after FDA is granted.
+    var waitingForFullDiskAccess: Bool = false
+    
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
     /// This method:
@@ -215,6 +233,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         Task { @MainActor in
             await initializeApp()
             await performPostInitializationTasks()
+        }
+    }
+
+    /// Re-checks Full Disk Access when the user returns to the app (e.g. from System Settings).
+    /// Triggers a mount retry when FDA was just granted so shares connect without a manual action.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        guard waitingForFullDiskAccess else { return }
+        waitingForFullDiskAccess = false
+        if FullDiskAccessChecker.hasAccess() {
+            Logger.app.info("✅ Full Disk Access granted — triggering mount retry")
+            NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
         }
     }
 
@@ -395,6 +424,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 return
             }
 
+            // Check Full Disk Access on macOS 26+ when mount path is outside /Volumes.
+            // promptIfNeeded is a no-op on macOS < 26 or when path is already under /Volumes.
+            if let mounter = self.mounter {
+                FullDiskAccessChecker.promptIfNeeded(
+                    forMountPath: mounter.defaultMountPath,
+                    onOpenSettings: {
+                        self.waitingForFullDiskAccess = true
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                )
+            }
+
             // NEW: Rescan existing mounts at app start, independent of network state
             if let mounter = self.mounter {
                 Logger.app.debug("🔍 Performing initial rescan of existing mounts")
@@ -547,21 +590,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @MainActor
     private func performInitialMountWithKerberosAuth() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            var authObserver: NSObjectProtocol?
+            let observerBox = ObserverBox()
             var hasResumed = false
 
-            authObserver = NotificationCenter.default.addObserver(
+            observerBox.value = NotificationCenter.default.addObserver(
                 forName: .nsmNotification,
                 object: nil,
                 queue: .main
-            ) { [weak self] notification in
-                guard let self = self, !hasResumed else { return }
+            ) { notification in
+                guard !hasResumed else { return }
 
                 if notification.userInfo?["krbAuthenticated"] is Error {
                     Logger.app.debug("✅ Kerberos authentication successful - triggering initial mount")
                     hasResumed = true
 
-                    if let observer = authObserver {
+                    if let observer = observerBox.value {
                         NotificationCenter.default.removeObserver(observer)
                     }
 
@@ -579,7 +622,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 guard !hasResumed else { return }
                 hasResumed = true
 
-                if let observer = authObserver {
+                if let observer = observerBox.value {
                     NotificationCenter.default.removeObserver(observer)
                 }
 
@@ -698,6 +741,40 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
             }
         }
+        else if let days = notification.userInfo?["passwordExpirationWarning"] as? Int {
+            let userPrincipal = notification.userInfo?["passwordExpirationUser"] as? String ?? ""
+            Logger.app.debug("🔔 Processing passwordExpirationWarning: \(days) days for \(userPrincipal, privacy: .public)")
+            Task { @MainActor in
+                self.passwordExpirationDaysRemaining = days
+                self.passwordExpirationUserPrincipal = userPrincipal
+                if days <= 0, let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.yellow.imageName))
+                }
+                await self.constructMenu(withMounter: self.mounter)
+            }
+        }
+        else if notification.userInfo?["showPasswordExpirationDialog"] != nil {
+            Task { @MainActor in
+                self.showPasswordExpirationWindow()
+            }
+        }
+        else if notification.userInfo?["clearPasswordExpiration"] != nil {
+            Task { @MainActor in
+                guard self.passwordExpirationDaysRemaining != nil else { return }
+                self.passwordExpirationDaysRemaining = nil
+                self.passwordExpirationUserPrincipal = ""
+                await self.constructMenu(withMounter: self.mounter)
+            }
+        }
+        else if let upn = notification.userInfo?["kerberosUserAuthenticated"] as? String {
+            Task { @MainActor in
+                let wasEmpty = self.kerberosUserPrincipal.isEmpty
+                self.kerberosUserPrincipal = upn
+                if wasEmpty, self.prefs.bool(for: .allowPasswordChange) {
+                    await self.constructMenu(withMounter: self.mounter)
+                }
+            }
+        }
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -718,6 +795,100 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
     
+    /// Shows the password expiration warning dialog.
+    ///
+    /// Presents a non-modal SwiftUI panel with expiration details.
+    /// - If `passwordChangeURL` is set via MDM → "Change Password" opens that URL.
+    /// - Otherwise → "Change Password" opens an in-app kpasswd sheet.
+    @objc func showPasswordExpirationWindow(_ sender: Any? = nil) {
+        guard let days = passwordExpirationDaysRemaining else { return }
+
+        let changeURL: URL?
+        if let urlString = prefs.string(for: .passwordChangeURL),
+           !urlString.isEmpty,
+           let url = URL(string: urlString) {
+            changeURL = url
+        } else {
+            changeURL = nil
+        }
+
+        let userPrincipal = passwordExpirationUserPrincipal
+
+        let onChangePassword: ((String, String) async throws -> Void)? = changeURL == nil ? { [weak self] old, new in
+            try await AutomaticSignIn.shared.changePassword(for: userPrincipal, oldPass: old, newPass: new)
+            await MainActor.run { [weak self] in
+                self?.passwordExpirationDaysRemaining = nil
+                self?.passwordExpirationUserPrincipal = ""
+                self?.passwordExpirationWindow?.close()
+            }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await constructMenu(withMounter: mounter)
+            }
+        } : nil
+
+        let view = PasswordExpirationView(
+            daysRemaining: days,
+            userPrincipal: userPrincipal,
+            passwordChangeURL: changeURL,
+            onChangePassword: onChangePassword,
+            onDismiss: { [weak self] in
+                self?.passwordExpirationWindow?.close()
+            }
+        )
+
+        let controller = NSHostingController(rootView: view)
+        let window = NSWindow(contentViewController: controller)
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.isMovableByWindowBackground = true
+        window.title = NSLocalizedString("Password Expiration Warning", comment: "Password expiration window title")
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        passwordExpirationWindow = window
+    }
+
+    /// Shows the proactive change-password dialog (no expiry context).
+    ///
+    /// Called when the user clicks "Change Password…" from the menu while the password is not yet
+    /// close to expiry. If `passwordChangeURL` is configured, opens that URL in the default browser.
+    /// Otherwise presents the in-app kpasswd sheet directly.
+    @objc func showChangePasswordWindow(_ sender: Any? = nil) {
+        if let urlString = prefs.string(for: .passwordChangeURL),
+           !urlString.isEmpty,
+           let url = URL(string: urlString) {
+            NSWorkspace.shared.open(url)
+            return
+        }
+
+        let userPrincipal = kerberosUserPrincipal
+        guard !userPrincipal.isEmpty else { return }
+
+        let view = ChangePasswordView(
+            userPrincipal: userPrincipal,
+            onChangePassword: { old, new in
+                try await AutomaticSignIn.shared.changePassword(for: userPrincipal, oldPass: old, newPass: new)
+            },
+            onDismiss: { [weak self] in
+                self?.passwordExpirationWindow?.close()
+            }
+        )
+
+        let controller = NSHostingController(rootView: view)
+        let window = NSWindow(contentViewController: controller)
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.isMovableByWindowBackground = true
+        window.title = NSLocalizedString("Change Password", comment: "Change password window title")
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        passwordExpirationWindow = window
+    }
+
     @objc func mountManually(_ sender: Any?) {
         Logger.app.debug("User triggered mount all shares")
         NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
@@ -867,6 +1038,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Check MDM policy for settings menu access
         let menuSettingsValue = prefs.string(for: .menuSettings) ?? ""
         let canShowSettings = menuSettingsValue != "hidden"
+
+        // Password change / expiration slot – one slot, two states
+        if let days = passwordExpirationDaysRemaining {
+            let expirationTitle: String
+            if days <= 0 {
+                expirationTitle = String(localized: String.LocalizationValue("🔴 Password has expired..."), comment: "Password expired menu item")
+            } else if days == 1 {
+                expirationTitle = String(localized: String.LocalizationValue("⚠️ Password expires tomorrow..."), comment: "Password expires tomorrow menu item")
+            } else {
+                expirationTitle = String(format: NSLocalizedString("⚠️ Password expires in %d days...", comment: "Password expiration countdown menu item"), days)
+            }
+            let expirationItem = NSMenuItem(
+                title: expirationTitle,
+                action: #selector(AppDelegate.showPasswordExpirationWindow(_:)),
+                keyEquivalent: ""
+            )
+            expirationItem.isEnabled = true
+            menu.addItem(expirationItem)
+            menu.addItem(NSMenuItem.separator())
+        } else if prefs.bool(for: .allowPasswordChange), !kerberosUserPrincipal.isEmpty {
+            let changeItem = NSMenuItem(
+                title: NSLocalizedString("Change Password\u{2026}", comment: "Proactive change password menu item"),
+                action: #selector(AppDelegate.showChangePasswordWindow(_:)),
+                keyEquivalent: ""
+            )
+            changeItem.isEnabled = true
+            menu.addItem(changeItem)
+            menu.addItem(NSMenuItem.separator())
+        }
 
         if let mounter = mounter {
             switch statusToUse {
@@ -1111,5 +1311,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         sender.orderOut(nil)
         return false
     }
+}
+
+/// Reference-type box used to safely share an `NSObjectProtocol` observer token across
+/// `@Sendable` closures without triggering "variable mutated after capture" warnings.
+private final class ObserverBox: @unchecked Sendable {
+    var value: (any NSObjectProtocol)?
 }
 

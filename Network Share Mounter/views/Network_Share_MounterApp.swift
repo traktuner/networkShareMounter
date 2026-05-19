@@ -2,7 +2,8 @@
 //  Network_Share_MounterApp.swift
 //  Network Share Mounter
 //
-//  Created by AI Assistant on 16.09.25.
+//  Created by Longariva, Gregor (RRZE) on 17.05.26.
+//  Copyright © 2026 RRZE. All rights reserved.
 //
 
 import SwiftUI
@@ -13,6 +14,27 @@ import AppIntents
 // MARK: - Notification Extensions
 extension Notification.Name {
     static let showSettingsScene = Notification.Name("showSettingsScene")
+}
+
+// MARK: - Window Hider
+
+/// NSView subclass that hides its host window the instant it joins the window hierarchy.
+///
+/// `viewDidMoveToWindow()` fires synchronously during SwiftUI's view setup — before the
+/// window server has committed a frame — so the window is never visible on screen, not
+/// even for a single frame. Setting `alphaValue = 0` first makes it doubly invisible in
+/// case the window server and SwiftUI race on the very first frame.
+private final class _ImmediatelyHiddenView: NSView {
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.alphaValue = 0
+        window?.orderOut(nil)
+    }
+}
+
+private struct WindowAccessor: NSViewRepresentable {
+    func makeNSView(context: Context) -> _ImmediatelyHiddenView { _ImmediatelyHiddenView() }
+    func updateNSView(_ nsView: _ImmediatelyHiddenView, context: Context) {}
 }
 
 // MARK: - Settings Manager
@@ -56,44 +78,32 @@ class SettingsManager: ObservableObject {
 
 @main
 struct Network_Share_MounterApp: App {
-    // Bridge den bestehenden AppDelegate in den SwiftUI-Lifecycle
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
-    // Use StateObject for the settings manager
-    @StateObject private var settingsManager = SettingsManager.shared
-
-    // Environment for opening windows
+    @ObservedObject private var settingsManager = SettingsManager.shared
     @Environment(\.openWindow) private var openWindow
-    
-    // Register App Shortcuts for Siri and Shortcuts app
-    static var appShortcutsProvider: some AppShortcutsProvider {
-        NetworkShareShortcuts()
-    }
 
     var body: some Scene {
-        // Hauptszene: Deine App ist menüleistenbasiert, daher ggf. keine Hauptfenster-UI nötig.
-        // Wir lassen die Default-WindowGroup leer, damit der AppDelegate weiterhin die Menülogik steuert.
+        // Ghost window: immediately hidden by WindowAccessor, exists solely to obtain
+        // the openWindow environment value and pass it to SettingsManager's callback.
         WindowGroup(id: "main-hidden") {
-            // Eine leere, unsichtbare Root-View – AppDelegate steuert das UI über Statusbar.
-            EmptyView()
+            Color.clear
                 .frame(width: 0, height: 0)
+                .background(WindowAccessor())
                 .environmentObject(settingsManager)
                 .onAppear {
-                    // Set the callback when the app starts
-                    Logger.app.debug("🔧 [DEBUG] Setting openWindow callback")
                     settingsManager.openWindowCallback = { windowId in
-                        Logger.app.debug("🔧 [DEBUG] Opening window: \(windowId)")
                         openWindow(id: windowId)
                     }
                 }
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 10, height: 10)
-        .commandsRemoved() // keine Standard-Kommandos für diese versteckte Szene
+        .defaultSize(width: 1, height: 1)
+        .commandsRemoved()
 
-        // Einstellungen als eigenes Fenster (Scene)
+        // Settings window.
+        // Note: .commands {} is an app-wide modifier — it can technically be attached to
+        // any scene. We attach it here as this is the only scene requiring custom commands.
         Window("Settings", id: "settings") {
-            // SettingsView mit den (ggf. aus Notification) übernommenen Parametern
             if let mounter = appDelegate.mounter {
                 SettingsView(
                     autoOpenProfileCreation: settingsManager.pendingAutoOpenProfileCreation,
@@ -103,22 +113,19 @@ struct Network_Share_MounterApp: App {
                 .environmentObject(settingsManager)
                 .environmentObject(mounter)
             } else {
-                Text("Initializing...")
+                Text("Initializing…")
             }
         }
         .defaultSize(width: 900, height: 600)
         .windowResizability(.contentSize)
-        .handlesExternalEvents(matching: Set(arrayLiteral: "settings"))
-
-        // Menü-Kommandos
+        .handlesExternalEvents(matching: ["settings"])
         .commands {
-            // Ersetze den Standard-App-Einstellungen-Eintrag und öffne unsere Scene.
-            // Wichtig: openWindow hier NICHT verwenden – das erzeugt eine zirkuläre
-            // Environment-Abhängigkeit während der Body-Auswertung (→ Stack Overflow).
-            // Stattdessen den SettingsManager-Callback nutzen, der erst nach dem
-            // ersten Render (onAppear) gesetzt wird.
+            // Replace the default app settings menu entry with our own scene-based one.
+            // Important: do not use openWindow here — it creates a circular Environment
+            // dependency during body evaluation (→ stack overflow). Instead, use the
+            // SettingsManager callback, which is set safely after the first render (onAppear).
             CommandGroup(replacing: .appSettings) {
-                Button("Settings …") {
+                Button("Settings\u{2026}") {
                     SettingsManager.shared.requestShowSettings()
                 }
                 .keyboardShortcut(",", modifiers: [.command])
@@ -126,3 +133,4 @@ struct Network_Share_MounterApp: App {
         }
     }
 }
+

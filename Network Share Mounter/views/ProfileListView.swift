@@ -1,3 +1,11 @@
+//
+//  ProfileListView.swift
+//  Network Share Mounter
+//
+//  Created by Longariva, Gregor (RRZE) on 10.04.26.
+//  Copyright © 2026 RRZE. All rights reserved.
+//
+
 import SwiftUI
 import OSLog
 
@@ -27,7 +35,7 @@ struct ProfileListView: View {
                             .foregroundColor(.secondary.opacity(0.6))
                             .padding(.bottom, 8)
                         
-                        Text("No prodile defined.")
+                        Text("No profile defined.")
                             .font(.headline)
                             .foregroundColor(.secondary)
                             
