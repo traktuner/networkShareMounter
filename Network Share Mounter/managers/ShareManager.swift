@@ -38,7 +38,10 @@ actor ShareManager {
 
             // Auto-assign Kerberos profile if share doesn't have one
             if share.authType == .krb && share.authProfileID == nil {
-                if let kerberosRealm = prefs.string(for: .kerberosRealm) {
+                if share.externalKerberosManagement {
+                    let realm = prefs.string(for: .kerberosRealm) ?? "EXTERNAL"
+                    Task { await assignExternalKerberosProfileToShare(shareURL: share.networkShare, realm: realm) }
+                } else if let kerberosRealm = prefs.string(for: .kerberosRealm) {
                     Task {
                         await assignKerberosProfileToShare(
                             shareURL: share.networkShare,
@@ -126,11 +129,24 @@ actor ShareManager {
         }
     }
 
+    /// Creates or finds an external Kerberos pseudo-profile and assigns it to the share.
+    /// Used when a share has `externalKerberosManagement = true`.
+    private func assignExternalKerberosProfileToShare(shareURL: String, realm: String) async {
+        let profileID = await AuthProfileManager.shared.createOrFindExternalKerberosProfile(for: realm)
+        if let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) {
+            _shares[index].authProfileID = profileID
+            saveModifiedShareConfigs()
+            Logger.shareManager.info("🔑 Assigned external Kerberos pseudo-profile to \(shareURL, privacy: .public) (realm: \(realm, privacy: .public))")
+        }
+    }
+
     /// Checks for shares without assigned profiles and sends notification if any are found
     func checkForUnassignedProfiles() {
         let unassignedShares = _shares.filter { share in
+            // Skip shares whose Kerberos is managed externally — they have a pseudo-profile
+            guard !share.externalKerberosManagement else { return false }
             // Only check shares that require authentication
-            (share.authType == .krb || share.authType == .pwd) && share.authProfileID == nil
+            return (share.authType == .krb || share.authType == .pwd) && share.authProfileID == nil
         }
 
         if !unassignedShares.isEmpty {
@@ -342,6 +358,11 @@ actor ShareManager {
             }
         }
         
+        let externalKerberos = shareElement[Defaults.externalKerberosManagement]?.lowercased() == "true"
+        if externalKerberos {
+            Logger.shareManager.info("🔑 Share \(shareRectified, privacy: .public) uses external Kerberos management")
+        }
+
         // Create and return new Share object with configured parameters
         let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
@@ -349,7 +370,8 @@ actor ShareManager {
                                          username: userName,
                                          password: password,
                                          mountPoint: shareElement[Defaults.mountPoint]?.trim(),
-                                         managed: true)
+                                         managed: true,
+                                         externalKerberosManagement: externalKerberos)
         return(newShare)
     }
     
@@ -480,9 +502,13 @@ actor ShareManager {
             updatedShare.id = allShares[existingIndex].id
             updatedShare.actualMountPoint = allShares[existingIndex].actualMountPoint
 
-            // Preserve authProfileID if not specified in new configuration
+            // Preserve authProfileID if not specified in new configuration.
+            // Exception: if externalKerberosManagement was removed from MDM, clear the old pseudo-profile
+            // so regular auto-assignment runs fresh.
             if updatedShare.authProfileID == nil, let existingProfileID = allShares[existingIndex].authProfileID {
-                updatedShare.authProfileID = existingProfileID
+                let existingWasExternal = allShares[existingIndex].externalKerberosManagement
+                let flagWasRemoved = existingWasExternal && !updatedShare.externalKerberosManagement
+                updatedShare.authProfileID = flagWasRemoved ? nil : existingProfileID
             }
 
             do {
@@ -491,7 +517,10 @@ actor ShareManager {
 
                 // Auto-assign Kerberos profile if share doesn't have one
                 if updatedShare.authType == .krb && updatedShare.authProfileID == nil {
-                    if let kerberosRealm = prefs.string(for: .kerberosRealm) {
+                    if updatedShare.externalKerberosManagement {
+                        let realm = prefs.string(for: .kerberosRealm) ?? "EXTERNAL"
+                        Task { await assignExternalKerberosProfileToShare(shareURL: updatedShare.networkShare, realm: realm) }
+                    } else if let kerberosRealm = prefs.string(for: .kerberosRealm) {
                         Task {
                             await assignKerberosProfileToShare(
                                 shareURL: updatedShare.networkShare,

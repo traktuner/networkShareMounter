@@ -29,6 +29,11 @@ struct AuthProfile: Identifiable, Codable, Equatable {
     
     /// Color data for the symbol's background. Stored as Data for Codability.
     var symbolColorData: Data? = Color.gray.toData() // Default color data
+
+    /// When true, this profile was auto-generated because Kerberos is managed externally
+    /// (AD binding, Jamf Connect, Apple SSO Extension). It is read-only and carries no
+    /// credentials — it exists solely so the associated share appears assigned in the UI.
+    var isExternallyManaged: Bool = false
     
     /// A computed property to easily get the SwiftUI Color. Not Codable.
     var symbolColor: Color {
@@ -55,7 +60,9 @@ struct AuthProfile: Identifiable, Codable, Equatable {
 
     /// Validates if the username is in proper UPN format for Kerberos authentication.
     /// UPN format: username@REALM.COM
+    /// External profiles have no username and are always considered valid.
     var isValidKerberosUsername: Bool {
+        if isExternallyManaged { return true }
         guard useKerberos, let username = username else { return !useKerberos }
 
         // UPN format: username@realm
@@ -72,7 +79,9 @@ struct AuthProfile: Identifiable, Codable, Equatable {
     }
 
     /// Validates that the username realm matches the configured Kerberos realm.
+    /// External profiles only require a realm to be set, not username consistency.
     var hasConsistentKerberosRealm: Bool {
+        if isExternallyManaged { return kerberosRealm != nil }
         guard useKerberos,
               let username = username,
               let realm = kerberosRealm else { return !useKerberos }
