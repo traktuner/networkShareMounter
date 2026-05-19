@@ -73,6 +73,7 @@ class SentryManager {
             options.sessionTrackingIntervalMillis = 30000
             options.attachStacktrace = true
             options.maxBreadcrumbs = 100
+            options.enableAppHangTracking = false
 
             // Privacy: Don't capture personally identifiable information
             options.beforeSend = { event in

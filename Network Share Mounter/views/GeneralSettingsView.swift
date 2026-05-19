@@ -69,9 +69,13 @@ struct GeneralSettingsView: View {
     /// Counter for taps on "Diagnosedaten" header to enable hidden debug feature
     @State private var diagnoseTapCount: Int = 0
 
-    /// State for log export operation
+    /// State for log collection and export
     @State private var isExportingLogs: Bool = false
     @State private var exportResult: String? = nil
+    @State private var collectedLogs: String? = nil
+    @State private var collectedLogData: Data? = nil
+    @State private var collectedLogFilename: String = ""
+    @State private var showingLogViewer: Bool = false
     
     /// Computed property indicating if the update framework is globally disabled via MDM.
     /// Reads the `.disableAutoUpdateFramework` preference.
@@ -147,42 +151,79 @@ struct GeneralSettingsView: View {
                         }
                     Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
 
-                    // Hidden debug feature: only shown after 5 taps on "Diagnosedaten"
+                    // Hidden debug feature: only shown after 5 taps on "Diagnostics" heading
                     if debugLogExportEnabled {
                         VStack(alignment: .leading, spacing: 8) {
-                            Button {
-                                Task {
-                                    await exportDebugLogs()
+                            if collectedLogs != nil {
+                                // Phase 2: logs ready — offer view and send
+                                HStack(spacing: 12) {
+                                    Button {
+                                        showingLogViewer = true
+                                    } label: {
+                                        Label("Show logs", systemImage: "doc.text.magnifyingglass")
+                                    }
+                                    .buttonStyle(.bordered)
+
+                                    Button {
+                                        Task { await sendCollectedLogs() }
+                                    } label: {
+                                        HStack {
+                                            if isExportingLogs {
+                                                ProgressView().scaleEffect(0.8)
+                                                Text("Sending...")
+                                            } else {
+                                                Label("Send to support", systemImage: "paperplane.fill")
+                                            }
+                                        }
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .disabled(isExportingLogs || !SentryManager.shared.isActive)
+
+                                    Button {
+                                        collectedLogs = nil
+                                        collectedLogData = nil
+                                        exportResult = nil
+                                    } label: {
+                                        Text("Collect again")
+                                            .font(.caption)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundColor(.secondary)
                                 }
-                            } label: {
-                                HStack {
-                                    if isExportingLogs {
-                                        ProgressView()
-                                            .scaleEffect(0.8)
-                                        Text("Sending logs...")
-                                    } else {
-                                        Image(systemName: "doc.text.fill")
-                                        Text("Send debug logs to support")
+                            } else {
+                                // Phase 1: initial state — collect first
+                                Button {
+                                    Task { await collectAndPrepareLogs() }
+                                } label: {
+                                    HStack {
+                                        if isExportingLogs {
+                                            ProgressView().scaleEffect(0.8)
+                                            Text("Collecting logs...")
+                                        } else {
+                                            Label("Collect debug logs", systemImage: "doc.text.fill")
+                                        }
                                     }
                                 }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(isExportingLogs)
                             }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(isExportingLogs)
 
-                            // Show result message
                             if let result = exportResult {
                                 Text(result)
                                     .font(.caption)
-                                    .foregroundColor(result.localizedCaseInsensitiveContains("success") || result.localizedCaseInsensitiveContains("erfolgreich") ? .green : .red)
-                                    .onAppear {
-                                        // Clear message after 5 seconds
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                                            exportResult = nil
-                                        }
-                                    }
+                                    .foregroundColor(
+                                        result.localizedCaseInsensitiveContains("success") ||
+                                        result.localizedCaseInsensitiveContains("erfolgreich")
+                                        ? .green : .red
+                                    )
                             }
                         }
                         .padding(.top, 8)
+                        .sheet(isPresented: $showingLogViewer) {
+                            if let logs = collectedLogs {
+                                LogViewerView(logs: logs, filename: collectedLogFilename)
+                            }
+                        }
                     }
                 }
                 .padding(.vertical, 8)
@@ -334,93 +375,111 @@ struct GeneralSettingsView: View {
         }
     }
 
-    // MARK: - Debug Log Export Function
+    // MARK: - Debug Log Functions
 
-    /// Exports debug logs and sends them as Sentry attachment
+    /// Collects logs from the last 30 minutes and stores them for display or sending.
     @MainActor
-    private func exportDebugLogs() async {
+    private func collectAndPrepareLogs() async {
         isExportingLogs = true
         exportResult = nil
 
         do {
-            Logger.app.info("🔄 Starting debug log export...")
+            Logger.app.info("🔄 Collecting debug logs...")
+            let since = Date().addingTimeInterval(-30 * 60)
 
-            // Check if Sentry is active
-            guard SentryManager.shared.isActive else {
-                Logger.app.warning("⚠️ Sentry not active - cannot send logs. Enable 'Send anonymous diagnostic data' first.")
-                exportResult = "Error: Diagnostic data transmission is disabled"
-                isExportingLogs = false
-                return
-            }
-
-            Logger.app.info("✓ Sentry is active")
-
-            // Get logs from last 30 minutes - run in background
-            let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
-            Logger.app.info("📋 Collecting logs since: \(thirtyMinutesAgo)")
-
-            let logs = try await Task.detached {
-                try await self.collectLogs(since: thirtyMinutesAgo)
+            let raw = try await Task.detached {
+                try await self.collectLogs(since: since)
             }.value
 
-            Logger.app.info("📋 Collected \(logs.count) bytes of raw log data")
-
-            let compressedLogs = try await Task.detached {
-                try self.compressLogs(logs)
+            let compressed = try await Task.detached {
+                try self.compressLogs(raw)
             }.value
-
-            Logger.app.info("🗜️ Compressed to \(compressedLogs.count) bytes")
 
             let filename = "debug-logs-\(DateFormatter.yyyyMMddHHmmss.string(from: Date())).txt.gz"
-
-            // Send as Sentry attachment - run in background
-            await Task.detached {
-                SentrySDK.configureScope { scope in
-                    let attachment = Attachment(
-                        data: compressedLogs,
-                        filename: filename
-                    )
-                    scope.addAttachment(attachment)
-                    Logger.app.info("📎 Attachment added to scope: \(filename)")
-                }
-
-                // Send event with context
-                Logger.app.info("📤 Sending event to Sentry...")
-                SentrySDK.capture(message: "Debug logs exported by user") { scope in
-                    scope.setTag(value: "manual", key: "log_export")
-                    scope.setExtra(value: 30, key: "log_duration_minutes")
-                    scope.setExtra(value: filename, key: "attachment_filename")
-                }
-
-                // Force flush to ensure data is sent
-                SentrySDK.flush(timeout: 10.0)
-                Logger.app.info("🚀 Sentry flush completed")
-            }.value
-
-            Logger.app.info("✅ Debug logs exported successfully - check Sentry dashboard")
-            exportResult = "Logs sent successfully!"
-
+            collectedLogs = String(data: raw, encoding: .utf8) ?? ""
+            collectedLogData = compressed
+            collectedLogFilename = filename
+            Logger.app.info("✅ Logs collected: \(raw.count) bytes raw, \(compressed.count) bytes compressed")
         } catch {
-            Logger.app.error("❌ Failed to export debug logs: \(error.localizedDescription)")
-            exportResult = "Failed to send logs: \(error.localizedDescription)"
+            Logger.app.error("❌ Failed to collect logs: \(error.localizedDescription)")
+            exportResult = String(
+                format: NSLocalizedString("Failed to collect logs: %@", comment: "Log collection failure; %@ is the error description"),
+                error.localizedDescription
+            )
         }
 
         isExportingLogs = false
     }
 
-    /// Collects logs from OSLogStore since specified date
-    private func collectLogs(since date: Date) async throws -> Data {
-        let logStore = try OSLogStore(scope: .currentProcessIdentifier)
-        let position = logStore.position(date: date)
-        let entries = try logStore.getEntries(at: position)
+    /// Sends the previously collected logs to Sentry as an attachment.
+    @MainActor
+    private func sendCollectedLogs() async {
+        guard let data = collectedLogData, !collectedLogFilename.isEmpty else { return }
+        guard SentryManager.shared.isActive else { return }
 
-        var logLines: [String] = []
+        isExportingLogs = true
+        let filename = collectedLogFilename
+        let hasFDA = FullDiskAccessChecker.hasAccess()
+
+        await Task.detached {
+            SentrySDK.configureScope { scope in
+                scope.addAttachment(Attachment(data: data, filename: filename))
+                Logger.app.info("📎 Attachment added to scope: \(filename, privacy: .public)")
+            }
+            Logger.app.info("📤 Sending event to Sentry...")
+            SentrySDK.capture(message: "Debug logs exported by user") { scope in
+                scope.setTag(value: "manual", key: "log_export")
+                scope.setExtra(value: 30, key: "log_duration_minutes")
+                scope.setExtra(value: filename, key: "attachment_filename")
+                scope.setExtra(value: hasFDA, key: "full_disk_access")
+            }
+            SentrySDK.flush(timeout: 10.0)
+            Logger.app.info("🚀 Sentry flush completed")
+        }.value
+
+        exportResult = NSLocalizedString("Logs sent successfully!", comment: "Log send success confirmation")
+        Logger.app.info("✅ Debug logs sent to Sentry")
+        isExportingLogs = false
+    }
+
+    /// Collects logs from OSLogStore since specified date.
+    ///
+    /// Tries the `.system` scope first (requires Full Disk Access) so that SMB client,
+    /// NetAuthSysAgent, and NetAuthAgent entries are included alongside the app's own logs.
+    /// Falls back silently to `.currentProcessIdentifier` when FDA is not available.
+    private func collectLogs(since date: Date) async throws -> Data {
+        // Predicate targets our app plus the OS subsystems relevant for mount/auth diagnosis.
+        // TCC is intentionally omitted — it is extremely verbose and rarely needed.
+        let predicate = NSPredicate(
+            format: "subsystem == %@ OR subsystem == %@ OR process == %@ OR process == %@",
+            "de.fau.rrze.NetworkShareMounter",
+            "com.apple.smb.client",
+            "NetAuthSysAgent",
+            "NetAuthAgent"
+        )
+
+        let (logStore, scopeLabel): (OSLogStore, String)
+        do {
+            logStore = try OSLogStore(scope: .system)
+            scopeLabel = "system"
+        } catch {
+            Logger.app.warning("⚠️ System log scope unavailable (FDA required): \(error.localizedDescription, privacy: .public)")
+            logStore = try OSLogStore(scope: .currentProcessIdentifier)
+            scopeLabel = "process"
+        }
+
+        Logger.app.info("📋 Collecting logs with scope: \(scopeLabel, privacy: .public)")
+
+        let position = logStore.position(date: date)
+        let entries = try logStore.getEntries(at: position, matching: predicate)
+
+        var logLines: [String] = ["=== Log scope: \(scopeLabel) ==="]
 
         for entry in entries {
             if let logEntry = entry as? OSLogEntryLog {
                 let timestamp = DateFormatter.logFormat.string(from: logEntry.date)
                 let level = logLevelString(from: logEntry.level)
-                let line = "\(timestamp) [\(level)] \(logEntry.category): \(logEntry.composedMessage)"
+                let line = "\(timestamp) [\(level)] [\(logEntry.subsystem)/\(logEntry.category)] \(logEntry.composedMessage)"
                 logLines.append(line)
             }
         }
@@ -442,8 +501,69 @@ struct GeneralSettingsView: View {
     }
 
     /// Compresses log data using gzip
-    private func compressLogs(_ data: Data) throws -> Data {
+    nonisolated private func compressLogs(_ data: Data) throws -> Data {
         return try data.gzipped()
+    }
+}
+
+// MARK: - Log Viewer
+
+private struct LogViewerView: View {
+    let logs: String
+    let filename: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var lines: [String] = []
+    @State private var isLoading = true
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(filename)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer()
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(logs, forType: .string)
+                } label: {
+                    Label("Copy", systemImage: "doc.on.clipboard")
+                }
+                .buttonStyle(.bordered)
+                .disabled(isLoading)
+                Button("Close") { dismiss() }
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding()
+            Divider()
+            if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                            Text(line)
+                                .font(.system(.caption, design: .monospaced))
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal)
+                                .padding(.vertical, 1)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(minWidth: 700, minHeight: 500)
+        .task {
+            let text = logs
+            let split = await Task.detached {
+                text.components(separatedBy: "\n")
+            }.value
+            lines = split
+            isLoading = false
+        }
     }
 }
 
