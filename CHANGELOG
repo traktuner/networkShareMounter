@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - Fixed handling of wrong `AuthType` String value:
    - In older docs we documented the string value "password" for the username/password authentication stored in AuthType, but the actual raw value in code is "pwd". 
    - To keep backward compatibility (and avoid crashes/decoding failures), we map the legacy value "password" to `.pwd`
+- The behavior when editing a profile has changed: Entering a username no longer assumes it is a Kerberos account when an "@" is entered. Previously, in this case, the profile was created as a Kerberos profile.
 
 ## [4.0.2] - 2026-04-02
 
