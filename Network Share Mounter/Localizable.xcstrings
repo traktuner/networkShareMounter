@@ -2821,6 +2821,9 @@
         }
       }
     },
+    "External" : {
+
+    },
     "Failed to collect logs: %@" : {
       "comment" : "Log collection failure; %@ is the error description",
       "localizations" : {
@@ -4203,6 +4206,9 @@
           }
         }
       }
+    },
+    "Kerberos is managed externally (AD binding / Jamf Connect / SSO Extension)" : {
+
     },
     "Kerberos Realm" : {
       "localizations" : {
@@ -6922,6 +6928,7 @@
       }
     },
     "Send debug logs to support" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7002,6 +7009,7 @@
       }
     },
     "Sending logs..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
