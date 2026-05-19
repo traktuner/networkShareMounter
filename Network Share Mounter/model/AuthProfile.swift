@@ -119,11 +119,15 @@ struct AuthProfile: Identifiable, Codable, Equatable {
         return username.filter { $0 == "@" }.count == 1
     }
 
+}
+
+// MARK: - Codable
+
+extension AuthProfile {
     // Custom decoder so that properties added after initial release (e.g. isExternallyManaged,
     // useKerberos) fall back to their defaults when the key is absent from stored JSON.
-    // Swift's synthesised Codable requires every non-optional key to be present; omitting
-    // decodeIfPresent here causes the entire [AuthProfile] array to fail decoding when old
-    // UserDefaults data doesn't contain the new key.
+    // Swift's synthesised Codable requires every non-optional key to be present; placing this in
+    // an extension preserves the synthesised memberwise initialiser.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
