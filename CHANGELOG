@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [4.1.0] - 2026-05-19
 
-### Added
+### What's new
+- In macOS 26.5, Apple finally fixed a bug introduced in macOS 25.4. The Network Share Mounter now works as it used to, but full disk access is now required. The app now guides users through granting the required Full Disk Access permission
 - New per-share MDM key `externalKerberosManagement`: marks individual Kerberos shares as using ticket management provided by an external tool (AD binding, Jamf Connect, Apple SSO Extension). Network Share Mounter mounts the share without interfering with Kerberos tickets, and no "profile required" warning appears in the menu bar
 - Debug log collection now includes system-level SMB and authentication agent logs (requires Full Disk Access), making support diagnosis significantly faster
 - Password expiration warnings for Active Directory/Kerberos environments: users are notified when their AD password is about to expire
@@ -15,10 +16,6 @@ All notable changes to this project will be documented in this file.
    - Automatic once-per-day dialog within the notification threshold
    - Respects the Active Directory "password never expires" account flag (UAC 0x10000)
 - Optional `allowPasswordChange` MDM key (default: `false`): when enabled, a permanent "Change Password…" item is shown in the menu bar at all times — transforms into the standard expiry countdown when the threshold is reached
-
-### Fixed
-- Setting `ExpirationCountdownStartDay` to `0` now correctly disables the password expiration feature entirely
-- macOS 26 and later: when the mount location is set outside of `/Volumes`, the app now guides users through granting the required Full Disk Access permission
 
 ## [4.0.2] - 2026-04-02
 
