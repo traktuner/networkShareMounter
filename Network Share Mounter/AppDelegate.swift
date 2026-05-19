@@ -131,6 +131,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// The UPN of the currently authenticated Kerberos user; set on every successful auth regardless of expiry state.
     var kerberosUserPrincipal: String = ""
 
+    /// Set to true after the user chose "Open System Settings" in the Full Disk Access prompt.
+    /// Cleared when `applicationDidBecomeActive` fires so the app can retry mounts after FDA is granted.
+    var waitingForFullDiskAccess: Bool = false
+    
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
     /// This method:
@@ -229,6 +233,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         Task { @MainActor in
             await initializeApp()
             await performPostInitializationTasks()
+        }
+    }
+
+    /// Re-checks Full Disk Access when the user returns to the app (e.g. from System Settings).
+    /// Triggers a mount retry when FDA was just granted so shares connect without a manual action.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        guard waitingForFullDiskAccess else { return }
+        waitingForFullDiskAccess = false
+        if FullDiskAccessChecker.hasAccess() {
+            Logger.app.info("✅ Full Disk Access granted — triggering mount retry")
+            NotificationCenter.default.post(name: Defaults.nsmNetworkChangeTriggerNotification, object: nil)
         }
     }
 
@@ -407,6 +422,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             } else {
                 Logger.app.error("❌ Mounter is not available for initialization - SwiftUI injection failed")
                 return
+            }
+
+            // Check Full Disk Access on macOS 26+ when mount path is outside /Volumes.
+            // promptIfNeeded is a no-op on macOS < 26 or when path is already under /Volumes.
+            if let mounter = self.mounter {
+                FullDiskAccessChecker.promptIfNeeded(
+                    forMountPath: mounter.defaultMountPath,
+                    onOpenSettings: {
+                        self.waitingForFullDiskAccess = true
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                )
             }
 
             // NEW: Rescan existing mounts at app start, independent of network state

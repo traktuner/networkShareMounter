@@ -2,7 +2,7 @@
 //  DirectoryManager.swift
 //  Network Share Mounter
 //
-//  Created by AI Assistant on 04.01.25.
+//  Created by Gregor Longariva on 04.01.25.
 //  Copyright © 2025 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
