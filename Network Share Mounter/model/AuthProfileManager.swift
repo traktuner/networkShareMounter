@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import OSLog
+import SwiftUI
 
 // MARK: - AuthProfileError
 
@@ -845,13 +846,45 @@ class AuthProfileManager: ObservableObject {
 
     // MARK: - Validation Methods
 
-    /// Checks if a Kerberos profile already exists for the given realm.
-    /// Returns the existing profile if found, otherwise nil.
+    /// Checks if a regular (non-external) Kerberos profile already exists for the given realm.
+    /// External pseudo-profiles are excluded so they don't count as realm conflicts.
     func findExistingKerberosProfile(forRealm realm: String) -> AuthProfile? {
         return profiles.first { profile in
             profile.useKerberos &&
+            !profile.isExternallyManaged &&
             profile.kerberosRealm?.uppercased() == realm.uppercased()
         }
+    }
+
+    /// Returns an existing external pseudo-profile for the given realm, or creates one.
+    /// The returned profile has `isExternallyManaged = true`, carries no credentials,
+    /// and is read-only in the UI. It is used solely to satisfy the "assigned profile"
+    /// requirement for shares whose Kerberos tickets are managed externally.
+    func createOrFindExternalKerberosProfile(for realm: String) async -> String {
+        let normalizedRealm = realm.uppercased()
+
+        if let existing = profiles.first(where: {
+            $0.isExternallyManaged &&
+            $0.kerberosRealm?.uppercased() == normalizedRealm
+        }) {
+            Logger.dataModel.debug("♻️ Reusing existing external Kerberos profile for realm \(normalizedRealm, privacy: .public)")
+            return existing.id
+        }
+
+        var profile = AuthProfile(
+            displayName: normalizedRealm,
+            useKerberos: true,
+            kerberosRealm: normalizedRealm
+        )
+        profile.isExternallyManaged = true
+        profile.symbolName = "externaldrive.badge.checkmark"
+        profile.symbolColorData = Color.teal.toData()
+
+        // Bypass normal addProfile to avoid realm-conflict check against regular profiles
+        profiles.append(profile)
+        saveProfiles()
+        Logger.dataModel.info("✅ Created external Kerberos pseudo-profile for realm \(normalizedRealm, privacy: .public) (ID: \(profile.id, privacy: .public))")
+        return profile.id
     }
 
     /// Validates a Kerberos profile against existing DogeAccounts.

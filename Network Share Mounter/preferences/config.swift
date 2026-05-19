@@ -173,6 +173,13 @@ struct Defaults {
 
     /// Optional AuthProfile ID for shares using the new AuthProfile system
     static let authProfileID = "authProfileID"
+
+    /// Flag: Kerberos authentication is managed externally (AD binding, SSO Extension, Jamf Connect, etc.)
+    /// When true, NSM creates a read-only pseudo-profile and skips ticket management for this share.
+    static let externalKerberosManagement = "externalKerberosManagement"
+
+    /// Optional Kerberos realm override in an MDM share dict (used with externalKerberosManagement)
+    static let shareKerberosRealm = "kerberosRealm"
     
     /// Legacy key for user-defined shares
     static let customSharesKey = "customNetworkShares"
