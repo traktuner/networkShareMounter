@@ -723,6 +723,18 @@ actor ShareManager {
         // synchronize() is deprecated and unnecessary
     }
     
+    /// Clears a stale authProfileID from a share and persists the change.
+    /// Called when resolveCredentials detects a reference to a deleted profile.
+    /// After clearing, the share appears as unassigned so the user can re-assign.
+    func clearProfileAssignment(for shareURL: String) {
+        guard let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) else { return }
+        _shares[index].authProfileID = nil
+        if !_shares[index].managed {
+            saveModifiedShareConfigs()
+        }
+        Logger.shareManager.warning("⚠️ Cleared stale authProfileID for share: \(shareURL, privacy: .public)")
+    }
+
     /// Updates SMBHome share from Active Directory/OpenDirectory
     ///
     /// This method queries the current user's SMBHome attribute from AD/OD

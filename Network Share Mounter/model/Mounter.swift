@@ -850,6 +850,9 @@ class Mounter: ObservableObject {
         case MounterError.userUnmounted:
             Logger.mounter.debug("👤 Share was previously user unmounted: \(share.networkShare, privacy: .public)")
             await updateShare(mountStatus: .userUnmounted, for: share)
+        case MounterError.unassignedProfile:
+            Logger.mounter.debug("❓ No auth profile assigned for share: \(share.networkShare, privacy: .public)")
+            await updateShare(mountStatus: .unassignedProfile, for: share)
         case MounterError.obstructingDirectory:
             Logger.mounter.debug("🚫 Obstructing directory prevented mount: \(share.networkShare, privacy: .public)")
             await updateShare(mountStatus: .obstructingDirectory, for: share)
@@ -1615,10 +1618,9 @@ class Mounter: ObservableObject {
 
             // Get the AuthProfile by ID from the snapshot
             guard let authProfile = profilesSnapshot.first(where: { $0.id == authProfileID }) else {
-                Logger.mounter.error("❌ AuthProfile not found for ID: \(authProfileID)")
-                let availableIDs = profilesSnapshot.map { $0.id }
-                Logger.mounter.error("❌ Available AuthProfile IDs: \(availableIDs, privacy: .public)")
-                throw MounterError.authenticationError
+                Logger.mounter.warning("⚠️ AuthProfile \(authProfileID, privacy: .public) not found — clearing stale reference")
+                Task { await shareManager.clearProfileAssignment(for: share.networkShare) }
+                throw MounterError.unassignedProfile
             }
 
             // For Kerberos profiles, no explicit username/password needed (uses ticket)
