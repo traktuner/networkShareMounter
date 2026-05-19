@@ -143,7 +143,7 @@ alpha release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^alpha-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".dmg\"}"'
+    - '/opt/homebrew/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".dmg\"}"'
   dependencies:
     - alpha build
     - alpha upload
@@ -158,7 +158,7 @@ beta release:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
     - (ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt)
-    - '/usr/local/bin/release-cli create --description "current_release_notes.txt" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg\"}"'
+    - '/opt/homebrew/bin/release-cli create --description "current_release_notes.txt" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg\"}"'
   dependencies:
     - beta build
     - beta upload
@@ -172,7 +172,7 @@ release:
     - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
     - (ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt)
-    - '/usr/local/bin/release-cli create --description "current_release_notes.txt" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
+    - '/opt/homebrew/bin/release-cli create --description "current_release_notes.txt" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
   dependencies:
     - release build
     - release upload
