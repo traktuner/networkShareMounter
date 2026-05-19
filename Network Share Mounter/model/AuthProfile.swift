@@ -118,6 +118,24 @@ struct AuthProfile: Identifiable, Codable, Equatable {
         guard let username = username else { return false }
         return username.filter { $0 == "@" }.count == 1
     }
+
+    // Custom decoder so that properties added after initial release (e.g. isExternallyManaged,
+    // useKerberos) fall back to their defaults when the key is absent from stored JSON.
+    // Swift's synthesised Codable requires every non-optional key to be present; omitting
+    // decodeIfPresent here causes the entire [AuthProfile] array to fail decoding when old
+    // UserDefaults data doesn't contain the new key.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        displayName = try c.decode(String.self, forKey: .displayName)
+        username = try c.decodeIfPresent(String.self, forKey: .username)
+        useKerberos = try c.decodeIfPresent(Bool.self, forKey: .useKerberos) ?? false
+        kerberosRealm = try c.decodeIfPresent(String.self, forKey: .kerberosRealm)
+        associatedNetworkShares = try c.decodeIfPresent([String].self, forKey: .associatedNetworkShares)
+        symbolName = try c.decodeIfPresent(String.self, forKey: .symbolName) ?? "person.circle"
+        symbolColorData = try c.decodeIfPresent(Data.self, forKey: .symbolColorData)
+        isExternallyManaged = try c.decodeIfPresent(Bool.self, forKey: .isExternallyManaged) ?? false
+    }
 }
 
 // MARK: - Color <-> Data Conversion Helper
