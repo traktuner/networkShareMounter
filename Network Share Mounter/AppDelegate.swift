@@ -134,6 +134,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Set to true after the user chose "Open System Settings" in the Full Disk Access prompt.
     /// Cleared when `applicationDidBecomeActive` fires so the app can retry mounts after FDA is granted.
     var waitingForFullDiskAccess: Bool = false
+
+    /// The pending background update found by Sparkle; nil when no update is waiting.
+    /// Used for gentle reminders: instead of stealing focus, a menu item is shown.
+    var pendingUpdateItem: SUAppcastItem?
     
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
@@ -164,7 +168,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             updaterController = SPUStandardUpdaterController(
                 startingUpdater: enableChecks, // Only start updater if checks are enabled
                 updaterDelegate: nil,
-                userDriverDelegate: nil)
+                userDriverDelegate: self)
             
             Logger.app.debug("Sparkle initialized with: checks=\(enableChecks, privacy: .public), auto-update=\(autoUpdate, privacy: .public)")
         } else {
@@ -187,15 +191,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
 #if DEBUG
         Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
-#else
-        if prefs.bool(for: .sendDiagnostics) == true {
-            Logger.app.debug("Initializing sentry SDK...")
-            SentrySDK.start { options in
-                options.dsn = Defaults.sentryDSN
-                options.debug = false
-                options.tracesSampleRate = 0.1
-            }
-        }
 #endif
   
         
@@ -1068,6 +1063,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             menu.addItem(NSMenuItem.separator())
         }
 
+        // Gentle update reminder (Sparkle background update found, no focus stealing)
+        if let pendingUpdate = pendingUpdateItem {
+            let updateTitle = String(format: NSLocalizedString("🔔 Update available: Version %@", comment: "Gentle update reminder menu item"), pendingUpdate.displayVersionString)
+            let updateItem = NSMenuItem(title: updateTitle, action: #selector(AppDelegate.showPendingUpdate(_:)), keyEquivalent: "")
+            updateItem.isEnabled = true
+            menu.addItem(updateItem)
+            menu.addItem(NSMenuItem.separator())
+        }
+
         if let mounter = mounter {
             switch statusToUse {
             case .krbAuthenticationError:
@@ -1313,6 +1317,44 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         sender.orderOut(nil)
         return false
+    }
+
+    @objc func showPendingUpdate(_ sender: Any) {
+        updaterController?.checkForUpdates(sender)
+    }
+}
+
+// MARK: - Sparkle Gentle Reminders
+
+extension AppDelegate: SPUStandardUserDriverDelegate {
+    var supportsGentleScheduledUpdateReminders: Bool { true }
+
+    func standardUserDriverShouldHandleShowingScheduledUpdate(_ update: SUAppcastItem, andInImmediateFocus immediateFocus: Bool) -> Bool {
+        // Never steal focus for background update checks — the menu indicator handles it
+        return false
+    }
+
+    func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState) {
+        guard !handleShowingUpdate else { return }
+        // Background update found: store it and surface a gentle reminder in the menu
+        Task { @MainActor in
+            pendingUpdateItem = update
+            await constructMenu(withMounter: mounter)
+        }
+    }
+
+    func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
+        Task { @MainActor in
+            pendingUpdateItem = nil
+            await constructMenu(withMounter: mounter)
+        }
+    }
+
+    func standardUserDriverWillFinishUpdateSession() {
+        Task { @MainActor in
+            pendingUpdateItem = nil
+            await constructMenu(withMounter: mounter)
+        }
     }
 }
 
