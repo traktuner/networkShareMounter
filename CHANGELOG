@@ -7,7 +7,9 @@ All notable changes to this project will be documented in this file.
 ### What's new
 - In macOS 26.5, Apple finally fixed a bug introduced in macOS 25.4. The Network Share Mounter now works as it used to, but full disk access is now required. The app now guides users through granting the required Full Disk Access permission
 - New per-share MDM key `externalKerberosManagement`: marks individual Kerberos shares as using ticket management provided by an external tool (AD binding, Jamf Connect, Apple SSO Extension). Network Share Mounter mounts the share without interfering with Kerberos tickets, and no "profile required" warning appears in the menu bar
-- Debug log collection now includes system-level SMB and authentication agent logs (requires Full Disk Access), making support diagnosis significantly faster
+- New per-share `autoMount` MDM key (default: `true`): when set to `false`, the share is shown in the menu bar but is never mounted automatically. Users can still mount it manually by clicking the menu item. This is useful for optional shares that should be available on demand without cluttering the auto-mount cycle
+   - Also available in the user interface: the "Mount automatically" toggle in the Add/Edit share sheet
+   - Menu bar icon uses an outline symbol for `autoMount = false` shares (vs. filled for auto-mounted shares) to visually distinguish them
 - Password expiration warnings for Active Directory/Kerberos environments: users are notified when their AD password is about to expire
    - Configurable warning threshold via MDM (`ExpirationCountdownStartDay`, `ExpirationNotificationStartDay`, both default to 14 days)
    - Optional `passwordChangeURL` MDM key: configures a web URL (SSPR portal) opened when the user clicks "Change Password"
@@ -16,12 +18,15 @@ All notable changes to this project will be documented in this file.
    - Automatic once-per-day dialog within the notification threshold
    - Respects the Active Directory "password never expires" account flag (UAC 0x10000)
 - Optional `allowPasswordChange` MDM key (default: `false`): when enabled, a permanent "Change Password…" item is shown in the menu bar at all times — transforms into the standard expiry countdown when the threshold is reached
+- Debug log collection now includes system-level SMB and authentication agent logs (requires Full Disk Access), making support diagnosis significantly faster
 
 ### Fixed
 - Fixed handling of wrong `AuthType` String value:
-   - In older docs we documented the string value "password" for the username/password authentication stored in AuthType, but the actual raw value in code is "pwd". 
+   - In older docs we documented the string value "password" for the username/password authentication stored in AuthType, but the actual raw value in code is "pwd".
    - To keep backward compatibility (and avoid crashes/decoding failures), we map the legacy value "password" to `.pwd`
 - The behavior when editing a profile has changed: Entering a username no longer assumes it is a Kerberos account when an "@" is entered. Previously, in this case, the profile was created as a Kerberos profile.
+- Fixed a regression where adding a new property to `AuthProfile` caused all existing authentication profiles to be silently discarded on app launch, resetting credentials for all users
+- Fixed: externally managed Kerberos shares (using `externalKerberosManagement`) no longer incorrectly trigger internal Kerberos re-authentication when a mount fails
 
 ## [4.0.2] - 2026-04-02
 

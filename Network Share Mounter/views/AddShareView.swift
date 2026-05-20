@@ -19,6 +19,7 @@ struct AddShareView: View {
     @State private var networkShare: String = "" // e.g., smb://server/share
     @State private var mountPointName: String = ""
     @State private var selectedProfileID: String? = nil // Profile ID or nil for "None"
+    @State private var autoMount: Bool = true
 
     // Validation states
     @State private var mountPointError: String? = nil
@@ -159,6 +160,13 @@ struct AddShareView: View {
                 }
             }
             
+            if !(existingShare?.managed == true) {
+                Toggle(isOn: $autoMount) {
+                    Text("Mount automatically")
+                }
+                .toggleStyle(.switch)
+            }
+
             if isEditing && (existingShare?.managed == true) {
                 HStack {
                     Image(systemName: "info.circle.fill")
@@ -243,6 +251,7 @@ struct AddShareView: View {
 
         networkShare = share.networkShare
         mountPointName = share.effectiveMountPoint
+        autoMount = share.autoMount
 
         // Find associated profile for this share
         selectedProfileID = findAssociatedProfile(for: share)
@@ -312,11 +321,12 @@ struct AddShareView: View {
         let mountPoint = mountPointName.isEmpty ? nil : mountPointName
         let newShare = Share.createShare(
             networkShare: networkShare,
-            authType: (selectedProfileID ?? "").isEmpty ? .krb : .pwd, // Safe unwrap and check with isEmpty
+            authType: (selectedProfileID ?? "").isEmpty ? .krb : .pwd,
             mountStatus: .unmounted,
             mountPoint: mountPoint,
-            managed: false, // User-added shares are not managed
-            authProfileID: (selectedProfileID ?? "").isEmpty ? nil : selectedProfileID // Safe unwrap before use
+            managed: false,
+            authProfileID: (selectedProfileID ?? "").isEmpty ? nil : selectedProfileID,
+            autoMount: autoMount
         )
         
         do {
@@ -365,6 +375,7 @@ struct AddShareView: View {
 
             updatedShare.networkShare = networkShare
             updatedShare.mountPoint = mountPointName.isEmpty ? nil : mountPointName
+            updatedShare.autoMount = autoMount
 
             // Check if mount point changed and share is currently mounted
             let needsRemount = oldMountPoint != updatedShare.effectiveMountPoint && originalShare.mountStatus == .mounted

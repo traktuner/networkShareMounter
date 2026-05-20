@@ -180,6 +180,10 @@ struct Defaults {
 
     /// Optional Kerberos realm override in an MDM share dict (used with externalKerberosManagement)
     static let shareKerberosRealm = "kerberosRealm"
+
+    /// Per-share flag: when false the share is shown in the menu but never mounted automatically.
+    /// The user can still mount it manually by clicking the menu item. Default: true.
+    static let autoMount = "autoMount"
     
     /// Legacy key for user-defined shares
     static let customSharesKey = "customNetworkShares"

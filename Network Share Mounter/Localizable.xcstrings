@@ -4492,6 +4492,9 @@
         }
       }
     },
+    "Mount automatically" : {
+
+    },
     "Mount failed — macOS 26.4 bug causes NetAuthSysAgent to crash for paths outside /Volumes" : {
       "comment" : "macOS 26.4 bug: NetAuthSysAgent crashes (NSInvalidArgumentException) when mounting outside /Volumes (rc=-6600)",
       "localizations" : {

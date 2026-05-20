@@ -363,6 +363,11 @@ actor ShareManager {
             Logger.shareManager.info("🔑 Share \(shareRectified, privacy: .public) uses external Kerberos management")
         }
 
+        let autoMount = shareElement[Defaults.autoMount]?.lowercased() != "false"
+        if !autoMount {
+            Logger.shareManager.info("⏸️ Share \(shareRectified, privacy: .public) has autoMount=false — will not mount automatically")
+        }
+
         // Create and return new Share object with configured parameters
         let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
@@ -371,7 +376,8 @@ actor ShareManager {
                                          password: password,
                                          mountPoint: shareElement[Defaults.mountPoint]?.trim(),
                                          managed: true,
-                                         externalKerberosManagement: externalKerberos)
+                                         externalKerberosManagement: externalKerberos,
+                                         autoMount: autoMount)
         return(newShare)
     }
     
@@ -417,6 +423,8 @@ actor ShareManager {
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
         let mountPoint = shareElement[Defaults.mountPoint]?.trim()
 
+        let autoMount = shareElement[Defaults.autoMount]?.lowercased() != "false"
+
         let newShare = Share.createShare(
             networkShare: shareUrlString,
             authType: shareAuthType,
@@ -426,7 +434,8 @@ actor ShareManager {
             mountPoint: mountPoint,
             managed: false,
             shareDisplayName: shareElement[Defaults.shareDisplayNameKey]?.trim(),
-            authProfileID: shareElement[Defaults.authProfileID]?.trim()
+            authProfileID: shareElement[Defaults.authProfileID]?.trim(),
+            autoMount: autoMount
         )
         return(newShare)
     }
@@ -710,6 +719,9 @@ actor ShareManager {
                 }
                 if let authProfileID = share.authProfileID {
                     shareConfig[Defaults.authProfileID] = authProfileID
+                }
+                if !share.autoMount {
+                    shareConfig[Defaults.autoMount] = "false"
                 }
                 userDefaultsConfigs.append(shareConfig)
             }
