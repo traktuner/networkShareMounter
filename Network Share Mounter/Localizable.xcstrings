@@ -2822,7 +2822,44 @@
       }
     },
     "External" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "External"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Externo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Externe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esterno"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extern"
+          }
+        }
+      }
     },
     "Failed to collect logs: %@" : {
       "comment" : "Log collection failure; %@ is the error description",
@@ -3897,6 +3934,12 @@
             "value" : "Initialisiere..."
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initializing…"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4208,7 +4251,44 @@
       }
     },
     "Kerberos is managed externally (AD binding / Jamf Connect / SSO Extension)" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos wird extern verwaltet (AD-Bindung / Jamf Connect / SSO-Erweiterung)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos is managed externally (AD binding / Jamf Connect / SSO Extension)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos se gestiona externamente (vinculación AD / Jamf Connect / Extensión SSO)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos est géré de manière externe (liaison AD / Jamf Connect / Extension SSO)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos è gestito esternamente (binding AD / Jamf Connect / Estensione SSO)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kerberos wordt extern beheerd (AD-binding / Jamf Connect / SSO-extensie)"
+          }
+        }
+      }
     },
     "Kerberos Realm" : {
       "localizations" : {
@@ -4493,7 +4573,38 @@
       }
     },
     "Mount automatically" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch einhängen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montar automáticamente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monter automatiquement"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montare automaticamente"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch koppelen"
+          }
+        }
+      }
     },
     "Mount failed — macOS 26.4 bug causes NetAuthSysAgent to crash for paths outside /Volumes" : {
       "comment" : "macOS 26.4 bug: NetAuthSysAgent crashes (NSInvalidArgumentException) when mounting outside /Volumes (rc=-6600)",
@@ -6930,47 +7041,6 @@
         }
       }
     },
-    "Send debug logs to support" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Debug-Logs an Support senden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send debug logs to support"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviar registros de depuración al soporte"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoyer les journaux de débogage au support"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invia log di debug al supporto"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Debug-logs naar ondersteuning sturen"
-          }
-        }
-      }
-    },
     "Send to support" : {
       "localizations" : {
         "de" : {
@@ -7007,47 +7077,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Naar ondersteuning sturen"
-          }
-        }
-      }
-    },
-    "Sending logs..." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sende Logs..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sending logs..."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviando registros..."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoi des journaux..."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invio dei log in corso..."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Logs verzenden..."
           }
         }
       }
