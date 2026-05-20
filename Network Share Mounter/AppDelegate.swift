@@ -1166,7 +1166,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         let mountDir = URL(fileURLWithPath: mountpoint).lastPathComponent
                         Logger.app.debug("  Menu: 🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
 
-                        let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: .systemBlue, symbolColor: .white)
+                        let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below.fill", backgroundColor: NSColor.systemBlue.withAlphaComponent(0.75), symbolColor: .white)
                         menuItem = NSMenuItem(title: mountDir,
                                               action: #selector(AppDelegate.openDirectory(_:)),
                                               keyEquivalent: "")
@@ -1174,8 +1174,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         menuItem.image = menuIcon
                     } else {
                         Logger.app.debug("  Menu: 🍰 Adding remote share \(share.networkShare, privacy: .public).")
-                        let menuIcon = createMenuIcon(withIcon: "externaldrive.connected.to.line.below", backgroundColor: .systemGray, symbolColor: .white)
-                        // Use effectiveMountPoint for menu display
+                        let iconName = share.autoMount
+                            ? "externaldrive.connected.to.line.below.fill"
+                            : "externaldrive.connected.to.line.below"
+                        let menuIcon = createMenuIcon(withIcon: iconName, backgroundColor: NSColor.systemGray.withAlphaComponent(0.5), symbolColor: .white)
                         let menuItemTitle = share.effectiveMountPoint
                         menuItem = NSMenuItem(title: menuItemTitle,
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),
@@ -1282,7 +1284,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func createMenuIcon(withIcon: String, backgroundColor: NSColor, symbolColor: NSColor) -> NSImage {
-        let symbolImage = NSImage(systemSymbolName: "externaldrive.connected.to.line.below.fill", accessibilityDescription: nil)!
+        let symbolImage = NSImage(systemSymbolName: withIcon, accessibilityDescription: nil)
+            ?? NSImage(systemSymbolName: "externaldrive.connected.to.line.below.fill", accessibilityDescription: nil)!
         let templateImage = symbolImage.copy() as! NSImage
         templateImage.isTemplate = true
         let symbolConfig = NSImage.SymbolConfiguration(pointSize: 12, weight: .regular)

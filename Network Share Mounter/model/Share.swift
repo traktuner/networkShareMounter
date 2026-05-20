@@ -39,6 +39,9 @@ struct Share: Identifiable {
     /// When true, Kerberos is managed externally (AD binding, Jamf Connect, etc.).
     /// NSM creates a read-only pseudo-profile for UI consistency and skips ticket management.
     var externalKerberosManagement: Bool = false
+    /// When false the share appears in the menu but is never mounted automatically.
+    /// The user can mount it on demand by clicking the menu item. Default: true.
+    var autoMount: Bool = true
     /// Unique identifier (random UUID). Remains stable for the life-time of the Share instance and
     /// is stored persistently when needed (e.g. associated profiles).
     var id: String = UUID().uuidString
@@ -182,7 +185,8 @@ struct Share: Identifiable {
         managed: Bool = true,
         shareDisplayName: String? = nil,
         authProfileID: String? = nil,
-        externalKerberosManagement: Bool = false
+        externalKerberosManagement: Bool = false,
+        autoMount: Bool = true
     ) -> Share {
         // Sanitize mountPoint before creating the share
         let sanitizedMountPoint = sanitizeMountPoint(mountPoint)
@@ -199,6 +203,7 @@ struct Share: Identifiable {
             shareDisplayName: shareDisplayName,
             authProfileID: authProfileID,
             externalKerberosManagement: externalKerberosManagement,
+            autoMount: autoMount,
             id: UUID().uuidString
         )
     }
