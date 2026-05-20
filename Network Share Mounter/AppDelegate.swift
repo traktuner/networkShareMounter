@@ -128,12 +128,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Retains the password expiration / change password dialog window to prevent early deallocation.
     var passwordExpirationWindow: NSWindow?
 
+    /// Retains the credential onboarding window to prevent early deallocation.
+    var credentialOnboardingWindow: NSWindow?
+
+    /// Pending credential onboarding info; non-nil while snooze is active (drives menu reminder item).
+    var pendingCredentialOnboarding: CredentialOnboardingInfo?
+
     /// The UPN of the currently authenticated Kerberos user; set on every successful auth regardless of expiry state.
     var kerberosUserPrincipal: String = ""
 
     /// Set to true after the user chose "Open System Settings" in the Full Disk Access prompt.
     /// Cleared when `applicationDidBecomeActive` fires so the app can retry mounts after FDA is granted.
     var waitingForFullDiskAccess: Bool = false
+
+    /// The pending background update found by Sparkle; nil when no update is waiting.
+    /// Used for gentle reminders: instead of stealing focus, a menu item is shown.
+    var pendingUpdateItem: SUAppcastItem?
     
     /// Initializes the AppDelegate and sets up the auto-updater if enabled.
     ///
@@ -164,7 +174,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             updaterController = SPUStandardUpdaterController(
                 startingUpdater: enableChecks, // Only start updater if checks are enabled
                 updaterDelegate: nil,
-                userDriverDelegate: nil)
+                userDriverDelegate: self)
             
             Logger.app.debug("Sparkle initialized with: checks=\(enableChecks, privacy: .public), auto-update=\(autoUpdate, privacy: .public)")
         } else {
@@ -187,15 +197,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
 #if DEBUG
         Logger.appStatistics.debug("🐛 Debugging app, not reporting anything to sentry server ...")
-#else
-        if prefs.bool(for: .sendDiagnostics) == true {
-            Logger.app.debug("Initializing sentry SDK...")
-            SentrySDK.start { options in
-                options.dsn = Defaults.sentryDSN
-                options.debug = false
-                options.tracesSampleRate = 0.1
-            }
-        }
 #endif
   
         
@@ -451,6 +452,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if let mounter = self.mounter {
                 await mounter.shareManager.checkForUnassignedProfiles()
             }
+
+            // Proactively prompt for credentials if needed (Kerberos realm or MDM password shares without profiles)
+            await checkCredentialOnboarding()
 
             // Check if Mac is bound to Active Directory
             if await isActiveDirectoryBound() {
@@ -741,6 +745,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
             }
         }
+        else if notification.userInfo?["AllProfilesAssigned"] != nil {
+            Task { @MainActor in
+                self.mounter?.setErrorStatus(.noError)
+                if let button = self.statusItem.button {
+                    button.image = NSImage(named: NSImage.Name(MenuImageName.normal.imageName))
+                }
+                await self.constructMenu(withMounter: self.mounter)
+            }
+        }
         else if let days = notification.userInfo?["passwordExpirationWarning"] as? Int {
             let userPrincipal = notification.userInfo?["passwordExpirationUser"] as? String ?? ""
             Logger.app.debug("🔔 Processing passwordExpirationWarning: \(days) days for \(userPrincipal, privacy: .public)")
@@ -887,6 +900,93 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
 
         passwordExpirationWindow = window
+    }
+
+    // MARK: - Credential Onboarding
+
+    /// Evaluates whether the user needs to be prompted for credentials and either shows
+    /// the onboarding dialog or surfaces a gentle menu reminder when the snooze is active.
+    @MainActor
+    private func checkCredentialOnboarding() async {
+        let realm = prefs.string(for: .kerberosRealm)
+        let allShares = await mounter?.shareManager.allShares ?? []
+        let isADBound = mounter?.isActiveDirectoryBound ?? false
+
+        guard let info = AuthProfileManager.shared.credentialOnboardingInfo(
+            realm: realm,
+            allShares: allShares,
+            isADBound: isADBound
+        ) else {
+            pendingCredentialOnboarding = nil
+            return
+        }
+
+        pendingCredentialOnboarding = info
+
+        // If still within the 7-day snooze window, show only the menu reminder
+        let snoozedUntil = UserDefaults.standard.double(forKey: PreferenceKeys.credentialOnboardingSnoozedUntil.rawValue)
+        if snoozedUntil > Date().timeIntervalSince1970 {
+            await constructMenu(withMounter: mounter)
+            return
+        }
+
+        showCredentialOnboardingWindow(info: info)
+    }
+
+    /// Presents the credential onboarding sheet. Retained in `credentialOnboardingWindow` to
+    /// prevent early deallocation.
+    @MainActor
+    private func showCredentialOnboardingWindow(info: CredentialOnboardingInfo) {
+        guard let mounter = mounter else { return }
+
+        let view = CredentialOnboardingView(
+            info: info,
+            mounter: mounter,
+            onComplete: { [weak self] in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    credentialOnboardingWindow?.close()
+                    credentialOnboardingWindow = nil
+                    pendingCredentialOnboarding = nil
+                    UserDefaults.standard.removeObject(forKey: PreferenceKeys.credentialOnboardingSnoozedUntil.rawValue)
+                    await constructMenu(withMounter: self.mounter)
+                    NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+                    NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
+                    Logger.app.info("✅ Credential onboarding completed — triggering mount")
+                }
+            },
+            onSnooze: { [weak self] in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    let snoozedUntil = Date().addingTimeInterval(7 * 24 * 3600).timeIntervalSince1970
+                    UserDefaults.standard.set(snoozedUntil, forKey: PreferenceKeys.credentialOnboardingSnoozedUntil.rawValue)
+                    credentialOnboardingWindow?.close()
+                    credentialOnboardingWindow = nil
+                    await constructMenu(withMounter: self.mounter)
+                    Logger.app.info("🔔 Credential onboarding snoozed for 7 days")
+                }
+            }
+        )
+
+        let controller = NSHostingController(rootView: view)
+        let window = NSWindow(contentViewController: controller)
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.isMovableByWindowBackground = true
+        window.title = NSLocalizedString("Network Credentials", comment: "Credential onboarding window title")
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        credentialOnboardingWindow = window
+    }
+
+    /// Called when the user clicks the "Network credentials required…" menu reminder.
+    /// Clears the snooze and re-triggers the onboarding check so the dialog appears immediately.
+    @objc func showCredentialOnboarding(_ sender: Any) {
+        Task { @MainActor in
+            UserDefaults.standard.removeObject(forKey: PreferenceKeys.credentialOnboardingSnoozedUntil.rawValue)
+            await checkCredentialOnboarding()
+        }
     }
 
     @objc func mountManually(_ sender: Any?) {
@@ -1066,6 +1166,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             changeItem.isEnabled = true
             menu.addItem(changeItem)
             menu.addItem(NSMenuItem.separator())
+        }
+
+        // Gentle update reminder (Sparkle background update found, no focus stealing)
+        if let pendingUpdate = pendingUpdateItem {
+            let updateTitle = String(format: NSLocalizedString("🔔 Update available: Version %@", comment: "Gentle update reminder menu item"), pendingUpdate.displayVersionString)
+            let updateItem = NSMenuItem(title: updateTitle, action: #selector(AppDelegate.showPendingUpdate(_:)), keyEquivalent: "")
+            updateItem.isEnabled = true
+            menu.addItem(updateItem)
+            menu.addItem(NSMenuItem.separator())
+        }
+
+        // Credential onboarding reminder (user tapped "Not Now" but credentials are still missing)
+        if pendingCredentialOnboarding != nil {
+            let snoozedUntil = UserDefaults.standard.double(forKey: PreferenceKeys.credentialOnboardingSnoozedUntil.rawValue)
+            if snoozedUntil > Date().timeIntervalSince1970 {
+                let reminderItem = NSMenuItem(
+                    title: NSLocalizedString("🔑 Network credentials required...", comment: "Credential onboarding menu reminder"),
+                    action: #selector(AppDelegate.showCredentialOnboarding(_:)),
+                    keyEquivalent: ""
+                )
+                reminderItem.isEnabled = true
+                menu.addItem(reminderItem)
+                menu.addItem(NSMenuItem.separator())
+            }
         }
 
         if let mounter = mounter {
@@ -1313,6 +1437,44 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         sender.orderOut(nil)
         return false
+    }
+
+    @objc func showPendingUpdate(_ sender: Any) {
+        updaterController?.checkForUpdates(sender)
+    }
+}
+
+// MARK: - Sparkle Gentle Reminders
+
+extension AppDelegate: SPUStandardUserDriverDelegate {
+    var supportsGentleScheduledUpdateReminders: Bool { true }
+
+    func standardUserDriverShouldHandleShowingScheduledUpdate(_ update: SUAppcastItem, andInImmediateFocus immediateFocus: Bool) -> Bool {
+        // Never steal focus for background update checks — the menu indicator handles it
+        return false
+    }
+
+    func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState) {
+        guard !handleShowingUpdate else { return }
+        // Background update found: store it and surface a gentle reminder in the menu
+        Task { @MainActor in
+            pendingUpdateItem = update
+            await constructMenu(withMounter: mounter)
+        }
+    }
+
+    func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
+        Task { @MainActor in
+            pendingUpdateItem = nil
+            await constructMenu(withMounter: mounter)
+        }
+    }
+
+    func standardUserDriverWillFinishUpdateSession() {
+        Task { @MainActor in
+            pendingUpdateItem = nil
+            await constructMenu(withMounter: mounter)
+        }
     }
 }
 

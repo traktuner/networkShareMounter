@@ -41,6 +41,12 @@
         }
       }
     },
+    "  … and %d more" : {
+      "comment" : "More shares truncation"
+    },
+    "  • %@" : {
+
+    },
     "@%@" : {
       "localizations" : {
         "de" : {
@@ -80,6 +86,9 @@
           }
         }
       }
+    },
+    "%d network share(s) requiring a password profile" : {
+      "comment" : "Password shares context"
     },
     "⚠️ Authentication problem..." : {
       "comment" : "Authentication problem",
@@ -285,6 +294,12 @@
           }
         }
       }
+    },
+    "🔑 Network credentials required..." : {
+      "comment" : "Credential onboarding menu reminder"
+    },
+    "🔔 Update available: Version %@" : {
+      "comment" : "Gentle update reminder menu item"
     },
     "🔴 Password has expired..." : {
       "comment" : "Password expired menu item",
@@ -2098,6 +2113,7 @@
       }
     },
     "Credentials" : {
+      "comment" : "Credential onboarding section label",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2698,6 +2714,15 @@
           }
         }
       }
+    },
+    "Enter your network credentials to mount your network shares." : {
+      "comment" : "Credential onboarding subtitle – password only"
+    },
+    "Enter your network credentials to set up Kerberos authentication and mount your network shares." : {
+      "comment" : "Credential onboarding subtitle – both"
+    },
+    "Enter your network credentials to set up Kerberos authentication." : {
+      "comment" : "Credential onboarding subtitle – Kerberos only"
     },
     "Error creating mount directory" : {
       "comment" : "Error creating mount directory",
@@ -4209,6 +4234,9 @@
         }
       }
     },
+    "Kerberos authentication for realm: %@" : {
+      "comment" : "Kerberos realm context"
+    },
     "Kerberos authentication successful" : {
       "comment" : "Kerberos authentication successful",
       "localizations" : {
@@ -4578,6 +4606,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatisch einhängen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mount automatically"
           }
         },
         "es" : {
@@ -5013,6 +5047,12 @@
           }
         }
       }
+    },
+    "Network Credentials" : {
+      "comment" : "Credential onboarding window title"
+    },
+    "Network Credentials Required" : {
+      "comment" : "Credential onboarding title"
     },
     "Network Path:" : {
       "localizations" : {
@@ -5499,6 +5539,9 @@
         }
       }
     },
+    "Not Now" : {
+      "comment" : "Credential onboarding snooze button"
+    },
     "obstructingDirectory" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5745,6 +5788,9 @@
         }
       }
     },
+    "password" : {
+      "comment" : "Password placeholder"
+    },
     "Password" : {
       "localizations" : {
         "de" : {
@@ -5948,6 +5994,9 @@
           }
         }
       }
+    },
+    "Password:" : {
+      "comment" : "Credential onboarding password label"
     },
     "Passwords do not match." : {
       "comment" : "Password mismatch validation message",
@@ -7121,6 +7170,9 @@
         }
       }
     },
+    "Set Up" : {
+      "comment" : "Credential onboarding save button"
+    },
     "Settings" : {
       "localizations" : {
         "de" : {
@@ -8091,6 +8143,9 @@
         }
       }
     },
+    "These credentials will be used for:" : {
+      "comment" : "Credential onboarding usage context header"
+    },
     "This share is centrally managed and cannot be changed." : {
       "localizations" : {
         "de" : {
@@ -8541,6 +8596,7 @@
       }
     },
     "username" : {
+      "comment" : "Username placeholder",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8619,6 +8675,9 @@
           }
         }
       }
+    },
+    "Username:" : {
+      "comment" : "Credential onboarding username label"
     },
     "Version" : {
       "localizations" : {

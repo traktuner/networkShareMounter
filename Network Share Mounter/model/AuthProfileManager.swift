@@ -25,6 +25,21 @@ enum AuthProfileError: LocalizedError {
     }
 }
 
+// MARK: - CredentialOnboardingInfo
+
+/// Describes the credential gaps detected at app startup.
+/// Passed from `AuthProfileManager` to the onboarding UI.
+struct CredentialOnboardingInfo {
+    /// MDM Kerberos realm that has no configured profile with a username. `nil` if no Kerberos gap.
+    let kerberosRealm: String?
+    /// Pre-filled username suggestion (from Jamf Connect or local Mac account name).
+    let suggestedUsername: String
+    /// MDM password shares that have no assigned AuthProfile.
+    let unassignedPasswordShares: [Share]
+
+    var needsOnboarding: Bool { kerberosRealm != nil || !unassignedPasswordShares.isEmpty }
+}
+
 // MARK: - AuthProfileManager
 
 /// Manages the collection of authentication profiles.
@@ -1091,6 +1106,93 @@ class AuthProfileManager: ObservableObject {
         guard let upn = upn else { return nil }
         let components = upn.split(separator: "@")
         return components.count > 1 ? String(components[1]) : nil
+    }
+
+    // MARK: - Credential Onboarding
+
+    /// Checks whether the user needs to be prompted for network credentials.
+    ///
+    /// Returns a `CredentialOnboardingInfo` describing the gaps, or `nil` when everything is
+    /// already configured (existing profiles, AD binding, or no realm/shares configured).
+    func credentialOnboardingInfo(realm: String?, allShares: [Share], isADBound: Bool) -> CredentialOnboardingInfo? {
+        var krbRealm: String? = nil
+
+        if let realm = realm, !realm.isEmpty, !isADBound {
+            let hasProfile = profiles.contains {
+                $0.useKerberos &&
+                !$0.isExternallyManaged &&
+                ($0.kerberosRealm?.caseInsensitiveCompare(realm) == .orderedSame) &&
+                !($0.username?.isEmpty ?? true)
+            }
+            if !hasProfile {
+                krbRealm = realm
+            }
+        }
+
+        let unassignedPwd = allShares.filter {
+            $0.managed &&
+            $0.authType == .pwd &&
+            ($0.authProfileID == nil || ($0.authProfileID?.isEmpty ?? false))
+        }
+
+        guard krbRealm != nil || !unassignedPwd.isEmpty else { return nil }
+
+        let suggestedUsername = jamfConnectUsername() ?? NSUserName()
+        return CredentialOnboardingInfo(
+            kerberosRealm: krbRealm,
+            suggestedUsername: suggestedUsername,
+            unassignedPasswordShares: unassignedPwd
+        )
+    }
+
+    /// Creates the necessary AuthProfiles from onboarding input and links MDM password shares.
+    func createOnboardingProfiles(
+        username: String,
+        password: String,
+        info: CredentialOnboardingInfo,
+        shareManager: ShareManager
+    ) async throws {
+        // Kerberos profile
+        if let realm = info.kerberosRealm {
+            let upn = username.contains("@") ? username : "\(username)@\(realm)"
+            let krbProfile = AuthProfile(
+                displayName: "Kerberos (\(realm))",
+                username: upn,
+                useKerberos: true,
+                kerberosRealm: realm
+            )
+            try await addProfile(krbProfile, password: password)
+            Logger.dataModel.info("✅ Created Kerberos onboarding profile for realm \(realm, privacy: .public)")
+        }
+
+        // Password profile (shared by all unassigned MDM password shares)
+        if !info.unassignedPasswordShares.isEmpty {
+            let shareURLs = info.unassignedPasswordShares.map { $0.networkShare }
+            var pwdProfile = AuthProfile(
+                displayName: username,
+                username: username,
+                useKerberos: false
+            )
+            pwdProfile.associatedNetworkShares = shareURLs
+            try await addProfile(pwdProfile, password: password)
+
+            // Update in-memory authProfileID for each share
+            if let created = profiles.last(where: { !$0.useKerberos && $0.username == username }) {
+                for share in info.unassignedPasswordShares {
+                    await shareManager.setAuthProfile(created.id, forShareWithURL: share.networkShare)
+                }
+            }
+            Logger.dataModel.info("✅ Created Password onboarding profile for \(info.unassignedPasswordShares.count, privacy: .public) shares")
+        }
+    }
+
+    /// Reads the Jamf Connect state plist to find a pre-configured short username.
+    private func jamfConnectUsername() -> String? {
+        let plistURL = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Preferences/com.jamf.connect.state.plist")
+        guard let dict = NSDictionary(contentsOf: plistURL) else { return nil }
+        return (dict["CustomShortName"] as? String ?? dict["UserShortName"] as? String)
+            .flatMap { $0.isEmpty ? nil : $0 }
     }
 
     // MARK: - Share Migration

@@ -139,6 +139,10 @@ enum PreferenceKeys: String, CaseIterable {
     /// Whether the initial autostart setup has been completed
     case hasCompletedInitialAutostartSetup = "hasCompletedInitialAutostartSetup"
 
+    /// Unix timestamp until which the credential onboarding dialog is snoozed (Double / TimeInterval).
+    /// Zero or absent means "not snoozed". Set when the user taps "Not Now".
+    case credentialOnboardingSnoozedUntil = "credentialOnboardingSnoozedUntil"
+
     /// Whether auto-updater is enabled.
     /// Since NSM 4 this is a legacy value and is essentially serving as an inverted alias for disableAutoUpdateFramework
     case enableAutoUpdater = "enableAutoUpdater"

@@ -140,13 +140,18 @@ actor ShareManager {
         }
     }
 
-    /// Checks for shares without assigned profiles and sends notification if any are found
-    func checkForUnassignedProfiles() {
+    /// Checks for shares without assigned profiles and sends notification if any are found.
+    /// When `notifyWhenAllAssigned` is true, also posts a notification if all profiles are assigned
+    /// (used after UI profile creation to clear stale menu warnings).
+    func checkForUnassignedProfiles(notifyWhenAllAssigned: Bool = false) {
         let unassignedShares = _shares.filter { share in
             // Skip shares whose Kerberos is managed externally — they have a pseudo-profile
             guard !share.externalKerberosManagement else { return false }
-            // Only check shares that require authentication
-            return (share.authType == .krb || share.authType == .pwd) && share.authProfileID == nil
+            // Only check shares that require authentication.
+            // Also catch shares with stale authProfileIDs that were already detected as unassigned
+            // during a previous mount attempt (mountStatus == .unassignedProfile).
+            guard share.authType == .krb || share.authType == .pwd else { return false }
+            return share.authProfileID == nil || share.mountStatus == .unassignedProfile
         }
 
         if !unassignedShares.isEmpty {
@@ -155,6 +160,9 @@ actor ShareManager {
                 Logger.shareManager.debug("   - \(share.networkShare, privacy: .public)")
             }
             notifyUnassignedProfilesDetected()
+        } else if notifyWhenAllAssigned {
+            Logger.shareManager.info("✅ All shares have assigned profiles")
+            notifyAllProfilesAssigned()
         }
     }
 
@@ -165,6 +173,17 @@ actor ShareManager {
                 name: .nsmNotification,
                 object: nil,
                 userInfo: ["UnassignedProfiles": MounterError.unassignedProfile]
+            )
+        }
+    }
+
+    /// Sends notification to AppDelegate that all profiles are now assigned (clears stale warnings)
+    private func notifyAllProfilesAssigned() {
+        Task { @MainActor in
+            NotificationCenter.default.post(
+                name: .nsmNotification,
+                object: nil,
+                userInfo: ["AllProfilesAssigned": true]
             )
         }
     }
@@ -735,6 +754,18 @@ actor ShareManager {
         // synchronize() is deprecated and unnecessary
     }
     
+    /// Sets the authProfileID for a share (by URL) and resets an unassigned-profile status.
+    /// Used by the credential onboarding flow after new profiles are created.
+    func setAuthProfile(_ profileID: String, forShareWithURL shareURL: String) {
+        guard let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) else { return }
+        _shares[index].authProfileID = profileID
+        if _shares[index].mountStatus == .unassignedProfile {
+            _shares[index].mountStatus = .unmounted
+        }
+        saveModifiedShareConfigs()
+        Logger.shareManager.info("🔗 Onboarding: assigned profile \(profileID, privacy: .public) to \(shareURL, privacy: .public)")
+    }
+
     /// Clears a stale authProfileID from a share and persists the change.
     /// Called when resolveCredentials detects a reference to a deleted profile.
     /// After clearing, the share appears as unassigned so the user can re-assign.

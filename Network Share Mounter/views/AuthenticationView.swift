@@ -259,6 +259,10 @@ struct AuthenticationView: View {
                         do {
                             try await profileManager.addProfile(newProfile, password: password)
                             selectedProfileID = newProfile.id
+                            for shareURL in newProfile.associatedNetworkShares ?? [] {
+                                await mounter.shareManager.setAuthProfile(newProfile.id, forShareWithURL: shareURL)
+                            }
+                            await mounter.shareManager.checkForUnassignedProfiles(notifyWhenAllAssigned: true)
                             logger.info("Successfully added profile '\(newProfile.displayName)'.")
                         } catch {
                             logger.error("Failed to add profile '\(newProfile.displayName)': \(error.localizedDescription)")
@@ -281,6 +285,10 @@ struct AuthenticationView: View {
                                 if let pwd = password, !pwd.isEmpty {
                                     try await profileManager.savePassword(for: updatedProfile, password: pwd)
                                 }
+                                for shareURL in updatedProfile.associatedNetworkShares ?? [] {
+                                    await mounter.shareManager.setAuthProfile(updatedProfile.id, forShareWithURL: shareURL)
+                                }
+                                await mounter.shareManager.checkForUnassignedProfiles(notifyWhenAllAssigned: true)
                                 // Ensure UI updates happen on the main thread
                                 await MainActor.run {
                                     // Force a refresh of the selected profile
