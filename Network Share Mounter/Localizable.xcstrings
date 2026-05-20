@@ -4580,6 +4580,12 @@
             "value" : "Automatisch einhängen"
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mount automatically"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
