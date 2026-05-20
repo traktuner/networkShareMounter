@@ -859,6 +859,11 @@ class Mounter: ObservableObject {
         case MounterError.unassignedProfile:
             Logger.mounter.debug("❓ No auth profile assigned for share: \(share.networkShare, privacy: .public)")
             await updateShare(mountStatus: .unassignedProfile, for: share)
+            NotificationCenter.default.post(
+                name: .nsmNotification,
+                object: nil,
+                userInfo: ["UnassignedProfiles": MounterError.unassignedProfile]
+            )
         case MounterError.obstructingDirectory:
             Logger.mounter.debug("🚫 Obstructing directory prevented mount: \(share.networkShare, privacy: .public)")
             await updateShare(mountStatus: .obstructingDirectory, for: share)
@@ -1644,6 +1649,14 @@ class Mounter: ObservableObject {
                 Logger.mounter.error("❌ Failed to retrieve password for AuthProfile \(authProfile.displayName): \(error.localizedDescription)")
                 throw MounterError.authenticationError
             }
+        }
+
+        // For password shares without any credentials or profile: skip the mount immediately.
+        // Attempting a network mount with nil credentials just produces a generic auth error,
+        // which would mask the real cause (no profile assigned).
+        if share.authType == .pwd && share.username == nil {
+            Logger.mounter.warning("⚠️ Password share '\(share.networkShare, privacy: .public)' has no profile and no legacy credentials — skipping mount")
+            throw MounterError.unassignedProfile
         }
 
         // Fallback: Use legacy username/password from share (backward compatibility)
