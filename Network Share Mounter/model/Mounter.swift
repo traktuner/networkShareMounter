@@ -729,6 +729,12 @@ class Mounter: ObservableObject {
         for share in sharesToMount {
             Logger.mounter.debug("--- [Sequential Mount] Processing share: \(share.networkShare, privacy: .public) ---")
 
+            // Skip shares with autoMount=false unless the user explicitly triggered the mount
+            if !share.autoMount && !userTriggered {
+                Logger.mounter.info("⏸️ Skipping share with autoMount=false: \(share.networkShare, privacy: .public)")
+                continue
+            }
+
             // Early check: Skip Kerberos shares without valid tickets to avoid 60s timeout
             // EXCEPT when Mac is AD-bound (system Kerberos tickets are used automatically)
             if share.authType == .krb && !isActiveDirectoryBound {
@@ -814,7 +820,7 @@ class Mounter: ObservableObject {
     ///   - error: The error encountered during mounting.
     ///   - share: The share that failed to mount.
     private func handleMountError(_ error: Error, for share: Share) async {
-        if share.authType == .krb && isAuthRelatedError(error) {
+        if share.authType == .krb && !share.externalKerberosManagement && isAuthRelatedError(error) {
             Logger.mounter.info("🔄 Kerberos auth error detected for \(share.networkShare, privacy: .public) - triggering retry")
             NotificationCenter.default.post(
                 name: Defaults.nsmKerberosAuthRetryNeeded,

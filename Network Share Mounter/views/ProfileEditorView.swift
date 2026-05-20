@@ -210,7 +210,7 @@ struct ProfileEditorView: View {
                     } else {
                         TextField("Username", text: $username)
                             .textFieldStyle(.roundedBorder)
-                            .onChange(of: username) { newValue in detectUPNAndConfigureKerberos(newValue) }
+                            .onChange(of: username) { newValue in parseUsernameInput(newValue) }
                     }
                 }
                 
@@ -420,7 +420,7 @@ struct ProfileEditorView: View {
     }
     
     // Detect UPN-like input to split username/realm, but do not auto-enable Kerberos.
-    private func detectUPNAndConfigureKerberos(_ usernameInput: String) {
+    private func parseUsernameInput(_ usernameInput: String) {
         guard usernameInput.contains("@") else {
             if usernamePart != usernameInput {
                 usernamePart = usernameInput
