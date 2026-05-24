@@ -270,9 +270,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 let canChangeAutostart = self.prefs.bool(for: .canChangeAutostart)
                 let currentStatus = service.status
 
-                if !canChangeAutostart {
-                    // Scenario 1: MDM enforces autostart on EVERY launch (not changeable by user)
-                    Logger.app.info("🔧 MDM autostart enforced (canChangeAutostart=false): \(mdmAutostart), current system: \(String(describing: currentStatus), privacy: .public)")
+                // Enforce on every launch when the autostart key itself is locked by MDM,
+                // or when canChangeAutostart=false is locked (admin prohibits user from changing it).
+                // canChangeAutostart alone only controls the UI toggle visibility.
+                let shouldEnforceEveryLaunch = defaults.objectIsForced(forKey: PreferenceKeys.autostart.rawValue)
+                    || (defaults.objectIsForced(forKey: PreferenceKeys.canChangeAutostart.rawValue) && !canChangeAutostart)
+
+                if shouldEnforceEveryLaunch {
+                    // Scenario 1: MDM enforces autostart on EVERY launch
+                    Logger.app.info("🔧 MDM autostart enforced: \(mdmAutostart), current system: \(String(describing: currentStatus), privacy: .public)")
 
                     let needsSync = (mdmAutostart && currentStatus != .enabled) || (!mdmAutostart && currentStatus == .enabled)
 
