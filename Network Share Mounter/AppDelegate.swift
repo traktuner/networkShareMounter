@@ -814,6 +814,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// - If `passwordChangeURL` is set via MDM → "Change Password" opens that URL.
     /// - Otherwise → "Change Password" opens an in-app kpasswd sheet.
     @objc func showPasswordExpirationWindow(_ sender: Any? = nil) {
+        if let existing = passwordExpirationWindow, existing.isVisible {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
         guard let days = passwordExpirationDaysRemaining else { return }
 
         let changeURL: URL?

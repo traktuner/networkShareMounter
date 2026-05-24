@@ -46,6 +46,10 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Kerberos realm for authentication
     case kerberosRealm = "kerberosRealm"
+
+    /// Optional display name for the Kerberos authentication profile (MDM-configurable).
+    /// If not set, the realm name is used as the profile display name.
+    case kerberosProfileDisplayName = "kerberosProfileDisplayName"
     
     /// Whether LDAP queries should be anonymous
     case ldapAnonymous = "LDAPAnonymous"

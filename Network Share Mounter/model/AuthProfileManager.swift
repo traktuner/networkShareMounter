@@ -1155,14 +1155,24 @@ class AuthProfileManager: ObservableObject {
         // Kerberos profile
         if let realm = info.kerberosRealm {
             let upn = username.contains("@") ? username : "\(username)@\(realm)"
+            let profileName = UserDefaults.standard.string(forKey: PreferenceKeys.kerberosProfileDisplayName.rawValue)
+                .flatMap { $0.isEmpty ? nil : $0 } ?? realm
             let krbProfile = AuthProfile(
-                displayName: "Kerberos (\(realm))",
+                displayName: profileName,
                 username: upn,
                 useKerberos: true,
                 kerberosRealm: realm
             )
             try await addProfile(krbProfile, password: password)
-            Logger.dataModel.info("✅ Created Kerberos onboarding profile for realm \(realm, privacy: .public)")
+            Logger.dataModel.info("✅ Created Kerberos onboarding profile '\(profileName, privacy: .public)' for realm \(realm, privacy: .public)")
+
+            // Auto-assign all unassigned Kerberos shares to the new profile
+            let allShares = await shareManager.allShares
+            for share in allShares where share.authType == .krb && share.authProfileID == nil {
+                if let profileID = autoAssignKerberosProfile(shareURL: share.networkShare, username: share.username, kerberosRealm: realm) {
+                    await shareManager.setAuthProfile(profileID, forShareWithURL: share.networkShare)
+                }
+            }
         }
 
         // Password profile (shared by all unassigned MDM password shares)
