@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Debug log collection now includes system-level SMB and authentication agent logs (requires Full Disk Access), making support diagnosis significantly faster
 
 ### Fixed
+- Fixed: `autostart` deployed as a locked MDM key was only applied on first launch and then ignored — it is now enforced on every app launch as intended
 - Fixed handling of wrong `AuthType` String value:
    - In older docs we documented the string value "password" for the username/password authentication stored in AuthType, but the actual raw value in code is "pwd".
    - To keep backward compatibility (and avoid crashes/decoding failures), we map the legacy value "password" to `.pwd`
