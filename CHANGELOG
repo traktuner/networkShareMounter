@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
    - Menu bar countdown item showing days remaining (aligned with Apple Kerberos SSO Extension and Jamf Connect behaviour)
    - Automatic once-per-day dialog within the notification threshold
    - Respects the Active Directory "password never expires" account flag (UAC 0x10000)
+- New MDM key `kerberosProfileDisplayName`: sets the display name of the automatically created Kerberos authentication profile. If not set, the realm name (e.g. `INT.MOZ.AC.AT`) is used as the profile name
 - Optional `allowPasswordChange` MDM key (default: `false`): when enabled, a permanent "Change Password…" item is shown in the menu bar at all times — transforms into the standard expiry countdown when the threshold is reached
 - Debug log collection now includes system-level SMB and authentication agent logs (requires Full Disk Access), making support diagnosis significantly faster
 
