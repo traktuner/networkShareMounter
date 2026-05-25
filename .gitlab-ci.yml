@@ -195,12 +195,9 @@ pages:
 
     - git submodule update --init
     - |
-      if [[ "$CI_COMMIT_TAG" =~ ^(release|beta)- ]]; then
-        export SPARKLE_SUFFIX=$(echo "$CI_COMMIT_TAG" | grep -o '^[a-z]*')
+      if [[ "$CI_COMMIT_TAG" =~ ^release- ]]; then
         bundle exec fastlane sparkle
-      fi
-    - |
-      if [[ "$CI_COMMIT_TAG" =~ ^website- ]]; then
+      else
         curl -f -s -o nsm-website/static/nsm-appcast https://www.nsm.faumac.rrze.de/nsm-appcast || true
       fi
 
