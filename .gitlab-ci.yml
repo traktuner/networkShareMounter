@@ -186,13 +186,13 @@ pages:
     - fastlane
     - xcode
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^release-/' 
-    # - if: '$CI_COMMIT_TAG =~ /^beta-/'
+    - if: '$CI_COMMIT_TAG =~ /^release-/'
+    - if: '$CI_COMMIT_TAG =~ /^beta-/'
     - if: '$CI_COMMIT_TAG =~ /^website-/'
   script:
     - if ! command -v hugo &> /dev/null; then brew install hugo; fi
     - if ! command -v jq &> /dev/null; then brew install jq; fi
-    
+
     - git submodule update --init
     - |
       if [[ "$CI_COMMIT_TAG" =~ ^(release|beta)- ]]; then
@@ -203,15 +203,47 @@ pages:
       if [[ "$CI_COMMIT_TAG" =~ ^website- ]]; then
         curl -f -s -o nsm-website/static/nsm-appcast https://www.nsm.faumac.rrze.de/nsm-appcast || true
       fi
-    
-    - export HUGO_PARAMS_APPVERSION="$APP_VERSION"
-    - export HUGO_PARAMS_DOWNLOADURL="${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.dmg"
+
+    # Query GitLab Releases API to find the latest stable and beta releases
+    - RELEASES=$(curl -s --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases?per_page=50")
+    - LATEST_RELEASE=$(echo "$RELEASES" | jq '[.[] | select(.tag_name | startswith("release-"))][0]')
+    - STABLE_VERSION=$(echo "$LATEST_RELEASE" | jq -r '.tag_name' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')
+    - STABLE_DMG_URL=$(echo "$LATEST_RELEASE" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".dmg"))) | .[0].url // ""')
+    - STABLE_PKG_URL=$(echo "$LATEST_RELEASE" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".pkg"))) | .[0].url // ""')
+    - export HUGO_PARAMS_APPVERSION="${STABLE_VERSION:-$APP_VERSION}"
+    - export HUGO_PARAMS_DOWNLOADURL="${STABLE_DMG_URL:-${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.dmg}"
+    - export HUGO_PARAMS_DOWNLOADPKGURL="${STABLE_PKG_URL:-${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.pkg}"
+
+    # Generate auto_beta.json: include beta only when it is newer than the latest stable release
+    - LATEST_RELEASE_DATE=$(echo "$LATEST_RELEASE" | jq -r '.released_at // "1970-01-01T00:00:00Z"')
+    - LATEST_BETA=$(echo "$RELEASES" | jq '[.[] | select(.tag_name | startswith("beta-"))][0]')
+    - LATEST_BETA_DATE=$(echo "$LATEST_BETA" | jq -r '.released_at // empty')
+    - |
+      if [[ -n "$LATEST_BETA_DATE" && "$LATEST_BETA_DATE" > "$LATEST_RELEASE_DATE" ]]; then
+        BETA_VERSION=$(echo "$LATEST_BETA" | jq -r '.tag_name' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*.*')
+        BETA_DATE=$(echo "$LATEST_BETA" | jq -r '.released_at | split("T")[0]')
+        BETA_DESC=$(echo "$LATEST_BETA" | jq -r '.description // ""')
+        BETA_DMG_URL=$(echo "$LATEST_BETA" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".dmg"))) | .[0].url // ""')
+        BETA_PKG_URL=$(echo "$LATEST_BETA" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".pkg"))) | .[0].url // ""')
+        jq -n \
+          --arg version "$BETA_VERSION" \
+          --arg date "$BETA_DATE" \
+          --arg description "$BETA_DESC" \
+          --arg dmg_url "$BETA_DMG_URL" \
+          --arg pkg_url "$BETA_PKG_URL" \
+          '[{"version":$version,"date":$date,"description":$description,"dmg_url":$dmg_url,"pkg_url":$pkg_url}]' \
+          > nsm-website/data/auto_beta.json
+        echo "Beta $BETA_VERSION is newer than stable $STABLE_VERSION — beta card will be shown"
+      else
+        echo '[]' > nsm-website/data/auto_beta.json
+        echo "No active beta newer than stable release — beta card hidden"
+      fi
 
     - ruby scripts/extract_changelog.rb --all --json > nsm-website/data/auto_changelog.json
-    
+
     - cd nsm-website
     - hugo --minify --baseURL "https://nsm.faumac.de/"
-    
+
     - mv public ../public
     - (rsync -av ../public/ unrz06wm@kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.nsm.faumac.rrze.de/websource/)
   artifacts:

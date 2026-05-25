@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/schema#",
     "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
     "description": "Jamf Manifest for Network Share Mounter v4",
-    "__version": "4.0.4",
+    "__version": "4.1.0",
     "__feedback": "rrze-mac@fau.de",
     "type": "object",
     "options": {
@@ -90,6 +90,22 @@
                         "title": "Kerberos Realm override (Optional)",
                         "description": "Optional: Override the Kerberos realm for this specific share. Used together with externalKerberosManagement to identify which external pseudo-profile to assign. Leave blank to use the global kerberosRealm setting.",
                         "type": "string"
+                    },
+                    "autoMount": {
+                        "title": "Mount automatically (Optional)",
+                        "description": "Per-share flag. When set to 'false', the share is shown in the menu but is never mounted automatically at startup or on network changes. The user can still mount it manually by clicking the menu item. Default: 'true'.",
+                        "type": "string",
+                        "default": "true",
+                        "options": {
+                            "enum_titles": [
+                                "true (auto-mount)",
+                                "false (manual only)"
+                            ]
+                        },
+                        "enum": [
+                            "true",
+                            "false"
+                        ]
                     }
                 }
             }
@@ -124,13 +140,13 @@
         },
         "autostart": {
             "title": "Enable autostart",
-            "description": "If set to true, the app will be launched automatically on user login.",
+            "description": "When deployed as a LOCKED MDM key, the value is enforced on every app launch. When deployed as an unlocked default, it is applied once on first launch only (user retains control afterwards).",
             "type": "boolean",
             "default": false
         },
         "canChangeAutostart": {
             "title": "Allow autostart changes",
-            "description": "If false, users cannot toggle the autostart setting. The value of 'autostart' is enforced on every launch.",
+            "description": "Controls only the visibility of the autostart toggle in the app's Settings UI — set to false to grey it out. Does NOT affect MDM enforcement. To enforce the autostart state on every launch, deploy 'autostart' as a locked key instead.",
             "type": "boolean",
             "default": true
         },
@@ -149,6 +165,12 @@
         "kerberosRealm": {
             "title": "Kerberos Realm",
             "description": "Kerberos/AD domain for user authentication (e.g. EXAMPLE.COM). Enables automatic AD/Kerberos ticket management and renewal.",
+            "type": "string",
+            "default": ""
+        },
+        "kerberosProfileDisplayName": {
+            "title": "Kerberos profile display name (Optional)",
+            "description": "Optional display name for the Kerberos authentication profile shown in the app's Settings. If not set, the realm name (e.g. EXAMPLE.COM) is used. Useful when a friendly name like 'Corporate Network' is preferred over the technical realm string.",
             "type": "string",
             "default": ""
         },
