@@ -230,18 +230,6 @@
             "type": "boolean",
             "default": true
         },
-        "keyChainService": {
-            "title": "Keychain Service",
-            "description": "Human-readable service name for keychain entries created by this app.",
-            "type": "string",
-            "default": "Network Share Mounter"
-        },
-        "keyChainComment": {
-            "title": "Keychain comment",
-            "description": "User-visible comment attached to keychain entries created by this app.",
-            "type": "string",
-            "default": "Generated and used by Network Share Mounter"
-        },
         "menuAbout": {
             "title": "Menu: About",
             "description": "Show, hide, or disable the 'About' menu item.",
@@ -375,6 +363,25 @@
                 "disabled"
             ]
         },
+        "menuQuit": {
+            "title": "Menu: Quit",
+            "description": "Show, hide, or disable the 'Quit Network Share Mounter' menu item.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuQuit"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
         "networkShares": {
             "title": "Network shares (Deprecated)",
             "description": "⚠️ Deprecated since version 3. Use managedNetworkShares instead. This key will be removed in a future version.",
@@ -389,11 +396,11 @@
                 "title": "Share"
             }
         },
-        "disableAutoUpdateFramework": {
-            "title": "Disable auto-updater framework (Deprecated)",
-            "description": "⚠️ Deprecated. Use enableAutoUpdater instead (inverted logic: disableAutoUpdateFramework=true equals enableAutoUpdater=false).",
+        "enableAutoUpdater": {
+            "title": "Enable auto-updater framework (Deprecated)",
+            "description": "⚠️ Deprecated since NSM 4. Use disableAutoUpdateFramework instead (inverted logic: enableAutoUpdater=true equals disableAutoUpdateFramework=false).",
             "type": "boolean",
-            "default": false
+            "default": true
         }
     }
 }

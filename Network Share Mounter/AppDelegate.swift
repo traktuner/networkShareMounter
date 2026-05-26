@@ -1277,7 +1277,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
         
-        if prefs.bool(for: .enableAutoUpdater) == true && updaterController != nil {
+        if !prefs.bool(for: .disableAutoUpdateFramework) && updaterController != nil {
             if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Check for Updates..."), comment: "Check for Updates"),
                                                 comment: "Check for Updates",
                                                 action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
