@@ -1261,7 +1261,13 @@ class Mounter: ObservableObject {
             throw MounterError.operationNotPermitted
 
         case 2:
-            Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
+            let realm = prefs.string(for: .kerberosRealm) ?? ""
+            let likelyDFS = !realm.isEmpty && url.host?.lowercased() == realm.lowercased()
+            if likelyDFS {
+                Logger.mounter.warning("⚠️ \(url, privacy: .public): rc=2 (ENOENT) — hostname matches kerberosRealm '\(realm, privacy: .public)'. This is likely a domain-based DFS namespace. The DFS referral may have failed (check NetAuthSysAgent logs for 'checkForDfsReferral').")
+            } else {
+                Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
+            }
             removeDirectory(atPath: mountDirectory)
             throw MounterError.doesNotExist
             
