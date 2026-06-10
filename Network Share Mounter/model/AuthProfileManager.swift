@@ -1118,13 +1118,20 @@ class AuthProfileManager: ObservableObject {
         var krbRealm: String? = nil
 
         if let realm = realm, !realm.isEmpty, !isADBound {
+            // Only prompt for Kerberos credentials if at least one share actually relies on
+            // app-managed Kerberos. Shares flagged with externalKerberosManagement get their
+            // tickets from an external tool (Jamf Connect, Apple SSO Extension, AD binding),
+            // so NSM needs no credentials and must not prompt.
+            let needsAppManagedKerberos = allShares.contains {
+                $0.authType == .krb && !$0.externalKerberosManagement
+            }
             let hasProfile = profiles.contains {
                 $0.useKerberos &&
                 !$0.isExternallyManaged &&
                 ($0.kerberosRealm?.caseInsensitiveCompare(realm) == .orderedSame) &&
                 !($0.username?.isEmpty ?? true)
             }
-            if !hasProfile {
+            if needsAppManagedKerberos && !hasProfile {
                 krbRealm = realm
             }
         }
