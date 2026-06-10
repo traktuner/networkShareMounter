@@ -112,21 +112,11 @@ struct ProfileDetailView: View {
     // View for Kerberos Status Indicator and Refresh Button
     private var kerberosStatusView: some View {
         VStack(alignment: .trailing, spacing: 8) {
-             HStack {
-                // Show refresh status if active, otherwise show ticket status
-                if ticketRefreshStatus != .idle {
-                    // Show refresh status
-                    if ticketRefreshStatus == .refreshing {
-                        ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
-                    } else {
-                        Circle()
-                            .fill(ticketRefreshStatus.color)
-                            .frame(width: 10, height: 10)
-                    }
-                    Text(ticketRefreshStatus.displayText)
-                        .foregroundColor(ticketRefreshStatus.color)
-                } else {
-                    // Show normal ticket status
+            // Externally managed profiles only observe the ticket provided by an external tool
+            // (Jamf Connect, Apple SSO Extension, AD binding). NSM cannot renew it, so we show
+            // the status read-only and omit the refresh button.
+            if profile.isExternallyManaged {
+                HStack {
                     if ticketStatus == .unknown {
                         ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
                         Text("Chechking...")
@@ -139,14 +129,48 @@ struct ProfileDetailView: View {
                             .foregroundColor(ticketStatus.color)
                     }
                 }
+                .font(.caption)
+
+                Text("Tickets are managed externally")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            } else {
+                HStack {
+                    // Show refresh status if active, otherwise show ticket status
+                    if ticketRefreshStatus != .idle {
+                        // Show refresh status
+                        if ticketRefreshStatus == .refreshing {
+                            ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
+                        } else {
+                            Circle()
+                                .fill(ticketRefreshStatus.color)
+                                .frame(width: 10, height: 10)
+                        }
+                        Text(ticketRefreshStatus.displayText)
+                            .foregroundColor(ticketRefreshStatus.color)
+                    } else {
+                        // Show normal ticket status
+                        if ticketStatus == .unknown {
+                            ProgressView().scaleEffect(0.5).frame(width: 10, height: 10)
+                            Text("Chechking...")
+                        } else {
+                            Circle()
+                                .fill(ticketStatus.color)
+                                .frame(width: 10, height: 10)
+                                .help(ticketStatus.helpText)
+                            Text(ticketStatus.displayText)
+                                .foregroundColor(ticketStatus.color)
+                        }
+                    }
+                }
+                .font(.caption)
+
+                Button("Refresh kerberos ticket") {
+                    Self.logger.info("Ticket refresh requested for profile \(profile.displayName)")
+                    onRefreshTicket()
+                }
+                .disabled(ticketRefreshStatus == .refreshing) // Disable during refresh
             }
-            .font(.caption)
-            
-            Button("Refresh kerberos ticket") {
-                Self.logger.info("Ticket refresh requested for profile \(profile.displayName)")
-                onRefreshTicket()
-            }
-            .disabled(ticketRefreshStatus == .refreshing) // Disable during refresh
         }
     }
     

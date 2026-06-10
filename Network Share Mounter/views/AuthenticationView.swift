@@ -132,20 +132,35 @@ func checkKerberosTicketStatus(for profile: AuthProfile) async -> TicketStatus {
         return .missing
     }
     
-    guard let username = profile.username, !username.isEmpty,
-          let realm = profile.kerberosRealm, !realm.isEmpty else {
+    guard let realm = profile.kerberosRealm, !realm.isEmpty else {
         return .missing
     }
-    
-    // Construct the principal to check
-    let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
-    let principalToCheck = "\(baseUsername)@\(realm.uppercased())"
-    
+
     do {
         // Check current tickets
         let klistUtil = klistUtil
         let tickets = await klistUtil.returnTickets()
-        
+
+        // For externally managed profiles NSM has no own username/credentials. The ticket is
+        // provided by an external tool (Jamf Connect, Apple SSO Extension, AD binding), so we
+        // simply report whether any valid ticket exists for the realm — NSM only observes it.
+        if profile.isExternallyManaged {
+            guard let matchingTicket = tickets.first(where: { ticket in
+                ticket.principal.uppercased().hasSuffix("@\(realm.uppercased())")
+            }) else {
+                return .missing
+            }
+            return matchingTicket.expires > Date() ? .valid : .expired
+        }
+
+        guard let username = profile.username, !username.isEmpty else {
+            return .missing
+        }
+
+        // Construct the principal to check
+        let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
+        let principalToCheck = "\(baseUsername)@\(realm.uppercased())"
+
         // Find matching ticket
         if let matchingTicket = tickets.first(where: { ticket in
             ticket.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
