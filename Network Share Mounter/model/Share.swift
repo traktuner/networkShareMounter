@@ -56,6 +56,15 @@ struct Share: Identifiable {
         os_unfair_lock_unlock(&lock)
     }
     
+    /// Returns `networkShare` with `%USERNAME%` replaced by `username`.
+    /// When `networkShare` contains no placeholder the URL is returned unchanged.
+    /// Use this wherever the URL is actually needed (mounting, display) instead of
+    /// reading `networkShare` directly, so that the raw template is preserved and the
+    /// correct auth username is always substituted at the point of use.
+    func resolvedNetworkShare(username: String) -> String {
+        networkShare.replacingOccurrences(of: "%USERNAME%", with: username)
+    }
+
     /// updates a share and returns the new instamce
     mutating func updated() -> Share {
         let updatedShare = self

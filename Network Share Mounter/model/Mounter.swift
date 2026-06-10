@@ -1000,13 +1000,36 @@ class Mounter: ObservableObject {
     /// - Parameter share: The share to validate
     /// - Returns: A tuple containing the URL and host
     /// - Throws: MounterError if URL is invalid or host cannot be determined
+    /// Returns the effective username for `%USERNAME%` substitution in a share URL.
+    /// For password profiles: uses the profile's username directly.
+    /// For Kerberos profiles: strips the `@REALM` suffix from the UPN.
+    /// Falls back to `share.username` (legacy) and then to `NSUserName()`.
+    private func effectiveUsernameForSubstitution(in share: Share) async -> String {
+        if let profileID = share.authProfileID {
+            let profiles = await AuthProfileManager.shared.profiles
+            if let profile = profiles.first(where: { $0.id == profileID }),
+               let upn = profile.username, !upn.isEmpty {
+                if profile.useKerberos {
+                    return upn.contains("@")
+                        ? String(upn.split(separator: "@").first ?? Substring(upn))
+                        : upn
+                } else {
+                    return upn
+                }
+            }
+        }
+        return share.username ?? NSUserName()
+    }
+
     private func validateShareURL(_ share: Share) async throws -> (url: URL, host: String) {
-        guard let url = URL(string: share.networkShare) else {
-            Logger.mounter.error("❌ Could not find share for \(share.networkShare, privacy: .public)")
+        let username = await effectiveUsernameForSubstitution(in: share)
+        let resolvedURLString = share.resolvedNetworkShare(username: username)
+        guard let url = URL(string: resolvedURLString) else {
+            Logger.mounter.error("❌ Could not find share for \(resolvedURLString, privacy: .public)")
             throw MounterError.errorOnEncodingShareURL
         }
         guard let host = url.host else {
-            Logger.mounter.error("❌ Could not determine hostname for \(share.networkShare, privacy: .public)")
+            Logger.mounter.error("❌ Could not determine hostname for \(resolvedURLString, privacy: .public)")
             await updateShare(mountStatus: .errorOnMount, for: share)
             throw MounterError.invalidHost
         }
@@ -1563,12 +1586,23 @@ class Mounter: ObservableObject {
     // existing scripts and workflows continue to work. Remove this entire MARK section once Apple
     // ships the fix.
 
-    /// Returns true when the macOS 26.4 /Volumes-only mount restriction applies.
+    /// Returns true when the macOS 26.4 or macOS 26.6 Beta 1 (build 25G5028f /Volumes-only mount restriction applies.
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
-//        return v.majorVersion == 26 && v.minorVersion >= 4
-        return v.majorVersion == 26 && v.minorVersion >= 99
+        // macOS 26.4
+        let isMacOS264x = v.majorVersion == 26 && v.minorVersion == 4
+        // macOS 26.6 Beta 1 regression - has the same bug as macOS 26.4
+        let isSonoma266Beta1 = macOSBuildNumber() == "25G5028f"
+        return isMacOS264x || isSonoma266Beta1
+    }
+
+    private func macOSBuildNumber() -> String? {
+        var size = 0
+        sysctlbyname("kern.osversion", nil, &size, nil, 0)
+        var build = [CChar](repeating: 0, count: size)
+        sysctlbyname("kern.osversion", &build, &size, nil, 0)
+        return String(cString: build)
     }
 
     /// Returns the symlink path for the workaround, derived from the OS-assigned mount name (e.g. "myshare-1")
