@@ -516,12 +516,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             await AccountsManager.shared.initialize()
             Logger.app.debug("✅ Account manager initialized")
             
-            // Create default realm profile if needed (always check on startup)
-            do {
-                try await AuthProfileManager.shared.createDefaultRealmProfileIfNeeded()
-                Logger.app.debug("✅ Default realm profile check completed")
-            } catch {
-                Logger.app.error("❌ Default realm profile creation failed: \(error)")
+            // Create default realm profile if needed (checked on startup).
+            // Skip when credential onboarding is already going to create a real,
+            // credentialed profile for the same realm — otherwise the placeholder
+            // "Standard Kerberos" profile collides with the onboarding profile and
+            // triggers a self-inflicted realm conflict.
+            if pendingCredentialOnboarding?.kerberosRealm == nil {
+                do {
+                    try await AuthProfileManager.shared.createDefaultRealmProfileIfNeeded()
+                    Logger.app.debug("✅ Default realm profile check completed")
+                } catch {
+                    Logger.app.error("❌ Default realm profile creation failed: \(error)")
+                }
+            } else {
+                Logger.app.debug("⏭️ Skipping default realm profile — credential onboarding will create one")
             }
 
             // Check if MDM requires Kerberos setup and auto-open settings if needed

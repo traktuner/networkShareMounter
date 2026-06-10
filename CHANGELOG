@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.1] - 2026-06-10
+
+### Fixed
+- Fixed a regression where Kerberos shares using `externalKerberosManagement` were never mounted because the app skipped them when it found no app-managed Kerberos ticket. Such shares are now mounted directly, letting the external ticket source or macOS handle authentication.
+- Fixed a "Realm conflict" error that could appear right after entering credentials when an MDM-configured `kerberosRealm` was set: the app created an automatic placeholder profile for the realm that then collided with the profile created from the entered credentials. The placeholder is now skipped while credential onboarding is pending.
+
 ## [4.1.0] - 2026-05-19
 
 ### What's new
