@@ -639,8 +639,8 @@ class AuthProfileManager: ObservableObject {
                     userName = NSUserName()
                 }
 
-                // Replace username placeholder
-                let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName ?? "")
+                // Keep raw URL — %USERNAME% resolved at mount/display time via Share.resolvedNetworkShare(username:)
+                let shareRectified = shareUrlString
                 let authType = shareElement[Defaults.authType] ?? AuthType.krb.rawValue
 
                 configurations.append(ShareConfiguration(
@@ -655,7 +655,7 @@ class AuthProfileManager: ObservableObject {
             Logger.dataModel.debug("Processing \(nwShares.count, privacy: .public) legacy MDM shares")
 
             for share in nwShares {
-                let shareRectified = share.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+                let shareRectified = share // %USERNAME% resolved at mount/display time
                 configurations.append(ShareConfiguration(
                     shareURL: shareRectified,
                     username: NSUserName(),
