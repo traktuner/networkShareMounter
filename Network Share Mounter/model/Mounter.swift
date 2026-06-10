@@ -737,7 +737,10 @@ class Mounter: ObservableObject {
 
             // Early check: Skip Kerberos shares without valid tickets to avoid 60s timeout
             // EXCEPT when Mac is AD-bound (system Kerberos tickets are used automatically)
-            if share.authType == .krb && !isActiveDirectoryBound {
+            // or when tickets are managed externally (e.g. AD binding, Jamf Connect, SSO
+            // Extension) — in that case NSM has no own ticket to check and must attempt the
+            // mount so macOS can negotiate authentication itself.
+            if share.authType == .krb && !isActiveDirectoryBound && !share.externalKerberosManagement {
                 var shouldSkip = false
 
                 if let profileID = share.authProfileID {
@@ -951,9 +954,10 @@ class Mounter: ObservableObject {
 
         for share in shares {
             if share.authType == .krb {
-                // If Mac is AD-bound, treat all Kerberos shares as "with tickets"
-                // because system Kerberos tickets are used automatically by macOS
-                if isActiveDirectoryBound {
+                // If Mac is AD-bound or tickets are managed externally, treat all Kerberos
+                // shares as "with tickets" because Kerberos credentials are provided outside
+                // of NSM (system tickets, Jamf Connect, SSO Extension) and used automatically.
+                if isActiveDirectoryBound || share.externalKerberosManagement {
                     kerberosWithTickets.append(share)
                 } else {
                     // Check if this Kerberos share has valid app-managed tickets
