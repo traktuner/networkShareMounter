@@ -60,10 +60,11 @@ struct NetworkSharesView: View {
                     HStack {
                         HStack(spacing: 6) {
                             VStack(alignment: .leading, spacing: 4) {
+                                let resolvedUsername = share.effectiveUsername(from: profileManager.profiles)
                                 // Use effectiveMountPoint for display
-                                Text(share.effectiveMountPoint)
+                                Text(share.resolvedEffectiveMountPoint(username: resolvedUsername))
                                     .font(.headline)
-                                Text(share.networkShare)
+                                Text(share.resolvedNetworkShare(username: resolvedUsername))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }

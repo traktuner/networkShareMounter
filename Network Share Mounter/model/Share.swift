@@ -56,6 +56,25 @@ struct Share: Identifiable {
         os_unfair_lock_unlock(&lock)
     }
     
+    /// Returns the effective authentication username for this share.
+    /// Looks up the assigned profile (if any) and returns its username, stripping the
+    /// `@REALM` suffix for Kerberos profiles. Falls back to `share.username` and then
+    /// to `NSUserName()`. Pass the current profiles snapshot from `AuthProfileManager`.
+    func effectiveUsername(from profiles: [AuthProfile]) -> String {
+        if let profileID = authProfileID,
+           let profile = profiles.first(where: { $0.id == profileID }),
+           let upn = profile.username, !upn.isEmpty {
+            if profile.useKerberos {
+                return upn.contains("@")
+                    ? String(upn.split(separator: "@").first ?? Substring(upn))
+                    : upn
+            } else {
+                return upn
+            }
+        }
+        return username ?? NSUserName()
+    }
+
     /// Returns `networkShare` with `%USERNAME%` replaced by `username`.
     /// When `networkShare` contains no placeholder the URL is returned unchanged.
     /// Use this wherever the URL is actually needed (mounting, display) instead of
@@ -175,11 +194,22 @@ struct Share: Identifiable {
 
     /// Returns the effective mount point name for this share.
     /// Uses mountPoint if set, otherwise auto-generates from networkShare URL.
+    /// Note: when networkShare contains %USERNAME%, this may include the literal placeholder.
+    /// For mounting, use determineMountDirectory (which receives a resolved URL).
+    /// For display, prefer resolvedEffectiveMountPoint(username:).
     var effectiveMountPoint: String {
         if let mountPoint = mountPoint, !mountPoint.isEmpty {
             return mountPoint
         }
         return extractShareName(from: networkShare)
+    }
+
+    /// Like effectiveMountPoint but with %USERNAME% replaced by the given username.
+    func resolvedEffectiveMountPoint(username: String) -> String {
+        if let mountPoint = mountPoint, !mountPoint.isEmpty {
+            return mountPoint
+        }
+        return extractShareName(from: resolvedNetworkShare(username: username))
     }
 
     /// Factory-method that guarantees a **stable, deterministic ID** based on the share URL. This
