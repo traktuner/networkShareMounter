@@ -1302,9 +1302,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let menuShowSharesValue = prefs.string(for: .menuShowShares) ?? ""
             if await !mounter.shareManager.getAllShares().isEmpty {
                 menu.addItem(NSMenuItem.separator())
+                let profilesSnapshot = AuthProfileManager.shared.profiles
                 for share in await mounter.shareManager.allShares {
                     var menuItem: NSMenuItem
-                    
+
                     if let mountpoint = share.actualMountPoint {
                         let mountDir = URL(fileURLWithPath: mountpoint).lastPathComponent
                         Logger.app.debug("  Menu: 🍰 Adding mountpoint \(mountDir, privacy: .public) for \(share.networkShare, privacy: .public) to menu.")
@@ -1321,7 +1322,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                             ? "externaldrive.connected.to.line.below.fill"
                             : "externaldrive.connected.to.line.below"
                         let menuIcon = createMenuIcon(withIcon: iconName, backgroundColor: NSColor.systemGray.withAlphaComponent(0.5), symbolColor: .white)
-                        let menuItemTitle = share.effectiveMountPoint
+                        let menuItemTitle = share.resolvedEffectiveMountPoint(username: share.effectiveUsername(from: profilesSnapshot))
                         menuItem = NSMenuItem(title: menuItemTitle,
                                               action: #selector(AppDelegate.mountSpecificShare(_:)),
                                               keyEquivalent: "")

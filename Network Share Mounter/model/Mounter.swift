@@ -1000,25 +1000,11 @@ class Mounter: ObservableObject {
     /// - Parameter share: The share to validate
     /// - Returns: A tuple containing the URL and host
     /// - Throws: MounterError if URL is invalid or host cannot be determined
-    /// Returns the effective username for `%USERNAME%` substitution in a share URL.
-    /// For password profiles: uses the profile's username directly.
-    /// For Kerberos profiles: strips the `@REALM` suffix from the UPN.
-    /// Falls back to `share.username` (legacy) and then to `NSUserName()`.
+    /// Returns the effective username for `%USERNAME%` substitution.
+    /// Delegates to `Share.effectiveUsername(from:)` after fetching the current profiles snapshot.
     private func effectiveUsernameForSubstitution(in share: Share) async -> String {
-        if let profileID = share.authProfileID {
-            let profiles = await AuthProfileManager.shared.profiles
-            if let profile = profiles.first(where: { $0.id == profileID }),
-               let upn = profile.username, !upn.isEmpty {
-                if profile.useKerberos {
-                    return upn.contains("@")
-                        ? String(upn.split(separator: "@").first ?? Substring(upn))
-                        : upn
-                } else {
-                    return upn
-                }
-            }
-        }
-        return share.username ?? NSUserName()
+        let profiles = await AuthProfileManager.shared.profiles
+        return share.effectiveUsername(from: profiles)
     }
 
     private func validateShareURL(_ share: Share) async throws -> (url: URL, host: String) {
@@ -1079,11 +1065,15 @@ class Mounter: ObservableObject {
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
         Logger.mounter.debug("🤔 Determining mount directory: URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
 
-        // Use effectiveMountPoint in all cases: honours the user-assigned custom name if set,
-        // otherwise falls back to the share name extracted from the URL.
-        // Note: under /Volumes, Finder still displays the server's share name, but all
-        // file-system paths (scripts, apps) use the custom name correctly.
-        let effectiveMountPoint = share.effectiveMountPoint
+        // Use the explicit mountPoint name if set; otherwise derive from the resolved URL.
+        // The resolved URL already has %USERNAME% substituted, so the mount directory
+        // never contains a literal "%USERNAME%" component.
+        let effectiveMountPoint: String
+        if let mountPoint = share.mountPoint, !mountPoint.isEmpty {
+            effectiveMountPoint = mountPoint
+        } else {
+            effectiveMountPoint = extractShareName(from: url.absoluteString)
+        }
         let mountDirectory = basePath + "/" + effectiveMountPoint
         Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
         return mountDirectory
