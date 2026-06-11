@@ -205,6 +205,42 @@ class ActivityController {
             name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name,
             object: nil
         )
+        
+        // NEW: Observe distributed notifications from the App Intents Extension
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(unmountShares),
+            name: .nsmDistributedUnmountTrigger,
+            object: nil
+        )
+        
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(mountSharesWithUserTrigger),
+            name: .nsmDistributedMountTrigger,
+            object: nil
+        )
+        
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(renewKerberosTicket),
+            name: .nsmDistributedRenewKerberosTrigger,
+            object: nil
+        )
+
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(mountSingleShare(_:)),
+            name: .nsmDistributedMountShareTrigger,
+            object: nil
+        )
+
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(unmountSingleShare(_:)),
+            name: .nsmDistributedUnmountShareTrigger,
+            object: nil
+        )
 
         Logger.activityController.debug("All observers successfully registered")
     }
@@ -359,31 +395,38 @@ class ActivityController {
     /// Starts the automatic sign-in process for Kerberos
     ///
     /// Only executes when Kerberos authentication is configured.
-    @objc func processAutomaticSignIn() {
+    ///
+    /// - Parameter notification: Optional notification containing userInfo with forceAuth flag
+    @objc func processAutomaticSignIn(_ notification: Notification? = nil) {
         // Check if a Kerberos realm is configured
         guard let krbRealm = self.prefs.string(for: .kerberosRealm), !krbRealm.isEmpty else {
             Logger.activityController.debug("No Kerberos realm configured, skipping AutomaticSignIn")
             return
         }
-        
-        // Prevent too frequent authentication attempts.
-        let lastAuthAttempt = UserDefaults.standard.object(forKey: "lastKrbAuthAttempt") as? Date ?? Date.distantPast
-        let timeSinceLastAttempt = Date().timeIntervalSince(lastAuthAttempt)
-        
-        // wait at least 30 seconds between authentication attempts
-        guard timeSinceLastAttempt > 30 else {
-            Logger.activityController.debug("Skipping auth attempt - too soon since last attempt (\(timeSinceLastAttempt, privacy: .public)s)")
-            return
+
+        // Extract forceAuth flag from notification userInfo
+        let forceAuth = notification?.userInfo?["forceAuth"] as? Bool ?? false
+
+        // Prevent too frequent authentication attempts (but allow forced auth to bypass this)
+        if !forceAuth {
+            let lastAuthAttempt = UserDefaults.standard.object(forKey: "lastKrbAuthAttempt") as? Date ?? Date.distantPast
+            let timeSinceLastAttempt = Date().timeIntervalSince(lastAuthAttempt)
+
+            // wait at least 30 seconds between authentication attempts
+            guard timeSinceLastAttempt > 30 else {
+                Logger.activityController.debug("Skipping auth attempt - too soon since last attempt (\(timeSinceLastAttempt, privacy: .public)s)")
+                return
+            }
         }
-        
+
         UserDefaults.standard.set(Date(), forKey: "lastKrbAuthAttempt")
-        
+
         Task { @MainActor in
-            Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn")
-            
+            Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn (forceAuth: \(forceAuth, privacy: .public))")
+
             do {
                 Logger.activityController.debug("🔄 Starting automatic sign-in task")
-                await appDelegate?.automaticSignIn.signInAllAccounts()
+                await appDelegate?.automaticSignIn.signInAllAccounts(forceAuth: forceAuth)
                 Logger.activityController.info("✅ Automatic sign-in completed successfully")
             } catch {
                 Logger.activityController.error("❌ Automatic sign-in failed with error: \(error.localizedDescription, privacy: .public)")
@@ -418,6 +461,59 @@ class ActivityController {
         }
         
         _ = userMountTask
+    }
+    
+    /// Renews Kerberos tickets via soft reset
+    ///
+    /// Triggered by the RenewKerberosTicketIntent from Shortcuts/Siri.
+    /// Performs the same soft restart as after system wake.
+    @objc func renewKerberosTicket() {
+        Logger.activityController.info("🎫 Kerberos ticket renewal requested via App Intent")
+        performSoftRestart(reason: "Kerberos ticket renewal via Shortcuts")
+    }
+
+    /// Mounts a single share identified by URL, triggered by MountShareIntent.
+    @objc func mountSingleShare(_ notification: Notification) {
+        guard let mounter = appDelegate?.mounter else {
+            Logger.activityController.error("Single-share mount failed: Mounter not available")
+            return
+        }
+        guard let shareURL = notification.object as? String else {
+            Logger.activityController.error("Single-share mount failed: No share URL in notification")
+            return
+        }
+        Logger.activityController.info("▶︎ Single-share mount requested for: \(shareURL, privacy: .public)")
+        let task = Task { @MainActor in
+            let shares = await mounter.shareManager.allShares
+            guard let share = shares.first(where: { $0.networkShare == shareURL }) else {
+                Logger.activityController.warning("⚠️ Single-share mount: no share found for \(shareURL, privacy: .public)")
+                return
+            }
+            await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
+        }
+        _ = task
+    }
+
+    /// Unmounts a single share identified by URL, triggered by UnmountShareIntent.
+    @objc func unmountSingleShare(_ notification: Notification) {
+        guard let mounter = appDelegate?.mounter else {
+            Logger.activityController.error("Single-share unmount failed: Mounter not available")
+            return
+        }
+        guard let shareURL = notification.object as? String else {
+            Logger.activityController.error("Single-share unmount failed: No share URL in notification")
+            return
+        }
+        Logger.activityController.info("▶︎ Single-share unmount requested for: \(shareURL, privacy: .public)")
+        let task = Task { @MainActor in
+            let shares = await mounter.shareManager.allShares
+            guard let share = shares.first(where: { $0.networkShare == shareURL }) else {
+                Logger.activityController.warning("⚠️ Single-share unmount: no share found for \(shareURL, privacy: .public)")
+                return
+            }
+            await mounter.unmountShare(for: share, userTriggered: true)
+        }
+        _ = task
     }
     
     /// Updates the app menu
@@ -466,6 +562,12 @@ class ActivityController {
 
         UserDefaults.standard.set(Date(), forKey: "lastActivityTimestamp")
 
+        // Daily heartbeat logging
+        if shouldLogDailyHeartbeat() {
+            appDelegate?.logAppVersion(context: "❤️ Daily heartbeat")
+            UserDefaults.standard.set(Date(), forKey: "lastHeartbeatLogDate")
+        }
+
         if !isInStartupPhase {
             NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
         } else {
@@ -508,6 +610,7 @@ class ActivityController {
         }
 
         Logger.activityController.info("🔄 Performing soft restart: \(reason, privacy: .public)")
+        appDelegate?.logAppVersion(context: "🔄 Soft restart (\(reason))")
 
         UserDefaults.standard.removeObject(forKey: "lastKrbAuthAttempt")
         Logger.activityController.debug("🔄 Reset authentication rate limiter")
@@ -583,7 +686,11 @@ class ActivityController {
                 }
             }
 
-            NotificationCenter.default.post(name: Defaults.nsmAuthTriggerNotification, object: nil)
+            NotificationCenter.default.post(
+                name: Defaults.nsmAuthTriggerNotification,
+                object: nil,
+                userInfo: ["forceAuth": true]
+            )
 
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 30_000_000_000)
@@ -603,9 +710,9 @@ class ActivityController {
     }
 
     // MARK: - Helpers for utilizing the cliTask method
-    
+
     /// Executes a CLI command asynchronously with error handling
-    /// 
+    ///
     /// - Parameter command: The command to execute
     /// - Returns: The command output if successful
     /// - Throws: Any errors that occur during command execution
@@ -616,6 +723,22 @@ class ActivityController {
             Logger.activityController.error("Command execution failed: \(command, privacy: .public), error: \(error.localizedDescription, privacy: .public)")
             throw error
         }
+    }
+
+    /// Checks if a daily heartbeat log should be generated
+    ///
+    /// - Returns: true if the last heartbeat was on a different day
+    private func shouldLogDailyHeartbeat() -> Bool {
+        let lastHeartbeat = UserDefaults.standard.object(forKey: "lastHeartbeatLogDate") as? Date
+        guard let lastHeartbeat = lastHeartbeat else {
+            return true
+        }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let lastHeartbeatDay = calendar.startOfDay(for: lastHeartbeat)
+
+        return today > lastHeartbeatDay
     }
 }
 

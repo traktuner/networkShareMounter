@@ -10,6 +10,16 @@ import Foundation
 
 enum MenuImageName: String {
     case normal = "networkShareMounter"
-    case alert = "networkShareMounterMenuYellow"
-    case error = "networkShareMounterMenuRed"
+    case green = "networkShareMounterMenuGreen"
+    case yellow = "networkShareMounterMenuYellow"
+    case red = "networkShareMounterMenuRed"
+    
+    var imageName: String {
+        #if DEBUG
+        // In debug-mode append suffix
+        return self.rawValue + "Debug"
+        #else
+        return self.rawValue
+        #endif
+    }
 }

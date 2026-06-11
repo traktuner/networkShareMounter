@@ -1,0 +1,9 @@
+{
+  "id" : "2b0fe1b7-8a42-4a55-84e4-4b2491dacbfe",
+  "targets" : [
+    {
+      "id" : "1EEFE170-2D83-4C45-A98A-3953C058F083",
+      "name" : "dogeADAuth"
+    }
+  ]
+}

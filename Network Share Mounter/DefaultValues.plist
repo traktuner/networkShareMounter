@@ -16,8 +16,6 @@
 	<string>nsm_logo</string>
 	<key>kerberosRealm</key>
 	<string></string>
-	<key>autostart</key>
-	<false/>
 	<key>canQuit</key>
 	<true/>
 	<key>unmountOnExit</key>
@@ -44,5 +42,11 @@
 	<string>hidden</string>
 	<key>sendDiagnostics</key>
 	<true/>
+	<key>ExpirationCountdownStartDay</key>
+	<integer>14</integer>
+	<key>ExpirationNotificationStartDay</key>
+	<integer>14</integer>
+	<key>allowPasswordChange</key>
+	<false/>
 </dict>
 </plist>

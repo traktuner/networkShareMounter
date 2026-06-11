@@ -12,16 +12,21 @@ stages:
   - build
   - upload
   - release
-
+  - pages
 
 variables:
+  GIT_SUBMODULE_STRATEGY: normal
   LC_ALL: "en_US.UTF-8"
   LANG: "en_US.UTF-8"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/networksharemounter/${CI_COMMIT_TAG}"
   FILE: "NetworkShareMounter"
 
 before_script:
+  - export PATH="$HOME/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+  - echo $PATH
+  - ruby -v
   - cp /Users/autopkg/dev/networkShareMounter/.env.default .
+  - bundle install --path vendor/bundle
   - export APP_VERSION=`echo "$CI_COMMIT_TAG" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'`
 
 test_build:
@@ -29,7 +34,7 @@ test_build:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^test-/'
   script:
-    - fastlane test
+    - bundle exec fastlane test
     - 'echo will do beta upload dmg:  --upload-file build/${FILE}-Beta-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg'
     - 'echo will do beta upload pkg:  --upload-file build/${FILE}-Beta-"$APP_VERSION".pkg ${PACKAGE_REGISTRY_URL}/${FILE}-Beta-${APP_VERSION}.pkg'
     - 'echo will do release upload dmg: --upload-file build/${FILE}-"$APP_VERSION".dmg ${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg'
@@ -51,7 +56,7 @@ alpha build:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^alpha-/'
   script:
-    - fastlane alpha
+    - bundle exec fastlane alpha
   artifacts:
     paths:
       - swiftlint.result.json
@@ -67,7 +72,7 @@ beta build:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - fastlane beta
+    - bundle exec fastlane beta
   artifacts:
     paths:
       - swiftlint.result.json
@@ -83,7 +88,7 @@ release build:
   rules:
   - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - fastlane release
+    - bundle exec fastlane release
   artifacts:
     paths:
       - swiftlint.result.json
@@ -138,7 +143,7 @@ alpha release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^alpha-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".dmg\"}"'
+    - '/opt/homebrew/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Alpha-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Alpha-"$APP_VERSION".dmg\"}"'
   dependencies:
     - alpha build
     - alpha upload
@@ -152,7 +157,8 @@ beta release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^beta-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg\"}"'
+    - (ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt)
+    - '/opt/homebrew/bin/release-cli create --description "current_release_notes.txt" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-Beta-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-Beta-"$APP_VERSION".dmg\"}"'
   dependencies:
     - beta build
     - beta upload
@@ -165,10 +171,70 @@ release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-/'
   script:
-    - '/usr/local/bin/release-cli create --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
+    - (ruby scripts/extract_changelog.rb "$APP_VERSION" > current_release_notes.txt)
+    - '/opt/homebrew/bin/release-cli create --description "current_release_notes.txt" --name "$CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".pkg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".pkg\"}" --assets-link "{\"name\":\"${FILE}-"$APP_VERSION".dmg\",\"url\":\"${PACKAGE_REGISTRY_URL}/${FILE}-"$APP_VERSION".dmg\"}"'
   dependencies:
     - release build
     - release upload
   tags:
     - fastlane
     - xcode
+
+pages:
+  stage: pages
+  tags:
+    - fastlane
+    - xcode
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^release-/'
+    - if: '$CI_COMMIT_TAG =~ /^beta-/'
+    - if: '$CI_COMMIT_TAG =~ /^website-/'
+  script:
+    - if ! command -v hugo &> /dev/null; then brew install hugo; fi
+    - if ! command -v jq &> /dev/null; then brew install jq; fi
+
+    - git submodule update --init
+    - |
+      if [[ "$CI_COMMIT_TAG" =~ ^release- ]]; then
+        bundle exec fastlane sparkle
+      else
+        curl -f -s -o nsm-website/static/nsm-appcast https://www.nsm.faumac.rrze.de/nsm-appcast || true
+      fi
+
+    - |
+      # Query GitLab API: stable release (release- prefix) and beta (beta- prefix)
+      RELEASES=$(curl -s --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases?per_page=50")
+      LATEST_RELEASE=$(echo "$RELEASES" | jq '[.[] | select(.tag_name | startswith("release-"))][0]')
+      STABLE_VERSION=$(echo "$LATEST_RELEASE" | jq -r '.tag_name' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')
+      STABLE_DMG=$(echo "$LATEST_RELEASE" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".dmg"))) | .[0].url // ""')
+      STABLE_PKG=$(echo "$LATEST_RELEASE" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".pkg"))) | .[0].url // ""')
+      export HUGO_PARAMS_APPVERSION="${STABLE_VERSION:-$APP_VERSION}"
+      export HUGO_PARAMS_DOWNLOADURL="${STABLE_DMG:-${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.dmg}"
+      export HUGO_PARAMS_DOWNLOADPKGURL="${STABLE_PKG:-${PACKAGE_REGISTRY_URL}/${FILE}-${APP_VERSION}.pkg}"
+      STABLE_DATE=$(echo "$LATEST_RELEASE" | jq -r '.released_at // "1970-01-01T00:00:00Z"')
+      LATEST_BETA=$(echo "$RELEASES" | jq '[.[] | select(.tag_name | startswith("beta-"))][0]')
+      BETA_DATE_RAW=$(echo "$LATEST_BETA" | jq -r '.released_at // empty')
+      if [[ -n "$BETA_DATE_RAW" && "$BETA_DATE_RAW" > "$STABLE_DATE" ]]; then
+        BETA_VERSION=$(echo "$LATEST_BETA" | jq -r '.tag_name' | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*.*')
+        BETA_DATE=$(echo "$LATEST_BETA" | jq -r '.released_at | split("T")[0]')
+        BETA_DESC=$(echo "$LATEST_BETA" | jq -r '.description // ""')
+        BETA_DMG=$(echo "$LATEST_BETA" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".dmg"))) | .[0].url // ""')
+        BETA_PKG=$(echo "$LATEST_BETA" | jq -r '(.assets.links // []) | map(select(.name | ascii_downcase | endswith(".pkg"))) | .[0].url // ""')
+        jq -n --arg v "$BETA_VERSION" --arg d "$BETA_DATE" --arg desc "$BETA_DESC" --arg dmg "$BETA_DMG" --arg pkg "$BETA_PKG" \
+          '[{"version":$v,"date":$d,"description":$desc,"dmg_url":$dmg,"pkg_url":$pkg}]' > nsm-website/data/auto_beta.json
+        echo "Beta ${BETA_VERSION} newer than stable ${STABLE_VERSION} — beta card shown"
+      else
+        echo '[]' > nsm-website/data/auto_beta.json
+        echo "No active beta newer than stable — beta card hidden"
+      fi
+
+    - ruby scripts/extract_changelog.rb --all --json > nsm-website/data/auto_changelog.json
+
+    - cd nsm-website
+    - hugo --minify --baseURL "https://nsm.faumac.de/"
+
+    - mv public ../public
+    - (rsync -av ../public/ unrz06wm@kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.nsm.faumac.rrze.de/websource/)
+  artifacts:
+    paths:
+      - public

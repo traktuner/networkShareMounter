@@ -25,10 +25,43 @@ actor ShareManager {
     func addShare(_ share: Share) {
         if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
             _shares.append(share)
-            //
+
+            // Persist user-defined shares to UserDefaults immediately
+            if !share.managed {
+                saveModifiedShareConfigs()
+            }
+
             // save password in keychain
             if let password = share.password, let username = share.username {
                 savePasswordToKeychain(for: share.networkShare, username: username, password: password)
+            }
+
+            // Auto-assign Kerberos profile if share doesn't have one
+            if share.authType == .krb && share.authProfileID == nil {
+                if share.externalKerberosManagement {
+                    let realm = prefs.string(for: .kerberosRealm) ?? "EXTERNAL"
+                    Task { await assignExternalKerberosProfileToShare(shareURL: share.networkShare, realm: realm) }
+                } else if let kerberosRealm = prefs.string(for: .kerberosRealm) {
+                    Task {
+                        await assignKerberosProfileToShare(
+                            shareURL: share.networkShare,
+                            username: share.username,
+                            kerberosRealm: kerberosRealm
+                        )
+                    }
+                }
+            }
+
+            // Auto-assign password profile if share doesn't have one
+            if share.authType == .pwd && share.authProfileID == nil {
+                if let username = share.username {
+                    Task {
+                        await assignPasswordProfileToShare(
+                            shareURL: share.networkShare,
+                            username: username
+                        )
+                    }
+                }
             }
         }
     }
@@ -44,11 +77,114 @@ actor ShareManager {
             Logger.shareManager.error("🛑 Cannot create URL from share path: \(shareURL, privacy: .public)")
             return
         }
-        
+
         do {
             try pwm.saveCredential(forShare: url, withUsername: username, andPassword: password)
         } catch {
             Logger.shareManager.error("🛑 Cannot store password for share \(shareURL, privacy: .public) in user's keychain: \(error.localizedDescription)")
+        }
+    }
+
+    /// Assigns a Kerberos profile to a share if one is found
+    /// - Parameters:
+    ///   - shareURL: The network share URL string
+    ///   - username: Optional username for matching
+    ///   - kerberosRealm: The Kerberos realm to match
+    private func assignKerberosProfileToShare(shareURL: String, username: String?, kerberosRealm: String) async {
+        if let profileID = await AuthProfileManager.shared.autoAssignKerberosProfile(
+            shareURL: shareURL,
+            username: username,
+            kerberosRealm: kerberosRealm
+        ) {
+            if let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) {
+                _shares[index].authProfileID = profileID
+                saveModifiedShareConfigs()
+                Logger.shareManager.info("🔗 Updated share with auto-assigned Kerberos profile")
+            }
+        }
+    }
+
+    /// Assigns a password profile to a share if exactly one match is found
+    /// - Parameters:
+    ///   - shareURL: The network share URL string
+    ///   - username: Username for matching (supports UPN format)
+    private func assignPasswordProfileToShare(shareURL: String, username: String) async {
+        if let profileID = await AuthProfileManager.shared.autoAssignPasswordProfile(
+            shareURL: shareURL,
+            username: username
+        ) {
+            if let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) {
+                _shares[index].authProfileID = profileID
+                saveModifiedShareConfigs()
+                Logger.shareManager.info("🔗 Updated share with auto-assigned password profile")
+            }
+        } else {
+            Logger.shareManager.debug("ℹ️ No unique profile match for password share: \(shareURL, privacy: .public) - manual assignment required")
+
+            // Mark share as unassigned and notify user
+            if let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) {
+                _shares[index].mountStatus = .unassignedProfile
+                notifyUnassignedProfilesDetected()
+            }
+        }
+    }
+
+    /// Creates or finds an external Kerberos pseudo-profile and assigns it to the share.
+    /// Used when a share has `externalKerberosManagement = true`.
+    private func assignExternalKerberosProfileToShare(shareURL: String, realm: String) async {
+        let profileID = await AuthProfileManager.shared.createOrFindExternalKerberosProfile(for: realm)
+        if let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) {
+            _shares[index].authProfileID = profileID
+            saveModifiedShareConfigs()
+            Logger.shareManager.info("🔑 Assigned external Kerberos pseudo-profile to \(shareURL, privacy: .public) (realm: \(realm, privacy: .public))")
+        }
+    }
+
+    /// Checks for shares without assigned profiles and sends notification if any are found.
+    /// When `notifyWhenAllAssigned` is true, also posts a notification if all profiles are assigned
+    /// (used after UI profile creation to clear stale menu warnings).
+    func checkForUnassignedProfiles(notifyWhenAllAssigned: Bool = false) {
+        let unassignedShares = _shares.filter { share in
+            // Skip shares whose Kerberos is managed externally — they have a pseudo-profile
+            guard !share.externalKerberosManagement else { return false }
+            // Only check shares that require authentication.
+            // Also catch shares with stale authProfileIDs that were already detected as unassigned
+            // during a previous mount attempt (mountStatus == .unassignedProfile).
+            guard share.authType == .krb || share.authType == .pwd else { return false }
+            return share.authProfileID == nil || share.mountStatus == .unassignedProfile
+        }
+
+        if !unassignedShares.isEmpty {
+            Logger.shareManager.warning("⚠️ Found \(unassignedShares.count) share(s) without assigned profiles")
+            for share in unassignedShares {
+                Logger.shareManager.debug("   - \(share.networkShare, privacy: .public)")
+            }
+            notifyUnassignedProfilesDetected()
+        } else if notifyWhenAllAssigned {
+            Logger.shareManager.info("✅ All shares have assigned profiles")
+            notifyAllProfilesAssigned()
+        }
+    }
+
+    /// Sends notification to AppDelegate about unassigned profiles
+    private func notifyUnassignedProfilesDetected() {
+        Task { @MainActor in
+            NotificationCenter.default.post(
+                name: .nsmNotification,
+                object: nil,
+                userInfo: ["UnassignedProfiles": MounterError.unassignedProfile]
+            )
+        }
+    }
+
+    /// Sends notification to AppDelegate that all profiles are now assigned (clears stale warnings)
+    private func notifyAllProfilesAssigned() {
+        Task { @MainActor in
+            NotificationCenter.default.post(
+                name: .nsmNotification,
+                object: nil,
+                userInfo: ["AllProfilesAssigned": true]
+            )
         }
     }
     
@@ -57,11 +193,16 @@ actor ShareManager {
         guard index >= 0 && index < _shares.count else {
             throw ShareError.invalidIndex(index)
         }
+        let shareToRemove = _shares[index]
         // remove keychain entry for share
-        if let username = _shares[index].username {
-            removePasswordFromKeychain(for: _shares[index].networkShare, username: username)
+        if let username = shareToRemove.username {
+            removePasswordFromKeychain(for: shareToRemove.networkShare, username: username)
         }
         _shares.remove(at: index)
+        // persist the removal for non-managed shares
+        if !shareToRemove.managed {
+            saveModifiedShareConfigs()
+        }
     }
     
     /// Removes a password from the keychain for a share
@@ -87,7 +228,25 @@ actor ShareManager {
     var allShares: [Share] {
         return _shares
     }
-    
+
+    /// Check if a mount point name is already in use by another share
+    /// - Parameters:
+    ///   - mountPointName: The mount point name to check
+    ///   - excludingShareURL: Optional share URL to exclude from check (for edit scenarios)
+    /// - Returns: True if duplicate found, false otherwise
+    func isDuplicateMountPoint(_ mountPointName: String, excludingShareURL: String? = nil) -> Bool {
+        let lowercasedName = mountPointName.lowercased()
+
+        return _shares.contains { share in
+            if let excludeURL = excludingShareURL, share.networkShare == excludeURL {
+                return false
+            }
+
+            let shareEffectiveMountPoint = share.effectiveMountPoint.lowercased()
+            return shareEffectiveMountPoint == lowercasedName
+        }
+    }
+
     /// delete all shares, delete array entries is not already empty
     func removeAllShares() {
         if !_shares.isEmpty {
@@ -111,6 +270,11 @@ actor ShareManager {
             savePasswordToKeychain(for: updatedShare.networkShare, username: username, password: password)
         }
         _shares[index] = updatedShare
+
+        // Save updated share configuration to UserDefaults (for non-managed shares)
+        if !updatedShare.managed {
+            saveModifiedShareConfigs()
+        }
     }
     
     /// Update the mount status of a share at a specific index
@@ -186,8 +350,9 @@ actor ShareManager {
             Logger.shareManager.debug("📝 Setting username to local system username: \(userName, privacy: .public)")
         }
         
-        // Replace username placeholder in share URL
-        let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
+        // Keep the raw URL — %USERNAME% is resolved at mount/display time via
+        // Share.resolvedNetworkShare(username:) so the correct auth username is always used.
+        let shareRectified = shareUrlString
         
         // Configure authentication type, defaulting to Kerberos if not specified
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
@@ -213,6 +378,16 @@ actor ShareManager {
             }
         }
         
+        let externalKerberos = shareElement[Defaults.externalKerberosManagement]?.lowercased() == "true"
+        if externalKerberos {
+            Logger.shareManager.info("🔑 Share \(shareRectified, privacy: .public) uses external Kerberos management")
+        }
+
+        let autoMount = shareElement[Defaults.autoMount]?.lowercased() != "false"
+        if !autoMount {
+            Logger.shareManager.info("⏸️ Share \(shareRectified, privacy: .public) has autoMount=false — will not mount automatically")
+        }
+
         // Create and return new Share object with configured parameters
         let newShare = Share.createShare(networkShare: shareRectified,
                                          authType: shareAuthType,
@@ -220,7 +395,9 @@ actor ShareManager {
                                          username: userName,
                                          password: password,
                                          mountPoint: shareElement[Defaults.mountPoint]?.trim(),
-                                         managed: true)
+                                         managed: true,
+                                         externalKerberosManagement: externalKerberos,
+                                         autoMount: autoMount)
         return(newShare)
     }
     
@@ -230,8 +407,8 @@ actor ShareManager {
     func getLegacyShareConfig(forShare shareElement: String) -> Share? {
         /// then look if we have some legacy mdm defined share definitions which will be read **only** if there is no `Settings.mdmNetworkSahresKey` defined!
         //
-        // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
-        let shareRectified = shareElement.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+        // Keep raw URL — %USERNAME% resolved at mount/display time via Share.resolvedNetworkShare(username:)
+        let shareRectified = shareElement
         let newShare = Share.createShare(networkShare: shareRectified, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
         return(newShare)
     }
@@ -266,6 +443,8 @@ actor ShareManager {
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
         let mountPoint = shareElement[Defaults.mountPoint]?.trim()
 
+        let autoMount = shareElement[Defaults.autoMount]?.lowercased() != "false"
+
         let newShare = Share.createShare(
             networkShare: shareUrlString,
             authType: shareAuthType,
@@ -273,7 +452,10 @@ actor ShareManager {
             username: shareElement[Defaults.username]?.trim(),
             password: password,
             mountPoint: mountPoint,
-            managed: false
+            managed: false,
+            shareDisplayName: shareElement[Defaults.shareDisplayNameKey]?.trim(),
+            authProfileID: shareElement[Defaults.authProfileID]?.trim(),
+            autoMount: autoMount
         )
         return(newShare)
     }
@@ -281,10 +463,18 @@ actor ShareManager {
     func updateShareArray() {
         // Check for and process MDM shares first
         let processingResult = processMDMShares()
-        
+
         // If no MDM shares were processed, try legacy MDM shares
         if !processingResult.usedNewMDMProfile {
             processingLegacyShares()
+        }
+
+        // Check for unassigned profiles after MDM/legacy share processing
+        checkForUnassignedProfiles()
+
+        // Notify UI to update menu after share changes
+        Task { @MainActor in
+            NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
         }
     }
     
@@ -340,10 +530,47 @@ actor ShareManager {
             updatedShare.mountStatus = allShares[existingIndex].mountStatus
             updatedShare.id = allShares[existingIndex].id
             updatedShare.actualMountPoint = allShares[existingIndex].actualMountPoint
-            
+
+            // Preserve authProfileID if not specified in new configuration.
+            // Exception: if externalKerberosManagement was removed from MDM, clear the old pseudo-profile
+            // so regular auto-assignment runs fresh.
+            if updatedShare.authProfileID == nil, let existingProfileID = allShares[existingIndex].authProfileID {
+                let existingWasExternal = allShares[existingIndex].externalKerberosManagement
+                let flagWasRemoved = existingWasExternal && !updatedShare.externalKerberosManagement
+                updatedShare.authProfileID = flagWasRemoved ? nil : existingProfileID
+            }
+
             do {
                 try updateShare(at: existingIndex, withUpdatedShare: updatedShare)
                 Logger.shareManager.debug(" ▶︎ Updated existing share \(newShare.networkShare, privacy: .public)")
+
+                // Auto-assign Kerberos profile if share doesn't have one
+                if updatedShare.authType == .krb && updatedShare.authProfileID == nil {
+                    if updatedShare.externalKerberosManagement {
+                        let realm = prefs.string(for: .kerberosRealm) ?? "EXTERNAL"
+                        Task { await assignExternalKerberosProfileToShare(shareURL: updatedShare.networkShare, realm: realm) }
+                    } else if let kerberosRealm = prefs.string(for: .kerberosRealm) {
+                        Task {
+                            await assignKerberosProfileToShare(
+                                shareURL: updatedShare.networkShare,
+                                username: updatedShare.username,
+                                kerberosRealm: kerberosRealm
+                            )
+                        }
+                    }
+                }
+
+                // Auto-assign password profile if share doesn't have one
+                if updatedShare.authType == .pwd && updatedShare.authProfileID == nil {
+                    if let username = updatedShare.username {
+                        Task {
+                            await assignPasswordProfileToShare(
+                                shareURL: updatedShare.networkShare,
+                                username: username
+                            )
+                        }
+                    }
+                }
             } catch ShareError.invalidIndex(let index) {
                 Logger.shareManager.error(" ▶︎ Could not update share \(newShare.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
             } catch {
@@ -353,7 +580,7 @@ actor ShareManager {
             Logger.shareManager.debug(" ▶︎ Adding new share \(newShare.networkShare, privacy: .public)")
             addShare(newShare)
         }
-        
+
         sharesArray.append(newShare)
     }
     
@@ -384,14 +611,17 @@ actor ShareManager {
     func createShareArray() {
         // Process MDM shares first
         let processingResult = processInitialMDMShares()
-        
+
         // If no MDM shares were found, try legacy MDM configuration
         if !processingResult {
             processInitialLegacyMDMShares()
         }
-        
+
         // Process user-defined shares
         processUserDefinedShares()
+
+        // Migrate mount points for existing shares
+        migrateMountPoints()
     }
     
     /// Processes initial MDM shares during application startup
@@ -440,7 +670,43 @@ actor ShareManager {
             removeLegacyShareConfigs()
         }
     }
-    
+
+    /// Migrates existing shares to use mountPoint field
+    /// Sets mountPoint from shareDisplayName if available, otherwise auto-generates from URL
+    private func migrateMountPoints() {
+        var needsSave = false
+
+        for index in 0..<_shares.count {
+            var share = _shares[index]
+            var updated = false
+
+            if share.mountPoint == nil || share.mountPoint?.isEmpty == true {
+                if let displayName = share.shareDisplayName, !displayName.isEmpty {
+                    share.updateMountPoint(to: displayName)
+                    Logger.shareManager.info("🔄 Migrated shareDisplayName to mountPoint for: \(share.networkShare, privacy: .public)")
+                    updated = true
+                } else {
+                    let generatedName = extractShareName(from: share.networkShare)
+                    share.updateMountPoint(to: generatedName)
+                    Logger.shareManager.info("🔄 Auto-generated mountPoint for: \(share.networkShare, privacy: .public) → \(generatedName, privacy: .public)")
+                    updated = true
+                }
+            }
+
+            if updated {
+                _shares[index] = share
+                needsSave = true
+            }
+        }
+
+        if needsSave {
+            saveModifiedShareConfigs()
+            Logger.shareManager.info("✅ Mount point migration completed, saved to UserDefaults")
+        } else {
+            Logger.shareManager.debug("ℹ️ No mount point migration needed")
+        }
+    }
+
     /// function to return all shares
     ///    since the class/actor is now asynchron, there is no way to get _shares directly
     func getAllShares() -> [Share] {
@@ -471,6 +737,12 @@ actor ShareManager {
                 if let username = share.username {
                     shareConfig[Defaults.username] = username
                 }
+                if let authProfileID = share.authProfileID {
+                    shareConfig[Defaults.authProfileID] = authProfileID
+                }
+                if !share.autoMount {
+                    shareConfig[Defaults.autoMount] = "false"
+                }
                 userDefaultsConfigs.append(shareConfig)
             }
         }
@@ -483,6 +755,30 @@ actor ShareManager {
         // synchronize() is deprecated and unnecessary
     }
     
+    /// Sets the authProfileID for a share (by URL) and resets an unassigned-profile status.
+    /// Used by the credential onboarding flow after new profiles are created.
+    func setAuthProfile(_ profileID: String, forShareWithURL shareURL: String) {
+        guard let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) else { return }
+        _shares[index].authProfileID = profileID
+        if _shares[index].mountStatus == .unassignedProfile {
+            _shares[index].mountStatus = .unmounted
+        }
+        saveModifiedShareConfigs()
+        Logger.shareManager.info("🔗 Onboarding: assigned profile \(profileID, privacy: .public) to \(shareURL, privacy: .public)")
+    }
+
+    /// Clears a stale authProfileID from a share and persists the change.
+    /// Called when resolveCredentials detects a reference to a deleted profile.
+    /// After clearing, the share appears as unassigned so the user can re-assign.
+    func clearProfileAssignment(for shareURL: String) {
+        guard let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) else { return }
+        _shares[index].authProfileID = nil
+        if !_shares[index].managed {
+            saveModifiedShareConfigs()
+        }
+        Logger.shareManager.warning("⚠️ Cleared stale authProfileID for share: \(shareURL, privacy: .public)")
+    }
+
     /// Updates SMBHome share from Active Directory/OpenDirectory
     ///
     /// This method queries the current user's SMBHome attribute from AD/OD

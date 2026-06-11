@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import OSLog
 
 /// describes the different properties and states of a share
 /// - Parameter networkShare: ``URL`` containing the exporting server and share
@@ -32,7 +33,18 @@ struct Share: Identifiable {
     var mountPoint: String?
     var actualMountPoint: String?
     var managed: Bool
-    var id = UUID().uuidString
+    var shareDisplayName: String?
+    /// Optional authentication profile ID for shares using the new AuthProfile system
+    var authProfileID: String?
+    /// When true, Kerberos is managed externally (AD binding, Jamf Connect, etc.).
+    /// NSM creates a read-only pseudo-profile for UI consistency and skips ticket management.
+    var externalKerberosManagement: Bool = false
+    /// When false the share appears in the menu but is never mounted automatically.
+    /// The user can mount it on demand by clicking the menu item. Default: true.
+    var autoMount: Bool = true
+    /// Unique identifier (random UUID). Remains stable for the life-time of the Share instance and
+    /// is stored persistently when needed (e.g. associated profiles).
+    var id: String = UUID().uuidString
     
     /// Lock for thread-safe access to Share properties
     private var lock = os_unfair_lock()
@@ -44,6 +56,34 @@ struct Share: Identifiable {
         os_unfair_lock_unlock(&lock)
     }
     
+    /// Returns the effective authentication username for this share.
+    /// Looks up the assigned profile (if any) and returns its username, stripping the
+    /// `@REALM` suffix for Kerberos profiles. Falls back to `share.username` and then
+    /// to `NSUserName()`. Pass the current profiles snapshot from `AuthProfileManager`.
+    func effectiveUsername(from profiles: [AuthProfile]) -> String {
+        if let profileID = authProfileID,
+           let profile = profiles.first(where: { $0.id == profileID }),
+           let upn = profile.username, !upn.isEmpty {
+            if profile.useKerberos {
+                return upn.contains("@")
+                    ? String(upn.split(separator: "@").first ?? Substring(upn))
+                    : upn
+            } else {
+                return upn
+            }
+        }
+        return username ?? NSUserName()
+    }
+
+    /// Returns `networkShare` with `%USERNAME%` replaced by `username`.
+    /// When `networkShare` contains no placeholder the URL is returned unchanged.
+    /// Use this wherever the URL is actually needed (mounting, display) instead of
+    /// reading `networkShare` directly, so that the raw template is preserved and the
+    /// correct auth username is always substituted at the point of use.
+    func resolvedNetworkShare(username: String) -> String {
+        networkShare.replacingOccurrences(of: "%USERNAME%", with: username)
+    }
+
     /// updates a share and returns the new instamce
     mutating func updated() -> Share {
         let updatedShare = self
@@ -66,10 +106,82 @@ struct Share: Identifiable {
         }
     }
     
-    /// Update the mount point of a share
+    /// Validates if a mount point value is safe
+    ///
+    /// Mount points must be simple directory names without path separators.
+    /// They are used as relative names appended to the default mount path.
+    /// Both MDM and user-configured mount points follow the same rules.
+    ///
+    /// Valid:   "share", "data", "MyShare", ".hidden" (hidden directories are OK)
+    /// Invalid: "/home", "foo/bar", "../etc", "" (empty)
+    ///
+    /// - Parameter mountPoint: The mount point string to validate
+    /// - Returns: true if valid (simple name) or nil, false if invalid (contains path separators)
+    static func isValidMountPoint(_ mountPoint: String?) -> Bool {
+        guard let mountPoint = mountPoint, !mountPoint.isEmpty else {
+            return true
+        }
+
+        // Mount point must not contain path separators (/)
+        // This prevents absolute paths like "/home" or relative paths like "foo/bar"
+        if mountPoint.contains("/") {
+            return false
+        }
+
+        // Mount point must not be . or .. (directory traversal)
+        if mountPoint == "." || mountPoint == ".." {
+            return false
+        }
+
+        return true
+    }
+
+    /// Sanitizes a mount point value by extracting just the final component
+    ///
+    /// If someone accidentally provides an absolute path like "/Users/test/mount",
+    /// this returns just "mount". If the input is already a simple name, returns it unchanged.
+    ///
+    /// - Parameter mountPoint: The mount point string to sanitize
+    /// - Returns: Sanitized mount point (simple directory name) or nil if invalid
+    static func sanitizeMountPoint(_ mountPoint: String?) -> String? {
+        guard let mountPoint = mountPoint, !mountPoint.isEmpty else {
+            return nil
+        }
+
+        // If it's already valid, return as-is
+        if isValidMountPoint(mountPoint) {
+            return mountPoint
+        }
+
+        // Extract last component from path (e.g., "/home/test" -> "test")
+        let url = URL(fileURLWithPath: mountPoint)
+        let lastComponent = url.lastPathComponent
+
+        // Validate the extracted component
+        if isValidMountPoint(lastComponent) && !lastComponent.isEmpty {
+            return lastComponent
+        }
+
+        return nil
+    }
+
+    /// Update the mount point of a share with validation
     mutating func updateMountPoint(to mountPoint: String?) {
         modify { share in
-            share.mountPoint = mountPoint
+            // Sanitize and validate the mount point before storing
+            let sanitized = Share.sanitizeMountPoint(mountPoint)
+            if let value = sanitized {
+                share.mountPoint = value
+            } else if mountPoint == nil {
+                // Allow explicit nil to clear the mount point
+                share.mountPoint = nil
+            } else {
+                // Invalid mount point - log warning and don't update
+                // Avoid capturing 'share' (inout) in logger's autoclosure by copying values first
+                let rejectedValue = mountPoint ?? "nil"
+                let shareURL = share.networkShare
+                Logger.shareManager.warning("⚠️ Invalid mountPoint value rejected: '\(rejectedValue, privacy: .public)' for share: \(shareURL, privacy: .public)")
+            }
         }
     }
     
@@ -79,9 +191,59 @@ struct Share: Identifiable {
             share.actualMountPoint = actualMountPoint
         }
     }
-    
-    /// factory-method, to create a new Share object
-    static func createShare(networkShare: String, authType: AuthType, mountStatus: MountStatus, username: String? = nil, password: String? = nil, mountPoint: String? = nil, managed: Bool = true) -> Share {
-        return Share(networkShare: networkShare, authType: authType, username: username, password: password, mountStatus: mountStatus, mountPoint: mountPoint, managed: managed, id: UUID().uuidString)
+
+    /// Returns the effective mount point name for this share.
+    /// Uses mountPoint if set, otherwise auto-generates from networkShare URL.
+    /// Note: when networkShare contains %USERNAME%, this may include the literal placeholder.
+    /// For mounting, use determineMountDirectory (which receives a resolved URL).
+    /// For display, prefer resolvedEffectiveMountPoint(username:).
+    var effectiveMountPoint: String {
+        if let mountPoint = mountPoint, !mountPoint.isEmpty {
+            return mountPoint
+        }
+        return extractShareName(from: networkShare)
+    }
+
+    /// Like effectiveMountPoint but with %USERNAME% replaced by the given username.
+    func resolvedEffectiveMountPoint(username: String) -> String {
+        if let mountPoint = mountPoint, !mountPoint.isEmpty {
+            return mountPoint
+        }
+        return extractShareName(from: resolvedNetworkShare(username: username))
+    }
+
+    /// Factory-method that guarantees a **stable, deterministic ID** based on the share URL. This
+    /// prevents UI race-conditions where randomly generated UUIDs change between reloads.
+    static func createShare(
+        networkShare: String,
+        authType: AuthType,
+        mountStatus: MountStatus,
+        username: String? = nil,
+        password: String? = nil,
+        mountPoint: String? = nil,
+        managed: Bool = true,
+        shareDisplayName: String? = nil,
+        authProfileID: String? = nil,
+        externalKerberosManagement: Bool = false,
+        autoMount: Bool = true
+    ) -> Share {
+        // Sanitize mountPoint before creating the share
+        let sanitizedMountPoint = sanitizeMountPoint(mountPoint)
+
+        return Share(
+            networkShare: networkShare,
+            authType: authType,
+            username: username,
+            password: password,
+            mountStatus: mountStatus,
+            mountPoint: sanitizedMountPoint,
+            actualMountPoint: nil,
+            managed: managed,
+            shareDisplayName: shareDisplayName,
+            authProfileID: authProfileID,
+            externalKerberosManagement: externalKerberosManagement,
+            autoMount: autoMount,
+            id: UUID().uuidString
+        )
     }
 }

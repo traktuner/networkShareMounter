@@ -33,14 +33,6 @@ actor AccountsManager {
     func initialize() async {
         guard !isInitialized else { return }
         
-        // Perform FAU-specific tasks if the Kerberos realm matches.
-        if prefs.string(for: .kerberosRealm)?.lowercased() == FAU.kerberosRealm.lowercased() {
-            if !prefs.bool(for: .keyChainPrefixManagerMigration) {
-                let migrator = Migrator()
-                await migrator.migrate()
-            }
-        }
-        
         // Load accounts from persistent storage.
         loadAccounts()
         
@@ -55,35 +47,70 @@ actor AccountsManager {
     /// Creates accounts from existing keychain entries when no accounts are found
     private func createAccountsFromKeychain() async {
         Logger.accountsManager.debug("No accounts found, attempting to create from keychain entries")
-        
+
         let keyUtil = KeychainManager()
-        
+
         do {
-            // Try to get all entries from the default service
+            // Try to get all entries from the default service with FAU access group
+            Logger.accountsManager.debug("Attempting to retrieve keychain entries with access group: \(Defaults.keyChainAccessGroup)")
             let keychainEntries = try keyUtil.retrieveAllEntries(forService: Defaults.keyChainService)
-            
+
             for entry in keychainEntries {
                 let username = entry.username
-                
+
                 // Create DogeAccount from keychain entry
                 let newAccount = DogeAccount(
                     displayName: username,
                     upn: username,
                     hasKeychainEntry: true
                 )
-                
+
                 accounts.append(newAccount)
                 Logger.accountsManager.debug("Created account from keychain: \(username, privacy: .public)")
             }
-            
+
             // Save the newly created accounts
             if !accounts.isEmpty {
                 saveAccounts()
                 Logger.accountsManager.info("Created \(self.accounts.count) accounts from keychain entries")
+            } else {
+                Logger.accountsManager.info("No keychain entries found - this is normal on first app launch")
             }
-            
+
         } catch {
-            Logger.accountsManager.error("Failed to retrieve keychain entries: \(error.localizedDescription)")
+            Logger.accountsManager.error("Failed to retrieve keychain entries with access group: \(error.localizedDescription)")
+
+            // Fallback: Try without access group in case there's an entitlement issue
+            Logger.accountsManager.info("Attempting fallback: retrieving keychain entries without access group restriction")
+
+            do {
+                // Use retrieveAllEntries with empty access group (standard keychain)
+                let keychainEntriesFallback = try keyUtil.retrieveAllEntries(forService: Defaults.keyChainService, accessGroup: "")
+
+                for entry in keychainEntriesFallback {
+                    let username = entry.username
+
+                    let newAccount = DogeAccount(
+                        displayName: username,
+                        upn: username,
+                        hasKeychainEntry: true
+                    )
+
+                    accounts.append(newAccount)
+                    Logger.accountsManager.debug("Created account from keychain (fallback): \(username, privacy: .public)")
+                }
+
+                if !accounts.isEmpty {
+                    saveAccounts()
+                    Logger.accountsManager.info("Fallback successful: Created \(self.accounts.count) accounts from standard keychain")
+                } else {
+                    Logger.accountsManager.info("Fallback: No keychain entries found in standard keychain either")
+                }
+
+            } catch {
+                Logger.accountsManager.error("Fallback also failed: \(error.localizedDescription)")
+                Logger.accountsManager.notice("Unable to access keychain - user will need to authenticate manually")
+            }
         }
     }
     
@@ -131,6 +158,14 @@ actor AccountsManager {
     func deleteAccount(account: DogeAccount) async {
         accounts.removeAll { $0 == account }
         saveAccounts()
+    }
+
+    /// Updates an existing account in the accounts list.
+    func updateAccount(_ updatedAccount: DogeAccount) async {
+        if let index = accounts.firstIndex(where: { $0.upn.lowercased() == updatedAccount.upn.lowercased() }) {
+            accounts[index] = updatedAccount
+            saveAccounts()
+        }
     }
     
     /// Retrieves an account for a given principal.

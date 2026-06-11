@@ -1,189 +1,337 @@
-# 3.1.15
-### Bugfixes
-* Fixed a regression that prevented mounts from occurring at app startup (#252 #246)
+# Changelog
 
-### Features
-* If a Kerberos-authenticated mount fails, an attempt will be made to re-authenticate, followed by a second mount attempt before an error occurs
-* After macOS wakes up, the internal mount structures will be fully reinitialized, which includes rereading the MDM profile and user configurations, as well as resetting the mount statuses and a few more things
+All notable changes to this project will be documented in this file.
 
-# 3.1.14
-### Bugfixes
-* fixed a regression where the Sparkle framework was accidentally rolled back to an older version
+## [4.1.2] - 2026-06-11
 
-# 3.1.13
-### Bugfixes
-* fixed a bug where the shares did not mount after the app was started (#242 (closed))
+### Fixed
+- Minor bug fix for how auto-update (Sparkle) behaves
+  Starting with Version 4.1.2, SUEnableAutomaticChecks is set to true by default. If this should be disabled via MDM, `disableAutoUpdateFramework = true` must be set
 
-# 3.1.12
-### Bugfixes
-* fixed a few UI regressions
-* fixed a race condition in Preferences view
+## [4.1.1] - 2026-06-11
 
-# 3.1.11
-### Improvements
-* Some minor improvements in responsiveness
+### What's new
+- Shares with %USERNAME% now use the username from authentication instead of the local macOS username
 
-# 3.1.10
-### Bugfixes
-* Resolved "App hanging" reported by sentry (#232)
+### Fixed
+- Fixed a regression where Kerberos shares using `externalKerberosManagement` were never mounted because the app skipped them when it found no app-managed Kerberos ticket. Such shares are now mounted directly, letting the external ticket source or macOS handle authentication.
+- Fixed a "Realm conflict" error that could appear right after entering credentials when an MDM-configured `kerberosRealm` was set: the app created an automatic placeholder profile for the realm that then collided with the profile created from the entered credentials. The placeholder is now skipped while credential onboarding is pending.
+- Fixed several issues with `externalKerberosManagement` shares (tickets managed by Jamf Connect, Apple SSO Extension, or AD binding): the credential prompt no longer appears at startup when all Kerberos shares are externally managed; the externally managed authentication profile now correctly shows the live ticket status read from the system instead of "No Ticket"; and it no longer offers a (non-functional) "Refresh ticket" action, since renewal is handled by the external tool.
 
-# 3.1.9
-### Bugfixes
-* Ignore spaces at the beginning and end of shares in profiles (#223)
-* Fixed the timing for reading SMBhome: now SMBhome will be read each time a network change occurs (#224)
-* Clarification in the README: Using SMBHome as users' home share only works if the Mac is bound to Active Directory.
-* Fixed a race condition and a system attribute check for directories where directories in a share could potentially be deleted. (#255)
+## [4.1.0] - 2026-05-19
 
-# 3.1.8
-### Bugfixes
-* Fixed a race condition during app startup that caused issues with obtaining Kerberos tickets
+### What's new
+- In macOS 26.5, Apple finally fixed a bug introduced in macOS 25.4. The Network Share Mounter now works as it used to, but full disk access is now required. The app now guides users through granting the required Full Disk Access permission
+- New per-share MDM key `externalKerberosManagement`: marks individual Kerberos shares as using ticket management provided by an external tool (AD binding, Jamf Connect, Apple SSO Extension). Network Share Mounter mounts the share without interfering with Kerberos tickets, and no "profile required" warning appears in the menu bar
+- New per-share `autoMount` MDM key (default: `true`): when set to `false`, the share is shown in the menu bar but is never mounted automatically. Users can still mount it manually by clicking the menu item. This is useful for optional shares that should be available on demand without cluttering the auto-mount cycle
+   - Also available in the user interface: the "Mount automatically" toggle in the Add/Edit share sheet
+   - Menu bar icon uses an outline symbol for `autoMount = false` shares (vs. filled for auto-mounted shares) to visually distinguish them
+- Password expiration warnings for Active Directory/Kerberos environments: users are notified when their AD password is about to expire
+   - Configurable warning threshold via MDM (`ExpirationCountdownStartDay`, `ExpirationNotificationStartDay`, both default to 14 days)
+   - Optional `passwordChangeURL` MDM key: configures a web URL (SSPR portal) opened when the user clicks "Change Password"
+   - In-app password change via kpasswd: when no `passwordChangeURL` is configured, a "Change Password" sheet allows changing the AD password directly within the app — the new password is automatically saved to the correct Keychain entry
+   - Menu bar countdown item showing days remaining (aligned with Apple Kerberos SSO Extension and Jamf Connect behaviour)
+   - Automatic once-per-day dialog within the notification threshold
+   - Respects the Active Directory "password never expires" account flag (UAC 0x10000)
+- New MDM key `kerberosProfileDisplayName`: sets the display name of the automatically created Kerberos authentication profile. If not set, the realm name (e.g. `INT.MOZ.AC.AT`) is used as the profile name
+- Optional `allowPasswordChange` MDM key (default: `false`): when enabled, a permanent "Change Password…" item is shown in the menu bar at all times — transforms into the standard expiry countdown when the threshold is reached
+- Debug log collection now includes system-level SMB and authentication agent logs (requires Full Disk Access), making support diagnosis significantly faster
 
-# 3.1.7
-### Bugfixes
-* fixed a bug where shares mounted at various levels could result in the removal of directories
-* Removed a race condition that resulted in recursive notifications calls, causing high load and constanty rebuilding the app menu
-* Minor fix in displaying authentication errors by changing the menu app icon color
+### Fixed
+- Fixed: `autostart` deployed as a locked MDM key was only applied on first launch and then ignored — it is now enforced on every app launch as intended
+- Fixed handling of wrong `AuthType` String value:
+   - In older docs we documented the string value "password" for the username/password authentication stored in AuthType, but the actual raw value in code is "pwd".
+   - To keep backward compatibility (and avoid crashes/decoding failures), we map the legacy value "password" to `.pwd`
+- The behavior when editing a profile has changed: Entering a username no longer assumes it is a Kerberos account when an "@" is entered. Previously, in this case, the profile was created as a Kerberos profile.
+- Fixed a regression where adding a new property to `AuthProfile` caused all existing authentication profiles to be silently discarded on app launch, resetting credentials for all users
+- Fixed: externally managed Kerberos shares (using `externalKerberosManagement`) no longer incorrectly trigger internal Kerberos re-authentication when a mount fails
 
-# 3.1.6
-### Bugfixes
-* fixed a race condition
-* improved directory and file handling (using FileManager instead of calling shell commands)
+## [4.0.2] - 2026-04-02
 
-# 3.1.5
-### Improvements
-* Improve the management of network changes
+### Fixed
+- Fixed a bug where, under certain circumstances, the app icon does not appear in the menu bar
+- Revisited the workaround for the macOS 26.4 bug: the defined share names now appear correctly in the menu
+- Fixed a bug that prevented the newly created entry in Sparkle's appcast file from being signed
+- Changed a few minor flaws in the text and documentation
 
-# 3.1.4
-### Bugfixes
-* Fixed several minor bugs, including one related to hidden shares
-* Added more logging output to enhance bug detection
 
-# 3.1.3
-### Bugfixes
-*  Fixed a few problems reported by sentry (#179 #180 #181 #182 #186 #188)
-*  Backported custom user variable (%USERNAME%) from new branch for NSM-4 (#175)
-*  added a few more useful logging points for debugging
-*  Hopefully fixed a bug with a mounting a subdirectory of a hidden share (#189)
+## [4.0.1] - 2026-04-01
 
-# 3.1.2
-### Bugfixes
-*  Fixed a problem where shares ended with the special character *$* (aka hidden share) (#165)
-*  Resolved several bugs that caused exceptions (#156, #172, #173)
-*  Corrected a type issue (#162)
-*  Made improvements in keychain handling (#151)
-*  Created and enhanced XCTest functions
-*  Improved the core mounter class
-*  Fixed an issue where the menu-bar object fails to open if no shares are configured (#163)
-*  Addressed a Kerberos ticket management issue (#171)
-*  Fixed problems with disabling the auto-update functionality (`enableAutoUpdater`) (#152)
+### Fixed
+- Fix SwiftUI stack overflow in profile views (#307)
+- Fix stack overflow in App scene body (EXC_BAD_ACCESS) (#308)
+- Workaround for the issue where the Settings window displayed an icon in the Dock that wouldn't go away (#264)
+- Fix for an issue where shares were not always saved correctly (#315)
+- Fix for mounting multiple network shares under /Volumes from different servers but with the same share name (#310)
 
-# 3.1.1
-### Bugfixes
-* Our new debugging framework sentry helped us to find and fix various runtime bugs and crashes (#148, #144, #147, #145, #146)
+## [4.0.0] - 2026-03-23
 
-# 3.1.0
+### What's new
+#### Modern SwiftUI Interface
+Version 4 features a completely redesigned user interface built with SwiftUI:
+- Clean, modern settings window with tabbed navigation
+- Better organization of shares and authentication profiles
 
-### Features
-* List (mounted/unmounted) shares in menu bar and open the mounted directories when they are clicked. (#46, #122)
-    * settable by MDM via boolean `showMountsInMenu` (default is to show mounts in menu `showMountsInMenu = true`)
-* Every individual menu item can now be configured as hidden if needed (#122)
-    * The following values can be set (via MDM)
-         * menuAbout
-         * menuConnectShares
-         * menuDisconnectShares
-         * menuCheckUpdates
-         * menuShowSharesMountDir
-         * menuShowShares
-         * menuSettings
-    * The above values can be set to either `disabled` (the menu item will be grayed out) or `hidden` (the menu item will be hidden).
-* Local override of the %USERNAME%  (#130)
-    * If the local username does not match the account name of a network share, an alternative username can be used instead (`usernameOverride`).
-    * This option is intended less for configuration via MDM and more for local setting by a user through `plutil` or something similar.
-* We are now using *Sentry* to collect issues and crash reports (#135, #131, #138)
-    * It has become apparent that there are recurring errors that we cannot reproduce. Debugging such problems is often time-consuming.
-    * We use a locally hosted instance of Sentry, not one hosted in the cloud. The data therefore never leaves our local servers hosted in our data center.
-    * Since we have no interest in any user data, we only collect data that aids us in debugging.
-    * We have introduced a new switch that turns off the collection and sending of analysis data. This switch cannot be set via MDM either. We believe that every user should be able to decide for themselves whether to support us with their crash reports.
-    
-### Bugfixes
-* Fixed a bug where Finder can crash (#134)
-* Fixed a bug where cusatoim network share were not editable (#137)
-* Fixed two race conditions (one in our DogeAD library)
-* Fixed a possible memory management crash in PreferenceManager.setADUserInfo (#142)
+#### Authentication Profiles - Reusable Credentials
+Instead of storing credentials separately for each share, you can now create reusable authentication profiles.
+- **Fewer duplicates**: Credentials stored once in Keychain instead of multiple times
+- **Easier management**: Update passwords centrally, not per-share
+- **Clear overview**: See which shares use which profiles
+- **Flexible**: Reassign shares to different profiles anytime
 
-# 3.0.4
+#### Custom Mount Point Names
+You can now choose custom local names for your network shares, solving the duplicate share name problem:
+- Previously, mounting shares with identical names from different servers would cause conflicts
+- Now you can assign individual local names to each share
+- Note:
+  - Shares are mounted with your chosen name, Applications and scripts see the correct path
+  - For macOS systems, due to a limitation on mounts, **Finder still displays the original share name from the server**.
 
-### Features
-* Possibility introduced to **trigger mount** and **unmount** via UNIX signals (`kill -SIGUSR1 PID` performs an unmount of all shares, `kill -SIGUSR2 PID` triggers a mount of all shares)
-* Mount status display now enhanced with SF Symbols.
-* Integrated the widely used [Sparkle](https://sparkle-project.org/) framework so that the app can update itself. There is a new parameter `enableAutoUpdater` which is set to TRUE by default. If you want to deactivate the auto update feature, you must set this parameter to `false` (Issue #116)
-* Possibility introduced to trigger mount and unmount via UNIX signals (kill -SIGUSR1 PID performs an unmount of all shares, kill -SIGUSR2 PID triggers a mount of all shares) (Issue #106)
-* increased menu icon size
-* *We are of the opinion that Kerberos functionality via our DogeADAuth library can leave the beta stage soon*
+#### Additional Improvements
+- **Active Directory binding**: - Can differentiate between Macs bound to Active Directory and those that use Kerberos authentication
+- **Native autostart**: Uses macOS 13+ `SMAppService` API instead of using an external library
+- **Better error messages**: Clear, actionable error descriptions
+- **Modern Swift architecture**: Full async/await and Actor implementation
+- **Comprehensive testing**: Unit tests for critical components
 
-### Bugfixes
-* Fixed two race conditions (one in our DogeAD library) (Issue #123 Issue #125)
-* Fixed a bug where the color of the menu bar symbol did not reflect the status of the Kerberos ticket (kerberos authentication (dogeAuth) beta)
-* Fixed a bug in a doge library (kerberos authentication) call which caused the app to crash
-* Workaround for Finder showing already disconnected drives after wakeup (Issue #109)
-* Fixed a few bug in external doge-ad kerberos authentication library which caused the app to crash after some time (Issue #113)
+#### System Requirements
+- **macOS 13.5 (Ventura) or later**
+- Optional: Kerberos configuration for Active Directory 
 
-# 3.0.3
 
-* Fixed a bug where mounts under `/Volumes` as default mount path generated `sharename-1` etc. directories
-   * if there is already a directory with the same name as the share under `/Volumes`, the mount will be aborted. 
-   * since the `/Volumes` directory is read-only for regular users, directories of aborted mounts (also known as "zombie" mount directories) cannot be deleted.
-   * if such a directory exists, the share will not be mounted: **for the aforementioned reasons the *Network Share Mounter* is unable to solve the issue of stale directories under `/Volumes`**. 
-   * Users with root privileges can manually delete these directories, while administrators can use scripts to delete them.
-   * After a reboot of macOS, these directories will also be deleted.
-* Fixed a bug where the color of the menu bar symbol did not reflect the status of the Kerberos ticket (kerberos authentication (dogeAuth) beta)
+## [3.1.17] - 2026-03-23
 
-# 3.0.2
+### Fixed
+- Force Kerberos re-auth on mount retry + improved error handling
+- Preserve case-sensitive Kerberos principals in keychain
 
-* Fixed a bug that caused the app to crash when the Mac wakes up from sleep
-* if kerberos is enabled (Beta), user triggered *mount all shares* will also re-authenticate/renew Kerberos tickets.
+## [3.1.16] - 2026-01-26
 
-# 3.0.1
+### Fixed
+- Kerberos authentication failures caused by case-sensitive principal name mismatches. The app now
+  retrieves and uses the actual principal name from the Kerberos credential cache instead of
+  reconstructing it, preventing `kswitch` failures when username case differs between stored
+  accounts and Kerberos tickets.
 
-* fixed migration of `FAU Prefix Assistant` account to NSM's keychain
+## [3.1.15] - 2025-11-21
 
-# 3.0.0
+### Added
+- If a Kerberos-authenticated mount fails, an attempt will be made to re-authenticate, followed by
+  a second mount attempt before an error occurs.
+- After macOS wakes up, the internal mount structures will be fully reinitialized, which includes
+  rereading the MDM profile and user configurations, as well as resetting the mount statuses and a
+  few more things.
 
-*For usage and configuration examples please consult the [documentation](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/dev/README.md?ref_type=heads)*
+### Fixed
+- Fixed a regression that prevented mounts from occurring at app startup (#252, #246).
 
-## Speed and Reliability
-* Transition from *Grand Central Dispatch* (GCD) to *Swift Concurrency* for improved asynchronous task management.
-* Mount operations are now executed in parallel (Issue #36).
-* The issue of mounts "overtaking" themselves has been resolved.
-* The occurrence of multiple mount directories (`SHARE-1, SHARE-2, ...`) has been eliminated, which used to happen when a mount became "outdated" (Issue #48, #66, #53).
+## [3.1.14] - 2025-11-04
 
-## Network Shares
-* Added a new internal data structure for shares.
-	* The current "state" of a mount is recorded, including whether it should be mounted, is in the mount queue, is already mounted, or if an error has occurred.
-	* Explicit mount points per share are now possible, instead of relying on a globally defined mount directory (Issue #60).
-* Managed shares now support username/password authentication (Issue #54, #34).
-* Improved authentication features: supports password authentication and MDM-defined network shares can now be handled in a more flexible manner.
-* Users can choose between username/password or Kerberos authentication.
-* The user-defined share credentials are now stored in the macOS Keychain.
-* Network shares defined by MDM are now more flexible.
+### Fixed
+- Fixed a regression where the Sparkle framework was accidentally rolled back to an older version.
 
-## Advanced Logging
-* Detailed and clear logging capabilities implemented.
-* All crucial operations now generate corresponding logs.
+## [3.1.13] - 2025-09-30
 
-## Kerberos SSO
-* Serves as a potential alternative to Apple Enterprise Connect, Jamf Connect or NoMAD with our new kerberos authentication library.
-* If a Kerberos realm is configured, such as through a profile, the Network Share Manager can set and store the username and password for obtaining and renewing Kerberos tickets.
-* Display different colors for the app icon in the menu to notify the user about missing or incorrect credentials.
+### Fixed
+- Fixed a bug where the shares did not mount after the app was started (#242).
 
-## Additional Features
-* If the user disconnects the drives by clicking the menu option, they will stay disconnected until:
-  	* A network change, such as VPN or switching between home and office networks, happens.
-	* The user remounts the drives manually using the menu.
-* Shares can be mounted or unmounted during specific system events, such as network changes, system sleep, shutdown, and app quit.
-* Support for `afp://` and webdav (`https://`) has been integrated.
-* The app now consistently reflects changes made to the MDM profile (Issue #71).
-* ...and a lot of bugfixes.
+## [3.1.12] - 2025-09-23
 
-## System Requirements
-* macOS 11 Big Sur or later.
+### Fixed
+- Fixed a few UI regressions.
+- Fixed a race condition in Preferences view.
+
+## [3.1.11] - 2025-09-09
+
+### Changed
+- Some minor improvements in responsiveness.
+
+## [3.1.10] - 2025-09-08
+
+### Fixed
+- Resolved "App hanging" reported by Sentry (#232).
+
+## [3.1.9] - 2025-08-07
+
+### Fixed
+- Ignore spaces at the beginning and end of shares in profiles (#223).
+- Fixed the timing for reading SMBHome: now SMBHome will be read each time a network change
+  occurs (#224).
+- Fixed a race condition and a system attribute check for directories where directories in a share
+  could potentially be deleted (#255).
+
+### Changed
+- Clarification in the README: Using SMBHome as users' home share only works if the Mac is bound
+  to Active Directory.
+
+## [3.1.8] - 2025-07-18
+
+### Fixed
+- Fixed a race condition during app startup that caused issues with obtaining Kerberos tickets.
+
+## [3.1.7] - 2025-07-15
+
+### Fixed
+- Fixed a bug where shares mounted at various levels could result in the removal of directories.
+- Removed a race condition that resulted in recursive notification calls, causing high load and
+  constantly rebuilding the app menu.
+- Minor fix in displaying authentication errors by changing the menu app icon color.
+
+## [3.1.6] - 2025-06-12
+
+### Fixed
+- Fixed a race condition.
+
+### Changed
+- Improved directory and file handling (using FileManager instead of calling shell commands).
+
+## [3.1.5]A - 2025-05-16
+
+### Changed
+- Improved the management of network changes.
+
+## [3.1.4] - 2025-05-13
+
+### Added
+- Added more logging output to enhance bug detection.
+
+### Fixed
+- Fixed several minor bugs, including one related to hidden shares.
+
+## [3.1.3] - 2025-04-15
+
+### Fixed
+- Fixed a few problems reported by Sentry (#179, #180, #181, #182, #186, #188).
+- Backported custom user variable (`%USERNAME%`) from new branch for NSM-4 (#175).
+- Hopefully fixed a bug with mounting a subdirectory of a hidden share (#189).
+
+### Changed
+- Added a few more useful logging points for debugging.
+
+## [3.1.2] - 2025-04-06
+
+### Fixed
+- Fixed a problem where shares ended with the special character `$` (aka hidden share) (#165).
+- Resolved several bugs that caused exceptions (#156, #172, #173).
+- Corrected a type issue (#162).
+- Made improvements in keychain handling (#151).
+- Fixed an issue where the menu-bar object fails to open if no shares are configured (#163).
+- Addressed a Kerberos ticket management issue (#171).
+- Fixed problems with disabling the auto-update functionality (`enableAutoUpdater`) (#152).
+
+### Changed
+- Created and enhanced XCTest functions.
+- Improved the core mounter class.
+
+## [3.1.1] - 2024-12-14
+
+### Fixed
+- Various runtime bugs and crashes found and fixed via Sentry (#144, #145, #146, #147, #148).
+
+## [3.1.0] - 2024-12-13
+
+### Added
+- List mounted/unmounted shares in menu bar; clicking a mounted share opens its directory (#46,
+  #122). Configurable via MDM using boolean `showMountsInMenu` (default: `true`).
+- Every individual menu item can now be configured as hidden or disabled via MDM (#122):
+  - `menuAbout`
+  - `menuConnectShares`
+  - `menuDisconnectShares`
+  - `menuCheckUpdates`
+  - `menuShowSharesMountDir`
+  - `menuShowShares`
+  - `menuSettings`
+  - Values: `disabled` (grayed out) or `hidden` (not visible).
+- Local override of `%USERNAME%` (#130): if the local username does not match the account name of
+  a network share, an alternative username can be used instead (`usernameOverride`).
+- Integrated [Sentry](https://sentry.io/) for issue and crash report collection (#131, #135, #138).
+  Uses a locally hosted instance — data never leaves local servers. Collection can be disabled by
+  the user via a dedicated switch (not configurable via MDM).
+
+### Fixed
+- Fixed a bug where Finder could crash (#134).
+- Fixed a bug where custom network shares were not editable (#137).
+- Fixed two race conditions (one in the DogeAD library).
+- Fixed a possible memory management crash in `PreferenceManager.setADUserInfo` (#142).
+
+## [3.0.4] - 2024-09-19
+
+### Added
+- Mount and unmount can now be triggered via UNIX signals: `kill -SIGUSR1 <PID>` unmounts all
+  shares, `kill -SIGUSR2 <PID>` mounts all shares (#106).
+- Mount status display enhanced with SF Symbols.
+- Integrated the [Sparkle](https://sparkle-project.org/) framework for in-app updates. Controlled
+  via `enableAutoUpdater` (default: `true`) (#116).
+- Increased menu icon size.
+
+### Fixed
+- Fixed two race conditions (one in the DogeAD library) (#123, #125).
+- Fixed a bug where the menu bar icon color did not reflect the Kerberos ticket status.
+- Fixed a crash caused by a bug in the DogeAD Kerberos authentication library.
+- Fixed a bug in the external DogeAD Kerberos authentication library causing crashes after some
+  time (#113).
+- Workaround for Finder showing already disconnected drives after wakeup (#109).
+
+## [3.0.3] - 2024-02-20
+
+### Fixed
+- Fixed a bug where mounts under `/Volumes` as the default mount path generated `sharename-1` etc.
+  directories:
+  - If a directory with the same name as the share already exists under `/Volumes`, the mount will
+    be aborted.
+  - Since `/Volumes` is read-only for regular users, zombie mount directories cannot be deleted
+    automatically. **Network Share Mounter is unable to resolve stale directories under `/Volumes`.**
+  - Users with root privileges can delete these manually; admins can use scripts. Directories are
+    also removed after a macOS reboot.
+- Fixed a bug where the menu bar icon color did not reflect the Kerberos ticket status.
+
+## [3.0.2] - 2024-02-13
+
+### Fixed
+- Fixed a crash that occurred when the Mac wakes up from sleep.
+
+### Changed
+- User-triggered "mount all shares" will also re-authenticate/renew Kerberos tickets when Kerberos
+  is enabled (Beta).
+
+## [3.0.1] - 2024-02-05
+
+### Fixed
+- Fixed migration of `FAU Prefix Assistant` account to NSM's keychain.
+
+## [3.0.0] - 2024-02-01
+
+*For usage and configuration examples please consult the
+[documentation](https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/blob/dev/README.md?ref_type=heads).*
+
+### Added
+- Transition from *Grand Central Dispatch* (GCD) to *Swift Concurrency* for improved asynchronous
+  task management.
+- Mount operations are now executed in parallel (#36).
+- New internal data structure for shares, recording the current mount state (pending, queued,
+  mounted, error) and supporting explicit mount points per share (#60).
+- Managed shares now support username/password authentication (#54, #34).
+- Users can choose between username/password or Kerberos authentication.
+- User-defined share credentials are now stored in the macOS Keychain.
+- Support for `afp://` and WebDAV (`https://`) protocols.
+- Kerberos SSO support via new authentication library — potential alternative to Apple Enterprise
+  Connect, Jamf Connect, or NoMAD. Supports obtaining and renewing Kerberos tickets via configured
+  realm. Menu icon reflects credential status via color coding.
+- If the user disconnects drives via the menu, they remain disconnected until a network change
+  occurs or the user remounts them manually.
+- Shares can be mounted/unmounted during specific system events (network changes, sleep, shutdown,
+  app quit).
+- Detailed and clear logging for all crucial operations.
+
+### Changed
+- The occurrence of multiple mount directories (`SHARE-1`, `SHARE-2`, ...) has been eliminated
+  (#48, #53, #66).
+- MDM-defined network shares can now be handled in a more flexible manner.
+- The app now consistently reflects changes made to the MDM profile (#71).
+
+### Fixed
+- The issue of mounts "overtaking" themselves has been resolved.
+- Numerous further bug fixes.
+
+### System Requirements
+- macOS 11 Big Sur or later.

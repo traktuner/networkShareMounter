@@ -46,6 +46,10 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Kerberos realm for authentication
     case kerberosRealm = "kerberosRealm"
+
+    /// Optional display name for the Kerberos authentication profile (MDM-configurable).
+    /// If not set, the realm name is used as the profile display name.
+    case kerberosProfileDisplayName = "kerberosProfileDisplayName"
     
     /// Whether LDAP queries should be anonymous
     case ldapAnonymous = "LDAPAnonymous"
@@ -79,7 +83,22 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Date when user's password was last set
     case userPasswordSetDate = "UserPasswordSetDate"
-    
+
+    /// Days before password expiry when a countdown appears in the menu (default: 14, MDM-overridable)
+    case expirationCountdownStartDay = "ExpirationCountdownStartDay"
+
+    /// Days before password expiry when the warning dialog is shown once per day (default: 14, MDM-overridable)
+    case expirationNotificationStartDay = "ExpirationNotificationStartDay"
+
+    /// Optional URL opened when the user clicks "Change Password" in the expiration dialog (MDM-configurable)
+    case passwordChangeURL = "passwordChangeURL"
+
+    /// Whether to show a permanent "Change Password…" menu item (default: false, MDM-configurable)
+    case allowPasswordChange = "allowPasswordChange"
+
+    /// Last date the password expiration warning dialog was shown (once-per-day throttle)
+    case lastPasswordExpirationWarningDate = "LastPasswordExpirationWarningDate"
+
     /// Whether to use Keychain for password storage
     case useKeychain = "UseKeychain"
     
@@ -120,17 +139,34 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Whether application starts automatically at login
     case autostart = "autostart"
-    
-    /// Whether auto-updater is enabled
+
+    /// Whether the initial autostart setup has been completed
+    case hasCompletedInitialAutostartSetup = "hasCompletedInitialAutostartSetup"
+
+    /// Unix timestamp until which the credential onboarding dialog is snoozed (Double / TimeInterval).
+    /// Zero or absent means "not snoozed". Set when the user taps "Not Now".
+    case credentialOnboardingSnoozedUntil = "credentialOnboardingSnoozedUntil"
+
+    /// Whether auto-updater is enabled.
+    /// Since NSM 4 this is a legacy value and is essentially serving as an inverted alias for disableAutoUpdateFramework
     case enableAutoUpdater = "enableAutoUpdater"
     
+    /// Wheter Sparkle framework is enabled/loaded
+    case disableAutoUpdateFramework = "disableAutoUpdateFramework"
+    
     /// Sparkle: Whether to automatically check for updates
-    case SUEnableAutomaticChecks = "SUEnableAutomaticChecks"
+    case automaticallyChecksForUpdates = "automaticallyChecksForUpdates"
     
     /// Sparkle: Whether to automatically install updates
+    case automaticallyDownloadsUpdates = "automaticallyDownloadsUpdates"
+    
+    /// OBSOLETE: Sparkle: Whether to automatically check for updates
+    case SUEnableAutomaticChecks = "SUEnableAutomaticChecks"
+    
+    /// OBSOLETE: Sparkle: Whether to automatically install updates
     case SUAutomaticallyUpdate = "SUAutomaticallyUpdate"
     
-    /// Sparkle: Whether the app has been launched before
+    /// OBSOLETE: Sparkle: Whether the app has been launched before
     case SUHasLaunchedBefore = "SUHasLaunchedBefore"
     
     /// Whether to automatically check for updates
@@ -197,9 +233,6 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Comment for keychain entries
     case keyChainComment = "keyChainComment"
-    
-    /// Whether keychain migration from Prefix Manager is done
-    case keyChainPrefixManagerMigration = "keyChainPrefixManagerMigration"
     
     // MARK: - Menu Items
     

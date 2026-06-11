@@ -52,7 +52,8 @@ final class MounterTests: XCTestCase {
         password: String? = nil,
         mountStatus: MountStatus = .unmounted,
         mountPoint: String? = nil,
-        managed: Bool = false
+        managed: Bool = false,
+        shareDisplayName: String? = nil
     ) -> Share {
         return Share.createShare(
             networkShare: networkShare,
@@ -61,7 +62,8 @@ final class MounterTests: XCTestCase {
             username: username,
             password: password,
             mountPoint: mountPoint,
-            managed: managed
+            managed: managed,
+            shareDisplayName: shareDisplayName
         )
     }
     

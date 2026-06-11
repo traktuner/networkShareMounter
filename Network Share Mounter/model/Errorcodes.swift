@@ -97,6 +97,15 @@ enum MounterError: Error {
     
     /// An existing directory is blocking the mount point
     case obstructingDirectory
+
+    /// Share has no assigned authentication profile
+    case unassignedProfile
+
+    /// The mount operation is not permitted at the system level (EPERM)
+    case operationNotPermitted
+
+    /// The OS rejected the mount because the path is outside /Volumes (macOS 26.4+ restriction)
+    case osMountRestriction
 }
 
 extension MounterError: LocalizedError {
@@ -241,6 +250,21 @@ extension MounterError: LocalizedError {
             return NSLocalizedString(
                 "Can nout mount share because of obstructing directory",
                 comment: "Can nout mount share because of obstructing directory"
+            )
+        case .unassignedProfile:
+            return NSLocalizedString(
+                "Profile assignment required",
+                comment: "Profile assignment required"
+            )
+        case .operationNotPermitted:
+            return NSLocalizedString(
+                "Operation not permitted",
+                comment: "Operation not permitted (EPERM) - may indicate a Kerberos ticket or system privilege issue"
+            )
+        case .osMountRestriction:
+            return NSLocalizedString(
+                "Mount failed — macOS 26.4 bug causes NetAuthSysAgent to crash for paths outside /Volumes",
+                comment: "macOS 26.4 bug: NetAuthSysAgent crashes (NSInvalidArgumentException) when mounting outside /Volumes (rc=-6600)"
             )
         }
     }

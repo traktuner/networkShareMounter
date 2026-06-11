@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
-    "description": "Jamf Manifest for Network Share Mounter v3.1",
-    "__version": "3.0",
+    "description": "Jamf Manifest for Network Share Mounter v4",
+    "__version": "4.1.0",
     "__feedback": "rrze-mac@fau.de",
     "type": "object",
     "options": {
@@ -10,7 +10,7 @@
     },
     "links": [{
             "rel": "More information",
-            "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
+            "href": "https://www.nsm.faumac.rrze.de/"
         }
     ],
     "properties": {
@@ -26,16 +26,16 @@
                 },
                 "properties": {
                     "networkShare": {
-                    "type": "string",
-                    "description": "Example: smb://filer.your.domain.tld/share. Note: %USERNAME% will be replaced with the current user's login name.",
-                    "pattern": "^(smb|afp|https):\/\/\\S*.+$",
-                    "default": "",
-                    "title": "Server and share"
+                        "type": "string",
+                        "description": "Example: smb://filer.your.domain.tld/share. Note: %USERNAME% will be replaced with the current user's login name.",
+                        "pattern": "^(smb|afp|https):\/\/\\S*.+$",
+                        "default": "",
+                        "title": "Server and share"
                     },
-                    "authType":{
+                    "authType": {
                         "title": "Authentication type",
                         "type": "string",
-                        "description": "Authentication type for the share, it can be either through Kerberos (krb) or using a username/password (auth). Default: Kerberos.",
+                        "description": "Authentication type for the share, it can be either through Kerberos (krb) or using a username/password (pwd). Default: krb.",
                         "default": "krb",
                         "options": {
                             "enum_titles": [
@@ -46,38 +46,82 @@
                         },
                         "enum": [
                             "krb",
-                            "password",
+                            "pwd",
                             "guest"
                         ]
                     },
                     "username": {
                         "title": "Username (Optional)",
-                        "description": "Optional: Predefine a username for authentication using username/password",
+                        "description": "Optional: Predefine a username for authentication using username/password.",
                         "type": "string"
                     },
                     "mountPoint": {
                         "title": "Mount point name (Optional)",
-                        "description": "Change the mount point name for the network share. Only applicable when location is not `/Volumes`. Leave blank for the default value (recommended)",
+                        "description": "Override the local mount point name for this share. Only applicable when the mount location is not /Volumes. Leave blank to use the share name (recommended).",
                         "type": "string",
                         "options": {
                             "infoText": "If not set, the share name will be used."
                         }
+                    },
+                    "displayName": {
+                        "title": "Display name (Optional)",
+                        "description": "Optional: Display name shown for this share inside the app.",
+                        "type": "string"
+                    },
+                    "externalKerberosManagement": {
+                        "title": "External Kerberos management (Optional)",
+                        "description": "Set to 'true' if Kerberos tickets for this share are managed by an external tool such as AD binding, Jamf Connect, or Apple SSO Extension. Network Share Mounter will mount the share without interfering with ticket management and will not show a 'profile required' warning. Only relevant for authType 'krb'.",
+                        "type": "string",
+                        "default": "",
+                        "options": {
+                            "enum_titles": [
+                                "(not set)",
+                                "true",
+                                "false"
+                            ]
+                        },
+                        "enum": [
+                            "",
+                            "true",
+                            "false"
+                        ]
+                    },
+                    "kerberosRealm": {
+                        "title": "Kerberos Realm override (Optional)",
+                        "description": "Optional: Override the Kerberos realm for this specific share. Used together with externalKerberosManagement to identify which external pseudo-profile to assign. Leave blank to use the global kerberosRealm setting.",
+                        "type": "string"
+                    },
+                    "autoMount": {
+                        "title": "Mount automatically (Optional)",
+                        "description": "Per-share flag. When set to 'false', the share is shown in the menu but is never mounted automatically at startup or on network changes. The user can still mount it manually by clicking the menu item. Default: 'true'.",
+                        "type": "string",
+                        "default": "true",
+                        "options": {
+                            "enum_titles": [
+                                "true (auto-mount)",
+                                "false (manual only)"
+                            ]
+                        },
+                        "enum": [
+                            "true",
+                            "false"
+                        ]
                     }
                 }
             }
         },
-        "enableAutoUpdater": {
-            "title": "Enable AutoUpdater Framework",
+        "disableAutoUpdateFramework": {
+            "title": "Disable AutoUpdater Framework",
             "description": "Turns the auto update framework on or off, so the App can update itself.",
             "type": "boolean",
-            "default": true
+            "default": false
         },
         "location": {
             "title": "Mount path",
-            "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended)",
+            "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended).",
             "links": [{
                 "rel": "More information",
-                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
+                "href": "https://www.nsm.faumac.rrze.de/docs/mdm-admin/"
                 }
             ],
             "type": "string",
@@ -87,68 +131,263 @@
             "title": "Clean up obstructing files and directories",
             "links": [{
                 "rel": "More information",
-                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter#important-note-for-the-location-cleanuplocationdirectory-and-usenewdefaultlocation-values"
+                "href": "https://www.nsm.faumac.rrze.de/docs/mdm-admin/"
                 }
             ],
-            "description": "If set to true, the mount location will be cleaned up from obstructing files and directories. Please read the wiki before enabling this option and use it with caution!",
+            "description": "If set to true, the mount location will be cleaned up from obstructing files and directories. Read the documentation before enabling this option.",
             "type": "boolean",
             "default": false
         },
         "autostart": {
             "title": "Enable autostart",
-            "description": "If set to true, the app will be launched on user-login",
+            "description": "When deployed as a LOCKED MDM key, the value is enforced on every app launch. When deployed as an unlocked default, it is applied once on first launch only (user retains control afterwards).",
             "type": "boolean",
             "default": false
         },
-        "canQuit": {
-            "title": "Show Exit",
-            "description": "Show exit button in the menu bar",
+        "canChangeAutostart": {
+            "title": "Allow autostart changes",
+            "description": "Controls only the visibility of the autostart toggle in the app's Settings UI — set to false to grey it out. Does NOT affect MDM enforcement. To enforce the autostart state on every launch, deploy 'autostart' as a locked key instead.",
             "type": "boolean",
             "default": true
         },
-        "canChangeAutostart": {
-            "title": "Allow autostart changes",
-            "description": "Allow users to change the autostart settings",
+        "canQuit": {
+            "title": "Allow quit",
+            "description": "If true, the user can quit the app via the menu bar.",
             "type": "boolean",
             "default": true
         },
         "unmountOnExit": {
             "title": "Unmount shares on exit",
-            "description": "Unmount shares if the app get closed",
+            "description": "If true, managed shares are automatically unmounted when the app is quit.",
             "type": "boolean",
             "default": true
         },
+        "kerberosRealm": {
+            "title": "Kerberos Realm",
+            "description": "Kerberos/AD domain for user authentication (e.g. EXAMPLE.COM). Enables automatic AD/Kerberos ticket management and renewal.",
+            "type": "string",
+            "default": ""
+        },
+        "kerberosProfileDisplayName": {
+            "title": "Kerberos profile display name (Optional)",
+            "description": "Optional display name for the Kerberos authentication profile shown in the app's Settings. If not set, the realm name (e.g. EXAMPLE.COM) is used. Useful when a friendly name like 'Corporate Network' is preferred over the technical realm string.",
+            "type": "string",
+            "default": ""
+        },
+        "usernameOverride": {
+            "title": "Username override",
+            "description": "Overrides the %USERNAME% variable used in share paths. Useful when the local macOS username differs from the AD/network username.",
+            "type": "string",
+            "default": ""
+        },
         "helpURL": {
             "title": "Help URL",
-            "description": "Configure a website link to help users interact with the application.",
+            "description": "URL to your organisation's internal helpdesk or IT documentation. Shown as a link in the app.",
             "pattern": "^http[s]?:\\/\\/\\S*$",
             "type": "string",
             "default": ""
         },
-        "kerberosRealm": {
-            "title": "Kerberos Realm",
-            "description": "Kerberos/AD Domain for user authentication. If set, automatic AD/Kerberos authentication and ticket renewal will be enabled",
+        "showMountsInMenu": {
+            "title": "Show network mounts in menu",
+            "description": "If true, mounted and unmounted shares are listed directly in the menu bar for quick access.",
+            "type": "boolean",
+            "default": true
+        },
+        "ExpirationCountdownStartDay": {
+            "title": "Password expiration: countdown start (days)",
+            "description": "Passive warning. Number of days before password expiry when a silent countdown item first appears in the menu bar. The user only sees this when they open the menu — no interruption. Set to 0 to disable all password expiration features. Mirrors the Apple Kerberos SSO Extension key of the same name.",
+            "type": "integer",
+            "default": 14
+        },
+        "ExpirationNotificationStartDay": {
+            "title": "Password expiration: notification start (days)",
+            "description": "Active warning. Number of days before password expiry when an intrusive warning dialog is shown once per calendar day. Set this lower than ExpirationCountdownStartDay so the dialog only interrupts the user when expiry is genuinely imminent. Mirrors the Jamf Connect / Apple Kerberos SSO Extension key of the same name.",
+            "type": "integer",
+            "default": 14
+        },
+        "passwordChangeURL": {
+            "title": "Password change URL",
+            "description": "URL of a web-based password self-service portal (SSPR). If set, a 'Change Password' button appears in the expiration dialog and opens this URL in the default browser. If not set, the user can change their password directly within the app (requires a configured kerberosRealm).",
+            "pattern": "^http[s]?:\\/\\/\\S*$",
             "type": "string",
             "default": ""
         },
-        "keyChainService": {
-            "title": "Keychain Service",
-            "description": "Human readable service name of keychain item entry",
-            "type": "string",
-            "default": "Network Share Mounter"
+        "allowPasswordChange": {
+            "title": "Show permanent 'Change Password' menu item",
+            "description": "If true, a permanent 'Change Password…' item is shown in the menu bar at all times, even before the expiration threshold is reached. Automatically transforms into the standard expiry countdown when the threshold is reached.",
+            "type": "boolean",
+            "default": false
         },
-        "keyChainComment": {
-            "title": "Keychain comment",
-            "description": "User visible comment for keychain item entry",
+        "SUEnableAutomaticChecks": {
+            "title": "Enable automatic update checks (Sparkle)",
+            "description": "If enableAutoUpdater is true, this controls whether the app actively checks for new versions. Set to false to suppress update checks while keeping the framework loaded.",
+            "type": "boolean",
+            "default": true
+        },
+        "SUAutomaticallyUpdate": {
+            "title": "Install updates automatically (Sparkle)",
+            "description": "If true, updates are downloaded and installed automatically without asking the user for confirmation.",
+            "type": "boolean",
+            "default": true
+        },
+        "menuAbout": {
+            "title": "Menu: About",
+            "description": "Show, hide, or disable the 'About' menu item.",
             "type": "string",
-            "default": "Generated and used by Network Share Mounter"
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuAbout"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
+        "menuConnectShares": {
+            "title": "Menu: Connect shares",
+            "description": "Show, hide, or disable the 'Connect shares' menu item.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuConnectShares"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
+        "menuDisconnectShares": {
+            "title": "Menu: Disconnect shares",
+            "description": "Show, hide, or disable the 'Disconnect shares' menu item.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuDisconnectShares"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
+        "menuCheckUpdates": {
+            "title": "Menu: Check for updates",
+            "description": "Show, hide, or disable the 'Check for updates' menu item.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuCheckUpdates"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
+        "menuShowSharesMountDir": {
+            "title": "Menu: Show shares mount directory",
+            "description": "Show, hide, or disable the 'Show shares mount directory' menu item.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuShowSharesMountDir"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
+        "menuShowShares": {
+            "title": "Menu: Show shares",
+            "description": "Show, hide, or disable the individual share items in the menu.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuShowShares"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
+        "menuSettings": {
+            "title": "Menu: Settings",
+            "description": "Show, hide, or disable the 'Settings' menu item.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuSettings"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
+        },
+        "menuQuit": {
+            "title": "Menu: Quit",
+            "description": "Show, hide, or disable the 'Quit Network Share Mounter' menu item.",
+            "type": "string",
+            "default": "",
+            "options": {
+                "enum_titles": [
+                    "show",
+                    "hidden",
+                    "disabled"
+                ],
+                "infoText": "Key name: menuQuit"
+            },
+            "enum": [
+                "show",
+                "hidden",
+                "disabled"
+            ]
         },
         "networkShares": {
             "title": "Network shares (Deprecated)",
-            "description": "⚠️ Deprecated with version 3. Value will be removed in a future version of the Network Share Mounter.",
+            "description": "⚠️ Deprecated since version 3. Use managedNetworkShares instead. This key will be removed in a future version.",
             "links": [{
                 "rel": "More information",
-                "href": "https://gitlab.rrze.fau.de/faumac/networkShareMounter"
+                "href": "https://www.nsm.faumac.rrze.de/docs/mdm-admin/"
             }],
             "type": "array",
             "items": {
@@ -157,165 +396,11 @@
                 "title": "Share"
             }
         },
-        "showMountsInMenu": {
-            "title": "Show network mounts in menu",
-            "description": "List mounted/unmounted shares directly in menu bar.",
+        "enableAutoUpdater": {
+            "title": "Enable auto-updater framework (Deprecated)",
+            "description": "⚠️ Deprecated since NSM 4. Use disableAutoUpdateFramework instead (inverted logic: enableAutoUpdater=true equals disableAutoUpdateFramework=false).",
             "type": "boolean",
             "default": true
-        },
-        "menuAbout": {
-            "title": "Menu About",
-            "description": "Show/hide/disable menu item about.",
-            "type": "string",
-            "default": "",
-            "options":
-            {
-                "enum_titles":
-                [
-                    "show",
-                    "hidden",
-                    "disabled"
-                ],
-                "infoText": "Key name: menuAbout"
-            },
-            "enum":
-            [
-                    "show",
-                    "hidden",
-                    "disabled"
-            ]
-        },
-        "menuConnectShares": {
-            "title": "Menu ConnectShares",
-            "description": "Show/hide/disable menu item connect shares.",
-            "type": "string",
-            "default": "",
-            "options":
-            {
-                "enum_titles":
-                [
-                    "show",
-                    "hidden",
-                    "disabled"
-                ],
-                "infoText": "Key name: menuConnectShares"
-            },
-            "enum":
-            [
-                    "show",
-                    "hidden",
-                    "disabled"
-            ]
-        },
-        "menuDisconnectShares": {
-            "title": "Menu DisconnectShares",
-            "description": "Show/hide/disable menu item disconnect shares.",
-            "type": "string",
-            "default": "",
-            "options":
-            {
-                "enum_titles":
-                [
-                    "show",
-                    "hidden",
-                    "disabled"
-                ],
-                "infoText": "Key name: menuDisconnectShares"
-            },
-            "enum":
-            [
-                    "show",
-                    "hidden",
-                    "disabled"
-            ]
-        },
-        "menuCheckUpdates": {
-            "title": "Menu CheckUpdates",
-            "description": "Show/hide/disable menu item check for updates.",
-            "type": "string",
-            "default": "",
-            "options":
-            {
-                "enum_titles":
-                [
-                    "show",
-                    "hidden",
-                    "disabled"
-                ],
-                "infoText": "Key name: menuCheckUpdates"
-            },
-            "enum":
-            [
-                    "show",
-                    "hidden",
-                    "disabled"
-            ]
-        },
-        "menuShowSharesMountDir": {
-            "title": "Menu ShowSharesMountDir",
-            "description": "Show/hide/disable menu item show shares mount directory.",
-            "type": "string",
-            "default": "",
-            "options":
-            {
-                "enum_titles":
-                [
-                    "show",
-                    "hidden",
-                    "disabled"
-                ],
-                "infoText": "Key name: menuShowSharesMountDir"
-            },
-            "enum":
-            [
-                    "show",
-                    "hidden",
-                    "disabled"
-            ]
-        },
-        "menuShowShares": {
-            "title": "Menu ShowShares",
-            "description": "Show/hide/disable menu item show shares in menu.",
-            "type": "string",
-            "default": "",
-            "options":
-            {
-                "enum_titles":
-                [
-                    "show",
-                    "hidden",
-                    "disabled"
-                ],
-                "infoText": "Key name: menuShowShares"
-            },
-            "enum":
-            [
-                    "show",
-                    "hidden",
-                    "disabled"
-            ]
-        },
-        "menuSettings": {
-            "title": "Menu Settings",
-            "description": "Show/hide/disable menu item settings.",
-            "type": "string",
-            "default": "",
-            "options":
-            {
-                "enum_titles":
-                [
-                    "show",
-                    "hidden",
-                    "disabled"
-                ],
-                "infoText": "Key name: menuSettings"
-            },
-            "enum":
-            [
-                    "show",
-                    "hidden",
-                    "disabled"
-            ]
         }
     }
 }

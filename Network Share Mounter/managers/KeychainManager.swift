@@ -46,7 +46,7 @@ struct Credentials {
     var password: String
 }
 
-enum KeychainError: Error, Equatable {
+enum KeychainError: Error, Equatable, LocalizedError {
     case noPassword
     case malformedShare
     case unexpectedPasswordData
@@ -55,6 +55,48 @@ enum KeychainError: Error, Equatable {
     case errorRetrievingPassword
     case errorAccessingPassword
     case errorWithStatus(status: OSStatus)
+    case itemNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .noPassword:
+            return "No password found"
+        case .malformedShare:
+            return "Malformed share URL"
+        case .unexpectedPasswordData:
+            return "Unexpected password data format"
+        case .undefinedError:
+            return "Undefined keychain error"
+        case .errorRemovingEntry:
+            return "Error removing keychain entry"
+        case .errorRetrievingPassword:
+            return "Error retrieving password from keychain"
+        case .errorAccessingPassword:
+            return "Error accessing password in keychain"
+        case .itemNotFound:
+            return "Error accessing entry, not found in keychain"
+        case .errorWithStatus(let status):
+            return "Keychain error: OSStatus \(status) (\(Self.describeStatus(status)))"
+        }
+    }
+
+    private static func describeStatus(_ status: OSStatus) -> String {
+        switch status {
+        case errSecSuccess: return "Success"
+        case errSecItemNotFound: return "Item not found"
+        case errSecDuplicateItem: return "Duplicate item"
+        case errSecParam: return "Invalid parameter"
+        case errSecAuthFailed: return "Authentication failed"
+        case errSecInteractionRequired: return "User interaction required"
+        case errSecNotAvailable: return "Keychain not available"
+        case -34018: return "Missing entitlement or access denied"
+        case -25243: return "No access to item"
+        case -25291: return "Keychain not available (FileVault?)"
+        case -25308: return "User interaction required"
+        case -25293: return "Authentication failed"
+        default: return "Unknown error"
+        }
+    }
 }
 
 class KeychainManager: NSObject {
@@ -252,6 +294,7 @@ class KeychainManager: NSObject {
         do {
             Logger.keychain.debug("🔐 Retrieving password for share: \(share.absoluteString, privacy: .public), username: \(username, privacy: .public)")
 
+            // Try with original case first
             var query = try makeQuery(share: share, username: username, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainService)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -261,62 +304,118 @@ class KeychainManager: NSObject {
             Logger.keychain.debug("🔐 Keychain query: \(query, privacy: .public)")
 
             var ref: AnyObject? = nil
-
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
             Logger.keychain.debug("🔐 Keychain status: \(status, privacy: .public)")
 
-            if status == errSecItemNotFound {
+            if status == errSecSuccess {
+                if let parsedData = ref as? Data {
+                    let password = String(data: parsedData, encoding: .utf8)
+                    Logger.keychain.debug("🔐 Successfully retrieved password for \(share.absoluteString, privacy: .public)")
+                    return password
+                } else {
+                    Logger.keychain.error("🔐 Failed to parse password data from keychain for \(share.absoluteString, privacy: .public)")
+                    Logger.keychain.error("🔐 Retrieved data type: \(type(of: ref), privacy: .public)")
+                    return nil
+                }
+            } else if status == errSecItemNotFound {
                 Logger.keychain.debug("🔐 No keychain entry found for \(share.absoluteString, privacy: .public)")
+
+                // Fallback: Try with lowercase username if different from original
+                let lowercasedUsername = username.lowercased()
+                if lowercasedUsername != username {
+                    Logger.keychain.debug("🔍 Trying lowercase fallback for username: \(username)")
+
+                    var lowercaseQuery = try makeQuery(share: share, username: lowercasedUsername, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainService)
+                    lowercaseQuery[kSecReturnData as String] = kCFBooleanTrue!
+                    lowercaseQuery[kSecMatchLimit as String] = kSecMatchLimitOne
+                    lowercaseQuery[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+                    var lowercaseRef: AnyObject? = nil
+
+                    let lowercaseStatus = SecItemCopyMatching(lowercaseQuery as CFDictionary, &lowercaseRef)
+
+                    if lowercaseStatus == errSecSuccess, let parsedData = lowercaseRef as? Data, let password = String(data: parsedData, encoding: .utf8) {
+                        Logger.keychain.info("🔄 Found share credential with lowercase username, migrating: \(lowercasedUsername) -> \(username)")
+
+                        // Migrate: Save with correct case, then delete old entry
+                        do {
+                            try saveCredential(forShare: share, withUsername: username, andPassword: password, withLabel: Defaults.keyChainService, accessGroup: Defaults.keyChainAccessGroup)
+                            try removeCredential(forShare: share, withUsername: lowercasedUsername)
+                            Logger.keychain.info("✅ Successfully migrated share credential to correct case")
+                        } catch {
+                            Logger.keychain.warning("⚠️ Migration failed but password retrieved: \(error.localizedDescription)")
+                        }
+
+                        return password
+                    }
+                }
                 return nil
-            }
-            guard status == errSecSuccess else {
+            } else {
                 Logger.keychain.error("🔐 Keychain error: \(status, privacy: .public)")
                 throw KeychainError.errorWithStatus(status: status)
-            }
-
-            if let parsedData = ref as? Data {
-                let password = String(data: parsedData, encoding: .utf8)
-                Logger.keychain.debug("🔐 Successfully retrieved password for \(share.absoluteString, privacy: .public)")
-                return password
-            } else {
-                Logger.keychain.error("🔐 Failed to parse password data from keychain for \(share.absoluteString, privacy: .public)")
-                Logger.keychain.error("🔐 Retrieved data type: \(type(of: ref), privacy: .public)")
-                return nil
             }
         } catch let error as KeychainError {
             throw error
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
-        return nil
+        return nil // Should not be reached if successful
     }
     
     func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
+            // Try with original case first
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
             query[kSecReturnData as String] = kCFBooleanTrue!
             query[kSecMatchLimit as String] = kSecMatchLimitOne
             // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
             var ref: AnyObject? = nil
-            
+
             let status = SecItemCopyMatching(query as CFDictionary, &ref)
-            if status == errSecItemNotFound {
+
+            if status == errSecSuccess {
+                if let parsedData = ref as? Data {
+                    return String(data: parsedData, encoding: .utf8)
+                }
+            } else if status == errSecItemNotFound {
+                // Fallback: Try with lowercase if different from original
+                let lowercasedUsername = username.lowercased()
+                if lowercasedUsername != username {
+                    Logger.keychain.debug("🔍 Entry not found with original case, trying lowercase fallback for: \(username)")
+
+                    var lowercaseQuery = try makeQuery(username: lowercasedUsername, service: service, accessGroup: accessGroup)
+                    lowercaseQuery[kSecReturnData as String] = kCFBooleanTrue!
+                    lowercaseQuery[kSecMatchLimit as String] = kSecMatchLimitOne
+                    lowercaseQuery[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+                    var lowercaseRef: AnyObject? = nil
+
+                    let lowercaseStatus = SecItemCopyMatching(lowercaseQuery as CFDictionary, &lowercaseRef)
+
+                    if lowercaseStatus == errSecSuccess, let parsedData = lowercaseRef as? Data, let password = String(data: parsedData, encoding: .utf8) {
+                        Logger.keychain.info("🔄 Found keychain entry with lowercase, migrating: \(lowercasedUsername) -> \(username)")
+
+                        // Migrate: Save with correct case, then delete old entry
+                        do {
+                            try saveCredential(forUsername: username, andPassword: password, withService: service, andLabel: nil, accessGroup: accessGroup)
+                            try removeCredential(forUsername: lowercasedUsername, andService: service, accessGroup: accessGroup)
+                            Logger.keychain.info("✅ Successfully migrated keychain entry to correct case")
+                        } catch {
+                            Logger.keychain.warning("⚠️ Migration failed but password retrieved: \(error.localizedDescription)")
+                        }
+
+                        return password
+                    }
+                }
                 return nil
-            }
-            guard status == errSecSuccess else {
+            } else {
                 throw KeychainError.errorWithStatus(status: status)
-            }
-            
-            if let parsedData = ref as? Data {
-                return String(data: parsedData, encoding: .utf8)
             }
         } catch let error as KeychainError {
             throw error
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
-        return nil
+        return nil // Should not be reached if successful
     }
     
     func retrieveAllEntries(forService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws -> [(username: String, password: String)] {
@@ -385,6 +484,65 @@ class KeychainManager: NSObject {
         }
     }
     
+    // MARK: - Migration Support
+    
+    /// Retrieves all entries from FAU shared keychain for Kerberos migration
+    /// Uses the same pattern as retrieveAllEntries but with FAU access group
+    func retrieveAllFAUSharedCredentials() throws -> [(username: String, password: String)] {
+        // Check if FAU access group is configured
+        let fauAccessGroup = Defaults.keyChainAccessGroup
+        guard !fauAccessGroup.isEmpty else {
+            Logger.keychain.info("No FAU access group configured")
+            return [] // No FAU access group configured
+        }
+        
+        do {
+            // Query for FAU shared credentials with specific service and access group
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: "de.fau.rrze.faucredentials", // FAU specific service
+                kSecAttrAccessGroup as String: fauAccessGroup,
+                kSecReturnData as String: kCFBooleanTrue,
+                kSecMatchLimit as String: kSecMatchLimitAll,
+                kSecReturnAttributes as String: kCFBooleanTrue,
+                kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+            ]
+            
+            var ref: AnyObject? = nil
+            let status = SecItemCopyMatching(query as CFDictionary, &ref)
+            
+            // Handle no items found gracefully
+            if status == errSecItemNotFound {
+                Logger.keychain.info("No FAU shared credentials found")
+                return []
+            }
+            
+            guard status == errSecSuccess else {
+                Logger.keychain.warning("Error retrieving FAU credentials: \(status)")
+                return [] // Return empty array instead of throwing
+            }
+            
+            let array = ref as! CFArray
+            let dict: [[String: Any]] = array.toSwiftArray()
+            let pairs = dict.compactMap { $0.accountPasswordPair }
+            
+            Logger.keychain.info("Retrieved \(pairs.count) FAU shared credentials")
+            return pairs
+            
+        } catch {
+            Logger.keychain.warning("Error in FAU credentials query: \(error)")
+            return [] // Return empty array instead of throwing
+        }
+    }
+}
+
+
+// MARK: - Helper extensions to extract data from CFArray and Dictionaries
+extension CFArray {
+  func toSwiftArray<T>() -> [T] {
+    let array = Array<AnyObject>(_immutableCocoaArray: self)
+    return array.compactMap { $0 as? T }
+  }
     // MARK: - OSStatus helper
     
     func describe(status: OSStatus) -> String {

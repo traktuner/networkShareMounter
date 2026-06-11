@@ -32,5 +32,10 @@ extension Logger {
     static let preferences = Logger(subsystem: subsystem, category: "preferences")
     static let login = Logger(subsystem: subsystem, category: "login")
     static let finderController = Logger(subsystem: subsystem, category: "finderController")
+    static let dataModel = Logger(subsystem: subsystem, category: "dataModel")
+    static let authenticationView = Logger(subsystem: subsystem, category: "authenticationView")
+    static let networkSharesView = Logger(subsystem: subsystem, category: "networkSharesView")
+    static let authProfile = Logger(subsystem: subsystem, category: "authProfile")
     static let keychain = Logger(subsystem: subsystem, category: "keychain")
+    static let passwordExpiration = Logger(subsystem: subsystem, category: "passwordExpiration")
 }
