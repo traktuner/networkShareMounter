@@ -227,7 +227,21 @@ class ActivityController {
             name: .nsmDistributedRenewKerberosTrigger,
             object: nil
         )
-        
+
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(mountSingleShare(_:)),
+            name: .nsmDistributedMountShareTrigger,
+            object: nil
+        )
+
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(unmountSingleShare(_:)),
+            name: .nsmDistributedUnmountShareTrigger,
+            object: nil
+        )
+
         Logger.activityController.debug("All observers successfully registered")
     }
     
@@ -456,6 +470,50 @@ class ActivityController {
     @objc func renewKerberosTicket() {
         Logger.activityController.info("🎫 Kerberos ticket renewal requested via App Intent")
         performSoftRestart(reason: "Kerberos ticket renewal via Shortcuts")
+    }
+
+    /// Mounts a single share identified by URL, triggered by MountShareIntent.
+    @objc func mountSingleShare(_ notification: Notification) {
+        guard let mounter = appDelegate?.mounter else {
+            Logger.activityController.error("Single-share mount failed: Mounter not available")
+            return
+        }
+        guard let shareURL = notification.object as? String else {
+            Logger.activityController.error("Single-share mount failed: No share URL in notification")
+            return
+        }
+        Logger.activityController.info("▶︎ Single-share mount requested for: \(shareURL, privacy: .public)")
+        let task = Task { @MainActor in
+            let shares = await mounter.shareManager.allShares
+            guard let share = shares.first(where: { $0.networkShare == shareURL }) else {
+                Logger.activityController.warning("⚠️ Single-share mount: no share found for \(shareURL, privacy: .public)")
+                return
+            }
+            await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
+        }
+        _ = task
+    }
+
+    /// Unmounts a single share identified by URL, triggered by UnmountShareIntent.
+    @objc func unmountSingleShare(_ notification: Notification) {
+        guard let mounter = appDelegate?.mounter else {
+            Logger.activityController.error("Single-share unmount failed: Mounter not available")
+            return
+        }
+        guard let shareURL = notification.object as? String else {
+            Logger.activityController.error("Single-share unmount failed: No share URL in notification")
+            return
+        }
+        Logger.activityController.info("▶︎ Single-share unmount requested for: \(shareURL, privacy: .public)")
+        let task = Task { @MainActor in
+            let shares = await mounter.shareManager.allShares
+            guard let share = shares.first(where: { $0.networkShare == shareURL }) else {
+                Logger.activityController.warning("⚠️ Single-share unmount: no share found for \(shareURL, privacy: .public)")
+                return
+            }
+            await mounter.unmountShare(for: share, userTriggered: true)
+        }
+        _ = task
     }
     
     /// Updates the app menu

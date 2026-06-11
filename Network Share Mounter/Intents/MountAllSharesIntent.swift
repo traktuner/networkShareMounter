@@ -36,25 +36,11 @@ struct MountAllSharesIntent: AppIntent {
     ///
     /// This is set to `true` so that the app can provide visual feedback or
     /// additional context while mounting shares.
-    static var openAppWhenRun: Bool = true
+    static var openAppWhenRun: Bool = false
 
-    /// Performs the intent by notifying the main application to mount all shares.
-    ///
-    /// This method posts a distributed notification with the name
-    /// ``Notification.Name/nsmDistributedMountTrigger`` so that the main app,
-    /// which is listening for this notification, can initiate the mount process.
-    ///
-    /// The use of `DistributedNotificationCenter` is required because the intent
-    /// extension runs in a separate process from the app.
-    ///
-    /// - Returns: An empty intent result indicating successful dispatch of the trigger.
-    /// - Throws: Never currently throws. Reserved for future error propagation if needed.
-    /// - Important: Ensure the main app registers an observer for the distributed
-    ///   notification to handle the mount logic; otherwise, this intent will have no effect.
-    func perform() async throws -> some IntentResult {
-        // Use DistributedNotificationCenter because the intent extension runs in a separate process.
+    func perform() async throws -> some IntentResult & ProvidesDialog {
         DistributedNotificationCenter.default().post(name: .nsmDistributedMountTrigger, object: nil)
-        return .result()
+        return .result(dialog: IntentDialog(LocalizedStringResource("MountAllShares.Success", table: "Localizable")))
     }
 }
 

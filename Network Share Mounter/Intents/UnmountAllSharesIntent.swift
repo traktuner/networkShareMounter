@@ -39,24 +39,11 @@ struct UnmountAllSharesIntent: AppIntent {
     ///
     /// This is set to `true` so that the app can provide visual feedback or
     /// additional context while unmounting shares.
-    static var openAppWhenRun: Bool = true
+    static var openAppWhenRun: Bool = false
 
-    /// Performs the intent by notifying the main application to unmount all shares.
-    ///
-    /// This method posts a distributed notification with the name
-    /// ``Notification.Name/nsmDistributedUnmountTrigger`` so that the main app,
-    /// which is listening for this notification, can initiate the unmount process.
-    ///
-    /// The use of `DistributedNotificationCenter` is required because the intent
-    /// extension runs in a separate process from the app.
-    ///
-    /// - Returns: An empty intent result indicating successful dispatch of the trigger.
-    /// - Throws: Never currently throws. Reserved for future error propagation if needed.
-    /// - Important: Ensure the main app registers an observer for the distributed
-    ///   notification to handle the unmount logic; otherwise, this intent will have no effect.
-    func perform() async throws -> some IntentResult {
+    func perform() async throws -> some IntentResult & ProvidesDialog {
         DistributedNotificationCenter.default().post(name: .nsmDistributedUnmountTrigger, object: nil)
-        return .result()
+        return .result(dialog: IntentDialog(LocalizedStringResource("UnmountAllShares.Success", table: "Localizable")))
     }
 }
 

@@ -26,7 +26,7 @@ struct RenewKerberosTicketIntent: AppIntent {
     static var description = IntentDescription(LocalizedStringResource("RenewKerberosTicket.Description", table: "Localizable"))
     
     /// Indicates whether the host app should open when the intent is executed.
-    static var openAppWhenRun: Bool = true
+    static var openAppWhenRun: Bool = false
     
     /// Performs the intent by notifying the main application to renew Kerberos tickets.
     ///

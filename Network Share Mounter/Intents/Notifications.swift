@@ -37,5 +37,15 @@ extension NSNotification.Name {
     /// Posted by the App Intents extension (see ``RenewKerberosTicketIntent``),
     /// and observed by the main app to initiate ticket renewal via AutomaticSignIn.
     static let nsmDistributedRenewKerberosTrigger = NSNotification.Name("nsmDistributedRenewKerberosTrigger")
+
+    /// Triggers mounting of a single share in the main app.
+    ///
+    /// Posted by `MountShareIntent` with `object` = network share URL string.
+    static let nsmDistributedMountShareTrigger = NSNotification.Name("nsmDistributedMountShareTrigger")
+
+    /// Triggers unmounting of a single share in the main app.
+    ///
+    /// Posted by `UnmountShareIntent` with `object` = network share URL string.
+    static let nsmDistributedUnmountShareTrigger = NSNotification.Name("nsmDistributedUnmountShareTrigger")
 }
 
