@@ -263,68 +263,55 @@ lane :sparkle do |options|
   end
 
   UI.message("🚀 Starting sparkle lane for type: #{build_type}")
-  desc "Starting sparkle lane..."
-  
+
   appversion = getappversion
-  desc "creating Sparkle workspace"
   workspace = "../build/sparkle_workspace"
   sh("rm -rf #{workspace} ; mkdir -p #{workspace}")
 
-  desc "copying dmg file into workspace"
-  sh("cp ../build/NetworkShareMounter-#{appversion}.dmg #{workspace}/")
+  # DMG in Workspace kopieren (Name ohne Build-Typ-Suffix für generate_appcast)
+  dmg_suffix = build_type.downcase == "release" ? "" : "#{build_type}-"
+  sh("cp ../build/NetworkShareMounter-#{dmg_suffix}#{appversion}.dmg #{workspace}/NetworkShareMounter-#{appversion}.dmg")
 
-  desc "getting actual Sparkle appcast file"
-  live_appcast_url = "https://www.nsm.faumac.rrze.de/nsm-appcast"
+  # Live-Appcast holen (Fehler hier ist nicht fatal)
   begin
-    sh("curl -f -s -o #{workspace}/nsm-appcast #{live_appcast_url}")
-    UI.success("✅ got live appcast file.")
+    sh("curl -f -s -o #{workspace}/nsm-appcast https://www.nsm.faumac.rrze.de/nsm-appcast")
+    UI.success("✅ Got live appcast file.")
   rescue
-    UI.important("⚠️ Error on loading live appcast file.")
+    UI.important("⚠️ Could not load live appcast file – will create new one.")
   end
 
-  desc "generating Sparkle appcast file"
-  generate_appcast = sh("ls -d /opt/homebrew/Caskroom/sparkle/*/bin/generate_appcast | sort -V | tail -n 1").strip
-  commit_tag = ENV["CI_COMMIT_TAG"] || "release-#{appversion}"
-  
+  # Existenz-Check
+  generate_appcast = "/opt/sparkle-tools/bin/generate_appcast"
+  UI.user_error!("❌ generate_appcast nicht gefunden: #{generate_appcast}") unless File.executable?(generate_appcast)
+
+  commit_tag = ENV["CI_COMMIT_TAG"] || "#{build_type}-#{appversion}"
+
   begin
     if ENV['SPARKLE_PRIVATE_KEY'] && !ENV['SPARKLE_PRIVATE_KEY'].empty?
-      
-      # 100% sichere Methode: Ruby Tempfile nutzen. 
-      # Die Datei wird nach dem "do...end" Block von Ruby automatisch gelöscht.
       Tempfile.create('sparkle_key') do |temp_key_file|
         temp_key_file.write(ENV['SPARKLE_PRIVATE_KEY'])
-        temp_key_file.close # Wichtig: Schließen, damit generate_appcast sie fehlerfrei lesen kann
-        
-        # Aufruf als Array-Parameter: Verhindert Shell-Injection und fängt Exit-Codes sauber ab
+        temp_key_file.close
         sh(
-          generate_appcast, 
+          generate_appcast,
           "--ed-key-file", temp_key_file.path,
-          "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{commit_tag}/",  
+          "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{commit_tag}/",
           "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
           workspace
-        )  
+        )
       end
-      
-      UI.success("✅ generated appcast file with signatures.")
+      UI.success("✅ Generated appcast file with signatures.")
     else
-      UI.error("🔴 SPARKLE_PRIVATE_KEY is not set. Generating WITHOUT signatures!")
-      sh(
-        generate_appcast, 
-        "--download-url-prefix", "https://gitlab.rrze.fau.de/api/v4/projects/506/packages/generic/networksharemounter/#{commit_tag}/",  
-        "--full-release-notes-url", "https://gitlab.rrze.fau.de/faumac/networkShareMounter/-/raw/dev/CHANGELOG",
-        workspace
-      )  
+      UI.user_error!("🔴 SPARKLE_PRIVATE_KEY ist nicht gesetzt – Abbruch!")
     end
   rescue => ex
-    UI.error("🔴 Generation of appcast file failed: #{ex.message}")
+    UI.user_error!("🔴 Appcast generation failed: #{ex.message}")
   end
 
-  desc "move appcast file to website source"  
   sh("mkdir -p ../nsm-website/static/")
   sh("cp #{workspace}/nsm-appcast ../nsm-website/static/nsm-appcast")
-  # copy appcast also to old channel URL for backward compatibility
   sh("scp #{workspace}/nsm-appcast unrz06wm@kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.faumac.rrze.uni-erlangen.de/websource/apps/")
 end
+
 
 def on_error(exception)
   UI.error("An error occurred: #{exception}")
