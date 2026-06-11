@@ -493,21 +493,19 @@ struct AuthenticationView: View {
     
     private func loadAssociatedShares(for profileID: String?) async {
         guard let id = profileID, let selectedProfile = profileManager.getProfile(by: id) else {
-            currentAssociatedShares = [] 
+            currentAssociatedShares = []
             logger.debug("Cleared associated shares (no profile selected or found).")
             return
         }
         logger.debug("Loading associated shares for profile: \(selectedProfile.displayName)")
         let allShares = await mounter.shareManager.allShares
-        if let associatedURLs = selectedProfile.associatedNetworkShares {
-            currentAssociatedShares = allShares.filter { share in
-                associatedURLs.contains(share.networkShare)
-            }
-            logger.info("Loaded \(currentAssociatedShares.count) shares associated with profile '\(selectedProfile.displayName)'.")
-        } else {
-            currentAssociatedShares = []
-            logger.info("Profile '\(selectedProfile.displayName)' has no associated shares.")
+        let associatedURLs = selectedProfile.associatedNetworkShares ?? []
+        // Match by authProfileID (primary – works even when networkShare contains %USERNAME%)
+        // or by URL in associatedNetworkShares (fallback for legacy profiles).
+        currentAssociatedShares = allShares.filter { share in
+            share.authProfileID == id || associatedURLs.contains(share.networkShare)
         }
+        logger.info("Loaded \(currentAssociatedShares.count) shares associated with profile '\(selectedProfile.displayName)'.")
     }
 }
 
