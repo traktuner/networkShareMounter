@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.2] - 2026-06-11
+
+### Fixed
+- Minor bug fix for how auto-update (Sparkle) behaves
+  Starting with Version 4.1.2, SUEnableAutomaticChecks is set to true by default. If this should be disabled via MDM, `disableAutoUpdateFramework = true` must be set
+
 ## [4.1.1] - 2026-06-11
 
 ### What's new

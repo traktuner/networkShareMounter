@@ -162,6 +162,9 @@
         }
       }
     },
+    "%@" : {
+
+    },
     "%d network share(s) requiring a password profile" : {
       "comment" : "Password shares context",
       "localizations" : {
@@ -1334,6 +1337,7 @@
       }
     },
     "Automatically install updates" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5145,6 +5149,47 @@
         }
       }
     },
+    "MountAllShares.Success" : {
+      "comment" : "Siri confirmation when mounting all shares",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Freigaben werden verbunden…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mounting all shares…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando todas las unidades…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion de tous les partages…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connessione di tutte le condivisioni…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle shares verbinden…"
+          }
+        }
+      }
+    },
     "MountAllShares.Title" : {
       "comment" : "Connect all network drives",
       "localizations" : {
@@ -5186,43 +5231,84 @@
         }
       }
     },
-    "MountAllShares.Success" : {
-      "comment" : "Siri confirmation when mounting all shares",
+    "mounted" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alle Freigaben werden verbunden…"
+            "value" : "Freigabe eingehängt"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mounting all shares…"
+            "value" : "Share mounted"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectando todas las unidades…"
+            "value" : "Recurso compartido montado"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connexion de tous les partages…"
+            "value" : "Partage monté"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connessione di tutte le condivisioni…"
+            "value" : "Condivisione montata"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alle shares verbinden…"
+            "value" : "Share gekoppeld"
+          }
+        }
+      }
+    },
+    "Mountpoint is inacessible" : {
+      "comment" : "Mountpoint is inacessible",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Einhängepunkt ist nicht zugänglich."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mountpoint is inaccessible"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El punto de montaje no es accesible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le point de montage est inaccessible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il punto di montaggio non è accessibile."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppelpunt is ontoegankelijk."
           }
         }
       }
@@ -5387,88 +5473,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Share verbinden"
-          }
-        }
-      }
-    },
-    "mounted" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Freigabe eingehängt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share mounted"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recurso compartido montado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partage monté"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Condivisione montata"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share gekoppeld"
-          }
-        }
-      }
-    },
-    "Mountpoint is inacessible" : {
-      "comment" : "Mountpoint is inacessible",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Einhängepunkt ist nicht zugänglich."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mountpoint is inaccessible"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El punto de montaje no es accesible."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le point de montage est inaccessible."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il punto di montaggio non è accessibile."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Koppelpunt is ontoegankelijk."
           }
         }
       }
@@ -8346,6 +8350,47 @@
         }
       }
     },
+    "Shortcuts.MountShare.ShortTitle" : {
+      "comment" : "Short title for mount single share shortcut",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe verbinden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mount Share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar unidad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecter partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connetti condivisione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share verbinden"
+          }
+        }
+      }
+    },
     "Shortcuts.MountStatus.ShortTitle" : {
       "comment" : "Share Status",
       "localizations" : {
@@ -8465,47 +8510,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afkoppelen"
-          }
-        }
-      }
-    },
-    "Shortcuts.MountShare.ShortTitle" : {
-      "comment" : "Short title for mount single share shortcut",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Freigabe verbinden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mount Share"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conectar unidad"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecter partage"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connetti condivisione"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share verbinden"
           }
         }
       }
@@ -8713,6 +8717,7 @@
       }
     },
     "Software update management is disabled by an MDM policy." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9401,47 +9406,6 @@
         }
       }
     },
-    "UnmountAllShares.Title" : {
-      "comment" : "Disconnect all network drives",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trenne alle Netzwerklaufwerke"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disconnect all network drives"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desconectar todas las unidades de red"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnecter tous les lecteurs réseau"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scollega tutte le unità di rete"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Koppel alle netwerkschijven af"
-          }
-        }
-      }
-    },
     "UnmountAllShares.Success" : {
       "comment" : "Siri confirmation when unmounting all shares",
       "localizations" : {
@@ -9479,6 +9443,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alle shares ontkoppelen…"
+          }
+        }
+      }
+    },
+    "UnmountAllShares.Title" : {
+      "comment" : "Disconnect all network drives",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trenne alle Netzwerklaufwerke"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect all network drives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar todas las unidades de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter tous les lecteurs réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scollega tutte le unità di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppel alle netwerkschijven af"
           }
         }
       }
