@@ -38,8 +38,6 @@
 	<string>https://faumac.rrze.fau.de/nsm-appcast</string>
 	<key>SUPublicEDKey</key>
 	<string>tPzwpKRVdCjP2EFDrkmcX9A2XxTQRVKg6dLMaXoA8cc=</string>
-	<key>SUEnableAutomaticChecks</key>
-	<false/>
 	<key>menuShowSharesMountDir</key>
 	<string>hidden</string>
 	<key>sendDiagnostics</key>

@@ -50,18 +50,10 @@ struct GeneralSettingsView: View {
     /// Initialized from `prefs.bool(for: .sendDiagnostics)` in `.onAppear`.
     /// Changes are saved back to `prefs` in `.onChange`.
     @State private var sendDiagnosticData: Bool = false
-    
-    /// Controls whether Sparkle should automatically check for updates.
-    /// Initialized from `prefs.bool(for: .SUEnableAutomaticChecks)` in `.onAppear`.
-    /// Changes are saved back to `prefs` in `.onChange`,
-    /// respecting the `isUpdateFrameworkDisabled` state.
-    @State private var automaticallyChecksForUpdates: Bool = false
-    
-    /// Controls whether Sparkle should automatically download and install updates.
-    /// Initialized from `prefs.bool(for: .SUAutomaticallyUpdate)` in `.onAppear`.
-    /// Changes are saved back to `prefs` in `.onChange`,
-    /// respecting the `isUpdateFrameworkDisabled` and `automaticallyChecksForUpdates` states.
-    @State private var automaticallyDownloadsUpdates: Bool = false
+
+    /// Mirrors Sparkle's own SUEnableAutomaticChecks key so the user can change their
+    /// mind after the first-run dialog. Sparkle reads the same key from UserDefaults.
+    @AppStorage("SUEnableAutomaticChecks") private var automaticallyChecksForUpdates: Bool = true
 
     /// Hidden debug feature: enables log export functionality for current session only
     @State private var debugLogExportEnabled: Bool = false
@@ -229,52 +221,30 @@ struct GeneralSettingsView: View {
                 .padding(.vertical, 8)
                 
                 // MARK: - Update Section
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("Software Update")
-                        .font(.headline)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Toggle for enabling automatic update checks.
+                if !isUpdateFrameworkDisabled {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Software Update")
+                            .font(.headline)
+
                         Toggle("Automatically check for updates", isOn: $automaticallyChecksForUpdates)
-                            .disabled(isUpdateFrameworkDisabled)
                             .padding(.leading, 20)
-                        
-                        // Toggle for enabling automatic update downloads/installs.
-                        Toggle("Automatically install updates", isOn: $automaticallyDownloadsUpdates)
-                            .disabled(isUpdateFrameworkDisabled || !automaticallyChecksForUpdates)
-                            .padding(.leading, 20)
-                                                
-                        // Button to manually trigger an update check.
-                        HStack {
-                            Button {
-                                // Access AppDelegate and trigger check for updates
-                                if let appDelegate = NSApp.delegate as? AppDelegate,
-                                   let updaterController = appDelegate.updaterController {
-                                    updaterController.checkForUpdates(nil)
-                                } else {
-                                    print("Could not find AppDelegate or UpdaterController")
-                                }
-                            } label: {
-                                HStack {
-                                    Image(systemName: "arrow.clockwise")
-                                    Text("Check for updates now")
-                                }
+
+                        Button {
+                            if let appDelegate = NSApp.delegate as? AppDelegate,
+                               let updaterController = appDelegate.updaterController {
+                                updaterController.checkForUpdates(nil)
                             }
-                            .disabled(isUpdateFrameworkDisabled)
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Check for updates now")
+                            }
                         }
                         .padding(.leading, 20)
                         .padding(.top, 4)
                     }
-                    
-                    // Informational text shown when updates are disabled by MDM.
-                    if isUpdateFrameworkDisabled {
-                         Text("Software update management is disabled by an MDM policy.")
-                             .font(.caption)
-                             .foregroundColor(.secondary)
-                             .padding(.top, 5)
-                    }
+                    .padding(.vertical, 8)
                 }
-                .padding(.vertical, 8)
                 
                 // MARK: - Version Info Section
                 VStack(alignment: .leading, spacing: 14) {
@@ -310,8 +280,6 @@ struct GeneralSettingsView: View {
             Logger.app.info("⚙️ [GeneralSettingsView] onAppear – canChangeAutostart=\(canChange, privacy: .public), mdmAutostart=\(mdmAutostart, privacy: .public), systemStatus=\(String(describing: systemStatus), privacy: .public), startAtLogin=\(startAtLogin, privacy: .public)")
 
             sendDiagnosticData = prefs.bool(for: .sendDiagnostics)
-            automaticallyChecksForUpdates = prefs.bool(for: .SUEnableAutomaticChecks)
-            automaticallyDownloadsUpdates = prefs.bool(for: .SUAutomaticallyUpdate)
         }
         // MARK: - State Change Handlers
         .onChange(of: startAtLogin) { newValue in
@@ -343,35 +311,6 @@ struct GeneralSettingsView: View {
 
             // Reconfigure Sentry based on the new preference
             SentryManager.shared.configureSentry()
-        }
-        .onChange(of: automaticallyChecksForUpdates) { newValue in
-            // Persist the automatic check preference if allowed.
-            if !isUpdateFrameworkDisabled {
-                prefs.set(for: .SUEnableAutomaticChecks, value: newValue)
-                // Ensure automatic downloads are disabled if checks are disabled.
-                if !newValue {
-                    if automaticallyDownloadsUpdates { // Update state only if needed
-                        automaticallyDownloadsUpdates = false
-                    }
-                    prefs.set(for: .SUAutomaticallyUpdate, value: false)
-                }
-            } else {
-                 // Revert UI if change is disallowed by MDM.
-                 Task { @MainActor in 
-                     automaticallyChecksForUpdates = prefs.bool(for: .SUEnableAutomaticChecks)
-                 }
-            }
-        }
-        .onChange(of: automaticallyDownloadsUpdates) { newValue in
-            // Persist the automatic download preference if allowed and checks are enabled.
-            if !isUpdateFrameworkDisabled && automaticallyChecksForUpdates {
-                 prefs.set(for: .SUAutomaticallyUpdate, value: newValue)
-            } else {
-                 // Revert UI if change is disallowed by MDM or checks are disabled.
-                 Task { @MainActor in 
-                     automaticallyDownloadsUpdates = prefs.bool(for: .SUAutomaticallyUpdate)
-                 }
-            }
         }
     }
 

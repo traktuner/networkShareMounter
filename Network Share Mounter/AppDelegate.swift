@@ -159,24 +159,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         
         // First check if auto-updater is enabled
         if prefs.bool(for: .disableAutoUpdateFramework) == false {
-            // Configure Sparkle defaults before initializing the controller
-            let sparkleDefaults = UserDefaults.standard
-            
-            // Set SUEnableAutomaticChecks from preferences or default to true
-            let enableChecks = prefs.bool(for: .SUEnableAutomaticChecks)
-            sparkleDefaults.set(enableChecks, forKey: "SUEnableAutomaticChecks")
-            
-            // Set SUAutomaticallyUpdate from preferences or default to true
-            let autoUpdate = prefs.bool(for: .SUAutomaticallyUpdate)
-            sparkleDefaults.set(autoUpdate, forKey: "SUAutomaticallyUpdate")
-            
-            // Only initialize the updater controller if auto-updater is enabled
+            // Sparkle manages its own SUEnableAutomaticChecks / SUAutomaticallyUpdate
+            // preferences. We do NOT write them here — Sparkle handles first-run consent
+            // itself. MDM admins can inject those keys via Managed Defaults if needed.
             updaterController = SPUStandardUpdaterController(
-                startingUpdater: enableChecks, // Only start updater if checks are enabled
+                startingUpdater: true,
                 updaterDelegate: nil,
                 userDriverDelegate: self)
-            
-            Logger.app.debug("Sparkle initialized with: checks=\(enableChecks, privacy: .public), auto-update=\(autoUpdate, privacy: .public)")
+
+            Logger.app.debug("Sparkle initialized")
         } else {
             // Explicitly disable Sparkle in defaults when auto-updater is disabled
             UserDefaults.standard.set(false, forKey: "SUEnableAutomaticChecks")
