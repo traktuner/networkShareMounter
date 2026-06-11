@@ -40,8 +40,7 @@ struct GetMountStatusIntent: AppIntent {
     
     /// Indicates whether the host app should open when the intent is executed.
     ///
-    /// Set to `true` to ensure the intent appears as an App Shortcut.
-    static var openAppWhenRun: Bool = true
+    static var openAppWhenRun: Bool = false
     
     /// Performs the intent by retrieving mount status of all shares.
     ///

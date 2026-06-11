@@ -69,5 +69,23 @@ struct NetworkShareShortcuts: AppShortcutsProvider {
             shortTitle: LocalizedStringResource("Shortcuts.MountStatus.ShortTitle", table: "Localizable"),
             systemImageName: "chart.bar.doc.horizontal.fill"
         )
+        AppShortcut(
+            intent: MountShareIntent(),
+            phrases: [
+                "Mount \(\.$share) in \(.applicationName)",
+                "Connect \(\.$share) in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.MountShare.ShortTitle", table: "Localizable"),
+            systemImageName: "externaldrive.fill.badge.plus"
+        )
+        AppShortcut(
+            intent: UnmountShareIntent(),
+            phrases: [
+                "Unmount \(\.$share) in \(.applicationName)",
+                "Disconnect \(\.$share) in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.UnmountShare.ShortTitle", table: "Localizable"),
+            systemImageName: "externaldrive.badge.minus"
+        )
     }
 }
