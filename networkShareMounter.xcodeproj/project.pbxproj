@@ -83,6 +83,9 @@
 		F7EF65FB2B3B5E2300051D44 /* SetupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */; };
 		F7EF66062B3B5F5200051D44 /* NSTaskWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */; };
 		F7EFD0A22D0B191A0064D038 /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7EFD0A12D0B191A0064D038 /* dogeADAuth */; };
+		F7F1F8332FDABE72003E84AE /* ShareAppEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F1F8322FDABE72003E84AE /* ShareAppEntity.swift */; };
+		F7F1F8352FDABE75003E84AE /* MountShareIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F1F8342FDABE75003E84AE /* MountShareIntent.swift */; };
+		F7F1F8372FDABE78003E84AE /* UnmountShareIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F1F8362FDABE78003E84AE /* UnmountShareIntent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -167,6 +170,9 @@
 		F7EF65F82B3B5E0800051D44 /* URL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		F7EF65FA2B3B5E2300051D44 /* SetupSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupSession.swift; sourceTree = "<group>"; };
 		F7EF66052B3B5F5200051D44 /* NSTaskWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSTaskWrapper.swift; sourceTree = "<group>"; };
+		F7F1F8322FDABE72003E84AE /* ShareAppEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareAppEntity.swift; sourceTree = "<group>"; };
+		F7F1F8342FDABE75003E84AE /* MountShareIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountShareIntent.swift; sourceTree = "<group>"; };
+		F7F1F8362FDABE78003E84AE /* UnmountShareIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnmountShareIntent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -243,6 +249,9 @@
 				F794F7912F3350A200CE3981 /* RenewKerberosTicketIntent.swift */,
 				F794F7932F3350E300CE3981 /* GetKerberosStatusIntent.swift */,
 				F794F7952F33525900CE3981 /* GetMountStatusIntent.swift */,
+				F7F1F8322FDABE72003E84AE /* ShareAppEntity.swift */,
+				F7F1F8342FDABE75003E84AE /* MountShareIntent.swift */,
+				F7F1F8362FDABE78003E84AE /* UnmountShareIntent.swift */,
 			);
 			path = Intents;
 			sourceTree = "<group>";
@@ -527,6 +536,7 @@
 				F7EF65DA2B3B574100051D44 /* SRVResolver.swift in Sources */,
 				F78AF9D02D035D5500E32EEA /* FinderController.swift in Sources */,
 				F7EF65E32B3B57FC00051D44 /* AccountsManager.swift in Sources */,
+				F7F1F8372FDABE78003E84AE /* UnmountShareIntent.swift in Sources */,
 				F7EF65D02B3B4DFC00051D44 /* Logger.swift in Sources */,
 				F7D940502C418B9300028F9A /* MountStatusDescription.swift in Sources */,
 				F727CFE12B35C99E0075351D /* DisplayShareTypes.swift in Sources */,
@@ -537,6 +547,8 @@
 				F77A1E772ED0B08C00D7A218 /* ShareHelpers.swift in Sources */,
 				F77107B9274EC76200556B20 /* Mounter.swift in Sources */,
 				F7E801AC2E797BF2009D4D3B /* SentryManager.swift in Sources */,
+				F7F1F8332FDABE72003E84AE /* ShareAppEntity.swift in Sources */,
+				F7F1F8352FDABE75003E84AE /* MountShareIntent.swift in Sources */,
 				F7341C5C2EB0E0BC005D3BD3 /* Notifications.swift in Sources */,
 				F7BD25A72FBB3F56005C78DA /* FullDiskAccessChecker.swift in Sources */,
 				F7EF65F32B3B5DBB00051D44 /* String.swift in Sources */,
@@ -697,7 +709,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 470;
+				CURRENT_PROJECT_VERSION = 478;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -727,7 +739,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 470;
+				CURRENT_PROJECT_VERSION = 478;
 				DEVELOPMENT_TEAM = C8F68RFW4L;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -761,7 +773,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 470;
+				CURRENT_PROJECT_VERSION = 478;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -781,7 +793,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 4.1.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
@@ -814,7 +826,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 470;
+				CURRENT_PROJECT_VERSION = 478;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -834,7 +846,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 4.1.0;
+				MARKETING_VERSION = 4.1.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -889,7 +901,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.9.2;
+				minimumVersion = 2.9.3;
 			};
 		};
 		F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -897,8 +909,10 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 9.13.0;
+				minimumVersion = 9.17.0;
 			};
+			traits = (
+			);
 		};
 /* End XCRemoteSwiftPackageReference section */
 

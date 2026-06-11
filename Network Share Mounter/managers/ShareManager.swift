@@ -350,8 +350,9 @@ actor ShareManager {
             Logger.shareManager.debug("📝 Setting username to local system username: \(userName, privacy: .public)")
         }
         
-        // Replace username placeholder in share URL
-        let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName)
+        // Keep the raw URL — %USERNAME% is resolved at mount/display time via
+        // Share.resolvedNetworkShare(username:) so the correct auth username is always used.
+        let shareRectified = shareUrlString
         
         // Configure authentication type, defaulting to Kerberos if not specified
         let shareAuthType = AuthType(rawValue: shareElement[Defaults.authType]?.trim() ?? AuthType.krb.rawValue) ?? AuthType.krb
@@ -406,8 +407,8 @@ actor ShareManager {
     func getLegacyShareConfig(forShare shareElement: String) -> Share? {
         /// then look if we have some legacy mdm defined share definitions which will be read **only** if there is no `Settings.mdmNetworkSahresKey` defined!
         //
-        // replace possible %USERNAME occurencies with local username - must be the same as directory service username!
-        let shareRectified = shareElement.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+        // Keep raw URL — %USERNAME% resolved at mount/display time via Share.resolvedNetworkShare(username:)
+        let shareRectified = shareElement
         let newShare = Share.createShare(networkShare: shareRectified, authType: AuthType.krb, mountStatus: MountStatus.unmounted, managed: true)
         return(newShare)
     }

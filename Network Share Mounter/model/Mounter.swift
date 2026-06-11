@@ -737,7 +737,10 @@ class Mounter: ObservableObject {
 
             // Early check: Skip Kerberos shares without valid tickets to avoid 60s timeout
             // EXCEPT when Mac is AD-bound (system Kerberos tickets are used automatically)
-            if share.authType == .krb && !isActiveDirectoryBound {
+            // or when tickets are managed externally (e.g. AD binding, Jamf Connect, SSO
+            // Extension) — in that case NSM has no own ticket to check and must attempt the
+            // mount so macOS can negotiate authentication itself.
+            if share.authType == .krb && !isActiveDirectoryBound && !share.externalKerberosManagement {
                 var shouldSkip = false
 
                 if let profileID = share.authProfileID {
@@ -951,9 +954,10 @@ class Mounter: ObservableObject {
 
         for share in shares {
             if share.authType == .krb {
-                // If Mac is AD-bound, treat all Kerberos shares as "with tickets"
-                // because system Kerberos tickets are used automatically by macOS
-                if isActiveDirectoryBound {
+                // If Mac is AD-bound or tickets are managed externally, treat all Kerberos
+                // shares as "with tickets" because Kerberos credentials are provided outside
+                // of NSM (system tickets, Jamf Connect, SSO Extension) and used automatically.
+                if isActiveDirectoryBound || share.externalKerberosManagement {
                     kerberosWithTickets.append(share)
                 } else {
                     // Check if this Kerberos share has valid app-managed tickets
@@ -996,13 +1000,22 @@ class Mounter: ObservableObject {
     /// - Parameter share: The share to validate
     /// - Returns: A tuple containing the URL and host
     /// - Throws: MounterError if URL is invalid or host cannot be determined
+    /// Returns the effective username for `%USERNAME%` substitution.
+    /// Delegates to `Share.effectiveUsername(from:)` after fetching the current profiles snapshot.
+    private func effectiveUsernameForSubstitution(in share: Share) async -> String {
+        let profiles = await AuthProfileManager.shared.profiles
+        return share.effectiveUsername(from: profiles)
+    }
+
     private func validateShareURL(_ share: Share) async throws -> (url: URL, host: String) {
-        guard let url = URL(string: share.networkShare) else {
-            Logger.mounter.error("❌ Could not find share for \(share.networkShare, privacy: .public)")
+        let username = await effectiveUsernameForSubstitution(in: share)
+        let resolvedURLString = share.resolvedNetworkShare(username: username)
+        guard let url = URL(string: resolvedURLString) else {
+            Logger.mounter.error("❌ Could not find share for \(resolvedURLString, privacy: .public)")
             throw MounterError.errorOnEncodingShareURL
         }
         guard let host = url.host else {
-            Logger.mounter.error("❌ Could not determine hostname for \(share.networkShare, privacy: .public)")
+            Logger.mounter.error("❌ Could not determine hostname for \(resolvedURLString, privacy: .public)")
             await updateShare(mountStatus: .errorOnMount, for: share)
             throw MounterError.invalidHost
         }
@@ -1052,11 +1065,15 @@ class Mounter: ObservableObject {
     private func determineMountDirectory(forShare share: Share, url: URL, basePath: String) -> String {
         Logger.mounter.debug("🤔 Determining mount directory: URL=\(url, privacy: .public), BasePath=\(basePath, privacy: .public)")
 
-        // Use effectiveMountPoint in all cases: honours the user-assigned custom name if set,
-        // otherwise falls back to the share name extracted from the URL.
-        // Note: under /Volumes, Finder still displays the server's share name, but all
-        // file-system paths (scripts, apps) use the custom name correctly.
-        let effectiveMountPoint = share.effectiveMountPoint
+        // Use the explicit mountPoint name if set; otherwise derive from the resolved URL.
+        // The resolved URL already has %USERNAME% substituted, so the mount directory
+        // never contains a literal "%USERNAME%" component.
+        let effectiveMountPoint: String
+        if let mountPoint = share.mountPoint, !mountPoint.isEmpty {
+            effectiveMountPoint = mountPoint
+        } else {
+            effectiveMountPoint = extractShareName(from: url.absoluteString)
+        }
         let mountDirectory = basePath + "/" + effectiveMountPoint
         Logger.mounter.debug("🗺️ Determined mount directory: '\(mountDirectory, privacy: .public)'")
         return mountDirectory
@@ -1261,7 +1278,13 @@ class Mounter: ObservableObject {
             throw MounterError.operationNotPermitted
 
         case 2:
-            Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
+            let realm = prefs.string(for: .kerberosRealm) ?? ""
+            let likelyDFS = !realm.isEmpty && url.host?.lowercased() == realm.lowercased()
+            if likelyDFS {
+                Logger.mounter.warning("⚠️ \(url, privacy: .public): rc=2 (ENOENT) — hostname matches kerberosRealm '\(realm, privacy: .public)'. This is likely a domain-based DFS namespace. The DFS referral may have failed (check NetAuthSysAgent logs for 'checkForDfsReferral').")
+            } else {
+                Logger.mounter.info("❌ \(url, privacy: .public): does not exist (rc=\(rc))")
+            }
             removeDirectory(atPath: mountDirectory)
             throw MounterError.doesNotExist
             
@@ -1553,12 +1576,23 @@ class Mounter: ObservableObject {
     // existing scripts and workflows continue to work. Remove this entire MARK section once Apple
     // ships the fix.
 
-    /// Returns true when the macOS 26.4 /Volumes-only mount restriction applies.
+    /// Returns true when the macOS 26.4 or macOS 26.6 Beta 1 (build 25G5028f /Volumes-only mount restriction applies.
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
-//        return v.majorVersion == 26 && v.minorVersion >= 4
-        return v.majorVersion == 26 && v.minorVersion >= 99
+        // macOS 26.4
+        let isMacOS264x = v.majorVersion == 26 && v.minorVersion == 4
+        // macOS 26.6 Beta 1 regression - has the same bug as macOS 26.4
+        let isSonoma266Beta1 = macOSBuildNumber() == "25G5028f"
+        return isMacOS264x || isSonoma266Beta1
+    }
+
+    private func macOSBuildNumber() -> String? {
+        var size = 0
+        sysctlbyname("kern.osversion", nil, &size, nil, 0)
+        var build = [CChar](repeating: 0, count: size)
+        sysctlbyname("kern.osversion", &build, &size, nil, 0)
+        return String(cString: build)
     }
 
     /// Returns the symlink path for the workaround, derived from the OS-assigned mount name (e.g. "myshare-1")

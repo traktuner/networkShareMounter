@@ -639,8 +639,8 @@ class AuthProfileManager: ObservableObject {
                     userName = NSUserName()
                 }
 
-                // Replace username placeholder
-                let shareRectified = shareUrlString.replacingOccurrences(of: "%USERNAME%", with: userName ?? "")
+                // Keep raw URL — %USERNAME% resolved at mount/display time via Share.resolvedNetworkShare(username:)
+                let shareRectified = shareUrlString
                 let authType = shareElement[Defaults.authType] ?? AuthType.krb.rawValue
 
                 configurations.append(ShareConfiguration(
@@ -655,7 +655,7 @@ class AuthProfileManager: ObservableObject {
             Logger.dataModel.debug("Processing \(nwShares.count, privacy: .public) legacy MDM shares")
 
             for share in nwShares {
-                let shareRectified = share.replacingOccurrences(of: "%USERNAME%", with: NSUserName())
+                let shareRectified = share // %USERNAME% resolved at mount/display time
                 configurations.append(ShareConfiguration(
                     shareURL: shareRectified,
                     username: NSUserName(),
@@ -1118,13 +1118,20 @@ class AuthProfileManager: ObservableObject {
         var krbRealm: String? = nil
 
         if let realm = realm, !realm.isEmpty, !isADBound {
+            // Only prompt for Kerberos credentials if at least one share actually relies on
+            // app-managed Kerberos. Shares flagged with externalKerberosManagement get their
+            // tickets from an external tool (Jamf Connect, Apple SSO Extension, AD binding),
+            // so NSM needs no credentials and must not prompt.
+            let needsAppManagedKerberos = allShares.contains {
+                $0.authType == .krb && !$0.externalKerberosManagement
+            }
             let hasProfile = profiles.contains {
                 $0.useKerberos &&
                 !$0.isExternallyManaged &&
                 ($0.kerberosRealm?.caseInsensitiveCompare(realm) == .orderedSame) &&
                 !($0.username?.isEmpty ?? true)
             }
-            if !hasProfile {
+            if needsAppManagedKerberos && !hasProfile {
                 krbRealm = realm
             }
         }
