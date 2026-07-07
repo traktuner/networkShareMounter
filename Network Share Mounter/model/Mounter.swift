@@ -1585,7 +1585,9 @@ class Mounter: ObservableObject {
         // macOS 26.6 Beta 1 regression - has the same bug as macOS 26.4
         let isSonoma266Beta1 = macOSBuildNumber() == "25G5028f"
         let isSonoma266Beta2 = macOSBuildNumber() == "25G5043d"
-        return isMacOS264x || isSonoma266Beta1 || isSonoma266Beta2
+        let isSonoma266Beta3 = macOSBuildNumber() == "25G5052e"
+        let isGoldenGate27Beta2 = macOSBuildNumber() == "26A5368g"
+        return isMacOS264x || isSonoma266Beta1 || isSonoma266Beta2 || isSonoma266Beta3 || isGoldenGate27Beta2
     }
 
     private func macOSBuildNumber() -> String? {
