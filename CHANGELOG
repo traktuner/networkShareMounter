@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fix race in settings window activation by opening window before app activation
+- Removed obsolete INFOPLIST_KEY_NSLocalNetworkUsageDescription capability
 
 ## [4.1.2] - 2026-06-11
 
