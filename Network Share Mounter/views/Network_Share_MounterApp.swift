@@ -69,7 +69,9 @@ class SettingsManager: ObservableObject {
         Logger.app.debug("🔧 [DEBUG] requestShowSettings() called")
         if let openWindow = openWindowCallback {
             Logger.app.debug("🔧 [DEBUG] Calling openWindow callback")
+            NSApp.setActivationPolicy(.regular)
             openWindow("settings")
+            NSApp.activate(ignoringOtherApps: true)
         } else {
             Logger.app.error("🔧 [ERROR] openWindowCallback is nil!")
         }
