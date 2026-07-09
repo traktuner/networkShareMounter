@@ -1576,7 +1576,7 @@ class Mounter: ObservableObject {
     // existing scripts and workflows continue to work. Remove this entire MARK section once Apple
     // ships the fix.
 
-    /// Returns true when the macOS 26.4 or macOS 26.6 Beta 1 (build 25G5028f /Volumes-only mount restriction applies.
+    /// Returns true when the macOS 26.4 or macOS 26.6 Beta 1 (build 25G5028f 25G5043d /Volumes-only mount restriction applies.
     private var needsVolumesWorkaround: Bool {
         guard !defaultMountPath.hasPrefix("/Volumes") else { return false }
         let v = ProcessInfo.processInfo.operatingSystemVersion
@@ -1584,7 +1584,10 @@ class Mounter: ObservableObject {
         let isMacOS264x = v.majorVersion == 26 && v.minorVersion == 4
         // macOS 26.6 Beta 1 regression - has the same bug as macOS 26.4
         let isSonoma266Beta1 = macOSBuildNumber() == "25G5028f"
-        return isMacOS264x || isSonoma266Beta1
+        let isSonoma266Beta2 = macOSBuildNumber() == "25G5043d"
+        let isSonoma266Beta3 = macOSBuildNumber() == "25G5052e"
+        let isGoldenGate27Beta2 = macOSBuildNumber() == "26A5368g"
+        return isMacOS264x || isSonoma266Beta1 || isSonoma266Beta2 || isSonoma266Beta3 || isGoldenGate27Beta2
     }
 
     private func macOSBuildNumber() -> String? {

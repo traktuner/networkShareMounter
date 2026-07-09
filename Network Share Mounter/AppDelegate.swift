@@ -1042,12 +1042,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Shows the new SwiftUI settings window.
     @objc func showSettingsWindowSwiftUI(_ sender: Any?) {
         Logger.app.debug("🔧 [DEBUG] showSettingsWindowSwiftUI called")
-
-        // Activate the app to bring it to foreground (necessary for menu bar apps)
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-
-        // Use the new SwiftUI app notification system
         NotificationCenter.default.post(name: .showSettingsScene, object: nil)
         Logger.app.debug("🔧 [DEBUG] Posted showSettingsScene notification")
     }
