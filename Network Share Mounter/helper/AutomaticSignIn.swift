@@ -113,6 +113,22 @@ actor AutomaticSignIn {
                 Logger.automaticSignIn.info("ℹ️ No accounts in AccountsManager, checking AuthProfile Kerberos profiles")
                 accounts = await buildAccountsFromKerberosProfiles()
                 Logger.automaticSignIn.debug("🔍 Built \(accounts.count) accounts from Kerberos profiles")
+            } else {
+                // AccountsManager accounts lack authProfileID. Enrich them from Kerberos AuthProfiles
+                // so auth() can find the password in the profile-based keychain format.
+                let kerberosAccounts = await buildAccountsFromKerberosProfiles()
+                if !kerberosAccounts.isEmpty {
+                    accounts = accounts.map { account in
+                        guard account.authProfileID == nil else { return account }
+                        guard let match = kerberosAccounts.first(where: {
+                            $0.upn.lowercased() == account.upn.lowercased()
+                        }) else { return account }
+                        var enriched = account
+                        enriched.authProfileID = match.authProfileID
+                        Logger.automaticSignIn.debug("🔗 Enriched account \(account.upn, privacy: .public) with authProfileID from Kerberos profile")
+                        return enriched
+                    }
+                }
             }
 
             if accounts.isEmpty {
