@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [4.1.2] - 2026-07-07
+## [4.1.3] - 2026-07-07
 
 ### Fixed
 - Fix race in settings window activation by opening window before app activation
 - Removed obsolete INFOPLIST_KEY_NSLocalNetworkUsageDescription capability
+- Kerberos authentication failed on start or network change with "No password found in keychain." AccountsManager lacked `authProfileID`, causing the wrong keychain search. Manual ticket renewal was unaffected
 
 ## [4.1.2] - 2026-06-11
 
