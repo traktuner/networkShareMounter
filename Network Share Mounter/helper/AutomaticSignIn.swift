@@ -114,17 +114,40 @@ actor AutomaticSignIn {
                 accounts = await buildAccountsFromKerberosProfiles()
                 Logger.automaticSignIn.debug("🔍 Built \(accounts.count) accounts from Kerberos profiles")
             } else {
-                // AccountsManager accounts lack authProfileID. Enrich them from Kerberos AuthProfiles
-                // so auth() can find the password in the profile-based keychain format.
-                let kerberosAccounts = await buildAccountsFromKerberosProfiles()
-                if !kerberosAccounts.isEmpty {
+                // AccountsManager accounts lack authProfileID. Enrich from Kerberos AuthProfiles
+                // so auth() can look up the password via profile UUID in the new keychain format.
+                let kerberosProfiles = await MainActor.run {
+                    AuthProfileManager.shared.profiles.filter { $0.useKerberos }
+                }
+                Logger.automaticSignIn.debug("🔍 Found \(kerberosProfiles.count, privacy: .public) Kerberos profiles for enrichment (with username: \(kerberosProfiles.filter { $0.username != nil }.count, privacy: .public))")
+                if !kerberosProfiles.isEmpty {
                     accounts = accounts.map { account in
                         guard account.authProfileID == nil else { return account }
-                        guard let match = kerberosAccounts.first(where: {
-                            $0.upn.lowercased() == account.upn.lowercased()
-                        }) else { return account }
+                        let accountUPNLower = account.upn.lowercased()
+                        let accountLocalPart = accountUPNLower.components(separatedBy: "@").first ?? accountUPNLower
+                        let accountRealm = accountUPNLower.components(separatedBy: "@").last ?? ""
+
+                        var matchedProfile = kerberosProfiles.first { profile in
+                            guard let username = profile.username else { return false }
+                            let profileUPNLower = username.lowercased()
+                            let profileLocalPart = profileUPNLower.components(separatedBy: "@").first ?? profileUPNLower
+                            if profileUPNLower == accountUPNLower { return true }
+                            if profileLocalPart == accountLocalPart {
+                                if let realm = profile.kerberosRealm {
+                                    return realm.lowercased() == accountRealm
+                                }
+                                return true
+                            }
+                            return false
+                        }
+                        // Fallback: if only one Kerberos profile exists, assume it's the right one
+                        if matchedProfile == nil && kerberosProfiles.count == 1 {
+                            matchedProfile = kerberosProfiles.first
+                            Logger.automaticSignIn.debug("🔗 Using single Kerberos profile for account \(account.upn, privacy: .public) (no UPN match)")
+                        }
+                        guard let match = matchedProfile else { return account }
                         var enriched = account
-                        enriched.authProfileID = match.authProfileID
+                        enriched.authProfileID = match.id
                         Logger.automaticSignIn.debug("🔗 Enriched account \(account.upn, privacy: .public) with authProfileID from Kerberos profile")
                         return enriched
                     }
