@@ -328,7 +328,7 @@ lane :sparkle do |options|
 
   sh("mkdir -p ../nsm-website/static/")
   sh("cp #{workspace}/nsm-appcast ../nsm-website/static/nsm-appcast")
-  sh("scp #{workspace}/nsm-appcast unrz06wm@kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.faumac.rrze.uni-erlangen.de/websource/apps/")
+  sh("scp #{workspace}/nsm-appcast kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.faumac.rrze.uni-erlangen.de/websource/apps/")
 end
 
 
