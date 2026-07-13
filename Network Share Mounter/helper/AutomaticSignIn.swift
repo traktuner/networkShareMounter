@@ -107,7 +107,7 @@ actor AutomaticSignIn {
             
             // Retrieve accounts: try AccountsManager first, fall back to AuthProfile Kerberos profiles
             var accounts = await accountsManager.accounts
-            Logger.automaticSignIn.debug("🔍 Retrieved \(accounts.count) accounts from AccountsManager: \(accounts.map { $0.upn }, privacy: .public)")
+            Logger.automaticSignIn.info("🔍 Retrieved \(accounts.count) accounts from AccountsManager: \(accounts.map { $0.upn }, privacy: .public)")
 
             if accounts.isEmpty {
                 Logger.automaticSignIn.info("ℹ️ No accounts in AccountsManager, checking AuthProfile Kerberos profiles")
@@ -119,7 +119,7 @@ actor AutomaticSignIn {
                 let kerberosProfiles = await MainActor.run {
                     AuthProfileManager.shared.profiles.filter { $0.useKerberos }
                 }
-                Logger.automaticSignIn.debug("🔍 Found \(kerberosProfiles.count, privacy: .public) Kerberos profiles for enrichment (with username: \(kerberosProfiles.filter { $0.username != nil }.count, privacy: .public))")
+                Logger.automaticSignIn.info("🔍 Found \(kerberosProfiles.count, privacy: .public) Kerberos profiles for enrichment (with username: \(kerberosProfiles.filter { $0.username != nil }.count, privacy: .public))")
                 if !kerberosProfiles.isEmpty {
                     accounts = accounts.map { account in
                         guard account.authProfileID == nil else { return account }
@@ -143,12 +143,12 @@ actor AutomaticSignIn {
                         // Fallback: if only one Kerberos profile exists, assume it's the right one
                         if matchedProfile == nil && kerberosProfiles.count == 1 {
                             matchedProfile = kerberosProfiles.first
-                            Logger.automaticSignIn.debug("🔗 Using single Kerberos profile for account \(account.upn, privacy: .public) (no UPN match)")
+                            Logger.automaticSignIn.info("🔗 Using single Kerberos profile for account \(account.upn, privacy: .public) (no UPN match)")
                         }
                         guard let match = matchedProfile else { return account }
                         var enriched = account
                         enriched.authProfileID = match.id
-                        Logger.automaticSignIn.debug("🔗 Enriched account \(account.upn, privacy: .public) with authProfileID from Kerberos profile")
+                        Logger.automaticSignIn.info("🔗 Enriched account \(account.upn, privacy: .public) with authProfileID from Kerberos profile")
                         return enriched
                     }
                 }
@@ -259,7 +259,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         self.session = dogeADSession(domain: domain, user: account.upn.user())
         self.session.setupSessionFromPrefs(prefs: prefs)
 
-        Logger.automaticSignIn.debug("Worker initialized for user: \(account.upn, privacy: .public), domain: \(self.domain, privacy: .public), forceAuth: \(forceAuth, privacy: .public)")
+        Logger.automaticSignIn.info("Worker initialized for user: \(account.upn, privacy: .public), domain: \(self.domain, privacy: .public), forceAuth: \(forceAuth, privacy: .public)")
     }
     
     /// Checks the user and performs sign-in
@@ -272,7 +272,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// When forceAuth is true, authentication is always performed regardless of existing tickets.
     /// This is used after mount failures to obtain fresh Kerberos tickets.
     func checkUser() async {
-        Logger.automaticSignIn.debug("🔍 [Worker] checkUser started for account: \(self.account.upn, privacy: .public)")
+        Logger.automaticSignIn.info("🔍 [Worker] checkUser started for account: \(self.account.upn, privacy: .public)")
 
         let klist = KlistUtil()
         Logger.automaticSignIn.debug("🔍 [Worker] KlistUtil initialized")
@@ -345,7 +345,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// 
     /// Retrieves the password from keychain and starts the authentication process
     func auth() async {
-        Logger.automaticSignIn.debug("🔍 [Worker] Starting auth() for account: \(self.account.upn, privacy: .public)")
+        Logger.automaticSignIn.info("🔍 [Worker] Starting auth() for account: \(self.account.upn, privacy: .public)")
         let keyUtil = KeychainManager()
         
         do {
@@ -353,12 +353,12 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             var pass: String?
             if let profileID = account.authProfileID {
                 let profileService = Bundle.main.bundleIdentifier ?? Defaults.defaultsDomain
-                Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from AuthProfile keychain (profileID: \(profileID, privacy: .public))")
+                Logger.automaticSignIn.info("🔍 [Worker] Retrieving password from AuthProfile keychain (profileID: \(profileID, privacy: .public))")
                 pass = try keyUtil.retrievePassword(forUsername: profileID, andService: profileService)
 
                 // Fallback: try UPN in legacy format (accounts created before password was saved, or after UserDefaults reset)
                 if pass == nil {
-                    Logger.automaticSignIn.debug("🔍 [Worker] No AuthProfile password found, trying legacy UPN formats")
+                    Logger.automaticSignIn.info("🔍 [Worker] No AuthProfile password found, trying legacy UPN formats")
                     let upnVariants = [account.upn, account.upn.lowercased()]
                     for upn in upnVariants {
                         if let found = try keyUtil.retrievePassword(forUsername: upn, andService: Defaults.keyChainService) {
@@ -369,8 +369,21 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
                     }
                 }
             } else {
-                Logger.automaticSignIn.debug("🔍 [Worker] Retrieving password from legacy keychain for: \(self.account.upn, privacy: .public)")
+                Logger.automaticSignIn.info("🔍 [Worker] Retrieving password from legacy keychain for: \(self.account.upn, privacy: .public)")
                 pass = try keyUtil.retrievePassword(forUsername: account.upn, andService: Defaults.keyChainService)
+            }
+
+            // FAU device-enrollment credentials live in a separate shared keychain;
+            // migration preserves them there ("keep existing keychain") so we must look here too.
+            if pass == nil {
+                let fauCredentials = (try? keyUtil.retrieveAllFAUSharedCredentials()) ?? []
+                let upnLower = account.upn.lowercased()
+                if let fauEntry = fauCredentials.first(where: { $0.username.lowercased() == upnLower }) {
+                    pass = fauEntry.password
+                    Logger.automaticSignIn.info("✅ [Worker] Found password in FAU shared keychain for: \(self.account.upn, privacy: .public)")
+                } else if !fauCredentials.isEmpty {
+                    Logger.automaticSignIn.info("ℹ️ [Worker] FAU shared keychain has \(fauCredentials.count, privacy: .public) entries but none match \(self.account.upn, privacy: .public)")
+                }
             }
 
             if let pass = pass {
@@ -391,15 +404,11 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             } else {
                 Logger.automaticSignIn.warning("⚠️ [Worker] No password found in keychain for: \(self.account.upn, privacy: .public)")
                 account.hasKeychainEntry = false
-                Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification")
-                Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification")
                 NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
             }
         } catch {
             Logger.automaticSignIn.error("❌ [Worker] Error accessing keychain: \(error.localizedDescription, privacy: .public)")
             account.hasKeychainEntry = false
-            Logger.automaticSignIn.debug("🔍 [Worker] Posting KrbAuthError notification due to keychain error")
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting KrbAuthError notification due to keychain error")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.authenticationError])
         }
         
@@ -425,7 +434,6 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
 
             // Since we have a valid ticket (verified by klist), post success notification
             Logger.automaticSignIn.debug("🔍 [Worker] Valid ticket confirmed, posting success notification")
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification for valid ticket")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
 
             // Retrieve user data (best effort - failure won't affect authentication status)
@@ -436,7 +444,6 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         } catch {
             Logger.automaticSignIn.error("❌ [Worker] Error retrieving user information: \(error.localizedDescription, privacy: .public)")
             // Even if kswitch fails, we know we had a valid ticket, so post success
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Worker] Posting krbAuthenticated notification despite kswitch error")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
         }
 
@@ -503,7 +510,6 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             }
 
             Logger.automaticSignIn.debug("🔍 [Delegate] Posting success notification")
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbAuthenticated notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
 
             Logger.automaticSignIn.debug("🔍 [Delegate] Retrieving user information")
@@ -544,7 +550,6 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         switch error {
         case .AuthenticationFailure, .PasswordExpired, .KerbError, .unknownPrincipal, .wrongRealm:
             Logger.automaticSignIn.debug("🔍 [Delegate] Handling authentication failure or expired password")
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting KrbAuthError notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["KrbAuthError": MounterError.krbAuthenticationError])
             
             Logger.automaticSignIn.info("🔍 [Delegate] Removing invalid password from Keychain")
@@ -558,7 +563,6 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
             
         case .OffDomain:
             Logger.automaticSignIn.info("🔍 [Delegate] Outside the Kerberos Realm network")
-            Logger.automaticSignIn.debug("🔔 [DEBUG-Delegate] Posting krbOffDomain notification")
             NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbOffDomain": MounterError.offDomain])
     
         case .SiteError, .StateError, .UnAuthenticated:
