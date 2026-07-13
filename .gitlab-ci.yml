@@ -236,7 +236,7 @@ pages:
     # GitLab Pages (faumac.pages.rrze.fau.de/networkShareMounter/) is not the canonical
     # site and renders broken (assets are built for the nsm.faumac.de root path).
     # Redirect everything to the real site instead of serving broken content.
-    - echo '/*    https://nsm.faumac.de/:splat   301!' > public/_redirects
+    - echo '/networkShareMounter/*    https://nsm.faumac.de/:splat   301' > public/_redirects
 
     - mv public ../public
     - |
