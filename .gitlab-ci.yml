@@ -234,7 +234,7 @@ pages:
     - hugo --minify --baseURL "https://nsm.faumac.de/"
 
     - mv public ../public
-    - (rsync -av ../public/ unrz06wm@kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.nsm.faumac.rrze.de/websource/)
+    - (rsync -av ../public/ kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.nsm.faumac.rrze.de/websource/)
   artifacts:
     paths:
       - public
