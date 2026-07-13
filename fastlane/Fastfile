@@ -328,7 +328,15 @@ lane :sparkle do |options|
 
   sh("mkdir -p ../nsm-website/static/")
   sh("cp #{workspace}/nsm-appcast ../nsm-website/static/nsm-appcast")
-  sh("scp #{workspace}/nsm-appcast kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.faumac.rrze.uni-erlangen.de/websource/apps/")
+
+  # TODO: temporary fallback while SSH on kima is restricted to a different user (security incident).
+  # Remove the fallback once the primary path is reachable again with the normal user.
+  begin
+    sh("scp #{workspace}/nsm-appcast kima.rrze.uni-erlangen.de:/proj/websource/docs/RRZEWeb/www.faumac.rrze.uni-erlangen.de/websource/apps/")
+  rescue => e
+    UI.important("⚠️ scp to primary path failed (#{e.message}), retrying with fallback path ~/websource/apps/ ...")
+    sh("scp #{workspace}/nsm-appcast kima.rrze.uni-erlangen.de:~/websource/apps/")
+  end
 end
 
 
