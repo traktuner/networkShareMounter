@@ -50,9 +50,15 @@ struct NetworkSharesView: View {
     private var connectButtonLabel: LocalizedStringKey {
         guard !selectedShares.isEmpty else { return "Connect/Disconnect" }
         let selected = selectedShareObjects
+        if selected.allSatisfy({ $0.mountStatus == .mounting }) { return "Connecting…" }
         if selected.allSatisfy({ $0.mountStatus == .mounted }) { return "Disconnect" }
-        if selected.allSatisfy({ $0.mountStatus != .mounted }) { return "Connect" }
+        if selected.allSatisfy({ $0.mountStatus != .mounted && $0.mountStatus != .mounting }) { return "Connect" }
         return "Connect/Disconnect"
+    }
+
+    /// True when any selected share is actively being mounted (prevents interrupting an in-progress attempt).
+    private var anyMounting: Bool {
+        selectedShareObjects.contains { $0.mountStatus == .mounting }
     }
 
     // MARK: - Body
@@ -167,7 +173,7 @@ struct NetworkSharesView: View {
                             .frame(height: 16)
                     }
                 }
-                .disabled(selectedShares.isEmpty)
+                .disabled(selectedShares.isEmpty || anyMounting)
             }
             .padding(8)
             .background(Color(.controlBackgroundColor))
@@ -216,14 +222,25 @@ struct NetworkSharesView: View {
                 Text(share.resolvedNetworkShare(username: resolvedUsername))
                     .font(.caption)
                     .foregroundColor(.secondary)
+                if share.mountStatus == .mounting {
+                    Text("Connecting…")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
 
             Spacer()
 
-            Circle()
-                .fill(mountStatusColor(for: share.mountStatus))
-                .frame(width: 10, height: 10)
-                .help(share.mountStatus.rawValue)
+            if share.mountStatus == .mounting {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.small)
+            } else {
+                Circle()
+                    .fill(mountStatusColor(for: share.mountStatus))
+                    .frame(width: 10, height: 10)
+                    .help(share.mountStatus.rawValue)
+            }
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 12)
@@ -291,7 +308,7 @@ struct NetworkSharesView: View {
     /// independent of the current multi-selection.
     @ViewBuilder
     private func contextMenuItems(for share: Share) -> some View {
-        Button(share.mountStatus == .mounted ? "Disconnect" : "Connect") {
+        Button(share.mountStatus == .mounted ? "Disconnect" : (share.mountStatus == .mounting ? "Connecting…" : "Connect")) {
             Task {
                 if share.mountStatus == .mounted {
                     await mounter.unmountShare(for: share, userTriggered: true)
@@ -301,6 +318,7 @@ struct NetworkSharesView: View {
                 await loadShares()
             }
         }
+        .disabled(share.mountStatus == .mounting)
 
         if !share.managed {
             Divider()
@@ -349,7 +367,7 @@ struct NetworkSharesView: View {
             return .gray
         case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unreachable, .unassignedProfile:
             return .red
-        case .unknown, .undefined:
+        case .mounting, .unknown, .undefined:
             return .orange
         }
     }

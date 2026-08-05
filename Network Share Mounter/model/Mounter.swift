@@ -139,7 +139,7 @@ class Mounter: ObservableObject {
         // Determine whether to use localized folder names based on preference
         if prefs.bool(for: .useLocalizedMountDirectories, defaultValue: true) {
             // Use language-specific folder name if preference is enabled
-            self.localizedFolder = Defaults.translation[Locale.current.languageCode!] ?? Defaults.translation["en"]!
+            self.localizedFolder = Defaults.translation[Locale.current.language.languageCode?.identifier ?? "en"] ?? Defaults.translation["en"]!
             Logger.mounter.debug("Using localized folder name: \(self.localizedFolder, privacy: .public)")
         } else {
             // Always use English name for backward compatibility
@@ -241,12 +241,12 @@ class Mounter: ObservableObject {
         if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
             do {
                 try await shareManager.updateMountStatus(at: index, to: mountStatus)
-                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch ShareError.invalidIndex(let index) {
                 Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
-                NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             } catch {
                 Logger.shareManager.error("❌ Could not update mount status for share \(share.networkShare, privacy: .public), unknown error.")
+            }
+            await MainActor.run {
                 NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
             }
         }
@@ -1141,13 +1141,13 @@ class Mounter: ObservableObject {
         }
 
         if !userTriggered && (
-            (share.mountStatus == MountStatus.queued && !networkTriggered) ||
+            ((share.mountStatus == MountStatus.queued || share.mountStatus == MountStatus.mounting) && !networkTriggered) ||
             (share.mountStatus == MountStatus.errorOnMount && !networkTriggered) ||
             share.mountStatus == MountStatus.userUnmounted ||
             (share.mountStatus == MountStatus.unreachable && !networkTriggered)) {
 
-            if share.mountStatus == MountStatus.queued {
-                Logger.mounter.info("⌛ Share \(url, privacy: .public) is already queued for mounting.")
+            if share.mountStatus == MountStatus.queued || share.mountStatus == MountStatus.mounting {
+                Logger.mounter.info("⌛ Share \(url, privacy: .public) is already being mounted.")
                 throw MounterError.mountIsQueued
             } else if share.mountStatus == MountStatus.errorOnMount && !networkTriggered {
                 Logger.mounter.info("⚠️ Share \(url, privacy: .public): not mounted, last time I tried I got a mount error.")
@@ -1178,7 +1178,7 @@ class Mounter: ObservableObject {
     ///   - share: The share being mounted
     /// - Returns: A tuple containing the mount options, open options, and real mount point
     /// - Throws: Any error that occurs during directory creation
-    private func prepareMountOperation(mountDirectory: String, basePath: String, share: Share) async throws -> (mountOptions: CFDictionary, openOptions: CFDictionary, realMountPoint: String) {
+    private func prepareMountOperation(mountDirectory: String, basePath: String, share: Share) async throws -> (mountOptions: CFMutableDictionary, openOptions: CFMutableDictionary, realMountPoint: String) {
         var mountOptions = Defaults.mountOptions
         var openOptions = Defaults.openOptions
         var realMountPoint = mountDirectory
@@ -1439,6 +1439,9 @@ class Mounter: ObservableObject {
         """)
 
 
+        // Signal that the OS connection attempt is now in progress
+        await updateShare(mountStatus: .mounting, for: share)
+
         // Capture the actual mount path(s) reported by the OS so we know the real location
         // even if macOS appended "-1", "-2", etc. to avoid name conflicts.
         var mountedPathsRef: Unmanaged<CFArray>?
@@ -1446,8 +1449,8 @@ class Mounter: ObservableObject {
                                    URL(fileURLWithPath: realMountPoint) as CFURL,
                                    finalUsername as CFString?,
                                    finalPassword as CFString?,
-                                   openOptions as! CFMutableDictionary,
-                                   mountOptions as! CFMutableDictionary,
+                                   openOptions,
+                                   mountOptions,
                                    &mountedPathsRef)
 
         // Extract the first (and usually only) actual mount path returned by the OS
@@ -1489,37 +1492,32 @@ class Mounter: ObservableObject {
         Logger.mounter.info("🔍 Rescanning \(shares.count) shares for existing mounts at startup")
         
         for share in shares {
-            do {
-                // Validate and compute expected mount directory
-                guard let url = URL(string: share.networkShare) else { continue }
-                // [WORKAROUND macOS 26.4] Check in /Volumes when workaround is active
-                let effectiveBasePath = needsVolumesWorkaround ? "/Volumes" : defaultMountPath
-                let expectedMountDir = determineMountDirectory(forShare: share, url: url, basePath: effectiveBasePath)
-                let canonical = URL(fileURLWithPath: expectedMountDir).standardizedFileURL.path
+            // Validate and compute expected mount directory
+            guard let url = URL(string: share.networkShare) else { continue }
+            // [WORKAROUND macOS 26.4] Check in /Volumes when workaround is active
+            let effectiveBasePath = needsVolumesWorkaround ? "/Volumes" : defaultMountPath
+            let expectedMountDir = determineMountDirectory(forShare: share, url: url, basePath: effectiveBasePath)
+            let canonical = URL(fileURLWithPath: expectedMountDir).standardizedFileURL.path
 
-                if fm.isDirectoryFilesystemMount(atPath: canonical) {
-                    // [WORKAROUND macOS 26.4] Recreate symlink and use its path as the persisted mount point.
-                    let persistedPath: String
-                    if needsVolumesWorkaround,
-                       let symlinkPath = createSymlinkForWorkaround(share: share, actualMountPoint: canonical) {
-                        persistedPath = symlinkPath
-                    } else {
-                        persistedPath = canonical
-                    }
-                    await updateShare(actualMountPoint: persistedPath, for: share)
-                    await updateShare(mountStatus: .mounted, for: share)
-                    Logger.mounter.debug("  ✅ Rescan: \(share.networkShare, privacy: .public) is mounted at \(persistedPath, privacy: .public)")
+            if fm.isDirectoryFilesystemMount(atPath: canonical) {
+                // [WORKAROUND macOS 26.4] Recreate symlink and use its path as the persisted mount point.
+                let persistedPath: String
+                if needsVolumesWorkaround,
+                   let symlinkPath = createSymlinkForWorkaround(share: share, actualMountPoint: canonical) {
+                    persistedPath = symlinkPath
                 } else {
-                    // If we previously thought it was mounted, clear it
-                    if share.actualMountPoint != nil || share.mountStatus == .mounted {
-                        await updateShare(actualMountPoint: nil, for: share)
-                        await updateShare(mountStatus: .unmounted, for: share)
-                        Logger.mounter.debug("  ℹ️ Rescan: \(share.networkShare, privacy: .public) not mounted at expected path (cleared state)")
-                    }
+                    persistedPath = canonical
                 }
-            } catch {
-                // Defensive: continue on any error
-                Logger.mounter.debug("  ⚠️ Rescan error for \(share.networkShare, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                await updateShare(actualMountPoint: persistedPath, for: share)
+                await updateShare(mountStatus: .mounted, for: share)
+                Logger.mounter.debug("  ✅ Rescan: \(share.networkShare, privacy: .public) is mounted at \(persistedPath, privacy: .public)")
+            } else {
+                // If we previously thought it was mounted, clear it
+                if share.actualMountPoint != nil || share.mountStatus == .mounted {
+                    await updateShare(actualMountPoint: nil, for: share)
+                    await updateShare(mountStatus: .unmounted, for: share)
+                    Logger.mounter.debug("  ℹ️ Rescan: \(share.networkShare, privacy: .public) not mounted at expected path (cleared state)")
+                }
             }
         }
         
@@ -1703,4 +1701,7 @@ class Mounter: ObservableObject {
         return (share.username, share.password)
     }
 }
+
+// Mounter is always accessed on @MainActor and contains internally synchronized state.
+extension Mounter: @unchecked Sendable {}
 

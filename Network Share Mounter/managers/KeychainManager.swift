@@ -296,7 +296,7 @@ class KeychainManager: NSObject {
 
             // Try with original case first
             var query = try makeQuery(share: share, username: username, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainService)
-            query[kSecReturnData as String] = kCFBooleanTrue!
+            query[kSecReturnData as String] = true
             query[kSecMatchLimit as String] = kSecMatchLimitOne
             // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
@@ -326,7 +326,7 @@ class KeychainManager: NSObject {
                     Logger.keychain.debug("🔍 Trying lowercase fallback for username: \(username)")
 
                     var lowercaseQuery = try makeQuery(share: share, username: lowercasedUsername, accessGroup: Defaults.keyChainAccessGroup, label: Defaults.keyChainService)
-                    lowercaseQuery[kSecReturnData as String] = kCFBooleanTrue!
+                    lowercaseQuery[kSecReturnData as String] = true
                     lowercaseQuery[kSecMatchLimit as String] = kSecMatchLimitOne
                     lowercaseQuery[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
                     var lowercaseRef: AnyObject? = nil
@@ -358,14 +358,13 @@ class KeychainManager: NSObject {
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
-        return nil // Should not be reached if successful
     }
-    
+
     func retrievePassword(forUsername username: String, andService service: String = Defaults.keyChainService, accessGroup: String? = nil) throws -> String? {
         do {
             // Try with original case first
             var query = try makeQuery(username: username, service: service, accessGroup: accessGroup)
-            query[kSecReturnData as String] = kCFBooleanTrue!
+            query[kSecReturnData as String] = true
             query[kSecMatchLimit as String] = kSecMatchLimitOne
             // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
@@ -384,7 +383,7 @@ class KeychainManager: NSObject {
                     Logger.keychain.debug("🔍 Entry not found with original case, trying lowercase fallback for: \(username)")
 
                     var lowercaseQuery = try makeQuery(username: lowercasedUsername, service: service, accessGroup: accessGroup)
-                    lowercaseQuery[kSecReturnData as String] = kCFBooleanTrue!
+                    lowercaseQuery[kSecReturnData as String] = true
                     lowercaseQuery[kSecMatchLimit as String] = kSecMatchLimitOne
                     lowercaseQuery[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
                     var lowercaseRef: AnyObject? = nil
@@ -415,16 +414,16 @@ class KeychainManager: NSObject {
         } catch {
             throw KeychainError.errorRetrievingPassword
         }
-        return nil // Should not be reached if successful
+        return nil
     }
-    
+
     /// Returns the account names (e.g. profile UUIDs) of all generic-password items for the given service,
     /// without restricting to a specific access group.
     func retrieveAllAccountNames(forService service: String) -> [String] {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecReturnAttributes as String: kCFBooleanTrue,
+            kSecReturnAttributes as String: true,
             kSecMatchLimit as String: kSecMatchLimitAll,
             kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
         ]
@@ -439,9 +438,9 @@ class KeychainManager: NSObject {
             var query: [String: Any?] = [kSecClass as String: kSecClassGenericPassword,
                                          kSecAttrService as String: service,
                                          kSecAttrAccessGroup as String: accessGroup,
-                                         kSecReturnData as String: kCFBooleanTrue!,
+                                         kSecReturnData as String: true,
                                          kSecMatchLimit as String: kSecMatchLimitAll,
-                                         kSecReturnAttributes as String: kCFBooleanTrue
+                                         kSecReturnAttributes as String: true
             ]
             // Always search both local and iCloud-synced items to preserve compatibility.
             query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
@@ -512,43 +511,36 @@ class KeychainManager: NSObject {
             return [] // No FAU access group configured
         }
         
-        do {
-            // Query for FAU shared credentials with specific service and access group
-            let query: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: "de.fau.rrze.faucredentials", // FAU specific service
-                kSecAttrAccessGroup as String: fauAccessGroup,
-                kSecReturnData as String: kCFBooleanTrue,
-                kSecMatchLimit as String: kSecMatchLimitAll,
-                kSecReturnAttributes as String: kCFBooleanTrue,
-                kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
-            ]
-            
-            var ref: AnyObject? = nil
-            let status = SecItemCopyMatching(query as CFDictionary, &ref)
-            
-            // Handle no items found gracefully
-            if status == errSecItemNotFound {
-                Logger.keychain.info("No FAU shared credentials found")
-                return []
-            }
-            
-            guard status == errSecSuccess else {
-                Logger.keychain.warning("Error retrieving FAU credentials: \(status)")
-                return [] // Return empty array instead of throwing
-            }
-            
-            let array = ref as! CFArray
-            let dict: [[String: Any]] = array.toSwiftArray()
-            let pairs = dict.compactMap { $0.accountPasswordPair }
-            
-            Logger.keychain.info("Retrieved \(pairs.count) FAU shared credentials")
-            return pairs
-            
-        } catch {
-            Logger.keychain.warning("Error in FAU credentials query: \(error)")
-            return [] // Return empty array instead of throwing
+        // Query for FAU shared credentials with specific service and access group
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "de.fau.rrze.faucredentials", // FAU specific service
+            kSecAttrAccessGroup as String: fauAccessGroup,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecReturnAttributes as String: true,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+        ]
+
+        var ref: AnyObject? = nil
+        let status = SecItemCopyMatching(query as CFDictionary, &ref)
+
+        if status == errSecItemNotFound {
+            Logger.keychain.info("No FAU shared credentials found")
+            return []
         }
+
+        guard status == errSecSuccess else {
+            Logger.keychain.warning("Error retrieving FAU credentials: \(status)")
+            return []
+        }
+
+        let array = ref as! CFArray
+        let dict: [[String: Any]] = array.toSwiftArray()
+        let pairs = dict.compactMap { $0.accountPasswordPair }
+
+        Logger.keychain.info("Retrieved \(pairs.count) FAU shared credentials")
+        return pairs
     }
 }
 

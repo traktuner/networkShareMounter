@@ -59,9 +59,11 @@ class SettingsManager: ObservableObject {
             let autoOpen = (notification.userInfo?["autoOpenProfileCreation"] as? Bool) ?? false
             let realm = notification.userInfo?["mdmRealm"] as? String
             Logger.app.debug("🔧 [DEBUG] autoOpen=\(autoOpen), realm=\(realm ?? "nil")")
-            self?.pendingAutoOpenProfileCreation = autoOpen
-            self?.pendingMDMRealm = realm
-            self?.requestShowSettings()
+            Task { @MainActor [weak self] in
+                self?.pendingAutoOpenProfileCreation = autoOpen
+                self?.pendingMDMRealm = realm
+                self?.requestShowSettings()
+            }
         }
     }
 
