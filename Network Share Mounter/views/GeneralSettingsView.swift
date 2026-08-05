@@ -627,7 +627,7 @@ extension Data {
         var output = Data()
         let chunkSize = 16 * 1024
 
-        try self.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
+        self.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
             guard let baseAddress = rawBuffer.bindMemory(to: Bytef.self).baseAddress else { return }
 
             // Set input

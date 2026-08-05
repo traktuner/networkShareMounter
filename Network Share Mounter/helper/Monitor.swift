@@ -75,7 +75,7 @@ public actor Monitor {
     
     /// Publisher that emits network status updates (bridged to outside world)
     /// We keep the subject private and expose only the erased publisher.
-    private let networkStatusSubject: CurrentValueSubject<(Connection, Reachable), Never>
+    nonisolated private let networkStatusSubject: CurrentValueSubject<(Connection, Reachable), Never>
     
     /// Publisher for network status changes
     ///
