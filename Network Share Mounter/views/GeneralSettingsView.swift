@@ -69,7 +69,24 @@ struct GeneralSettingsView: View {
     @State private var collectedLogFilename: String = ""
     @State private var showingLogViewer: Bool = false
     @State private var showingDiagnosticsInfo: Bool = false
-    
+
+    // MARK: - Network Auth Reset State
+    @State private var isResettingNetworkAuth: Bool = false
+    @State private var networkAuthResetResult: NetworkAuthResetResult? = nil
+    @State private var showingNetworkAuthInfo: Bool = false
+
+    private enum NetworkAuthResetResult {
+        case killedAgents
+        case alreadyClean
+
+        var message: LocalizedStringKey {
+            switch self {
+            case .killedAgents: "Stuck processes terminated successfully."
+            case .alreadyClean: "No stuck processes found."
+            }
+        }
+    }
+
     /// Computed property indicating if the update framework is globally disabled via MDM.
     /// Reads the `.disableAutoUpdateFramework` preference.
     private var isUpdateFrameworkDisabled: Bool {
@@ -232,7 +249,46 @@ struct GeneralSettingsView: View {
                     }
                 }
                 .padding(.vertical, 8)
-                
+
+                // MARK: - Network Authentication Section
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Text("Network Authentication")
+                            .font(.headline)
+                        Button {
+                            showingNetworkAuthInfo.toggle()
+                        } label: {
+                            Image(systemName: "questionmark.circle")
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .popover(isPresented: $showingNetworkAuthInfo, arrowEdge: .trailing) {
+                            NetworkAuthInfoView()
+                        }
+                    }
+
+                    Button {
+                        Task { await resetNetworkAuthentication() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if isResettingNetworkAuth {
+                                ProgressView().controlSize(.small)
+                                Text("Resetting…")
+                            } else {
+                                Text("Reset Network Authentication")
+                            }
+                        }
+                    }
+                    .disabled(isResettingNetworkAuth)
+
+                    if let result = networkAuthResetResult, !isResettingNetworkAuth {
+                        Text(result.message)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.vertical, 8)
+
                 // MARK: - Update Section
                 if !isUpdateFrameworkDisabled {
                     VStack(alignment: .leading, spacing: 14) {
@@ -455,6 +511,72 @@ struct GeneralSettingsView: View {
     /// Compresses log data using gzip
     nonisolated private func compressLogs(_ data: Data) throws -> Data {
         return try data.gzipped()
+    }
+
+    // MARK: - Network Auth Reset
+
+    @MainActor
+    private func resetNetworkAuthentication() async {
+        isResettingNetworkAuth = true
+        networkAuthResetResult = nil
+
+        Logger.app.info("Resetting network authentication agents (NetAuthSysAgent, netbiosd)...")
+
+        // killall returns exit code 1 when the process is not found — use try? to handle that gracefully
+        var agentKilled = false
+        if (try? await cliTask("/usr/bin/killall", arguments: ["NetAuthSysAgent"])) != nil {
+            agentKilled = true
+            Logger.app.info("NetAuthSysAgent terminated")
+        }
+        _ = try? await cliTask("/usr/bin/killall", arguments: ["netbiosd"])
+
+        // Allow launchd time to restart the daemons before any new mount attempt
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+
+        networkAuthResetResult = agentKilled ? .killedAgents : .alreadyClean
+        isResettingNetworkAuth = false
+        Logger.app.info("Network authentication reset complete (agentKilled: \(agentKilled))")
+    }
+}
+
+// MARK: - Network Auth Info View
+
+private struct NetworkAuthInfoView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("About Network Authentication Reset")
+                .font(.headline)
+
+            infoSection(
+                "Known macOS issue",
+                "NetAuthSysAgent has a long-standing bug affecting SMB mounts across all macOS versions since El Capitan. The process can freeze, blocking subsequent mount operations and causing timeouts of up to 90 seconds."
+            )
+
+            infoSection(
+                "What this does",
+                "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected."
+            )
+
+            infoSection(
+                "When to use it",
+                "Use this option if shares are not mounting despite a working network connection, or if mount attempts are taking unusually long."
+            )
+        }
+        .padding(16)
+        .frame(width: 320)
+    }
+
+    @ViewBuilder
+    private func infoSection(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+            Text(body)
+                .font(.callout)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 
