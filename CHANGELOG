@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [4.1.4] - 2026-08-05
 
+### What's new
+- Added an info button next to the "Send diagnostic data" toggle that opens a popover explaining what data is collected, why, which framework is used (Sentry), and that all data stays on an RRZE/FAU on-premise server
+
 ### Fixed
 - Kerberos authentication could fail at startup ("No password found in keychain") if the app had
   previously recreated its authentication profile, leaving stale credential entries in the Keychain.
