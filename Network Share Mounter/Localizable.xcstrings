@@ -36,6 +36,426 @@
         }
       }
     },
+    "About Network Authentication Reset" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Info: Netzwerkauthentifizierung zurücksetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca del restablecimiento de autenticación de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À propos de la réinitialisation de l’authentification réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informazioni sulla reimpostazione dell’autenticazione di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over het resetten van netwerkauthenticatie"
+          }
+        }
+      }
+    },
+    "Known macOS issue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekanntes macOS-Problem"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problema conocido de macOS"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problème macOS connu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problema noto di macOS"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekend macOS-probleem"
+          }
+        }
+      }
+    },
+    "NetAuthSysAgent has a long-standing bug affecting SMB mounts across all macOS versions since El Capitan. The process can freeze, blocking subsequent mount operations and causing timeouts of up to 90 seconds." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent hat einen seit El Capitan bekannten Fehler, der SMB-Einhängungen auf allen macOS-Versionen betrifft. Der Prozess kann einfrieren, folgende Einhängevorgänge blockieren und Timeouts von bis zu 90 Sekunden verursachen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent tiene un error conocido desde El Capitan que afecta a los montajes SMB en todas las versiones de macOS. El proceso puede bloquearse, impidiendo las operaciones de montaje posteriores y causando tiempos de espera de hasta 90 segundos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent présente un bogue connu depuis El Capitan affectant les montages SMB sur toutes les versions de macOS. Le processus peut se bloquer, empêchant les opérations de montage suivantes et provoquant des délais d’attente allant jusqu’à 90 secondes."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent presenta un bug noto da El Capitan che interessa i mount SMB su tutte le versioni di macOS. Il processo può bloccarsi, impedendo le successive operazioni di mount e causando timeout fino a 90 secondi."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent heeft een bekend probleem dat bestaat sinds El Capitan en SMB-koppelingen op alle macOS-versies kan beïnvloeden. Het proces kan vastlopen, volgende koppelingspogingen blokkeren en time-outs van maximaal 90 seconden veroorzaken."
+          }
+        }
+      }
+    },
+    "Network Authentication" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netzwerkauthentifizierung"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkauthenticatie"
+          }
+        }
+      }
+    },
+    "No stuck processes found." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine blockierten Prozesse gefunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontraron procesos bloqueados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun processus bloqué trouvé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun processo bloccato trovato."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen geblokkeerde processen gevonden."
+          }
+        }
+      }
+    },
+    "Reset Network Authentication" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netzwerkauthentifizierung zurücksetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer autenticación de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser l’authentification réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reimposta autenticazione di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkauthenticatie resetten"
+          }
+        }
+      }
+    },
+    "Resetting…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird zurückgesetzt…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restableciendo…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialisation…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reimpostazione in corso…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetten…"
+          }
+        }
+      }
+    },
+    "Stuck processes terminated successfully." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blockierte Prozesse wurden erfolgreich beendet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Procesos bloqueados terminados correctamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les processus bloqués ont été terminés avec succès."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processi bloccati terminati correttamente."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geblokkeerde processen zijn succesvol beëindigd."
+          }
+        }
+      }
+    },
+    "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Schaltfläche beendet NetAuthSysAgent und netbiosd. macOS startet beide Prozesse automatisch neu. Es gehen keine Daten verloren und eingehängte Volumes sind nicht betroffen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El botón termina NetAuthSysAgent y netbiosd. macOS reinicia ambos procesos automáticamente. No se pierden datos y los volúmenes montados no se ven afectados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le bouton termine NetAuthSysAgent et netbiosd. macOS redémarre les deux processus automatiquement. Aucune donnée n’est perdue et les volumes montés ne sont pas affectés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il pulsante termina NetAuthSysAgent e netbiosd. macOS riavvia entrambi i processi automaticamente. Non vengono persi dati e i volumi montati non vengono influenzati."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De knop beëindigt NetAuthSysAgent en netbiosd. macOS herstart beide processen automatisch. Er gaan geen gegevens verloren en gemonteerde volumes worden niet beïnvloed."
+          }
+        }
+      }
+    },
+    "Use this option if shares are not mounting despite a working network connection, or if mount attempts are taking unusually long." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwende diese Option, wenn Freigaben trotz funktionierender Netzwerkverbindung nicht eingehängt werden oder Einhängeversuche ungewöhnlich lange dauern."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa esta opción si los recursos compartidos no se montan a pesar de una conexión de red activa, o si los intentos de montaje tardan inusualmente tiempo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez cette option si les partages ne se montent pas malgré une connexion réseau active, ou si les tentatives de montage prennent plus de temps qu’habituellement."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa questa opzione se le condivisioni non vengono montate nonostante una connessione di rete funzionante, o se i tentativi di mount impiegano insolitamente tempo."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruik deze optie als shares niet koppelen ondanks een werkende netwerkverbinding, of als koppelingspogingen ongewoon lang duren."
+          }
+        }
+      }
+    },
+    "What this does" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was passiert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué hace"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce que cela fait"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosa fa"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wat dit doet"
+          }
+        }
+      }
+    },
+    "When to use it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wann sinnvoll"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuándo usarlo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quand l’utiliser"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando usarlo"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wanneer gebruiken"
+          }
+        }
+      }
+    },
     "" : {
       "localizations" : {
         "de" : {
