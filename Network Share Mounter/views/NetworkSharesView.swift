@@ -214,18 +214,22 @@ struct NetworkSharesView: View {
     @ViewBuilder
     private func shareRow(for share: Share) -> some View {
         let resolvedUsername = share.effectiveUsername(from: profileManager.profiles)
+        let isSelected = selectedShares.contains(share.id)
+        let primaryColor: Color = isSelected ? Color(NSColor.alternateSelectedControlTextColor) : Color(NSColor.labelColor)
+        let secondaryColor: Color = isSelected ? Color(NSColor.alternateSelectedControlTextColor).opacity(0.75) : Color(NSColor.secondaryLabelColor)
 
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(share.resolvedEffectiveMountPoint(username: resolvedUsername))
                     .font(.headline)
+                    .foregroundColor(primaryColor)
                 Text(share.resolvedNetworkShare(username: resolvedUsername))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(secondaryColor)
                 if share.mountStatus == .mounting {
                     Text("Connecting…")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(secondaryColor)
                 }
             }
 
@@ -251,7 +255,7 @@ struct NetworkSharesView: View {
         .contextMenu {
             contextMenuItems(for: share)
         }
-        .background(selectedShares.contains(share.id) ? Color.accentColor.opacity(0.1) : Color.clear)
+        .background(isSelected ? Color(NSColor.selectedContentBackgroundColor) : Color.clear)
     }
 
     // MARK: - Selection
