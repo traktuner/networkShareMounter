@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [4.1.4] - 2026-08-05
 
 ### What's new
+- The network shares list in Settings now supports multi-selection: Cmd-click or Shift-click toggles individual shares, and the Connect/Disconnect and Delete toolbar buttons act on all selected shares at once
 - Added an info button next to the "Send diagnostic data" toggle that opens a popover explaining what data is collected, why, which framework is used (Sentry), and that all data stays on an RRZE/FAU on-premise server
 
 ### Fixed
