@@ -68,6 +68,7 @@ struct GeneralSettingsView: View {
     @State private var collectedLogData: Data? = nil
     @State private var collectedLogFilename: String = ""
     @State private var showingLogViewer: Bool = false
+    @State private var showingDiagnosticsInfo: Bool = false
     
     /// Computed property indicating if the update framework is globally disabled via MDM.
     /// Reads the `.disableAutoUpdateFramework` preference.
@@ -141,7 +142,19 @@ struct GeneralSettingsView: View {
                                 debugLogExportEnabled = true
                             }
                         }
-                    Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
+                    HStack(spacing: 6) {
+                        Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
+                        Button {
+                            showingDiagnosticsInfo.toggle()
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .popover(isPresented: $showingDiagnosticsInfo, arrowEdge: .trailing) {
+                            DiagnosticsInfoView()
+                        }
+                    }
 
                     // Hidden debug feature: only shown after 5 taps on "Diagnostics" heading
                     if debugLogExportEnabled {
@@ -502,6 +515,69 @@ private struct LogViewerView: View {
             }.value
             lines = split
             isLoading = false
+        }
+    }
+}
+
+// MARK: - Diagnostics Info View
+
+private struct DiagnosticsInfoView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("About Diagnostic Data")
+                    .font(.headline)
+
+                diagSection(
+                    "Why we collect data",
+                    "Crash reports and error data help us identify and fix problems quickly, improving reliability for all users.")
+
+                diagSection(
+                    "What is collected",
+                    "On error or crash: app version, macOS version, error description, and an anonymised stack trace. No usernames, passwords, or server addresses are included.")
+
+                diagSection(
+                    "Framework",
+                    "We use Sentry, an open-source error tracking library. We run our own self-hosted instance — your data is never sent to sentry.io or any third-party cloud service.")
+
+                diagSection(
+                    "Server",
+                    "Data is sent exclusively to an on-premise Sentry server operated by RRZE at Friedrich-Alexander-Universität Erlangen-Nürnberg. Data does not leave the FAU network.")
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Extended debug logs")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("When debug logs are sent manually, logs from the last 30 minutes are collected, gzip-compressed, and uploaded as an attachment to the same on-premise Sentry server. The log filter includes:")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("• Network Share Mounter app logs")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                    Text("• macOS SMB client (com.apple.smb.client)")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                    Text("• Authentication agents (NetAuthSysAgent, NetAuthAgent)")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(16)
+        }
+        .frame(width: 360, height: 420)
+    }
+
+    @ViewBuilder
+    private func diagSection(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+            Text(body)
+                .font(.callout)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
