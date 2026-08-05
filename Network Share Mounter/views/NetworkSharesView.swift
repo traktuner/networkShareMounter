@@ -1,5 +1,5 @@
 //
-//  GeneralSettingsView.swift
+//  NetworkSharesView.swift
 //  Network Share Mounter
 //
 //  Created by Longariva, Gregor (RRZE) on 10.04.25.
@@ -7,146 +7,119 @@
 //
 
 import SwiftUI
+import AppKit
 import OSLog
 
-/// View for configuring network shares
+/// View for configuring and interacting with network shares.
+///
+/// Supports multi-selection via Cmd-click or Shift-click (both toggle individual items,
+/// no range selection). Toolbar actions (Connect/Disconnect, Delete) operate on all
+/// selected shares simultaneously.
 struct NetworkSharesView: View {
-    // Replace static demo data with state for real data
+
     @State private var shares: [Share] = []
-    @State private var selectedNetworkShare: String?
+    /// UUIDs of currently selected shares. Using Share.id (UUID) rather than networkShare
+    /// URL strings avoids issues when two shares point to the same server path.
+    @State private var selectedShares: Set<String> = []
     @State private var showAddSheet = false
     @State private var shareToEdit: Share? = nil
     @State private var isDataLoaded = false
 
-    // Access the Mounter via SwiftUI Environment
     @EnvironmentObject private var mounter: Mounter
-    
-    // Access the ProfileManager for share-profile associations
     @ObservedObject private var profileManager = AuthProfileManager.shared
+
+    // MARK: - Computed Properties
+
+    private var selectedShareObjects: [Share] {
+        shares.filter { selectedShares.contains($0.id) }
+    }
+
+    /// True when at least one selected share can be deleted (i.e. is not MDM-managed).
+    private var canDelete: Bool {
+        !selectedShares.isEmpty && selectedShareObjects.contains(where: { !$0.managed })
+    }
+
+    /// True when exactly one non-managed share is selected (editing multiple simultaneously
+    /// is not supported).
+    private var canEdit: Bool {
+        selectedShares.count == 1 && selectedShareObjects.first.map { !$0.managed } ?? false
+    }
+
+    /// Label for the Connect/Disconnect toolbar button, derived from the mount states of
+    /// all selected shares.
+    private var connectButtonLabel: LocalizedStringKey {
+        guard !selectedShares.isEmpty else { return "Connect/Disconnect" }
+        let selected = selectedShareObjects
+        if selected.allSatisfy({ $0.mountStatus == .mounting }) { return "Connecting…" }
+        if selected.allSatisfy({ $0.mountStatus == .mounted }) { return "Disconnect" }
+        if selected.allSatisfy({ $0.mountStatus != .mounted && $0.mountStatus != .mounting }) { return "Connect" }
+        return "Connect/Disconnect"
+    }
+
+    /// True when any selected share is actively being mounted (prevents interrupting an in-progress attempt).
+    private var anyMounting: Bool {
+        selectedShareObjects.contains { $0.mountStatus == .mounting }
+    }
+
+    // MARK: - Body
 
     var body: some View {
         VStack(alignment: .leading) {
-            
-            // Header Section
+
+            // Header
             HStack(spacing: 12) {
-                Image(systemName: "externaldrive.connected.to.line.below") // Icon for Network Shares
+                Image(systemName: "externaldrive.connected.to.line.below")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20) // Smaller icon size
+                    .frame(width: 20, height: 20)
                     .foregroundColor(.white)
-                    .padding(6) // Slightly reduced padding
-                    .background(Color.blue) // Background color for Network Shares
-                    .cornerRadius(6) // Slightly smaller corner radius
-                    .frame(width: 32, height: 32) // Overall smaller icon frame
-                    
+                    .padding(6)
+                    .background(Color.blue)
+                    .cornerRadius(6)
+                    .frame(width: 32, height: 32)
+
                 VStack(alignment: .leading) {
                     Text("Network Shares")
-                        .font(.headline) // Smaller title font
-                        .fontWeight(.medium) // Adjusted weight
+                        .font(.headline)
+                        .fontWeight(.medium)
                     Text("Configure network shares and their connection settings here.")
-                        .font(.subheadline) // Explicitly set subheadline font
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                Spacer() // Pushes content to the left
+                Spacer()
             }
             .padding(10)
-            // Apply background and clip shape
-            .background(.quaternary.opacity(0.4)) // Subtle background
+            .background(.quaternary.opacity(0.4))
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            
-            // List of shares with simple layout
+
+            // Share list
             VStack(spacing: 0) {
                 ForEach(shares) { share in
-                    HStack {
-                        HStack(spacing: 6) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                let resolvedUsername = share.effectiveUsername(from: profileManager.profiles)
-                                // Use effectiveMountPoint for display
-                                Text(share.resolvedEffectiveMountPoint(username: resolvedUsername))
-                                    .font(.headline)
-                                Text(share.resolvedNetworkShare(username: resolvedUsername))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        // Status indicator based on real mountStatus
-                        Circle()
-                            .fill(mountStatusColor(for: share.mountStatus))
-                            .frame(width: 10, height: 10)
-                            .help(share.mountStatus.rawValue) // Show status rawValue on hover
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedNetworkShare = share.networkShare
-                    }
-                    .contextMenu {
-                        // Button to Mount/Unmount the selected share
-                        Button(share.mountStatus == .mounted ? "Disconnect" : "Connect") {
-                            Task {
-                                if share.mountStatus == .mounted {
-                                    await mounter.unmountShare(for: share, userTriggered: true)
-                                } else {
-                                    await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
-                                }
-                                // Reload shares after action
-                                await loadShares()
-                            }
-                        }
-                        
-                        // Add edit button for non-managed shares
-                        if !share.managed {
-                            Divider()
-                            Button("Edit...") {
-                                handleEditShare(share)
-                            }
-                        }
-                        
-                        // Button to delete the share (only if not managed)
-                        if !share.managed {
-                            Divider() // Add divider only if delete is possible
-                            Button("Delete") {
-                                Task {
-                                    await mounter.removeShare(for: share)
-                                    if selectedNetworkShare == share.networkShare {
-                                        selectedNetworkShare = nil
-                                    }
-                                    // Reload shares after deletion
-                                    await loadShares()
-                                }
-                            }
-                        }
-                    }
-                    .background(selectedNetworkShare == share.networkShare ? Color.accentColor.opacity(0.1) : Color.clear)
-                    
-                    if share.networkShare != shares.last?.networkShare {
+                    shareRow(for: share)
+
+                    if share.id != shares.last?.id {
                         Divider()
                     }
                 }
-                
+
                 if shares.isEmpty {
                     VStack(alignment: .center, spacing: 12) {
-                        // Add icon for better visual appeal
                         Image(systemName: "externaldrive.connected.to.line.below.fill")
                             .font(.system(size: 32))
                             .foregroundColor(.secondary.opacity(0.6))
                             .padding(.bottom, 8)
-                            
+
                         Text("No network shares configured")
                             .font(.headline)
                             .foregroundColor(.secondary)
-                        
+
                         Text("Click '+' to add a new share")
                             .font(.caption)
                             .foregroundColor(.secondary.opacity(0.8))
                             .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity, minHeight: 100)
-                    .padding(.vertical, 20) // Increase vertical padding for better centering
+                    .padding(.vertical, 20)
                 }
             }
             .padding(.top, 8)
@@ -156,46 +129,31 @@ struct NetworkSharesView: View {
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(Color.gray.opacity(0.2), lineWidth: 1)
             )
-            
-            // Bottom toolbar with action buttons
+
+            // Bottom toolbar
             HStack {
                 Button(action: { showAddSheet = true }) {
                     Image(systemName: "plus")
                         .frame(width: 16, height: 16)
                 }
-//                .frame(width: 28, height: 20)
                 .help("Add")
-                
-                Button(action: {
-                    Task {
-                        if let currentSelection = selectedNetworkShare,
-                           let shareToRemove = shares.first(where: { $0.networkShare == currentSelection }),
-                           !shareToRemove.managed {
-                                await mounter.removeShare(for: shareToRemove)
-                                selectedNetworkShare = nil
-                                await loadShares()
-                        }
-                    }
-                }) {
+
+                Button(action: deleteSelectedShares) {
                     Image(systemName: "minus")
                         .frame(width: 16, height: 16)
                 }
-//                .frame(width: 28, height: 20)
                 .help("Remove")
-                .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
-                
+                .disabled(!canDelete)
+
                 Button(action: handleToolbarEdit) {
                     Image(systemName: "square.and.pencil")
                         .frame(width: 16, height: 16)
                 }
-//                .frame(width: 28, height: 20)
                 .help("Edit")
-                .disabled(selectedNetworkShare == nil || shares.first(where: { $0.networkShare == selectedNetworkShare })?.managed ?? true)
-                
-                // MDM hint for managed shares
-                if let selectedNetworkShare = selectedNetworkShare,
-                   let selectedShare = shares.first(where: { $0.networkShare == selectedNetworkShare }),
-                   selectedShare.managed {
+                .disabled(!canEdit)
+
+                // MDM hint: only when the single selected share is managed
+                if selectedShares.count == 1, let share = selectedShareObjects.first, share.managed {
                     HStack {
                         Image(systemName: "gearshape.fill")
                             .foregroundColor(.orange)
@@ -205,62 +163,40 @@ struct NetworkSharesView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Spacer()
-                
-                // Mount/Unmount button
-                Button(action: {
-                    Task {
-                        if let selectedNetworkShare = selectedNetworkShare,
-                           let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
-                            if share.mountStatus == .mounted {
-                                await mounter.unmountShare(for: share)
-                            } else {
-                                await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
-                            }
-                            await loadShares() // Reload after action
-                        }
-                    }
-                }) {
+
+                Button(action: toggleSelectedShares) {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.up.arrow.down")
-                        if let selectedNetworkShare = selectedNetworkShare,
-                           let share = shares.first(where: { $0.networkShare == selectedNetworkShare }) {
-                            Text(share.mountStatus == .mounted ? "Disconnect" : "Connect")
-                                .frame(height: 16)
-                        } else {
-                            Text("Connect/Disconnect")
-                                .frame(height: 16)
-                        }
+                        Text(connectButtonLabel)
+                            .frame(height: 16)
                     }
                 }
-                .disabled(selectedNetworkShare == nil)
+                .disabled(selectedShares.isEmpty || anyMounting)
             }
-            .padding(8) // Make toolbar padding consistent with other views
-            .background(Color(.controlBackgroundColor)) // Add a subtle background to match other toolbars
+            .padding(8)
+            .background(Color(.controlBackgroundColor))
             .padding(.top, 8)
         }
-        // Apply consistent outer padding to the entire view (20pt on all sides)
         .padding(20)
-        // Load all data when the view appears
         .onAppear {
             Task {
-                Logger.networkSharesView.info("📱 NetworkSharesView appearing - mounter available via Environment")
+                Logger.networkSharesView.info("📱 NetworkSharesView appearing")
                 await loadAllData()
             }
         }
-        // Live-Update: Reload shares when Mounter posts a reconstruct notification
         .onReceive(NotificationCenter.default.publisher(for: Defaults.nsmReconstructMenuTriggerNotification)) { _ in
             Task { await loadShares() }
         }
         .sheet(isPresented: $showAddSheet) {
             addShareSheet
         }
-        .sheet(item: $shareToEdit, content: { editingShare in
+        .sheet(item: $shareToEdit) { editingShare in
             AddShareView(
                 isPresented: Binding(
                     get: { shareToEdit != nil },
-                    set: { newValue in if !newValue { shareToEdit = nil } }
+                    set: { if !$0 { shareToEdit = nil } }
                 ),
                 mounter: mounter,
                 profileManager: profileManager,
@@ -270,40 +206,163 @@ struct NetworkSharesView: View {
             .onAppear {
                 Logger.networkSharesView.info("📋 Edit sheet opening for share: \(editingShare.networkShare)")
             }
-        })
-    }
-    
-    /// Loads all required data including shares and ensures profile manager is ready
-    private func loadAllData() async {
-        Logger.networkSharesView.info("🔄 Loading all data for NetworkSharesView")
-        
-        // Load shares first
-        await loadShares()
-        
-        // Ensure profile manager data is available
-        Logger.networkSharesView.debug("🔄 ProfileManager has \(profileManager.profiles.count) profiles")
-        
-        // Mark data as loaded
-        await MainActor.run {
-            isDataLoaded = true
-            Logger.networkSharesView.info("✅ All data loaded - shares: \(shares.count), profiles: \(profileManager.profiles.count)")
         }
     }
-    
-    /// Asynchronously loads shares from the ShareManager.
+
+    // MARK: - Row View
+
+    @ViewBuilder
+    private func shareRow(for share: Share) -> some View {
+        let resolvedUsername = share.effectiveUsername(from: profileManager.profiles)
+        let isSelected = selectedShares.contains(share.id)
+        let primaryColor: Color = isSelected ? Color(NSColor.alternateSelectedControlTextColor) : Color(NSColor.labelColor)
+        let secondaryColor: Color = isSelected ? Color(NSColor.alternateSelectedControlTextColor).opacity(0.75) : Color(NSColor.secondaryLabelColor)
+
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(share.resolvedEffectiveMountPoint(username: resolvedUsername))
+                    .font(.headline)
+                    .foregroundColor(primaryColor)
+                Text(share.resolvedNetworkShare(username: resolvedUsername))
+                    .font(.caption)
+                    .foregroundColor(secondaryColor)
+                if share.mountStatus == .mounting {
+                    Text("Connecting…")
+                        .font(.caption)
+                        .foregroundColor(secondaryColor)
+                }
+            }
+
+            Spacer()
+
+            if share.mountStatus == .mounting {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.small)
+            } else {
+                Circle()
+                    .fill(mountStatusColor(for: share.mountStatus))
+                    .frame(width: 10, height: 10)
+                    .help(share.mountStatus.rawValue)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            handleTap(on: share)
+        }
+        .contextMenu {
+            contextMenuItems(for: share)
+        }
+        .background(isSelected ? Color(NSColor.selectedContentBackgroundColor) : Color.clear)
+    }
+
+    // MARK: - Selection
+
+    /// Handles a tap on a share row with modifier-key awareness:
+    /// - Plain tap: replaces the selection with only this share.
+    /// - Cmd or Shift: toggles this share in the existing selection without range-selecting
+    ///   intermediate items.
+    private func handleTap(on share: Share) {
+        let flags = NSEvent.modifierFlags
+        let isAdditive = flags.contains(.command) || flags.contains(.shift)
+        if isAdditive {
+            if selectedShares.contains(share.id) {
+                selectedShares.remove(share.id)
+            } else {
+                selectedShares.insert(share.id)
+            }
+        } else {
+            selectedShares = [share.id]
+        }
+    }
+
+    // MARK: - Toolbar Actions
+
+    /// Mounts or unmounts each selected share based on its current state.
+    /// Shares are processed sequentially; the Mounter handles internal parallelism.
+    private func toggleSelectedShares() {
+        Task {
+            for share in selectedShareObjects {
+                if share.mountStatus == .mounted {
+                    await mounter.unmountShare(for: share, userTriggered: true)
+                } else {
+                    await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
+                }
+            }
+            await loadShares()
+        }
+    }
+
+    /// Deletes all selected shares that are not MDM-managed. Managed shares in the
+    /// selection are silently skipped.
+    private func deleteSelectedShares() {
+        Task {
+            for share in selectedShareObjects where !share.managed {
+                await mounter.removeShare(for: share)
+            }
+            await loadShares()
+        }
+    }
+
+    // MARK: - Context Menu
+
+    /// Context menu for a single share row. Always acts on the right-clicked item only,
+    /// independent of the current multi-selection.
+    @ViewBuilder
+    private func contextMenuItems(for share: Share) -> some View {
+        Button(share.mountStatus == .mounted ? "Disconnect" : (share.mountStatus == .mounting ? "Connecting…" : "Connect")) {
+            Task {
+                if share.mountStatus == .mounted {
+                    await mounter.unmountShare(for: share, userTriggered: true)
+                } else {
+                    await mounter.mountGivenShares(userTriggered: true, forShare: share.id)
+                }
+                await loadShares()
+            }
+        }
+        .disabled(share.mountStatus == .mounting)
+
+        if !share.managed {
+            Divider()
+            Button("Edit...") {
+                handleEditShare(share)
+            }
+            Divider()
+            Button("Delete") {
+                Task {
+                    await mounter.removeShare(for: share)
+                    selectedShares.remove(share.id)
+                    await loadShares()
+                }
+            }
+        }
+    }
+
+    // MARK: - Data Loading
+
+    private func loadAllData() async {
+        Logger.networkSharesView.info("🔄 Loading all data for NetworkSharesView")
+        await loadShares()
+        Logger.networkSharesView.debug("🔄 ProfileManager has \(profileManager.profiles.count) profiles")
+        await MainActor.run {
+            isDataLoaded = true
+            Logger.networkSharesView.info("✅ All data loaded — shares: \(shares.count), profiles: \(profileManager.profiles.count)")
+        }
+    }
+
     private func loadShares() async {
         Logger.networkSharesView.debug("🔄 Loading shares from ShareManager")
         self.shares = await mounter.shareManager.allShares
         Logger.networkSharesView.debug("✅ Loaded \(shares.count) shares")
-
-        // If the selected share no longer exists, deselect it
-        if let currentSelection = selectedNetworkShare, !shares.contains(where: { $0.networkShare == currentSelection }) {
-            selectedNetworkShare = nil
-            Logger.networkSharesView.debug("🔄 Deselected share \(currentSelection) as it no longer exists")
-        }
+        // Prune stale selection IDs after the share list changes
+        let validIDs = Set(shares.map(\.id))
+        selectedShares = selectedShares.intersection(validIDs)
     }
-    
-    /// Returns the appropriate color for the mount status indicator.
+
+    // MARK: - Mount Status Color
+
     private func mountStatusColor(for status: MountStatus) -> Color {
         switch status {
         case .mounted:
@@ -312,14 +371,13 @@ struct NetworkSharesView: View {
             return .gray
         case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unreachable, .unassignedProfile:
             return .red
-        case .unknown, .undefined:
+        case .mounting, .unknown, .undefined:
             return .orange
         }
     }
-    
+
     // MARK: - Sheet Views
-    
-    /// Sheet for adding new shares
+
     @ViewBuilder
     private var addShareSheet: some View {
         AddShareView(
@@ -332,44 +390,28 @@ struct NetworkSharesView: View {
             Logger.networkSharesView.info("➕ Add sheet opening")
         }
     }
-    
-    /// Handles save action from add sheet
+
     private func handleAddSave() {
-        Logger.networkSharesView.info("💾 Add sheet saved - reloading data")
-        Task {
-            await loadShares()
-        }
+        Logger.networkSharesView.info("💾 Add sheet saved — reloading data")
+        Task { await loadShares() }
     }
-    
-    /// Handles save action from edit sheet
+
     private func handleEditSave() {
-        Logger.networkSharesView.info("💾 Edit sheet saved - reloading data")
-        Task {
-            await loadShares()
-        }
+        Logger.networkSharesView.info("💾 Edit sheet saved — reloading data")
+        Task { await loadShares() }
     }
-    
-    /// Handles edit share action
+
     private func handleEditShare(_ share: Share) {
         Logger.networkSharesView.info("🔧 Starting edit for share: \(share.networkShare)")
-        Logger.networkSharesView.debug("🔧 Current shareToEdit state: \(shareToEdit?.networkShare ?? "nil")")
-        Logger.networkSharesView.debug("🔧 Data loaded state: \(isDataLoaded)")
-        Logger.networkSharesView.debug("🔧 ProfileManager profiles count: \(profileManager.profiles.count)")
-        
-        // Store the Share object directly to avoid race conditions
         shareToEdit = share
     }
-    
-    /// Handles toolbar edit button
+
     private func handleToolbarEdit() {
-        if let networkShare = selectedNetworkShare,
-           let selectedShare = shares.first(where: { $0.networkShare == networkShare }),
-           !selectedShare.managed {
-            handleEditShare(selectedShare)
-        }
+        guard canEdit, let share = selectedShareObjects.first else { return }
+        handleEditShare(share)
     }
 }
 
 #Preview {
     NetworkSharesView()
-} 
+}

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.4] - 2026-08-05
+
+### What's new
+- The network shares list in Settings now supports multi-selection: Cmd-click or Shift-click toggles individual shares, and the Connect/Disconnect and Delete toolbar buttons act on all selected shares at once
+- Added an info button next to the "Send diagnostic data" toggle that opens a popover explaining what data is collected, why, which framework is used (Sentry), and that all data stays on an RRZE/FAU on-premise server
+- New "Reset Network Authentication" button in General Settings: terminates stuck NetAuthSysAgent and netbiosd processes — a workaround for a long-standing macOS bug that can block SMB mounts. macOS restarts both processes automatically; no data is lost. A help popover explains the background and when to use it
+
+### Fixed
+- Kerberos authentication could fail at startup ("No password found in keychain") if the app had
+  previously recreated its authentication profile, leaving stale credential entries in the Keychain.
+  Orphaned entries are now cleaned up automatically on launch.
+- Share URLs containing `%USERNAME%` showed the literal placeholder text in the menu instead of the
+  actual username before authentication was established.
+- After starting at login, the Settings window did not appear on the first click — only the Dock
+  icon became visible. Subsequent clicks also had no effect. The window now opens reliably on the
+  first click, and clicking the Dock icon brings it to the foreground.
+
 ## [4.1.3] - 2026-07-07
 
 ### Fixed

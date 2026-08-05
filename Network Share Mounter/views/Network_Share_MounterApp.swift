@@ -59,21 +59,27 @@ class SettingsManager: ObservableObject {
             let autoOpen = (notification.userInfo?["autoOpenProfileCreation"] as? Bool) ?? false
             let realm = notification.userInfo?["mdmRealm"] as? String
             Logger.app.debug("🔧 [DEBUG] autoOpen=\(autoOpen), realm=\(realm ?? "nil")")
-            self?.pendingAutoOpenProfileCreation = autoOpen
-            self?.pendingMDMRealm = realm
-            self?.requestShowSettings()
+            Task { @MainActor [weak self] in
+                self?.pendingAutoOpenProfileCreation = autoOpen
+                self?.pendingMDMRealm = realm
+                self?.requestShowSettings()
+            }
         }
     }
 
     func requestShowSettings() {
         Logger.app.debug("🔧 [DEBUG] requestShowSettings() called")
-        if let openWindow = openWindowCallback {
-            Logger.app.debug("🔧 [DEBUG] Calling openWindow callback")
-            NSApp.setActivationPolicy(.regular)
-            openWindow("settings")
-            NSApp.activate(ignoringOtherApps: true)
-        } else {
+        guard let openWindow = openWindowCallback else {
             Logger.app.error("🔧 [ERROR] openWindowCallback is nil!")
+            return
+        }
+        Logger.app.debug("🔧 [DEBUG] Calling openWindow callback")
+        NSApp.setActivationPolicy(.regular)
+        openWindow("settings")
+        // openWindow is async — defer activation until the window exists
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            NSApp.windows.first(where: { $0.title == "Settings" })?.makeKeyAndOrderFront(nil)
         }
     }
 }
