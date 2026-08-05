@@ -378,7 +378,7 @@ class AuthProfileManager: ObservableObject {
     private func loadProfiles() {
         guard let data = UserDefaults.standard.data(forKey: Defaults.authProfileKey) else {
             Logger.dataModel.info("No profile data found in UserDefaults.")
-            self.profiles = [] // Start with empty array if no data
+            self.profiles = []
             return
         }
 
@@ -386,9 +386,26 @@ class AuthProfileManager: ObservableObject {
             let decoder = JSONDecoder()
             self.profiles = try decoder.decode([AuthProfile].self, from: data)
             Logger.dataModel.info("Successfully loaded \(self.profiles.count, privacy: .public) profiles from UserDefaults.")
+            cleanupOrphanedKeychainEntries()
         } catch {
             Logger.dataModel.error("Failed to decode profiles from UserDefaults: \(error.localizedDescription)")
-            self.profiles = [] // Reset to empty on error
+            self.profiles = []
+        }
+    }
+
+    /// Removes keychain entries whose account name (profile UUID) no longer corresponds to any loaded profile.
+    /// This prevents accumulation of stale entries when profiles are recreated with new UUIDs.
+    private func cleanupOrphanedKeychainEntries() {
+        let currentIDs = Set(profiles.map { $0.id })
+        let keychainAccounts = keychainManager.retrieveAllAccountNames(forService: keychainServiceForProfiles)
+        guard !keychainAccounts.isEmpty else { return }
+        for account in keychainAccounts where !currentIDs.contains(account) {
+            do {
+                try keychainManager.removeCredential(forUsername: account, andService: keychainServiceForProfiles, accessGroup: nil)
+                Logger.dataModel.info("🧹 Removed orphaned keychain entry for old profile UUID: \(account, privacy: .public)")
+            } catch {
+                Logger.dataModel.warning("⚠️ Could not remove orphaned keychain entry \(account, privacy: .public): \(error.localizedDescription)")
+            }
         }
     }
 

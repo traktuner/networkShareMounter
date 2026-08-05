@@ -418,6 +418,22 @@ class KeychainManager: NSObject {
         return nil // Should not be reached if successful
     }
     
+    /// Returns the account names (e.g. profile UUIDs) of all generic-password items for the given service,
+    /// without restricting to a specific access group.
+    func retrieveAllAccountNames(forService service: String) -> [String] {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecReturnAttributes as String: kCFBooleanTrue,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+        ]
+        var ref: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &ref) == errSecSuccess,
+              let items = ref as? [[String: Any]] else { return [] }
+        return items.compactMap { $0[kSecAttrAccount as String] as? String }
+    }
+
     func retrieveAllEntries(forService service: String = Defaults.keyChainService, accessGroup: String = Defaults.keyChainAccessGroup) throws -> [(username: String, password: String)] {
         do {
             var query: [String: Any?] = [kSecClass as String: kSecClassGenericPassword,
