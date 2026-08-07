@@ -180,6 +180,7 @@ struct AuthenticationView: View {
     @State private var profileToEdit: AuthProfile?
     @State private var currentAssociatedShares: [Share] = []
     @State private var ticketRefreshStatus: [String: TicketRefreshStatus] = [:]
+    @State private var saveErrorMessage: String?
 
     // Injected global service
     @EnvironmentObject private var mounter: Mounter
@@ -273,7 +274,9 @@ struct AuthenticationView: View {
                             logger.info("Successfully added profile '\(newProfile.displayName)'.")
                         } catch {
                             logger.error("Failed to add profile '\(newProfile.displayName)': \(error.localizedDescription)")
-                            // TODO: Show error alert to user
+                            await MainActor.run {
+                                saveErrorMessage = error.localizedDescription
+                            }
                         }
                     }
                 }
@@ -307,7 +310,9 @@ struct AuthenticationView: View {
                                 logger.info("Successfully updated profile '\(updatedProfile.displayName)'.")
                             } catch {
                                 logger.error("Failed to update profile '\(updatedProfile.displayName)': \(error.localizedDescription)")
-                                // TODO: Show error alert to user
+                                await MainActor.run {
+                                    saveErrorMessage = error.localizedDescription
+                                }
                             }
                         }
                     }
@@ -320,6 +325,16 @@ struct AuthenticationView: View {
             // Clear profileToEdit when sheet is dismissed
             if !isEditing {
                 profileToEdit = nil
+            }
+        }
+        .alert("Profile could not be saved", isPresented: Binding(
+            get: { saveErrorMessage != nil },
+            set: { if !$0 { saveErrorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { saveErrorMessage = nil }
+        } message: {
+            if let msg = saveErrorMessage {
+                Text(msg)
             }
         }
         .onAppear {
