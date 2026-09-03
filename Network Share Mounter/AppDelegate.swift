@@ -529,8 +529,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 Logger.app.debug("⏭️ Skipping default realm profile — credential onboarding will create one")
             }
 
-            // Check if MDM requires Kerberos setup and auto-open settings if needed
-            if let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
+            // Check if MDM requires Kerberos setup and auto-open settings if needed.
+            // Skip when credential onboarding is already handling this realm — its "Network
+            // Credentials" window is already open (or pending), so auto-opening Settings with an
+            // empty "Add Profile" dialog on top of it would just be a redundant, contradictory
+            // second prompt for the same missing profile.
+            if pendingCredentialOnboarding?.kerberosRealm == nil,
+               let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
                 Logger.app.info("🔧 MDM Kerberos realm '\(mdmRealm)' configured but no profile exists. Auto-opening settings for user setup.")
                 await MainActor.run {
                     // Auto-open settings window with profile creation dialog using the new SwiftUI system
