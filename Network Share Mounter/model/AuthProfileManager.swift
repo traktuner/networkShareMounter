@@ -1048,7 +1048,7 @@ class AuthProfileManager: ObservableObject {
         let username = matchingAccount?.upn ?? "\(NSUserName())@\(mdmRealm)"
 
         let profileName = UserDefaults.standard.string(forKey: PreferenceKeys.kerberosProfileDisplayName.rawValue)
-            .flatMap { $0.isEmpty ? nil : $0 } ?? "Standard Kerberos"
+            .flatMap { $0.isEmpty ? nil : $0 } ?? mdmRealm
 
         // Create default realm profile
         let profileId = UUID().uuidString
