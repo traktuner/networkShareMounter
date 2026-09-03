@@ -1172,15 +1172,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             expirationItem.isEnabled = true
             menu.addItem(expirationItem)
             menu.addItem(NSMenuItem.separator())
-        } else if prefs.bool(for: .allowPasswordChange), !kerberosUserPrincipal.isEmpty {
-            let changeItem = NSMenuItem(
-                title: NSLocalizedString("Change Password\u{2026}", comment: "Proactive change password menu item"),
-                action: #selector(AppDelegate.showChangePasswordWindow(_:)),
-                keyEquivalent: ""
-            )
-            changeItem.isEnabled = true
-            menu.addItem(changeItem)
-            menu.addItem(NSMenuItem.separator())
         }
 
         // Gentle update reminder (Sparkle background update found, no focus stealing)
@@ -1340,6 +1331,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
         
+        // Proactive password change reminder (no active expiration warning, which has its own slot
+        // at the top of the menu). Placed just above Settings so it doesn't compete with the
+        // primary mount/unmount actions for attention.
+        if passwordExpirationDaysRemaining == nil, prefs.bool(for: .allowPasswordChange), !kerberosUserPrincipal.isEmpty {
+            let changeItem = NSMenuItem(
+                title: NSLocalizedString("Change Password\u{2026}", comment: "Proactive change password menu item"),
+                action: #selector(AppDelegate.showChangePasswordWindow(_:)),
+                keyEquivalent: ""
+            )
+            changeItem.isEnabled = true
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(changeItem)
+        }
+
         if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Preferences ..."), comment: "Preferences"),
                                               comment: "Preferences",
                                               action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)),
