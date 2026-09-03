@@ -25,7 +25,7 @@ before_script:
   - export PATH="$HOME/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
   - echo $PATH
   - ruby -v
-  - cp /Users/autopkg/dev/networkShareMounter/.env.default .
+  - cp /Users/turgon/dev/repo/rrze/networkShareMounter/.env.default .
   - bundle install --path vendor/bundle
   - export APP_VERSION=`echo "$CI_COMMIT_TAG" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'`
 
