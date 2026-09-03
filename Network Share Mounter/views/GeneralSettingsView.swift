@@ -92,6 +92,12 @@ struct GeneralSettingsView: View {
     private var isUpdateFrameworkDisabled: Bool {
         prefs.bool(for: .disableAutoUpdateFramework)
     }
+
+    /// Computed property indicating if the Diagnostics section is hidden via MDM.
+    /// Reads the `.disableDiagnostics` preference.
+    private var isDiagnosticsSectionDisabled: Bool {
+        prefs.bool(for: .disableDiagnostics)
+    }
     
     // MARK: - Computed Properties for Bundle Info
     
@@ -150,105 +156,107 @@ struct GeneralSettingsView: View {
                 .padding(.bottom, 8)
                 
                 // MARK: - Diagnostic Data Section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Diagnostics")
-                        .font(.headline)
-                        .onTapGesture {
-                            diagnoseTapCount += 1
-                            if diagnoseTapCount >= 5 {
-                                debugLogExportEnabled = true
+                if !isDiagnosticsSectionDisabled {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Diagnostics")
+                            .font(.headline)
+                            .onTapGesture {
+                                diagnoseTapCount += 1
+                                if diagnoseTapCount >= 5 {
+                                    debugLogExportEnabled = true
+                                }
+                            }
+                        HStack(spacing: 6) {
+                            Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
+                            Button {
+                                showingDiagnosticsInfo.toggle()
+                            } label: {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .popover(isPresented: $showingDiagnosticsInfo, arrowEdge: .trailing) {
+                                DiagnosticsInfoView()
                             }
                         }
-                    HStack(spacing: 6) {
-                        Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
-                        Button {
-                            showingDiagnosticsInfo.toggle()
-                        } label: {
-                            Image(systemName: "info.circle")
-                                .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .popover(isPresented: $showingDiagnosticsInfo, arrowEdge: .trailing) {
-                            DiagnosticsInfoView()
-                        }
-                    }
 
-                    // Hidden debug feature: only shown after 5 taps on "Diagnostics" heading
-                    if debugLogExportEnabled {
-                        VStack(alignment: .leading, spacing: 8) {
-                            if collectedLogs != nil {
-                                // Phase 2: logs ready — offer view and send
-                                HStack(spacing: 12) {
-                                    Button {
-                                        showingLogViewer = true
-                                    } label: {
-                                        Label("Show logs", systemImage: "doc.text.magnifyingglass")
+                        // Hidden debug feature: only shown after 5 taps on "Diagnostics" heading
+                        if debugLogExportEnabled {
+                            VStack(alignment: .leading, spacing: 8) {
+                                if collectedLogs != nil {
+                                    // Phase 2: logs ready — offer view and send
+                                    HStack(spacing: 12) {
+                                        Button {
+                                            showingLogViewer = true
+                                        } label: {
+                                            Label("Show logs", systemImage: "doc.text.magnifyingglass")
+                                        }
+                                        .buttonStyle(.bordered)
+
+                                        Button {
+                                            Task { await sendCollectedLogs() }
+                                        } label: {
+                                            HStack {
+                                                if isExportingLogs {
+                                                    ProgressView().scaleEffect(0.8)
+                                                    Text("Sending...")
+                                                } else {
+                                                    Label("Send to support", systemImage: "paperplane.fill")
+                                                }
+                                            }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .disabled(isExportingLogs || !SentryManager.shared.isActive)
+
+                                        Button {
+                                            collectedLogs = nil
+                                            collectedLogData = nil
+                                            exportResult = nil
+                                        } label: {
+                                            Text("Collect again")
+                                                .font(.caption)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .foregroundColor(.secondary)
                                     }
-                                    .buttonStyle(.bordered)
-
+                                } else {
+                                    // Phase 1: initial state — collect first
                                     Button {
-                                        Task { await sendCollectedLogs() }
+                                        Task { await collectAndPrepareLogs() }
                                     } label: {
                                         HStack {
                                             if isExportingLogs {
                                                 ProgressView().scaleEffect(0.8)
-                                                Text("Sending...")
+                                                Text("Collecting logs...")
                                             } else {
-                                                Label("Send to support", systemImage: "paperplane.fill")
+                                                Label("Collect debug logs", systemImage: "doc.text.fill")
                                             }
                                         }
                                     }
                                     .buttonStyle(.borderedProminent)
-                                    .disabled(isExportingLogs || !SentryManager.shared.isActive)
-
-                                    Button {
-                                        collectedLogs = nil
-                                        collectedLogData = nil
-                                        exportResult = nil
-                                    } label: {
-                                        Text("Collect again")
-                                            .font(.caption)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .foregroundColor(.secondary)
+                                    .disabled(isExportingLogs)
                                 }
-                            } else {
-                                // Phase 1: initial state — collect first
-                                Button {
-                                    Task { await collectAndPrepareLogs() }
-                                } label: {
-                                    HStack {
-                                        if isExportingLogs {
-                                            ProgressView().scaleEffect(0.8)
-                                            Text("Collecting logs...")
-                                        } else {
-                                            Label("Collect debug logs", systemImage: "doc.text.fill")
-                                        }
-                                    }
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .disabled(isExportingLogs)
-                            }
 
-                            if let result = exportResult {
-                                Text(result)
-                                    .font(.caption)
-                                    .foregroundColor(
-                                        result.localizedCaseInsensitiveContains("success") ||
-                                        result.localizedCaseInsensitiveContains("erfolgreich")
-                                        ? .green : .red
-                                    )
+                                if let result = exportResult {
+                                    Text(result)
+                                        .font(.caption)
+                                        .foregroundColor(
+                                            result.localizedCaseInsensitiveContains("success") ||
+                                            result.localizedCaseInsensitiveContains("erfolgreich")
+                                            ? .green : .red
+                                        )
+                                }
                             }
-                        }
-                        .padding(.top, 8)
-                        .sheet(isPresented: $showingLogViewer) {
-                            if let logs = collectedLogs {
-                                LogViewerView(logs: logs, filename: collectedLogFilename)
+                            .padding(.top, 8)
+                            .sheet(isPresented: $showingLogViewer) {
+                                if let logs = collectedLogs {
+                                    LogViewerView(logs: logs, filename: collectedLogFilename)
+                                }
                             }
                         }
                     }
+                    .padding(.vertical, 8)
                 }
-                .padding(.vertical, 8)
 
                 // MARK: - Network Authentication Section
                 VStack(alignment: .leading, spacing: 8) {
