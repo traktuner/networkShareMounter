@@ -516,6 +516,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 do {
                     try await AuthProfileManager.shared.createDefaultRealmProfileIfNeeded()
                     Logger.app.debug("✅ Default realm profile check completed")
+
+                    // Give shares that failed auto-assignment earlier (before this profile existed) a second chance.
+                    if let mounter = self.mounter {
+                        await mounter.shareManager.retryKerberosProfileAssignment()
+                        await mounter.shareManager.checkForUnassignedProfiles(notifyWhenAllAssigned: true)
+                    }
                 } catch {
                     Logger.app.error("❌ Default realm profile creation failed: \(error)")
                 }
@@ -523,8 +529,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 Logger.app.debug("⏭️ Skipping default realm profile — credential onboarding will create one")
             }
 
-            // Check if MDM requires Kerberos setup and auto-open settings if needed
-            if let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
+            // Check if MDM requires Kerberos setup and auto-open settings if needed.
+            // Skip when credential onboarding is already handling this realm — its "Network
+            // Credentials" window is already open (or pending), so auto-opening Settings with an
+            // empty "Add Profile" dialog on top of it would just be a redundant, contradictory
+            // second prompt for the same missing profile.
+            if pendingCredentialOnboarding?.kerberosRealm == nil,
+               let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
                 Logger.app.info("🔧 MDM Kerberos realm '\(mdmRealm)' configured but no profile exists. Auto-opening settings for user setup.")
                 await MainActor.run {
                     // Auto-open settings window with profile creation dialog using the new SwiftUI system
@@ -1161,15 +1172,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             expirationItem.isEnabled = true
             menu.addItem(expirationItem)
             menu.addItem(NSMenuItem.separator())
-        } else if prefs.bool(for: .allowPasswordChange), !kerberosUserPrincipal.isEmpty {
-            let changeItem = NSMenuItem(
-                title: NSLocalizedString("Change Password\u{2026}", comment: "Proactive change password menu item"),
-                action: #selector(AppDelegate.showChangePasswordWindow(_:)),
-                keyEquivalent: ""
-            )
-            changeItem.isEnabled = true
-            menu.addItem(changeItem)
-            menu.addItem(NSMenuItem.separator())
         }
 
         // Gentle update reminder (Sparkle background update found, no focus stealing)
@@ -1329,6 +1331,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
         
+        // Proactive password change reminder (no active expiration warning, which has its own slot
+        // at the top of the menu). Placed just above Settings so it doesn't compete with the
+        // primary mount/unmount actions for attention.
+        if passwordExpirationDaysRemaining == nil, prefs.bool(for: .allowPasswordChange), !kerberosUserPrincipal.isEmpty {
+            let changeItem = NSMenuItem(
+                title: NSLocalizedString("Change Password\u{2026}", comment: "Proactive change password menu item"),
+                action: #selector(AppDelegate.showChangePasswordWindow(_:)),
+                keyEquivalent: ""
+            )
+            changeItem.isEnabled = true
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(changeItem)
+        }
+
         if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Preferences ..."), comment: "Preferences"),
                                               comment: "Preferences",
                                               action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)),
