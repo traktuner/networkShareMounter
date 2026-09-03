@@ -116,6 +116,12 @@
             "type": "boolean",
             "default": false
         },
+        "disableDiagnostics": {
+            "title": "Disable Diagnostics section",
+            "description": "Hides the 'Diagnostics' section (send-diagnostics toggle, hidden log export) in Settings.",
+            "type": "boolean",
+            "default": false
+        },
         "location": {
             "title": "Mount path",
             "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended).",

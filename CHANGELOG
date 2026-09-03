@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.5] - 2026-09-04
+
+### What's new
+- New MDM key `disableDiagnostics` lets administrators hide the "Diagnostics" section in Settings entirely
+
+### Fixed
+- The automatically created Kerberos authentication profile now uses the display name configured via MDM (`kerberosProfileDisplayName`) instead of always being named "Standard Kerberos"
+- Shares that failed to get a Kerberos profile assigned right after a fresh MDM rollout no longer stay stuck requiring manual profile assignment — the app now retries automatically once the profile becomes available
+- Fixed a first-launch issue where, with a Kerberos realm already configured via MDM, two conflicting windows could appear at once (an empty "Add Profile" dialog together with the network credentials window); only the correct credentials window now appears
+- The optional "Change Password…" menu item is now positioned directly above "Preferences…" instead of at the very top of the menu, so it doesn't compete with the mount/unmount actions
+- The password-change dialog no longer gets stuck showing a spinning indicator after the password change had already succeeded — it now closes automatically
+
 ## [4.1.4] - 2026-08-07
 
 ### What's new
