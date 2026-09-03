@@ -516,6 +516,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 do {
                     try await AuthProfileManager.shared.createDefaultRealmProfileIfNeeded()
                     Logger.app.debug("✅ Default realm profile check completed")
+
+                    // Give shares that failed auto-assignment earlier (before this profile existed) a second chance.
+                    if let mounter = self.mounter {
+                        await mounter.shareManager.retryKerberosProfileAssignment()
+                        await mounter.shareManager.checkForUnassignedProfiles(notifyWhenAllAssigned: true)
+                    }
                 } catch {
                     Logger.app.error("❌ Default realm profile creation failed: \(error)")
                 }
