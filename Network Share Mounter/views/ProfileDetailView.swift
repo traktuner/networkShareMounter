@@ -201,12 +201,14 @@ struct ProfileDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical)
             } else {
-                // Use a List for better scrollability if many shares
-                List(associatedShares) { share in
-                    associatedShareRow(share)
+                // Rendered fully, without its own scroll area — this view is already
+                // embedded in a ScrollView by its caller, so a nested List here would
+                // create a second, independently scrollable region.
+                VStack(spacing: 8) {
+                    ForEach(associatedShares) { share in
+                        associatedShareRow(share)
+                    }
                 }
-                .listStyle(.plain) // Use plain style to avoid extra borders
-                .frame(minHeight: 100, maxHeight: 300) // Adjust height as needed
             }
         }
     }
