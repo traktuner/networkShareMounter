@@ -63,11 +63,6 @@
                             "infoText": "If not set, the share name will be used."
                         }
                     },
-                    "displayName": {
-                        "title": "Display name (Optional)",
-                        "description": "Optional: Display name shown for this share inside the app.",
-                        "type": "string"
-                    },
                     "externalKerberosManagement": {
                         "title": "External Kerberos management (Optional)",
                         "description": "Set to 'true' if Kerberos tickets for this share are managed by an external tool such as AD binding, Jamf Connect, or Apple SSO Extension. Network Share Mounter will mount the share without interfering with ticket management and will not show a 'profile required' warning. Only relevant for authType 'krb'.",
