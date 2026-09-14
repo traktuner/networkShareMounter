@@ -527,11 +527,18 @@ struct ProfileEditorView: View {
         editingAssociatedShares.removeAll { $0 == url }
     }
     
+    private func buildEffectiveUsername() -> String? {
+        if useKerberos && !usernamePart.isEmpty {
+            return realmPart.isEmpty ? usernamePart : "\(usernamePart)@\(realmPart)"
+        }
+        return username.isEmpty ? nil : username
+    }
+
     private func saveChanges() {
         var profileToSave = AuthProfile(
             id: existingProfile?.id ?? UUID().uuidString,
             displayName: profileName,
-            username: username.isEmpty ? nil : username,
+            username: buildEffectiveUsername(),
             useKerberos: useKerberos,
             kerberosRealm: kerberosRealm.isEmpty ? nil : kerberosRealm.uppercased(),
             associatedNetworkShares: editingAssociatedShares.isEmpty ? nil : editingAssociatedShares,
@@ -561,7 +568,7 @@ struct ProfileEditorView: View {
         var profileToSave = AuthProfile(
             id: existingProfile?.id ?? UUID().uuidString,
             displayName: profileName,
-            username: username.isEmpty ? nil : username,
+            username: buildEffectiveUsername(),
             useKerberos: useKerberos,
             kerberosRealm: kerberosRealm.isEmpty ? nil : kerberosRealm.uppercased(),
             associatedNetworkShares: editingAssociatedShares.isEmpty ? nil : editingAssociatedShares,

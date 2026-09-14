@@ -1,6 +1,461 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Connecting…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinden…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion en cours…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connessione in corso…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinden…"
+          }
+        }
+      }
+    },
+    "About Network Authentication Reset" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Info: Netzwerkauthentifizierung zurücksetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca del restablecimiento de autenticación de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À propos de la réinitialisation de l’authentification réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informazioni sulla reimpostazione dell’autenticazione di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over het resetten van netwerkauthenticatie"
+          }
+        }
+      }
+    },
+    "Known macOS issue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekanntes macOS-Problem"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problema conocido de macOS"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problème macOS connu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problema noto di macOS"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekend macOS-probleem"
+          }
+        }
+      }
+    },
+    "NetAuthSysAgent has a long-standing bug affecting SMB mounts across all macOS versions since El Capitan. The process can freeze, blocking subsequent mount operations and causing timeouts of up to 90 seconds." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent hat einen seit El Capitan bekannten Fehler, der SMB-Einhängungen auf allen macOS-Versionen betrifft. Der Prozess kann einfrieren, folgende Einhängevorgänge blockieren und Timeouts von bis zu 90 Sekunden verursachen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent tiene un error conocido desde El Capitan que afecta a los montajes SMB en todas las versiones de macOS. El proceso puede bloquearse, impidiendo las operaciones de montaje posteriores y causando tiempos de espera de hasta 90 segundos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent présente un bogue connu depuis El Capitan affectant les montages SMB sur toutes les versions de macOS. Le processus peut se bloquer, empêchant les opérations de montage suivantes et provoquant des délais d’attente allant jusqu’à 90 secondes."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent presenta un bug noto da El Capitan che interessa i mount SMB su tutte le versioni di macOS. Il processo può bloccarsi, impedendo le successive operazioni di mount e causando timeout fino a 90 secondi."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NetAuthSysAgent heeft een bekend probleem dat bestaat sinds El Capitan en SMB-koppelingen op alle macOS-versies kan beïnvloeden. Het proces kan vastlopen, volgende koppelingspogingen blokkeren en time-outs van maximaal 90 seconden veroorzaken."
+          }
+        }
+      }
+    },
+    "Network Authentication" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netzwerkauthentifizierung"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticación de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentification réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkauthenticatie"
+          }
+        }
+      }
+    },
+    "No stuck processes found." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine blockierten Prozesse gefunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontraron procesos bloqueados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun processus bloqué trouvé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun processo bloccato trovato."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen geblokkeerde processen gevonden."
+          }
+        }
+      }
+    },
+    "Reset Network Authentication" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netzwerkauthentifizierung zurücksetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer autenticación de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser l’authentification réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reimposta autenticazione di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkauthenticatie resetten"
+          }
+        }
+      }
+    },
+    "Resetting…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird zurückgesetzt…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restableciendo…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialisation…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reimpostazione in corso…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetten…"
+          }
+        }
+      }
+    },
+    "Stuck processes terminated successfully." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blockierte Prozesse wurden erfolgreich beendet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Procesos bloqueados terminados correctamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les processus bloqués ont été terminés avec succès."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processi bloccati terminati correttamente."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geblokkeerde processen zijn succesvol beëindigd."
+          }
+        }
+      }
+    },
+    "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Schaltfläche beendet NetAuthSysAgent und netbiosd. macOS startet beide Prozesse automatisch neu. Es gehen keine Daten verloren und eingehängte Volumes sind nicht betroffen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El botón termina NetAuthSysAgent y netbiosd. macOS reinicia ambos procesos automáticamente. No se pierden datos y los volúmenes montados no se ven afectados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le bouton termine NetAuthSysAgent et netbiosd. macOS redémarre les deux processus automatiquement. Aucune donnée n’est perdue et les volumes montés ne sont pas affectés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il pulsante termina NetAuthSysAgent e netbiosd. macOS riavvia entrambi i processi automaticamente. Non vengono persi dati e i volumi montati non vengono influenzati."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De knop beëindigt NetAuthSysAgent en netbiosd. macOS herstart beide processen automatisch. Er gaan geen gegevens verloren en gemonteerde volumes worden niet beïnvloed."
+          }
+        }
+      }
+    },
+    "Use this option if shares are not mounting despite a working network connection, or if mount attempts are taking unusually long." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwende diese Option, wenn Freigaben trotz funktionierender Netzwerkverbindung nicht eingehängt werden oder Einhängeversuche ungewöhnlich lange dauern."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa esta opción si los recursos compartidos no se montan a pesar de una conexión de red activa, o si los intentos de montaje tardan inusualmente tiempo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez cette option si les partages ne se montent pas malgré une connexion réseau active, ou si les tentatives de montage prennent plus de temps qu’habituellement."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa questa opzione se le condivisioni non vengono montate nonostante una connessione di rete funzionante, o se i tentativi di mount impiegano insolitamente tempo."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruik deze optie als shares niet koppelen ondanks een werkende netwerkverbinding, of als koppelingspogingen ongewoon lang duren."
+          }
+        }
+      }
+    },
+    "What this does" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was passiert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué hace"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce que cela fait"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosa fa"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wat dit doet"
+          }
+        }
+      }
+    },
+    "When to use it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wann sinnvoll"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuándo usarlo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quand l’utiliser"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando usarlo"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wanneer gebruiken"
+          }
+        }
+      }
+    },
     "" : {
       "localizations" : {
         "de" : {
@@ -163,7 +618,44 @@
       }
     },
     "%@" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        }
+      }
     },
     "%d network share(s) requiring a password profile" : {
       "comment" : "Password shares context",
@@ -202,6 +694,114 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%d netwerkschijf/schijven waarvoor een wachtwoordprofiel nodig is/zijn"
+          }
+        }
+      }
+    },
+    "• Authentication agents (NetAuthSysAgent, NetAuthAgent)" : {
+      "comment" : "Diagnostic info popover: debug log filter item",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Authentifizierungsagenten (NetAuthSysAgent, NetAuthAgent)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Agentes de autenticación (NetAuthSysAgent, NetAuthAgent)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Agents d'authentification (NetAuthSysAgent, NetAuthAgent)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Agenti di autenticazione (NetAuthSysAgent, NetAuthAgent)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Authenticatieagenten (NetAuthSysAgent, NetAuthAgent)"
+          }
+        }
+      }
+    },
+    "• macOS SMB client (com.apple.smb.client)" : {
+      "comment" : "Diagnostic info popover: debug log filter item",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• macOS SMB-Client (com.apple.smb.client)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Cliente SMB de macOS (com.apple.smb.client)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Client SMB macOS (com.apple.smb.client)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Client SMB macOS (com.apple.smb.client)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• macOS SMB-client (com.apple.smb.client)"
+          }
+        }
+      }
+    },
+    "• Network Share Mounter app logs" : {
+      "comment" : "Diagnostic info popover: debug log filter item",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Network Share Mounter App-Protokolle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Registros de la app Network Share Mounter"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Journaux de l'app Network Share Mounter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Log dell'app Network Share Mounter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Logboeken van de Network Share Mounter-app"
           }
         }
       }
@@ -610,6 +1210,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Over"
+          }
+        }
+      }
+    },
+    "About Diagnostic Data" : {
+      "comment" : "Title of the diagnostic data info popover",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Über Diagnosedaten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca de los datos de diagnóstico"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À propos des données de diagnostic"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informazioni sui dati diagnostici"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over diagnostische gegevens"
           }
         }
       }
@@ -2305,6 +2941,42 @@
         }
       }
     },
+    "Crash reports and error data help us identify and fix problems quickly, improving reliability for all users." : {
+      "comment" : "Diagnostic info popover: why we collect section body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Absturzberichte und Fehlerdaten helfen uns, Probleme schnell zu erkennen und zu beheben, und verbessern so die Zuverlässigkeit für alle Benutzer."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los informes de fallos y los datos de error nos ayudan a identificar y solucionar problemas rápidamente, mejorando la fiabilidad para todos los usuarios."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les rapports de plantage et les données d'erreur nous aident à identifier et résoudre rapidement les problèmes, améliorant ainsi la fiabilité pour tous les utilisateurs."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I rapporti di arresto anomalo e i dati di errore ci aiutano a identificare e risolvere rapidamente i problemi, migliorando l'affidabilità per tutti gli utenti."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crashrapporten en foutgegevens helpen ons problemen snel te identificeren en op te lossen, wat de betrouwbaarheid voor alle gebruikers verbetert."
+          }
+        }
+      }
+    },
     "Credentials" : {
       "comment" : "Credential onboarding section label",
       "localizations" : {
@@ -2383,6 +3055,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Huidig wachtwoord"
+          }
+        }
+      }
+    },
+    "Data is sent exclusively to an on-premise Sentry server operated by RRZE at Friedrich-Alexander-Universität Erlangen-Nürnberg. Data does not leave the FAU network." : {
+      "comment" : "Diagnostic info popover: server section body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Daten werden ausschließlich an einen On-Premise-Sentry-Server übermittelt, der vom RRZE der Friedrich-Alexander-Universität Erlangen-Nürnberg betrieben wird. Die Daten verlassen das FAU-Netzwerk nicht."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los datos se envían exclusivamente a un servidor Sentry local administrado por el RRZE de la Friedrich-Alexander-Universität Erlangen-Nürnberg. Los datos no salen de la red de la FAU."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les données sont envoyées exclusivement à un serveur Sentry local géré par le RRZE de la Friedrich-Alexander-Universität Erlangen-Nürnberg. Les données ne quittent pas le réseau de la FAU."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I dati vengono inviati esclusivamente a un server Sentry locale gestito dall'RRZE della Friedrich-Alexander-Universität Erlangen-Nürnberg. I dati non lasciano la rete della FAU."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gegevens worden uitsluitend verzonden naar een on-premise Sentry-server beheerd door het RRZE van de Friedrich-Alexander-Universität Erlangen-Nürnberg. Gegevens verlaten het FAU-netwerk niet."
           }
         }
       }
@@ -3153,6 +3861,42 @@
         }
       }
     },
+    "Extended debug logs" : {
+      "comment" : "Diagnostic info popover: section title for extended debug log info",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterte Debug-Protokolle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registros de depuración extendidos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journaux de débogage étendus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log di debug estesi"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uitgebreide debuglogboeken"
+          }
+        }
+      }
+    },
     "External" : {
       "localizations" : {
         "de" : {
@@ -3233,6 +3977,9 @@
           }
         }
       }
+    },
+    "Framework" : {
+
     },
     "Full Disk Access Required" : {
       "comment" : "FDA alert title",
@@ -6288,6 +7035,42 @@
         }
       }
     },
+    "On error or crash: app version, macOS version, error description, and an anonymised stack trace. No usernames, passwords, or server addresses are included." : {
+      "comment" : "Diagnostic info popover: what is collected section body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Fehlern oder Abstürzen: App-Version, macOS-Version, Fehlerbeschreibung und ein anonymisierter Stack-Trace. Es werden keine Benutzernamen, Passwörter oder Serveradressen erfasst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En caso de error o fallo: versión de la app, versión de macOS, descripción del error y un rastreo de pila anonimizado. No se incluyen nombres de usuario, contraseñas ni direcciones de servidor."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En cas d'erreur ou de plantage : version de l'app, version de macOS, description de l'erreur et une trace de pile anonymisée. Aucun nom d'utilisateur, mot de passe ou adresse de serveur n'est inclus."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In caso di errore o arresto anomalo: versione dell'app, versione di macOS, descrizione dell'errore e una traccia dello stack anonimizzata. Non vengono inclusi nomi utente, password o indirizzi server."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bij fouten of crashes: app-versie, macOS-versie, foutbeschrijving en een geanonimiseerde stacktrace. Er worden geen gebruikersnamen, wachtwoorden of serveradressen opgenomen."
+          }
+        }
+      }
+    },
     "Open System Settings…" : {
       "comment" : "FDA: open settings button",
       "localizations" : {
@@ -7903,6 +8686,9 @@
           }
         }
       }
+    },
+    "Server" : {
+
     },
     "Set Up" : {
       "comment" : "Credential onboarding save button",
@@ -9932,6 +10718,150 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Versie"
+          }
+        }
+      }
+    },
+    "We use Sentry, an open-source error tracking library. We run our own self-hosted instance — your data is never sent to sentry.io or any third-party cloud service." : {
+      "comment" : "Diagnostic info popover: framework section body",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wir verwenden Sentry, eine Open-Source-Bibliothek zur Fehlerverfolgung. Wir betreiben unsere eigene, selbst gehostete Instanz – Ihre Daten werden nie an sentry.io oder einen Drittanbieter-Clouddienst übermittelt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usamos Sentry, una biblioteca de seguimiento de errores de código abierto. Gestionamos nuestra propia instancia autoalojada: sus datos nunca se envían a sentry.io ni a ningún servicio en la nube de terceros."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous utilisons Sentry, une bibliothèque open source de suivi des erreurs. Nous gérons notre propre instance auto-hébergée : vos données ne sont jamais envoyées à sentry.io ni à un service cloud tiers."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilizziamo Sentry, una libreria open source per il monitoraggio degli errori. Gestiamo la nostra istanza auto-ospitata: i tuoi dati non vengono mai inviati a sentry.io o a servizi cloud di terze parti."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We gebruiken Sentry, een open-source bibliotheek voor foutregistratie. We beheren onze eigen zelfgehoste instantie — uw gegevens worden nooit naar sentry.io of een externe cloudservice verzonden."
+          }
+        }
+      }
+    },
+    "What is collected" : {
+      "comment" : "Diagnostic info popover: section title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was wird erfasst"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué se recopila"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce qui est collecté"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosa viene raccolto"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wat er wordt verzameld"
+          }
+        }
+      }
+    },
+    "When debug logs are sent manually, logs from the last 30 minutes are collected, gzip-compressed, and uploaded as an attachment to the same on-premise Sentry server. The log filter includes:" : {
+      "comment" : "Diagnostic info popover: extended debug logs section body (intro)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn Debug-Protokolle manuell gesendet werden, werden die Protokolle der letzten 30 Minuten gesammelt, mit Gzip komprimiert und als Anhang an denselben On-Premise-Sentry-Server hochgeladen. Der Protokollfilter umfasst:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando los registros de depuración se envían manualmente, se recopilan los registros de los últimos 30 minutos, se comprimen con gzip y se suben como archivo adjunto al mismo servidor Sentry local. El filtro de registros incluye:"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lorsque les journaux de débogage sont envoyés manuellement, les journaux des 30 dernières minutes sont collectés, compressés avec gzip et téléchargés en tant que pièce jointe vers le même serveur Sentry local. Le filtre de journaux comprend :"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando i log di debug vengono inviati manualmente, i log degli ultimi 30 minuti vengono raccolti, compressi con gzip e caricati come allegato sullo stesso server Sentry locale. Il filtro dei log include:"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wanneer debuglogboeken handmatig worden verzonden, worden de logboeken van de laatste 30 minuten verzameld, gecomprimeerd met gzip en als bijlage geüpload naar dezelfde on-premise Sentry-server. Het logboekfilter omvat:"
+          }
+        }
+      }
+    },
+    "Why we collect data" : {
+      "comment" : "Diagnostic info popover: section title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warum wir Daten erfassen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por qué recopilamos datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pourquoi nous collectons des données"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perché raccogliamo dati"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waarom we gegevens verzamelen"
           }
         }
       }

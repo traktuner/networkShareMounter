@@ -114,7 +114,7 @@ actor FinderController {
         
         // Method 5: Delayed secondary refresh (handles async Finder behavior)
         Task { [pathsToRefresh] in
-            try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
             Logger.finderController.debug("🔄 Secondary delayed Finder refresh")
             
             await MainActor.run {

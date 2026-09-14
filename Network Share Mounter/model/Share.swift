@@ -207,7 +207,7 @@ struct Share: Identifiable {
     /// Like effectiveMountPoint but with %USERNAME% replaced by the given username.
     func resolvedEffectiveMountPoint(username: String) -> String {
         if let mountPoint = mountPoint, !mountPoint.isEmpty {
-            return mountPoint
+            return mountPoint.replacingOccurrences(of: "%USERNAME%", with: username)
         }
         return extractShareName(from: resolvedNetworkShare(username: username))
     }

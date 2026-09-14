@@ -73,6 +73,7 @@ struct ChangePasswordView: View {
                         errorMessage = nil
                         do {
                             try await onChangePassword(oldPassword, newPassword)
+                            onDismiss()
                         } catch {
                             errorMessage = error.localizedDescription
                             isChanging = false

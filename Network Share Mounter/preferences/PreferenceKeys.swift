@@ -183,7 +183,10 @@ enum PreferenceKeys: String, CaseIterable {
     
     /// Whether to send diagnostic data
     case sendDiagnostics = "sendDiagnostics"
-    
+
+    /// Whether to hide the Diagnostics section (send-diagnostics toggle, hidden log export) in Settings
+    case disableDiagnostics = "disableDiagnostics"
+
     /// Whether to use new default location for mounts
     case useNewDefaultLocation = "useNewDefaultLocation"
     

@@ -59,19 +59,52 @@ class SettingsManager: ObservableObject {
             let autoOpen = (notification.userInfo?["autoOpenProfileCreation"] as? Bool) ?? false
             let realm = notification.userInfo?["mdmRealm"] as? String
             Logger.app.debug("🔧 [DEBUG] autoOpen=\(autoOpen), realm=\(realm ?? "nil")")
-            self?.pendingAutoOpenProfileCreation = autoOpen
-            self?.pendingMDMRealm = realm
-            self?.requestShowSettings()
+            Task { @MainActor [weak self] in
+                self?.pendingAutoOpenProfileCreation = autoOpen
+                self?.pendingMDMRealm = realm
+                self?.requestShowSettings()
+            }
         }
     }
 
+    private static let maxSettingsActivationAttempts = 20
+    private static let settingsActivationRetryInterval: TimeInterval = 0.05
+
     func requestShowSettings() {
         Logger.app.debug("🔧 [DEBUG] requestShowSettings() called")
-        if let openWindow = openWindowCallback {
-            Logger.app.debug("🔧 [DEBUG] Calling openWindow callback")
-            openWindow("settings")
-        } else {
+        guard let openWindow = openWindowCallback else {
             Logger.app.error("🔧 [ERROR] openWindowCallback is nil!")
+            return
+        }
+        Logger.app.debug("🔧 [DEBUG] Calling openWindow callback")
+        NSApp.setActivationPolicy(.regular)
+        openWindow("settings")
+        activateSettingsWindow(attempt: 0)
+    }
+
+    /// Activates the Settings window once SwiftUI has actually materialized it.
+    /// `openWindow` enqueues window creation asynchronously, so a single deferred
+    /// dispatch isn't reliable enough — under main-actor load from periodic timers
+    /// and menu rebuilds (worse the longer the app has been running), the window
+    /// may not exist yet by the time a single `DispatchQueue.main.async` hop runs.
+    /// Poll briefly instead. The hidden ghost window (used only to obtain the
+    /// `openWindow` action) is excluded via its minimal frame width — the same
+    /// check `AppDelegate.handleWindowWillClose` already uses — rather than by
+    /// title, since the window title is localized and would never match on
+    /// non-English systems.
+    private func activateSettingsWindow(attempt: Int) {
+        if let window = NSApp.windows.first(where: { $0.isVisible && $0.frame.width > 100 }) {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        guard attempt < Self.maxSettingsActivationAttempts else {
+            Logger.app.error("🔧 [ERROR] Settings window did not appear after \(Self.maxSettingsActivationAttempts) attempts")
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.settingsActivationRetryInterval) { [weak self] in
+            self?.activateSettingsWindow(attempt: attempt + 1)
         }
     }
 }

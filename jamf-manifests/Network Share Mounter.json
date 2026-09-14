@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/schema#",
     "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
     "description": "Jamf Manifest for Network Share Mounter v4",
-    "__version": "4.1.0",
+    "__version": "4.1.5",
     "__feedback": "rrze-mac@fau.de",
     "type": "object",
     "options": {
@@ -63,11 +63,6 @@
                             "infoText": "If not set, the share name will be used."
                         }
                     },
-                    "displayName": {
-                        "title": "Display name (Optional)",
-                        "description": "Optional: Display name shown for this share inside the app.",
-                        "type": "string"
-                    },
                     "externalKerberosManagement": {
                         "title": "External Kerberos management (Optional)",
                         "description": "Set to 'true' if Kerberos tickets for this share are managed by an external tool such as AD binding, Jamf Connect, or Apple SSO Extension. Network Share Mounter will mount the share without interfering with ticket management and will not show a 'profile required' warning. Only relevant for authType 'krb'.",
@@ -116,6 +111,18 @@
             "type": "boolean",
             "default": false
         },
+        "disableDiagnostics": {
+            "title": "Disable Diagnostics section",
+            "description": "Hides the 'Diagnostics' section (send-diagnostics toggle, hidden log export) in Settings.",
+            "type": "boolean",
+            "default": false
+        },
+        "sendDiagnostics": {
+            "title": "Send diagnostic data",
+            "description": "If true, diagnostic and crash data is sent to help improve the app. Independent of 'disableDiagnostics', which only hides the section in Settings. Default: true.",
+            "type": "boolean",
+            "default": true
+        },
         "location": {
             "title": "Mount path",
             "description": "Path where network shares will be mounted. Leave blank for the default value (highly recommended).",
@@ -126,6 +133,18 @@
             ],
             "type": "string",
             "default": ""
+        },
+        "useNewDefaultLocation": {
+            "title": "Use /Volumes as default mount path",
+            "description": "If true, shares are mounted under /Volumes by default instead of the legacy per-user location. Ignored if 'location' is set. Default: false.",
+            "type": "boolean",
+            "default": false
+        },
+        "useLocalizedMountDirectories": {
+            "title": "Use localized folder name for legacy mount path",
+            "description": "If false, always uses the English folder name 'Networkshares' for the legacy default mount path instead of a name localized to the user's language. Only relevant when 'useNewDefaultLocation' is false. Default: true.",
+            "type": "boolean",
+            "default": true
         },
         "cleanupLocationDirectory": {
             "title": "Clean up obstructing files and directories",
@@ -174,6 +193,12 @@
             "type": "string",
             "default": ""
         },
+        "singleUserMode": {
+            "title": "Single user mode",
+            "description": "If true, automatic Kerberos sign-in and ticket renewal only processes the default account. If false, all configured accounts are processed. Default: true.",
+            "type": "boolean",
+            "default": true
+        },
         "usernameOverride": {
             "title": "Username override",
             "description": "Overrides the %USERNAME% variable used in share paths. Useful when the local macOS username differs from the AD/network username.",
@@ -186,12 +211,6 @@
             "pattern": "^http[s]?:\\/\\/\\S*$",
             "type": "string",
             "default": ""
-        },
-        "showMountsInMenu": {
-            "title": "Show network mounts in menu",
-            "description": "If true, mounted and unmounted shares are listed directly in the menu bar for quick access.",
-            "type": "boolean",
-            "default": true
         },
         "ExpirationCountdownStartDay": {
             "title": "Password expiration: countdown start (days)",

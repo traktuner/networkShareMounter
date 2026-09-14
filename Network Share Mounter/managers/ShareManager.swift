@@ -140,6 +140,20 @@ actor ShareManager {
         }
     }
 
+    /// Retries Kerberos profile auto-assignment for shares that still lack one.
+    /// Needed because `AuthProfileManager.createDefaultRealmProfileIfNeeded()` runs after shares are
+    /// first processed at startup (see AppDelegate), so a share's first auto-assign attempt can fail
+    /// simply because the MDM-realm profile doesn't exist yet. Call this once that profile exists.
+    func retryKerberosProfileAssignment() async {
+        guard let kerberosRealm = prefs.string(for: .kerberosRealm), !kerberosRealm.isEmpty else { return }
+        let candidates = _shares.filter {
+            $0.authType == .krb && !$0.externalKerberosManagement && $0.authProfileID == nil
+        }
+        for share in candidates {
+            await assignKerberosProfileToShare(shareURL: share.networkShare, username: share.username, kerberosRealm: kerberosRealm)
+        }
+    }
+
     /// Checks for shares without assigned profiles and sends notification if any are found.
     /// When `notifyWhenAllAssigned` is true, also posts a notification if all profiles are assigned
     /// (used after UI profile creation to clear stale menu warnings).
