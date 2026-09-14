@@ -136,45 +136,37 @@ func checkKerberosTicketStatus(for profile: AuthProfile) async -> TicketStatus {
         return .missing
     }
 
-    do {
-        // Check current tickets
-        let klistUtil = klistUtil
-        let tickets = await klistUtil.returnTickets()
+    // Check current tickets
+    let klistUtil = klistUtil
+    let tickets = await klistUtil.returnTickets()
 
-        // For externally managed profiles NSM has no own username/credentials. The ticket is
-        // provided by an external tool (Jamf Connect, Apple SSO Extension, AD binding), so we
-        // simply report whether any valid ticket exists for the realm — NSM only observes it.
-        if profile.isExternallyManaged {
-            guard let matchingTicket = tickets.first(where: { ticket in
-                ticket.principal.uppercased().hasSuffix("@\(realm.uppercased())")
-            }) else {
-                return .missing
-            }
-            return matchingTicket.expires > Date() ? .valid : .expired
-        }
-
-        guard let username = profile.username, !username.isEmpty else {
+    // For externally managed profiles NSM has no own username/credentials. The ticket is
+    // provided by an external tool (Jamf Connect, Apple SSO Extension, AD binding), so we
+    // simply report whether any valid ticket exists for the realm — NSM only observes it.
+    if profile.isExternallyManaged {
+        guard let matchingTicket = tickets.first(where: { ticket in
+            ticket.principal.uppercased().hasSuffix("@\(realm.uppercased())")
+        }) else {
             return .missing
         }
+        return matchingTicket.expires > Date() ? .valid : .expired
+    }
 
-        // Construct the principal to check
-        let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
-        let principalToCheck = "\(baseUsername)@\(realm.uppercased())"
+    guard let username = profile.username, !username.isEmpty else {
+        return .missing
+    }
 
-        // Find matching ticket
-        if let matchingTicket = tickets.first(where: { ticket in
-            ticket.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
-        }) {
-            // Check if ticket is still valid
-            return matchingTicket.expires > Date() ? .valid : .expired
-        } else {
-            // No ticket found for this principal
-            return .missing
-        }
-    } catch {
-        // Could not check tickets - might be KDC unreachable or other issue
-        // For now, return unknown - could be enhanced with specific error handling
-        return .unknown
+    // Construct the principal to check
+    let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
+    let principalToCheck = "\(baseUsername)@\(realm.uppercased())"
+
+    // Find matching ticket
+    if let matchingTicket = tickets.first(where: { ticket in
+        ticket.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
+    }) {
+        return matchingTicket.expires > Date() ? .valid : .expired
+    } else {
+        return .missing
     }
 }
 
@@ -188,6 +180,7 @@ struct AuthenticationView: View {
     @State private var profileToEdit: AuthProfile?
     @State private var currentAssociatedShares: [Share] = []
     @State private var ticketRefreshStatus: [String: TicketRefreshStatus] = [:]
+    @State private var saveErrorMessage: String?
 
     // Injected global service
     @EnvironmentObject private var mounter: Mounter
@@ -248,7 +241,7 @@ struct AuthenticationView: View {
             // Auto-open profile creation dialog if requested (e.g., for MDM setup)
             if autoOpenProfileCreation && !profileManager.profiles.isEmpty == false {
                 // Only auto-open if no profiles exist or if MDM setup is specifically needed
-                if let mdmRealm = mdmRealm {
+                if mdmRealm != nil {
                     let needsSetup = AuthProfileManager.shared.needsMDMKerberosSetup() != nil
                     if needsSetup {
                         DispatchQueue.main.async {
@@ -281,7 +274,9 @@ struct AuthenticationView: View {
                             logger.info("Successfully added profile '\(newProfile.displayName)'.")
                         } catch {
                             logger.error("Failed to add profile '\(newProfile.displayName)': \(error.localizedDescription)")
-                            // TODO: Show error alert to user
+                            await MainActor.run {
+                                saveErrorMessage = error.localizedDescription
+                            }
                         }
                     }
                 }
@@ -315,7 +310,9 @@ struct AuthenticationView: View {
                                 logger.info("Successfully updated profile '\(updatedProfile.displayName)'.")
                             } catch {
                                 logger.error("Failed to update profile '\(updatedProfile.displayName)': \(error.localizedDescription)")
-                                // TODO: Show error alert to user
+                                await MainActor.run {
+                                    saveErrorMessage = error.localizedDescription
+                                }
                             }
                         }
                     }
@@ -328,6 +325,16 @@ struct AuthenticationView: View {
             // Clear profileToEdit when sheet is dismissed
             if !isEditing {
                 profileToEdit = nil
+            }
+        }
+        .alert("Profile could not be saved", isPresented: Binding(
+            get: { saveErrorMessage != nil },
+            set: { if !$0 { saveErrorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { saveErrorMessage = nil }
+        } message: {
+            if let msg = saveErrorMessage {
+                Text(msg)
             }
         }
         .onAppear {

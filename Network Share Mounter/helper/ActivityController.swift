@@ -6,9 +6,13 @@
 //  Copyright © 2024 Regionales Rechenzentrum Erlangen. All rights reserved.
 //
 
-import Foundation
+@preconcurrency import Foundation
 import AppKit
 import OSLog
+
+private final class ObserverTokenBox: @unchecked Sendable {
+    var token: NSObjectProtocol?
+}
 
 /// Monitors system events and responds with appropriate actions for network shares
 ///
@@ -423,14 +427,9 @@ class ActivityController {
 
         Task { @MainActor in
             Logger.activityController.debug("▶︎ Kerberos realm configured, processing AutomaticSignIn (forceAuth: \(forceAuth, privacy: .public))")
-
-            do {
-                Logger.activityController.debug("🔄 Starting automatic sign-in task")
-                await appDelegate?.automaticSignIn.signInAllAccounts(forceAuth: forceAuth)
-                Logger.activityController.info("✅ Automatic sign-in completed successfully")
-            } catch {
-                Logger.activityController.error("❌ Automatic sign-in failed with error: \(error.localizedDescription, privacy: .public)")
-            }
+            Logger.activityController.debug("🔄 Starting automatic sign-in task")
+            await appDelegate?.automaticSignIn.signInAllAccounts(forceAuth: forceAuth)
+            Logger.activityController.info("✅ Automatic sign-in completed successfully")
         }
     }
 
@@ -661,21 +660,21 @@ class ActivityController {
     @MainActor
     private func performSoftRestartWithKerberosAuth(mounter: Mounter) async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            var authObserver: NSObjectProtocol?
+            let observerBox = ObserverTokenBox()
             var hasResumed = false
 
-            authObserver = NotificationCenter.default.addObserver(
+            observerBox.token = NotificationCenter.default.addObserver(
                 forName: .nsmNotification,
                 object: nil,
                 queue: .main
-            ) { notification in
+            ) { [observerBox] notification in
                 guard !hasResumed else { return }
 
                 if notification.userInfo?["krbAuthenticated"] is Error {
                     Logger.activityController.debug("✅ Kerberos authentication successful - proceeding with mount")
                     hasResumed = true
 
-                    if let observer = authObserver {
+                    if let observer = observerBox.token {
                         NotificationCenter.default.removeObserver(observer)
                     }
 
@@ -698,7 +697,7 @@ class ActivityController {
                 guard !hasResumed else { return }
                 hasResumed = true
 
-                if let observer = authObserver {
+                if let observer = observerBox.token {
                     NotificationCenter.default.removeObserver(observer)
                 }
 

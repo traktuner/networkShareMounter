@@ -201,12 +201,14 @@ struct ProfileDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical)
             } else {
-                // Use a List for better scrollability if many shares
-                List(associatedShares) { share in
-                    associatedShareRow(share)
+                // Rendered fully, without its own scroll area — this view is already
+                // embedded in a ScrollView by its caller, so a nested List here would
+                // create a second, independently scrollable region.
+                VStack(spacing: 8) {
+                    ForEach(associatedShares) { share in
+                        associatedShareRow(share)
+                    }
                 }
-                .listStyle(.plain) // Use plain style to avoid extra borders
-                .frame(minHeight: 100, maxHeight: 300) // Adjust height as needed
             }
         }
     }
@@ -259,7 +261,7 @@ struct ProfileDetailView: View {
     private func mountStatusColor(for status: MountStatus) -> Color {
          switch status {
         case .mounted: return .green
-        case .unmounted, .queued, .toBeMounted, .undefined, .userUnmounted : return .gray
+        case .unmounted, .queued, .toBeMounted, .undefined, .userUnmounted, .mounting: return .gray
          case .missingPassword, .invalidCredentials, .errorOnMount, .obstructingDirectory, .unassignedProfile, .unreachable: return .red
         case .unknown: return .orange
         }

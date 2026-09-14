@@ -68,11 +68,35 @@ struct GeneralSettingsView: View {
     @State private var collectedLogData: Data? = nil
     @State private var collectedLogFilename: String = ""
     @State private var showingLogViewer: Bool = false
-    
+    @State private var showingDiagnosticsInfo: Bool = false
+
+    // MARK: - Network Auth Reset State
+    @State private var isResettingNetworkAuth: Bool = false
+    @State private var networkAuthResetResult: NetworkAuthResetResult? = nil
+    @State private var showingNetworkAuthInfo: Bool = false
+
+    private enum NetworkAuthResetResult {
+        case killedAgents
+        case alreadyClean
+
+        var message: LocalizedStringKey {
+            switch self {
+            case .killedAgents: "Stuck processes terminated successfully."
+            case .alreadyClean: "No stuck processes found."
+            }
+        }
+    }
+
     /// Computed property indicating if the update framework is globally disabled via MDM.
     /// Reads the `.disableAutoUpdateFramework` preference.
     private var isUpdateFrameworkDisabled: Bool {
         prefs.bool(for: .disableAutoUpdateFramework)
+    }
+
+    /// Computed property indicating if the Diagnostics section is hidden via MDM.
+    /// Reads the `.disableDiagnostics` preference.
+    private var isDiagnosticsSectionDisabled: Bool {
+        prefs.bool(for: .disableDiagnostics)
     }
     
     // MARK: - Computed Properties for Bundle Info
@@ -132,94 +156,147 @@ struct GeneralSettingsView: View {
                 .padding(.bottom, 8)
                 
                 // MARK: - Diagnostic Data Section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Diagnostics")
-                        .font(.headline)
-                        .onTapGesture {
-                            diagnoseTapCount += 1
-                            if diagnoseTapCount >= 5 {
-                                debugLogExportEnabled = true
+                if !isDiagnosticsSectionDisabled {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Diagnostics")
+                            .font(.headline)
+                            .onTapGesture {
+                                diagnoseTapCount += 1
+                                if diagnoseTapCount >= 5 {
+                                    debugLogExportEnabled = true
+                                }
+                            }
+                        HStack(spacing: 6) {
+                            Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
+                            Button {
+                                showingDiagnosticsInfo.toggle()
+                            } label: {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .popover(isPresented: $showingDiagnosticsInfo, arrowEdge: .trailing) {
+                                DiagnosticsInfoView()
                             }
                         }
-                    Toggle("Send anonymous diagnostic data", isOn: $sendDiagnosticData)
 
-                    // Hidden debug feature: only shown after 5 taps on "Diagnostics" heading
-                    if debugLogExportEnabled {
-                        VStack(alignment: .leading, spacing: 8) {
-                            if collectedLogs != nil {
-                                // Phase 2: logs ready — offer view and send
-                                HStack(spacing: 12) {
-                                    Button {
-                                        showingLogViewer = true
-                                    } label: {
-                                        Label("Show logs", systemImage: "doc.text.magnifyingglass")
+                        // Hidden debug feature: only shown after 5 taps on "Diagnostics" heading
+                        if debugLogExportEnabled {
+                            VStack(alignment: .leading, spacing: 8) {
+                                if collectedLogs != nil {
+                                    // Phase 2: logs ready — offer view and send
+                                    HStack(spacing: 12) {
+                                        Button {
+                                            showingLogViewer = true
+                                        } label: {
+                                            Label("Show logs", systemImage: "doc.text.magnifyingglass")
+                                        }
+                                        .buttonStyle(.bordered)
+
+                                        Button {
+                                            Task { await sendCollectedLogs() }
+                                        } label: {
+                                            HStack {
+                                                if isExportingLogs {
+                                                    ProgressView().scaleEffect(0.8)
+                                                    Text("Sending...")
+                                                } else {
+                                                    Label("Send to support", systemImage: "paperplane.fill")
+                                                }
+                                            }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .disabled(isExportingLogs || !SentryManager.shared.isActive)
+
+                                        Button {
+                                            collectedLogs = nil
+                                            collectedLogData = nil
+                                            exportResult = nil
+                                        } label: {
+                                            Text("Collect again")
+                                                .font(.caption)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .foregroundColor(.secondary)
                                     }
-                                    .buttonStyle(.bordered)
-
+                                } else {
+                                    // Phase 1: initial state — collect first
                                     Button {
-                                        Task { await sendCollectedLogs() }
+                                        Task { await collectAndPrepareLogs() }
                                     } label: {
                                         HStack {
                                             if isExportingLogs {
                                                 ProgressView().scaleEffect(0.8)
-                                                Text("Sending...")
+                                                Text("Collecting logs...")
                                             } else {
-                                                Label("Send to support", systemImage: "paperplane.fill")
+                                                Label("Collect debug logs", systemImage: "doc.text.fill")
                                             }
                                         }
                                     }
                                     .buttonStyle(.borderedProminent)
-                                    .disabled(isExportingLogs || !SentryManager.shared.isActive)
-
-                                    Button {
-                                        collectedLogs = nil
-                                        collectedLogData = nil
-                                        exportResult = nil
-                                    } label: {
-                                        Text("Collect again")
-                                            .font(.caption)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .foregroundColor(.secondary)
+                                    .disabled(isExportingLogs)
                                 }
-                            } else {
-                                // Phase 1: initial state — collect first
-                                Button {
-                                    Task { await collectAndPrepareLogs() }
-                                } label: {
-                                    HStack {
-                                        if isExportingLogs {
-                                            ProgressView().scaleEffect(0.8)
-                                            Text("Collecting logs...")
-                                        } else {
-                                            Label("Collect debug logs", systemImage: "doc.text.fill")
-                                        }
-                                    }
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .disabled(isExportingLogs)
-                            }
 
-                            if let result = exportResult {
-                                Text(result)
-                                    .font(.caption)
-                                    .foregroundColor(
-                                        result.localizedCaseInsensitiveContains("success") ||
-                                        result.localizedCaseInsensitiveContains("erfolgreich")
-                                        ? .green : .red
-                                    )
+                                if let result = exportResult {
+                                    Text(result)
+                                        .font(.caption)
+                                        .foregroundColor(
+                                            result.localizedCaseInsensitiveContains("success") ||
+                                            result.localizedCaseInsensitiveContains("erfolgreich")
+                                            ? .green : .red
+                                        )
+                                }
                             }
-                        }
-                        .padding(.top, 8)
-                        .sheet(isPresented: $showingLogViewer) {
-                            if let logs = collectedLogs {
-                                LogViewerView(logs: logs, filename: collectedLogFilename)
+                            .padding(.top, 8)
+                            .sheet(isPresented: $showingLogViewer) {
+                                if let logs = collectedLogs {
+                                    LogViewerView(logs: logs, filename: collectedLogFilename)
+                                }
                             }
                         }
                     }
+                    .padding(.vertical, 8)
+                }
+
+                // MARK: - Network Authentication Section
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Text("Network Authentication")
+                            .font(.headline)
+                        Button {
+                            showingNetworkAuthInfo.toggle()
+                        } label: {
+                            Image(systemName: "questionmark.circle")
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .popover(isPresented: $showingNetworkAuthInfo, arrowEdge: .trailing) {
+                            NetworkAuthInfoView()
+                        }
+                    }
+
+                    Button {
+                        Task { await resetNetworkAuthentication() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if isResettingNetworkAuth {
+                                ProgressView().controlSize(.small)
+                                Text("Resetting…")
+                            } else {
+                                Text("Reset Network Authentication")
+                            }
+                        }
+                    }
+                    .disabled(isResettingNetworkAuth)
+
+                    if let result = networkAuthResetResult, !isResettingNetworkAuth {
+                        Text(result.message)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .padding(.vertical, 8)
-                
+
                 // MARK: - Update Section
                 if !isUpdateFrameworkDisabled {
                     VStack(alignment: .leading, spacing: 14) {
@@ -443,6 +520,72 @@ struct GeneralSettingsView: View {
     nonisolated private func compressLogs(_ data: Data) throws -> Data {
         return try data.gzipped()
     }
+
+    // MARK: - Network Auth Reset
+
+    @MainActor
+    private func resetNetworkAuthentication() async {
+        isResettingNetworkAuth = true
+        networkAuthResetResult = nil
+
+        Logger.app.info("Resetting network authentication agents (NetAuthSysAgent, netbiosd)...")
+
+        // killall returns exit code 1 when the process is not found — use try? to handle that gracefully
+        var agentKilled = false
+        if (try? await cliTask("/usr/bin/killall", arguments: ["NetAuthSysAgent"])) != nil {
+            agentKilled = true
+            Logger.app.info("NetAuthSysAgent terminated")
+        }
+        _ = try? await cliTask("/usr/bin/killall", arguments: ["netbiosd"])
+
+        // Allow launchd time to restart the daemons before any new mount attempt
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+
+        networkAuthResetResult = agentKilled ? .killedAgents : .alreadyClean
+        isResettingNetworkAuth = false
+        Logger.app.info("Network authentication reset complete (agentKilled: \(agentKilled))")
+    }
+}
+
+// MARK: - Network Auth Info View
+
+private struct NetworkAuthInfoView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("About Network Authentication Reset")
+                .font(.headline)
+
+            infoSection(
+                "Known macOS issue",
+                "NetAuthSysAgent has a long-standing bug affecting SMB mounts across all macOS versions since El Capitan. The process can freeze, blocking subsequent mount operations and causing timeouts of up to 90 seconds."
+            )
+
+            infoSection(
+                "What this does",
+                "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected."
+            )
+
+            infoSection(
+                "When to use it",
+                "Use this option if shares are not mounting despite a working network connection, or if mount attempts are taking unusually long."
+            )
+        }
+        .padding(16)
+        .frame(width: 320)
+    }
+
+    @ViewBuilder
+    private func infoSection(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+            Text(body)
+                .font(.callout)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
 }
 
 // MARK: - Log Viewer
@@ -506,6 +649,69 @@ private struct LogViewerView: View {
     }
 }
 
+// MARK: - Diagnostics Info View
+
+private struct DiagnosticsInfoView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("About Diagnostic Data")
+                    .font(.headline)
+
+                diagSection(
+                    "Why we collect data",
+                    "Crash reports and error data help us identify and fix problems quickly, improving reliability for all users.")
+
+                diagSection(
+                    "What is collected",
+                    "On error or crash: app version, macOS version, error description, and an anonymised stack trace. No usernames, passwords, or server addresses are included.")
+
+                diagSection(
+                    "Framework",
+                    "We use Sentry, an open-source error tracking library. We run our own self-hosted instance — your data is never sent to sentry.io or any third-party cloud service.")
+
+                diagSection(
+                    "Server",
+                    "Data is sent exclusively to an on-premise Sentry server operated by RRZE at Friedrich-Alexander-Universität Erlangen-Nürnberg. Data does not leave the FAU network.")
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Extended debug logs")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("When debug logs are sent manually, logs from the last 30 minutes are collected, gzip-compressed, and uploaded as an attachment to the same on-premise Sentry server. The log filter includes:")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("• Network Share Mounter app logs")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                    Text("• macOS SMB client (com.apple.smb.client)")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                    Text("• Authentication agents (NetAuthSysAgent, NetAuthAgent)")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(16)
+        }
+        .frame(width: 360, height: 420)
+    }
+
+    @ViewBuilder
+    private func diagSection(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+            Text(body)
+                .font(.callout)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 // MARK: - Extensions
 
 extension DateFormatter {
@@ -551,7 +757,7 @@ extension Data {
         var output = Data()
         let chunkSize = 16 * 1024
 
-        try self.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
+        self.withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) in
             guard let baseAddress = rawBuffer.bindMemory(to: Bytef.self).baseAddress else { return }
 
             // Set input

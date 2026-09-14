@@ -378,7 +378,7 @@ class AuthProfileManager: ObservableObject {
     private func loadProfiles() {
         guard let data = UserDefaults.standard.data(forKey: Defaults.authProfileKey) else {
             Logger.dataModel.info("No profile data found in UserDefaults.")
-            self.profiles = [] // Start with empty array if no data
+            self.profiles = []
             return
         }
 
@@ -386,9 +386,26 @@ class AuthProfileManager: ObservableObject {
             let decoder = JSONDecoder()
             self.profiles = try decoder.decode([AuthProfile].self, from: data)
             Logger.dataModel.info("Successfully loaded \(self.profiles.count, privacy: .public) profiles from UserDefaults.")
+            cleanupOrphanedKeychainEntries()
         } catch {
             Logger.dataModel.error("Failed to decode profiles from UserDefaults: \(error.localizedDescription)")
-            self.profiles = [] // Reset to empty on error
+            self.profiles = []
+        }
+    }
+
+    /// Removes keychain entries whose account name (profile UUID) no longer corresponds to any loaded profile.
+    /// This prevents accumulation of stale entries when profiles are recreated with new UUIDs.
+    private func cleanupOrphanedKeychainEntries() {
+        let currentIDs = Set(profiles.map { $0.id })
+        let keychainAccounts = keychainManager.retrieveAllAccountNames(forService: keychainServiceForProfiles)
+        guard !keychainAccounts.isEmpty else { return }
+        for account in keychainAccounts where !currentIDs.contains(account) {
+            do {
+                try keychainManager.removeCredential(forUsername: account, andService: keychainServiceForProfiles, accessGroup: nil)
+                Logger.dataModel.info("🧹 Removed orphaned keychain entry for old profile UUID: \(account, privacy: .public)")
+            } catch {
+                Logger.dataModel.warning("⚠️ Could not remove orphaned keychain entry \(account, privacy: .public): \(error.localizedDescription)")
+            }
         }
     }
 
@@ -1030,11 +1047,14 @@ class AuthProfileManager: ObservableObject {
 
         let username = matchingAccount?.upn ?? "\(NSUserName())@\(mdmRealm)"
 
+        let profileName = UserDefaults.standard.string(forKey: PreferenceKeys.kerberosProfileDisplayName.rawValue)
+            .flatMap { $0.isEmpty ? nil : $0 } ?? mdmRealm
+
         // Create default realm profile
         let profileId = UUID().uuidString
         let profile = AuthProfile(
             id: profileId,
-            displayName: "Standard Kerberos",
+            displayName: profileName,
             username: username,
             useKerberos: true,
             kerberosRealm: mdmRealm,
@@ -1049,14 +1069,16 @@ class AuthProfileManager: ObservableObject {
         Logger.dataModel.info("Default realm profile created successfully")
     }
 
-    /// Checks if a profile is the default realm profile (non-deletable)
+    /// Checks if a profile is the default realm profile (non-deletable).
+    /// Matches purely by realm: `addProfile`/`updateProfile` already reject a second Kerberos
+    /// profile for a realm that's already in use (see `realmConflict` validation), so at most one
+    /// profile can match the MDM-configured realm at a time — no separate name check needed.
     func isDefaultRealmProfile(_ profile: AuthProfile) -> Bool {
         let prefs = PreferenceManager()
         guard let mdmRealm = prefs.string(for: .kerberosRealm), !mdmRealm.isEmpty else { return false }
 
         return profile.useKerberos &&
-               profile.kerberosRealm?.lowercased() == mdmRealm.lowercased() &&
-               profile.displayName == "Standard Kerberos"
+               profile.kerberosRealm?.lowercased() == mdmRealm.lowercased()
     }
 
     // MARK: - Helper Functions for Migration
