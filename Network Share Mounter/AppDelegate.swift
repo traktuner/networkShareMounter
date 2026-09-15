@@ -45,15 +45,12 @@ import dogeADAuth
 /// - Green: Kerberos authentication successful
 /// - Yellow: Authentication issue (non-Kerberos)
 /// - Red: Kerberos authentication failure
-class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// The status item displayed in the system menu bar.
     /// This provides the app's primary user interface through a context menu.
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    
-    /// The main application window used for displaying preferences.
-    var window = NSWindow()
-    
+
     /// The path where network shares are mounted.
     /// This path is used as the default location for all mounted shares.
     var mountpath = ""
@@ -538,14 +535,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                let mdmRealm = AuthProfileManager.shared.needsMDMKerberosSetup() {
                 Logger.app.info("🔧 MDM Kerberos realm '\(mdmRealm)' configured but no profile exists. Auto-opening settings for user setup.")
                 await MainActor.run {
-                    // Auto-open settings window with profile creation dialog using the new SwiftUI system
-                    NotificationCenter.default.post(
-                        name: .showSettingsScene,
-                        object: nil,
-                        userInfo: [
-                            "autoOpenProfileCreation": true,
-                            "mdmRealm": mdmRealm
-                        ]
+                    SettingsWindowManager.shared.showSettingsWindow(
+                        autoOpenProfileCreation: true,
+                        mdmRealm: mdmRealm,
+                        mounter: mounter
                     )
                 }
             }
@@ -1050,16 +1043,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSWorkspace.shared.open(openURL)
     }
 
-    /// Shows the new SwiftUI settings window.
-    @objc func showSettingsWindowSwiftUI(_ sender: Any?) {
-        Logger.app.debug("🔧 [DEBUG] showSettingsWindowSwiftUI called")
-        NotificationCenter.default.post(name: .showSettingsScene, object: nil)
-        Logger.app.debug("🔧 [DEBUG] Posted showSettingsScene notification")
+    /// Shows the settings window.
+    @objc func openSettingsWindow(_ sender: Any?) {
+        SettingsWindowManager.shared.showSettingsWindow(mounter: mounter)
     }
-    
+
+    /// Keeps the app running when its last window closes — it is a menu bar agent whose work
+    /// (mounting, Kerberos renewal) continues without any window on screen.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
     /// Restores the app's accessory activation policy (hiding Dock icon) when all
-    /// regular-sized windows close. The hidden SwiftUI placeholder window (10×10 pt)
-    /// is excluded from the check via its minimal frame width.
+    /// regular-sized windows close. Small utility windows are excluded from the check
+    /// via their minimal frame width.
     @objc private func handleWindowWillClose(_ notification: Notification) {
         guard NSApp.activationPolicy() == .regular,
               let closingWindow = notification.object as? NSWindow else { return }
@@ -1203,7 +1200,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             case .krbAuthenticationError:
                 Logger.app.debug("🏗️ Constructing Kerberos authentication problem menu.")
                 let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Kerberos SSO Authentication problem..."), comment: "Kerberos Authentication problem"),
-                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          action: canShowSettings ? #selector(AppDelegate.openSettingsWindow(_:)) : nil,
                                           keyEquivalent: "")
                 errorItem.isEnabled = canShowSettings
                 menu.addItem(errorItem)
@@ -1211,7 +1208,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             case .authenticationError:
                 Logger.app.debug("🏗️ Constructing authentication problem menu.")
                 let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Authentication problem..."), comment: "Authentication problem"),
-                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          action: canShowSettings ? #selector(AppDelegate.openSettingsWindow(_:)) : nil,
                                           keyEquivalent: "")
                 errorItem.isEnabled = canShowSettings
                 menu.addItem(errorItem)
@@ -1219,7 +1216,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             case .unassignedProfile:
                 Logger.app.debug("🏗️ Constructing unassigned profile menu.")
                 let errorItem = NSMenuItem(title: String(localized: String.LocalizationValue("⚠️ Profile assignment required..."), comment: "Profile assignment required"),
-                                          action: canShowSettings ? #selector(AppDelegate.showSettingsWindowSwiftUI(_:)) : nil,
+                                          action: canShowSettings ? #selector(AppDelegate.openSettingsWindow(_:)) : nil,
                                           keyEquivalent: "")
                 errorItem.isEnabled = canShowSettings
                 menu.addItem(errorItem)
@@ -1347,7 +1344,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         if let newMenuItem = createMenuItem(title: String(localized: String.LocalizationValue("Preferences ..."), comment: "Preferences"),
                                               comment: "Preferences",
-                                              action: #selector(AppDelegate.showSettingsWindowSwiftUI(_:)),
+                                              action: #selector(AppDelegate.openSettingsWindow(_:)),
                                               keyEquivalent: ",",
                                               preferenceKey: .menuSettings,
                                               prefs: prefs) {
@@ -1455,11 +1452,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return circleImage
     }
     
-    func windowShouldClose(_ sender: NSWindow) -> Bool {
-        sender.orderOut(nil)
-        return false
-    }
-
     @objc func showPendingUpdate(_ sender: Any) {
         updaterController?.checkForUpdates(sender)
     }
