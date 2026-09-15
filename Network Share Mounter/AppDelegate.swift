@@ -1043,7 +1043,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.open(openURL)
     }
 
-    /// Shows the settings window.
+    /// Shows the settings window. Menu item target-action, always invoked on the main thread.
+    @MainActor
     @objc func openSettingsWindow(_ sender: Any?) {
         SettingsWindowManager.shared.showSettingsWindow(mounter: mounter)
     }
