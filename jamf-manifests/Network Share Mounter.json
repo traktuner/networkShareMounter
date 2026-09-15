@@ -134,12 +134,6 @@
             "type": "string",
             "default": ""
         },
-        "useNewDefaultLocation": {
-            "title": "Use /Volumes as default mount path",
-            "description": "If true, shares are mounted under /Volumes by default instead of the legacy per-user location. Ignored if 'location' is set. Default: false.",
-            "type": "boolean",
-            "default": false
-        },
         "useLocalizedMountDirectories": {
             "title": "Use localized folder name for legacy mount path",
             "description": "If false, always uses the English folder name 'Networkshares' for the legacy default mount path instead of a name localized to the user's language. Only relevant when 'useNewDefaultLocation' is false. Default: true.",

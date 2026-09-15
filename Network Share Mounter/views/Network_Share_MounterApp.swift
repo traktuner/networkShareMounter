@@ -7,163 +7,27 @@
 //
 
 import SwiftUI
-import AppKit
-import OSLog
-import AppIntents
-
-// MARK: - Notification Extensions
-extension Notification.Name {
-    static let showSettingsScene = Notification.Name("showSettingsScene")
-}
-
-// MARK: - Window Hider
-
-/// NSView subclass that hides its host window the instant it joins the window hierarchy.
-///
-/// `viewDidMoveToWindow()` fires synchronously during SwiftUI's view setup — before the
-/// window server has committed a frame — so the window is never visible on screen, not
-/// even for a single frame. Setting `alphaValue = 0` first makes it doubly invisible in
-/// case the window server and SwiftUI race on the very first frame.
-private final class _ImmediatelyHiddenView: NSView {
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        window?.alphaValue = 0
-        window?.orderOut(nil)
-    }
-}
-
-private struct WindowAccessor: NSViewRepresentable {
-    func makeNSView(context: Context) -> _ImmediatelyHiddenView { _ImmediatelyHiddenView() }
-    func updateNSView(_ nsView: _ImmediatelyHiddenView, context: Context) {}
-}
-
-// MARK: - Settings Manager
-@MainActor
-class SettingsManager: ObservableObject {
-    static let shared = SettingsManager()
-
-    @Published var pendingAutoOpenProfileCreation: Bool = false
-    @Published var pendingMDMRealm: String? = nil
-
-    // Callback to open window from SwiftUI App
-    var openWindowCallback: ((String) -> Void)?
-
-    private init() {
-        // Listen for external requests to show the Settings scene
-        NotificationCenter.default.addObserver(
-            forName: .showSettingsScene,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            Logger.app.debug("🔧 [DEBUG] Received showSettingsScene notification")
-            let autoOpen = (notification.userInfo?["autoOpenProfileCreation"] as? Bool) ?? false
-            let realm = notification.userInfo?["mdmRealm"] as? String
-            Logger.app.debug("🔧 [DEBUG] autoOpen=\(autoOpen), realm=\(realm ?? "nil")")
-            Task { @MainActor [weak self] in
-                self?.pendingAutoOpenProfileCreation = autoOpen
-                self?.pendingMDMRealm = realm
-                self?.requestShowSettings()
-            }
-        }
-    }
-
-    private static let maxSettingsActivationAttempts = 20
-    private static let settingsActivationRetryInterval: TimeInterval = 0.05
-
-    func requestShowSettings() {
-        Logger.app.debug("🔧 [DEBUG] requestShowSettings() called")
-        guard let openWindow = openWindowCallback else {
-            Logger.app.error("🔧 [ERROR] openWindowCallback is nil!")
-            return
-        }
-        Logger.app.debug("🔧 [DEBUG] Calling openWindow callback")
-        NSApp.setActivationPolicy(.regular)
-        openWindow("settings")
-        activateSettingsWindow(attempt: 0)
-    }
-
-    /// Activates the Settings window once SwiftUI has actually materialized it.
-    /// `openWindow` enqueues window creation asynchronously, so a single deferred
-    /// dispatch isn't reliable enough — under main-actor load from periodic timers
-    /// and menu rebuilds (worse the longer the app has been running), the window
-    /// may not exist yet by the time a single `DispatchQueue.main.async` hop runs.
-    /// Poll briefly instead. The hidden ghost window (used only to obtain the
-    /// `openWindow` action) is excluded via its minimal frame width — the same
-    /// check `AppDelegate.handleWindowWillClose` already uses — rather than by
-    /// title, since the window title is localized and would never match on
-    /// non-English systems.
-    private func activateSettingsWindow(attempt: Int) {
-        if let window = NSApp.windows.first(where: { $0.isVisible && $0.frame.width > 100 }) {
-            NSApp.activate(ignoringOtherApps: true)
-            window.makeKeyAndOrderFront(nil)
-            return
-        }
-        guard attempt < Self.maxSettingsActivationAttempts else {
-            Logger.app.error("🔧 [ERROR] Settings window did not appear after \(Self.maxSettingsActivationAttempts) attempts")
-            NSApp.activate(ignoringOtherApps: true)
-            return
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.settingsActivationRetryInterval) { [weak self] in
-            self?.activateSettingsWindow(attempt: attempt + 1)
-        }
-    }
-}
 
 @main
 struct Network_Share_MounterApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @ObservedObject private var settingsManager = SettingsManager.shared
-    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
-        // Ghost window: immediately hidden by WindowAccessor, exists solely to obtain
-        // the openWindow environment value and pass it to SettingsManager's callback.
-        WindowGroup(id: "main-hidden") {
-            Color.clear
-                .frame(width: 0, height: 0)
-                .background(WindowAccessor())
-                .environmentObject(settingsManager)
-                .onAppear {
-                    settingsManager.openWindowCallback = { windowId in
-                        openWindow(id: windowId)
-                    }
-                }
+        // This app owns no SwiftUI-managed windows: Settings and every dialog are AppKit windows
+        // created on demand by SettingsWindowManager and AppDelegate, so they exist no matter how
+        // macOS launched the app (a scene does not, see SettingsWindowManager). `App` still needs
+        // one scene — this one is never presented and only carries the app-wide menu commands.
+        Settings {
+            EmptyView()
         }
-        .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 1, height: 1)
-        .commandsRemoved()
-
-        // Settings window.
-        // Note: .commands {} is an app-wide modifier — it can technically be attached to
-        // any scene. We attach it here as this is the only scene requiring custom commands.
-        Window("Settings", id: "settings") {
-            if let mounter = appDelegate.mounter {
-                SettingsView(
-                    autoOpenProfileCreation: settingsManager.pendingAutoOpenProfileCreation,
-                    mdmRealm: settingsManager.pendingMDMRealm
-                )
-                .frame(minWidth: 900, minHeight: 580)
-                .environmentObject(settingsManager)
-                .environmentObject(mounter)
-            } else {
-                Text("Initializing…")
-            }
-        }
-        .defaultSize(width: 900, height: 600)
-        .windowResizability(.contentSize)
-        .handlesExternalEvents(matching: ["settings"])
         .commands {
-            // Replace the default app settings menu entry with our own scene-based one.
-            // Important: do not use openWindow here — it creates a circular Environment
-            // dependency during body evaluation (→ stack overflow). Instead, use the
-            // SettingsManager callback, which is set safely after the first render (onAppear).
+            // Replace the default app settings menu entry with one that opens our own window.
             CommandGroup(replacing: .appSettings) {
                 Button("Settings\u{2026}") {
-                    SettingsManager.shared.requestShowSettings()
+                    SettingsWindowManager.shared.showSettingsWindow(mounter: appDelegate.mounter)
                 }
                 .keyboardShortcut(",", modifiers: [.command])
             }
         }
     }
 }
-

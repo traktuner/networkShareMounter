@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 - New MDM key `disableDiagnostics` lets administrators hide the "Diagnostics" section in Settings entirely
 
 ### Fixed
+- The Preferences window could stay unopenable for an entire session — clicking "Preferences…" simply did
+  nothing. This happened when macOS started the app in the background as a login item, or when window state
+  had been restored from a previous run: in those cases macOS never created the hidden helper window the app
+  relied on to open Preferences. The Preferences window is now created directly by the app and no longer
+  depends on that mechanism, so it opens reliably regardless of how the app was started
 - The automatically created Kerberos authentication profile now uses the display name configured via MDM (`kerberosProfileDisplayName`) instead of always being named "Standard Kerberos"
 - Shares that failed to get a Kerberos profile assigned right after a fresh MDM rollout no longer stay stuck requiring manual profile assignment — the app now retries automatically once the profile becomes available
 - Fixed a first-launch issue where, with a Kerberos realm already configured via MDM, two conflicting windows could appear at once (an empty "Add Profile" dialog together with the network credentials window); only the correct credentials window now appears
