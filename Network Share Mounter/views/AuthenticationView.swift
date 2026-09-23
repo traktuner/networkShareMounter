@@ -136,38 +136,32 @@ func checkKerberosTicketStatus(for profile: AuthProfile) async -> TicketStatus {
         return .missing
     }
 
-    // Check current tickets
-    let klistUtil = klistUtil
-    let tickets = await klistUtil.returnTickets()
+    // Look at all credential caches, not only the default one
+    let realmCaches = await klistUtil.listCaches().filter {
+        $0.realm.caseInsensitiveCompare(realm) == .orderedSame
+    }
 
     // For externally managed profiles NSM has no own username/credentials. The ticket is
     // provided by an external tool (Jamf Connect, Apple SSO Extension, AD binding), so we
     // simply report whether any valid ticket exists for the realm — NSM only observes it.
     if profile.isExternallyManaged {
-        guard let matchingTicket = tickets.first(where: { ticket in
-            ticket.principal.uppercased().hasSuffix("@\(realm.uppercased())")
-        }) else {
+        guard !realmCaches.isEmpty else {
             return .missing
         }
-        return matchingTicket.expires > Date() ? .valid : .expired
+        return realmCaches.contains { !$0.isExpired } ? .valid : .expired
     }
 
     guard let username = profile.username, !username.isEmpty else {
         return .missing
     }
 
-    // Construct the principal to check
-    let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
-    let principalToCheck = "\(baseUsername)@\(realm.uppercased())"
-
-    // Find matching ticket
-    if let matchingTicket = tickets.first(where: { ticket in
-        ticket.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
-    }) {
-        return matchingTicket.expires > Date() ? .valid : .expired
-    } else {
+    let principalToCheck = KerberosCacheCoordinator.principal(forUsername: username, realm: realm)
+    guard let matchingCache = realmCaches.first(where: {
+        $0.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
+    }) else {
         return .missing
     }
+    return matchingCache.isExpired ? .expired : .valid
 }
 
 // MARK: - Main Authentication View Refactored
