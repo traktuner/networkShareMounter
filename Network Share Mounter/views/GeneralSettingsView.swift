@@ -541,22 +541,10 @@ struct GeneralSettingsView: View {
         isResettingNetworkAuth = true
         networkAuthResetResult = nil
 
-        Logger.app.info("Resetting network authentication agents (NetAuthSysAgent, netbiosd)...")
-
-        // killall returns exit code 1 when the process is not found — use try? to handle that gracefully
-        var agentKilled = false
-        if (try? await cliTask("/usr/bin/killall", arguments: ["NetAuthSysAgent"])) != nil {
-            agentKilled = true
-            Logger.app.info("NetAuthSysAgent terminated")
-        }
-        _ = try? await cliTask("/usr/bin/killall", arguments: ["netbiosd"])
-
-        // Allow launchd time to restart the daemons before any new mount attempt
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        let agentKilled = await NetworkAuthReset.perform()
 
         networkAuthResetResult = agentKilled ? .killedAgents : .alreadyClean
         isResettingNetworkAuth = false
-        Logger.app.info("Network authentication reset complete (agentKilled: \(agentKilled))")
     }
 }
 
@@ -575,7 +563,7 @@ private struct NetworkAuthInfoView: View {
 
             infoSection(
                 "What this does",
-                "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected."
+                "The button terminates NetAuthSysAgent. macOS automatically restarts the process. No data is lost and no mounted volumes are affected."
             )
 
             infoSection(

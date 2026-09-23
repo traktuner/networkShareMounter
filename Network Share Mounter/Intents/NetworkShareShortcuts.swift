@@ -52,6 +52,15 @@ struct NetworkShareShortcuts: AppShortcutsProvider {
             systemImageName: "ticket.fill"
         )
         AppShortcut(
+            intent: ResetNetworkAuthenticationIntent(),
+            phrases: [
+                "Reset network authentication in \(.applicationName)",
+                "Repair network authentication in \(.applicationName)"
+            ],
+            shortTitle: LocalizedStringResource("Shortcuts.ResetNetworkAuth.ShortTitle", table: "Localizable"),
+            systemImageName: "arrow.triangle.2.circlepath"
+        )
+        AppShortcut(
             intent: GetKerberosStatusIntent(),
             phrases: [
                 "Check Kerberos status in \(.applicationName)",
