@@ -136,38 +136,32 @@ func checkKerberosTicketStatus(for profile: AuthProfile) async -> TicketStatus {
         return .missing
     }
 
-    // Check current tickets
-    let klistUtil = klistUtil
-    let tickets = await klistUtil.returnTickets()
+    // Look at all credential caches, not only the default one
+    let realmCaches = await klistUtil.listCaches().filter {
+        $0.realm.caseInsensitiveCompare(realm) == .orderedSame
+    }
 
     // For externally managed profiles NSM has no own username/credentials. The ticket is
     // provided by an external tool (Jamf Connect, Apple SSO Extension, AD binding), so we
     // simply report whether any valid ticket exists for the realm — NSM only observes it.
     if profile.isExternallyManaged {
-        guard let matchingTicket = tickets.first(where: { ticket in
-            ticket.principal.uppercased().hasSuffix("@\(realm.uppercased())")
-        }) else {
+        guard !realmCaches.isEmpty else {
             return .missing
         }
-        return matchingTicket.expires > Date() ? .valid : .expired
+        return realmCaches.contains { !$0.isExpired } ? .valid : .expired
     }
 
     guard let username = profile.username, !username.isEmpty else {
         return .missing
     }
 
-    // Construct the principal to check
-    let baseUsername = username.contains("@") ? String(username.split(separator: "@").first ?? "") : username
-    let principalToCheck = "\(baseUsername)@\(realm.uppercased())"
-
-    // Find matching ticket
-    if let matchingTicket = tickets.first(where: { ticket in
-        ticket.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
-    }) {
-        return matchingTicket.expires > Date() ? .valid : .expired
-    } else {
+    let principalToCheck = KerberosCacheCoordinator.principal(forUsername: username, realm: realm)
+    guard let matchingCache = realmCaches.first(where: {
+        $0.principal.caseInsensitiveCompare(principalToCheck) == .orderedSame
+    }) else {
         return .missing
     }
+    return matchingCache.isExpired ? .expired : .valid
 }
 
 // MARK: - Main Authentication View Refactored
@@ -538,21 +532,40 @@ private class TicketRefreshDelegate: dogeADUserSessionDelegate, @unchecked Senda
     func dogeADAuthenticationSucceeded() async {
         logger.info("Authentication succeeded for ticket refresh: \(self.profile.displayName, privacy: .public)")
         
-        do {
-            guard let username = profile.username else {
-                logger.error("No username configured for profile \(self.profile.displayName, privacy: .public)")
-                completion(false, NSError(domain: "TicketRefresh", code: -1, userInfo: [NSLocalizedDescriptionKey: "No username configured"]))
-                return
-            }
-            
-            let output = try await cliTask("/usr/bin/kswitch -p \(username)")
-            logger.debug("kswitch output: \(output)")
-            
-            completion(true, nil)
-        } catch {
-            logger.error("Error switching principal after authentication: \(error.localizedDescription)")
-            completion(false, error)
+        guard let username = profile.username else {
+            logger.error("No username configured for profile \(self.profile.displayName, privacy: .public)")
+            completion(false, NSError(domain: "TicketRefresh", code: -1, userInfo: [NSLocalizedDescriptionKey: "No username configured"]))
+            return
         }
+
+        // Authentication succeeded, so a failed switch is only logged and not reported as failure
+        await switchToProfileCache(username: username)
+        completion(true, nil)
+    }
+
+    /// Makes the valid cache of the profile's principal the default cache
+    private func switchToProfileCache(username: String) async {
+        guard let realm = profile.kerberosRealm, !realm.isEmpty else {
+            logger.error("No Kerberos realm configured for profile \(self.profile.displayName, privacy: .public)")
+            return
+        }
+        let principal = KerberosCacheCoordinator.principal(forUsername: username, realm: realm)
+
+        // Serialize with Kerberos mounts, which rely on the default cache
+        let coordinator = KerberosCacheCoordinator.shared
+        await coordinator.acquire()
+        let klist = KlistUtil()
+        let cache = await klist.listCaches().first {
+            !$0.isExpired && $0.principal.caseInsensitiveCompare(principal) == .orderedSame
+        }
+        if let cache {
+            if !(await klist.switchDefaultCache(to: cache.cacheName)) {
+                logger.error("Could not switch to principal \(cache.principal, privacy: .public) after ticket refresh")
+            }
+        } else {
+            logger.warning("No valid credential cache found for \(principal, privacy: .public) after ticket refresh")
+        }
+        await coordinator.release()
     }
     
     func dogeADAuthenticationFailed(error: dogeADSessionError, description: String) async {

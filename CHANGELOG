@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.6] - 2026-09-23
+
+### What's new
+- "Reset Network Authentication" is now also available as an action in the Shortcuts app and via Siri. Like
+  the button in Settings, it does not reconnect the shares by itself, but it can be combined with "Connect
+  All Network Drives" in a shortcut
+- When signing in to Active Directory, the app now prefers the domain controllers of the site the Mac is
+  located in, if the network is assigned to one
+
+### Fixed
+- Kerberos shares could fail to connect with "invalid credentials" even though a valid Kerberos ticket
+  existed. This could happen when several Kerberos tickets were present at the same time, for example from
+  Platform SSO and from the on-premises Active Directory. The app now always uses the ticket that matches
+  the share
+- The Kerberos status in Settings and in the "Check Kerberos Status" shortcut now shows the ticket for the
+  configured realm, even if other Kerberos tickets are present
+- Collecting debug logs failed for users without administrator rights. The app now collects its own logs in
+  this case; the additional macOS system logs can only be included with administrator rights
+- After switching networks, for example when connecting to a VPN, signing in works again right away.
+  Previously the app could keep trying domain controllers from the previous network until it was restarted
+- After changing the password in the app, the new password is now always saved, even if the sign-in that
+  follows fails. Previously the next automatic sign-in could remove the saved password
+- Kerberos tickets are now handled directly through macOS instead of through command line tools, which
+  makes signing in and switching between tickets more reliable
+
 ## [4.1.5] - 2026-09-04
 
 ### What's new

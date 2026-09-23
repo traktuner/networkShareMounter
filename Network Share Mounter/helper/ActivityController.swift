@@ -9,6 +9,7 @@
 @preconcurrency import Foundation
 import AppKit
 import OSLog
+import dogeADAuth
 
 private final class ObserverTokenBox: @unchecked Sendable {
     var token: NSObjectProtocol?
@@ -355,6 +356,9 @@ class ActivityController {
             }
 
             Logger.activityController.debug("🔄 Starting network change operations after debounce")
+
+            // Domain controllers found in the previous network may be unreachable now
+            SiteManager.shared.clearSites()
 
             // Update SMBHome from AD/OpenDirectory on network/domain changes
             await mounter.shareManager.updateSMBHome()
