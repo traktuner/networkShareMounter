@@ -52,7 +52,6 @@
 		F791FCAB2DD23DD500F0445C /* ProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F791FCA52DD23DD500F0445C /* ProfileEditorView.swift */; };
 		F791FCAC2DD23DD500F0445C /* ProfileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F791FCA62DD23DD500F0445C /* ProfileListView.swift */; };
 		F794F7922F3350A200CE3981 /* RenewKerberosTicketIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7912F3350A200CE3981 /* RenewKerberosTicketIntent.swift */; };
-		F7BD25AD2FBB3F56005C78DA /* ResetNetworkAuthenticationIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BD25AC2FBB3F56005C78DA /* ResetNetworkAuthenticationIntent.swift */; };
 		F794F7942F3350E300CE3981 /* GetKerberosStatusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7932F3350E300CE3981 /* GetKerberosStatusIntent.swift */; };
 		F794F7962F33525900CE3981 /* GetMountStatusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F794F7952F33525900CE3981 /* GetMountStatusIntent.swift */; };
 		F79B1598274E722000C322A8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79B1597274E722000C322A8 /* AppDelegate.swift */; };
@@ -62,6 +61,7 @@
 		F7BD25A72FBB3F56005C78DA /* FullDiskAccessChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BD25A62FBB3F56005C78DA /* FullDiskAccessChecker.swift */; };
 		F7BD25A92FBB3F56005C78DA /* KerberosCacheCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BD25A82FBB3F56005C78DA /* KerberosCacheCoordinator.swift */; };
 		F7BD25AB2FBB3F56005C78DA /* NetworkAuthReset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BD25AA2FBB3F56005C78DA /* NetworkAuthReset.swift */; };
+		F7BD25AD2FBB3F56005C78DA /* ResetNetworkAuthenticationIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BD25AC2FBB3F56005C78DA /* ResetNetworkAuthenticationIntent.swift */; };
 		F7C205172C305C8A00902B4E /* dogeADAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F7C205162C305C8A00902B4E /* dogeADAuth */; };
 		F7CAE1252CFB879000D0A839 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F7CAE1242CFB879000D0A839 /* Sentry */; };
 		F7CF6E642B1DFB6400643574 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */; };
@@ -144,7 +144,6 @@
 		F791FCA62DD23DD500F0445C /* ProfileListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileListView.swift; sourceTree = "<group>"; };
 		F791FCA72DD23DD500F0445C /* ProfileRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRowView.swift; sourceTree = "<group>"; };
 		F794F7912F3350A200CE3981 /* RenewKerberosTicketIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenewKerberosTicketIntent.swift; sourceTree = "<group>"; };
-		F7BD25AC2FBB3F56005C78DA /* ResetNetworkAuthenticationIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetNetworkAuthenticationIntent.swift; sourceTree = "<group>"; };
 		F794F7932F3350E300CE3981 /* GetKerberosStatusIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetKerberosStatusIntent.swift; sourceTree = "<group>"; };
 		F794F7952F33525900CE3981 /* GetMountStatusIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetMountStatusIntent.swift; sourceTree = "<group>"; };
 		F79B1595274E722000C322A8 /* Network Share Mounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Network Share Mounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -156,6 +155,7 @@
 		F7BD25A62FBB3F56005C78DA /* FullDiskAccessChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullDiskAccessChecker.swift; sourceTree = "<group>"; };
 		F7BD25A82FBB3F56005C78DA /* KerberosCacheCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerberosCacheCoordinator.swift; sourceTree = "<group>"; };
 		F7BD25AA2FBB3F56005C78DA /* NetworkAuthReset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAuthReset.swift; sourceTree = "<group>"; };
+		F7BD25AC2FBB3F56005C78DA /* ResetNetworkAuthenticationIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetNetworkAuthenticationIntent.swift; sourceTree = "<group>"; };
 		F7CF6E632B1DFB6400643574 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F7D146D72B84CB7600BFD8F5 /* FileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager.swift; sourceTree = "<group>"; };
 		F7D9404F2C418B9300028F9A /* MountStatusDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountStatusDescription.swift; sourceTree = "<group>"; };
@@ -437,7 +437,7 @@
 					authType,
 				);
 				LastSwiftUpdateCheck = 1630;
-				LastUpgradeCheck = 2700;
+				LastUpgradeCheck = 2720;
 				ORGANIZATIONNAME = "FAU - Regionales Rechenzentrum Erlangen";
 				TargetAttributes = {
 					F706FED02D8EABCF001C2785 = {
@@ -726,7 +726,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -756,7 +756,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "de.fau.rrze.Network-Share-MounterTests";
@@ -785,7 +785,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 492;
+				CURRENT_PROJECT_VERSION = 493;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -803,7 +803,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 4.1.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -837,7 +837,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 492;
+				CURRENT_PROJECT_VERSION = 493;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = C8F68RFW4L;
@@ -855,7 +855,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 4.1.6;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.fau.rrze.NetworkShareMounter;
@@ -911,7 +911,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.9.5;
+				minimumVersion = 2.10.0;
 			};
 		};
 		F7CAE1232CFB879000D0A839 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -919,7 +919,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 9.24.0;
+				minimumVersion = 9.29.0;
 			};
 			traits = (
 			);
