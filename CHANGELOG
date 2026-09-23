@@ -5,24 +5,27 @@ All notable changes to this project will be documented in this file.
 ## [4.1.6] - 2026-09-23
 
 ### What's new
-- "Reset Network Authentication" is now also available as an action for Shortcuts and Siri. Like the button
-  in Settings, it terminates a stuck NetAuthSysAgent; shares are not remounted automatically, but the action
-  can be combined with the mount actions in a shortcut
+- "Reset Network Authentication" is now also available as an action in the Shortcuts app and via Siri. Like
+  the button in Settings, it does not reconnect the shares by itself, but it can be combined with "Connect
+  All Network Drives" in a shortcut
+- When signing in to Active Directory, the app now prefers the domain controllers of the site the Mac is
+  located in, if the network is assigned to one
 
 ### Fixed
-- Kerberos shares could fail with "invalidCredentials" although a valid ticket for their realm existed. This
-  happened when several Kerberos credential caches were present at the same time (e.g. Platform SSO or the
-  Kerberos SSO extension next to an on-prem Active Directory realm): macOS mounts with whichever cache is
-  currently the default, which could be the wrong one. The app now selects the credential cache matching the
-  share's realm right before each mount and restores the previous default afterwards
-- The Kerberos ticket status in Settings, the check whether a Kerberos share can be mounted, and the
-  "Check Kerberos status" Shortcuts action now consider all credential caches instead of only the default
-  one, and report the ticket of the configured realm
-- Collecting debug logs failed for users without administrator rights with "Foundation._GenericObjCError
-  error 0". Reading the system log (SMB client, authentication agents) requires administrator rights, not
-  only Full Disk Access; without them, the app now collects its own logs instead of failing
-- "Reset Network Authentication" no longer tries to terminate netbiosd: it runs as a system user and could
-  never be terminated from the user session
+- Kerberos shares could fail to connect with "invalid credentials" even though a valid Kerberos ticket
+  existed. This could happen when several Kerberos tickets were present at the same time, for example from
+  Platform SSO and from the on-premises Active Directory. The app now always uses the ticket that matches
+  the share
+- The Kerberos status in Settings and in the "Check Kerberos Status" shortcut now shows the ticket for the
+  configured realm, even if other Kerberos tickets are present
+- Collecting debug logs failed for users without administrator rights. The app now collects its own logs in
+  this case; the additional macOS system logs can only be included with administrator rights
+- After switching networks, for example when connecting to a VPN, signing in works again right away.
+  Previously the app could keep trying domain controllers from the previous network until it was restarted
+- After changing the password in the app, the new password is now always saved, even if the sign-in that
+  follows fails. Previously the next automatic sign-in could remove the saved password
+- Kerberos tickets are now handled directly through macOS instead of through command line tools, which
+  makes signing in and switching between tickets more reliable
 
 ## [4.1.5] - 2026-09-04
 
