@@ -92,6 +92,13 @@ actor AutomaticSignIn {
     ///
     /// - Parameter forceAuth: When true, forces re-authentication even if valid tickets exist (used after mount failures). Default is false.
     func signInAllAccounts(forceAuth: Bool = false) async {
+        // Sign-in switches the default credential cache, which must not interleave with Kerberos mounts
+        await KerberosCacheCoordinator.shared.acquire()
+        await performSignIn(forceAuth: forceAuth)
+        await KerberosCacheCoordinator.shared.release()
+    }
+
+    private func performSignIn(forceAuth: Bool) async {
         Logger.automaticSignIn.info("🔍 [START] Starting automatic sign-in process (forceAuth: \(forceAuth, privacy: .public))")
         
         do {
@@ -274,10 +281,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     func checkUser() async {
         Logger.automaticSignIn.info("🔍 [Worker] checkUser started for account: \(self.account.upn, privacy: .public)")
 
-        let klist = KlistUtil()
-        Logger.automaticSignIn.debug("🔍 [Worker] KlistUtil initialized")
-
-        let princs = await klist.klist().map({ $0.principal })
+        let princs = await KlistUtil().listCaches().filter { !$0.isExpired }.map(\.principal)
         Logger.automaticSignIn.debug("🔍 [Worker] Retrieved \(princs.count) principals: \(princs.joined(separator: ", "), privacy: .public)")
 
         // Check for existing valid ticket and extract the actual principal with correct case
