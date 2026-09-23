@@ -246,6 +246,170 @@
         }
       }
     },
+    "ResetNetworkAuthentication.AlreadyClean" : {
+      "comment" : "Network authentication reset: nothing to terminate",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine blockierten Prozesse gefunden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No stuck processes found."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontraron procesos bloqueados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun processus bloqué trouvé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun processo bloccato trovato."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen geblokkeerde processen gevonden."
+          }
+        }
+      }
+    },
+    "ResetNetworkAuthentication.Description" : {
+      "comment" : "Terminates a stuck network authentication agent",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beendet einen hängenden Netzwerk-Authentifizierungsagenten (NetAuthSysAgent). macOS startet ihn automatisch neu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminates a stuck network authentication agent (NetAuthSysAgent). macOS restarts it automatically."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termina un agente de autenticación de red bloqueado (NetAuthSysAgent). macOS lo reinicia automáticamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termine un agent d'authentification réseau bloqué (NetAuthSysAgent). macOS le redémarre automatiquement."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termina un agente di autenticazione di rete bloccato (NetAuthSysAgent). macOS lo riavvia automaticamente."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beëindigt een vastgelopen netwerkauthenticatieagent (NetAuthSysAgent). macOS start deze automatisch opnieuw."
+          }
+        }
+      }
+    },
+    "ResetNetworkAuthentication.Success" : {
+      "comment" : "Network authentication reset: stuck process terminated",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blockierte Prozesse wurden erfolgreich beendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stuck processes terminated successfully."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Procesos bloqueados terminados correctamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les processus bloqués ont été terminés avec succès."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processi bloccati terminati correttamente."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geblokkeerde processen zijn succesvol beëindigd."
+          }
+        }
+      }
+    },
+    "ResetNetworkAuthentication.Title" : {
+      "comment" : "Reset Network Authentication",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netzwerkauthentifizierung zurücksetzen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset Network Authentication"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer autenticación de red"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser l'authentification réseau"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reimposta autenticazione di rete"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netwerkauthenticatie resetten"
+          }
+        }
+      }
+    },
     "Resetting…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -277,6 +441,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resetten…"
+          }
+        }
+      }
+    },
+    "Shortcuts.ResetNetworkAuth.ShortTitle" : {
+      "comment" : "Reset Network Auth",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Netzwerk-Auth zurücksetzen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset Network Auth"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer autenticación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser l'authentification"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reimposta autenticazione"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authenticatie resetten"
           }
         }
       }
@@ -352,37 +557,37 @@
         }
       }
     },
-    "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected." : {
+    "The button terminates NetAuthSysAgent. macOS automatically restarts the process. No data is lost and no mounted volumes are affected." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Schaltfläche beendet NetAuthSysAgent und netbiosd. macOS startet beide Prozesse automatisch neu. Es gehen keine Daten verloren und eingehängte Volumes sind nicht betroffen."
+            "value" : "Die Schaltfläche beendet NetAuthSysAgent. macOS startet den Prozess automatisch neu. Es gehen keine Daten verloren und eingehängte Volumes sind nicht betroffen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El botón termina NetAuthSysAgent y netbiosd. macOS reinicia ambos procesos automáticamente. No se pierden datos y los volúmenes montados no se ven afectados."
+            "value" : "El botón termina NetAuthSysAgent. macOS reinicia el proceso automáticamente. No se pierden datos y los volúmenes montados no se ven afectados."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le bouton termine NetAuthSysAgent et netbiosd. macOS redémarre les deux processus automatiquement. Aucune donnée n’est perdue et les volumes montés ne sont pas affectés."
+            "value" : "Le bouton termine NetAuthSysAgent. macOS redémarre le processus automatiquement. Aucune donnée n’est perdue et les volumes montés ne sont pas affectés."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Il pulsante termina NetAuthSysAgent e netbiosd. macOS riavvia entrambi i processi automaticamente. Non vengono persi dati e i volumi montati non vengono influenzati."
+            "value" : "Il pulsante termina NetAuthSysAgent. macOS riavvia il processo automaticamente. Non vengono persi dati e i volumi montati non vengono influenzati."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "De knop beëindigt NetAuthSysAgent en netbiosd. macOS herstart beide processen automatisch. Er gaan geen gegevens verloren en gemonteerde volumes worden niet beïnvloed."
+            "value" : "De knop beëindigt NetAuthSysAgent. macOS herstart het proces automatisch. Er gaan geen gegevens verloren en gemonteerde volumes worden niet beïnvloed."
           }
         }
       }
