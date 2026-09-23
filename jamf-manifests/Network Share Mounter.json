@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/schema#",
     "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
     "description": "Jamf Manifest for Network Share Mounter v4",
-    "__version": "4.1.5",
+    "__version": "4.1.6",
     "__feedback": "rrze-mac@fau.de",
     "type": "object",
     "options": {
