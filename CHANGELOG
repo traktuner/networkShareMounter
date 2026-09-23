@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.6] - 2026-09-23
+
+### What's new
+- "Reset Network Authentication" is now also available as an action for Shortcuts and Siri. Like the button
+  in Settings, it terminates a stuck NetAuthSysAgent; shares are not remounted automatically, but the action
+  can be combined with the mount actions in a shortcut
+
+### Fixed
+- Kerberos shares could fail with "invalidCredentials" although a valid ticket for their realm existed. This
+  happened when several Kerberos credential caches were present at the same time (e.g. Platform SSO or the
+  Kerberos SSO extension next to an on-prem Active Directory realm): macOS mounts with whichever cache is
+  currently the default, which could be the wrong one. The app now selects the credential cache matching the
+  share's realm right before each mount and restores the previous default afterwards
+- The Kerberos ticket status in Settings, the check whether a Kerberos share can be mounted, and the
+  "Check Kerberos status" Shortcuts action now consider all credential caches instead of only the default
+  one, and report the ticket of the configured realm
+- Collecting debug logs failed for users without administrator rights with "Foundation._GenericObjCError
+  error 0". Reading the system log (SMB client, authentication agents) requires administrator rights, not
+  only Full Disk Access; without them, the app now collects its own logs instead of failing
+- "Reset Network Authentication" no longer tries to terminate netbiosd: it runs as a system user and could
+  never be terminated from the user session
+
 ## [4.1.5] - 2026-09-04
 
 ### What's new
