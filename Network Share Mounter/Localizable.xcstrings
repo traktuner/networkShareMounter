@@ -316,6 +316,42 @@
         }
       }
     },
+    "System logs (SMB client, authentication agents) can only be read with administrator rights. Without them, only the logs of Network Share Mounter itself are collected." : {
+      "comment" : "Diagnostic info popover: explains that system logs require administrator rights",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemlogs (SMB-Client, Authentifizierungsagenten) können nur mit Administratorrechten gelesen werden. Ohne diese werden nur die Logs von Network Share Mounter selbst gesammelt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los registros del sistema (cliente SMB, agentes de autenticación) solo se pueden leer con derechos de administrador. Sin ellos, solo se recopilan los registros del propio Network Share Mounter."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les journaux système (client SMB, agents d'authentification) ne peuvent être lus qu'avec des droits d'administrateur. Sans ces droits, seuls les journaux de Network Share Mounter lui-même sont collectés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I log di sistema (client SMB, agenti di autenticazione) possono essere letti solo con diritti di amministratore. Senza di essi vengono raccolti solo i log di Network Share Mounter stesso."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systeemlogs (SMB-client, authenticatieagents) kunnen alleen met beheerdersrechten worden gelezen. Zonder deze rechten worden alleen de logs van Network Share Mounter zelf verzameld."
+          }
+        }
+      }
+    },
     "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -347,6 +383,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "De knop beëindigt NetAuthSysAgent en netbiosd. macOS herstart beide processen automatisch. Er gaan geen gegevens verloren en gemonteerde volumes worden niet beïnvloed."
+          }
+        }
+      }
+    },
+    "The log store could not be read." : {
+      "comment" : "Log collection failure: neither the system nor the app log store is readable",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Log-Speicher konnte nicht gelesen werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The log store could not be read."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo leer el almacén de registros."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de lire le magasin de journaux."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile leggere l'archivio dei log."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De logopslag kon niet worden gelezen."
           }
         }
       }
