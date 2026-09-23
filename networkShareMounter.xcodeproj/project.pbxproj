@@ -903,7 +903,7 @@
 			repositoryURL = "https://gitlab.rrze.fau.de/faumac/sp/dogeadauth.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.16;
+				minimumVersion = 1.1.0;
 			};
 		};
 		F7885F622C623084000B96AC /* XCRemoteSwiftPackageReference "Sparkle" */ = {
