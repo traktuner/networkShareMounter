@@ -8,6 +8,7 @@
 
 import AppIntents
 import Foundation
+import dogeADAuth
 
 /// Result structure for Kerberos ticket status information.
 struct KerberosTicketStatus: Codable {
@@ -19,9 +20,9 @@ struct KerberosTicketStatus: Codable {
 
 /// An App Intent that retrieves the current Kerberos ticket status.
 ///
-/// This intent checks for active Kerberos tickets by executing `klist`
-/// and parsing the output. It returns structured information about ticket
-/// status, principal, and expiration time.
+/// This intent looks up the credential cache for the configured Kerberos realm(s)
+/// and returns structured information about ticket status, principal, and
+/// expiration time.
 ///
 /// Unlike other intents, this one does not open the app and directly
 /// returns the status information for use in Shortcuts conditions.
@@ -39,14 +40,7 @@ struct GetKerberosStatusIntent: AppIntent {
     
     /// Performs the intent by checking Kerberos ticket status.
     ///
-    /// Executes `klist` command and parses the output to determine:
-    /// - Whether valid tickets exist
-    /// - Default principal name
-    /// - Ticket expiration date
-    /// - Remaining validity time
-    ///
     /// - Returns: An intent result with ticket status information and a human-readable dialog.
-    /// - Throws: May throw if the klist command fails.
     func perform() async throws -> some IntentResult & ProvidesDialog & ReturnsValue<String> {
         let status = await checkKerberosStatus()
         
@@ -71,118 +65,70 @@ struct GetKerberosStatusIntent: AppIntent {
     
     /// Checks the current Kerberos ticket status.
     ///
-    /// First checks UserDefaults cache (updated by main app), then falls back to klist.
+    /// A recent authentication failure cached by the main app wins over existing tickets,
+    /// because a ticket can still be present although authentication with it failed.
     ///
     /// - Returns: A KerberosTicketStatus structure with ticket information.
     private func checkKerberosStatus() async -> KerberosTicketStatus {
-        // Try to read cached status from UserDefaults (set by main app)
-        if let cachedStatus = UserDefaults.standard.dictionary(forKey: "kerberosTicketStatus"),
-           let hasValidTicket = cachedStatus["hasValidTicket"] as? Bool,
-           let lastUpdated = cachedStatus["lastUpdated"] as? TimeInterval {
-            
-            let cacheAge = Date().timeIntervalSince1970 - lastUpdated
-            
-            // Use cached value if less than 5 minutes old
-            if cacheAge < 300 {
-                NSLog("[GetKerberosStatus] Using cached status: \(hasValidTicket) (age: \(Int(cacheAge))s)")
-                
-                if hasValidTicket {
-                    // Try to get detailed info from klist
-                    if let detailedStatus = try? await checkKlistDirectly(), detailedStatus.hasValidTicket {
-                        return detailedStatus
-                    }
-                    // Fallback to basic status
-                    return KerberosTicketStatus(hasValidTicket: true)
-                } else {
-                    return KerberosTicketStatus(hasValidTicket: false)
+        let cachedValidity = recentCachedValidity()
+        if cachedValidity == false {
+            return KerberosTicketStatus(hasValidTicket: false)
+        }
+
+        guard let cache = await relevantCache() else {
+            return KerberosTicketStatus(hasValidTicket: cachedValidity == true)
+        }
+        return KerberosTicketStatus(
+            hasValidTicket: true,
+            principal: cache.principal,
+            expirationDate: cache.expires,
+            remainingTime: formatRemainingTime(until: cache.expires)
+        )
+    }
+
+    /// Returns the ticket validity cached by the main app, if it is less than 5 minutes old.
+    private func recentCachedValidity() -> Bool? {
+        guard let cachedStatus = UserDefaults.standard.dictionary(forKey: "kerberosTicketStatus"),
+              let hasValidTicket = cachedStatus["hasValidTicket"] as? Bool,
+              let lastUpdated = cachedStatus["lastUpdated"] as? TimeInterval,
+              Date().timeIntervalSince1970 - lastUpdated < 300 else {
+            return nil
+        }
+        return hasValidTicket
+    }
+
+    /// Finds the valid credential cache for the configured Kerberos realm(s).
+    ///
+    /// Without any configured realm, the default cache (or any valid cache) is used.
+    private func relevantCache() async -> CredentialCache? {
+        let caches = await KlistUtil().listCaches()
+
+        var targets: [(realm: String, principal: String?)] = await MainActor.run {
+            AuthProfileManager.shared.profiles.compactMap { profile -> (realm: String, principal: String?)? in
+                guard profile.useKerberos, let realm = profile.kerberosRealm, !realm.isEmpty else { return nil }
+                let principal = profile.username.flatMap {
+                    $0.isEmpty ? nil : KerberosCacheCoordinator.principal(forUsername: $0, realm: realm)
                 }
+                return (realm, principal)
             }
         }
-        
-        NSLog("[GetKerberosStatus] No valid cache, checking klist directly")
-        return (try? await checkKlistDirectly()) ?? KerberosTicketStatus(hasValidTicket: false)
-    }
-    
-    /// Executes klist directly to check ticket status.
-    private func checkKlistDirectly() async throws -> KerberosTicketStatus {
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/klist")
-        
-        let pipe = Pipe()
-        task.standardOutput = pipe
-        task.standardError = pipe
-        
-        try task.run()
-        task.waitUntilExit()
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        guard let output = String(data: data, encoding: .utf8) else {
-            NSLog("[GetKerberosStatus] Failed to decode klist output")
-            throw NSError(domain: "GetKerberosStatus", code: 1)
+        if let defaultRealm = PreferenceManager().string(for: .kerberosRealm), !defaultRealm.isEmpty {
+            targets.append((defaultRealm, nil))
         }
-        
-        NSLog("[GetKerberosStatus] klist exit code: \(task.terminationStatus)")
-        
-        if task.terminationStatus != 0 {
-            NSLog("[GetKerberosStatus] klist failed with exit code \(task.terminationStatus)")
-            throw NSError(domain: "GetKerberosStatus", code: Int(task.terminationStatus))
+
+        guard !targets.isEmpty else {
+            let validCaches = caches.filter { !$0.isExpired }
+            return validCaches.first(where: \.isDefault) ?? validCaches.first
         }
-        
-        return parseKlistOutput(output)
-    }
-    
-    /// Parses klist output to extract ticket information.
-    ///
-    /// Expected format:
-    /// ```
-    /// Credentials cache: API:12345
-    /// Principal: username@REALM.DE
-    ///
-    /// Issued                Expires               Principal
-    /// Feb  4 10:00:00 2026  Feb  4 20:00:00 2026  krbtgt/REALM.DE@REALM.DE
-    /// ```
-    ///
-    /// - Parameter output: The raw output from klist command.
-    /// - Returns: A KerberosTicketStatus structure with parsed information.
-    private func parseKlistOutput(_ output: String) -> KerberosTicketStatus {
-        var status = KerberosTicketStatus(hasValidTicket: false)
-        
-        let lines = output.components(separatedBy: .newlines)
-        
-        for line in lines {
-            if line.starts(with: "Principal:") {
-                let principal = line.replacingOccurrences(of: "Principal:", with: "").trimmingCharacters(in: .whitespaces)
-                status.principal = principal
-                status.hasValidTicket = true
-            }
-            
-            if line.contains("krbtgt/") {
-                let components = line.split(separator: " ", omittingEmptySubsequences: true)
-                if components.count >= 6 {
-                    let expiresDateString = "\(components[3]) \(components[4]) \(components[5])"
-                    status.expirationDate = parseDate(expiresDateString)
-                    
-                    if let expDate = status.expirationDate {
-                        status.remainingTime = formatRemainingTime(until: expDate)
-                    }
-                }
+
+        for target in targets {
+            if let cache = KerberosCacheCoordinator.bestCache(in: caches, realm: target.realm, principal: target.principal) {
+                return cache
             }
         }
-        
-        return status
+        return nil
     }
-    
-    /// Parses a date string in klist format.
-    ///
-    /// - Parameter dateString: Date string like "Feb  4 20:00:00 2026"
-    /// - Returns: Parsed Date object, or nil if parsing fails.
-    private func parseDate(_ dateString: String) -> Date? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "MMM d HH:mm:ss yyyy"
-        return formatter.date(from: dateString)
-    }
-    
+
     /// Formats the remaining time until ticket expiration.
     ///
     /// - Parameter date: The expiration date.
