@@ -110,8 +110,9 @@ actor AutomaticSignIn {
             Logger.automaticSignIn.debug("🔍 Retrieved \(principals.count) principals: \(principals.joined(separator: ", "), privacy: .public)")
             
             let defaultPrinc = await klist.defaultPrincipal
+            let defaultCacheName = await klist.listCaches().first(where: \.isDefault)?.cacheName
             Logger.automaticSignIn.debug("🔍 Default principal: \(defaultPrinc ?? "None", privacy: .public)")
-            
+
             // Retrieve accounts: try AccountsManager first, fall back to AuthProfile Kerberos profiles
             var accounts = await accountsManager.accounts
             Logger.automaticSignIn.info("🔍 Retrieved \(accounts.count) accounts from AccountsManager: \(accounts.map { $0.upn }, privacy: .public)")
@@ -183,14 +184,11 @@ actor AutomaticSignIn {
                 }
             }
             
-            // Restore default principal
-            if let defPrinc = defaultPrinc {
-                do {
-                    Logger.automaticSignIn.debug("🔍 Switching back to default principal: \(defPrinc, privacy: .public)")
-                    let output = try await cliTask("/usr/bin/kswitch -p \(defPrinc)")
-                    Logger.automaticSignIn.debug("🔍 kswitch output: \(output, privacy: .public)")
-                } catch {
-                    Logger.automaticSignIn.error("❌ Error switching to default principal: \(error.localizedDescription, privacy: .public)")
+            // Restore the default cache (by cache name, since one principal may have several caches)
+            if let defaultCacheName {
+                Logger.automaticSignIn.debug("🔍 Switching back to default principal: \(defaultPrinc ?? "unknown", privacy: .public)")
+                if !(await klist.switchDefaultCache(to: defaultCacheName)) {
+                    Logger.automaticSignIn.error("❌ Error switching back to default principal: \(defaultPrinc ?? "unknown", privacy: .public)")
                 }
             }
             
@@ -430,25 +428,23 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         // Set flag to indicate we're in user info mode (not authentication mode)
         isInUserInfoMode = true
 
-        do {
-            // Switch to actual principal from klist (preserves correct case)
-            Logger.automaticSignIn.debug("🔍 [Worker] Executing kswitch for principal: \(actualPrincipal, privacy: .public)")
-            let output = try await cliTask("/usr/bin/kswitch -p \(actualPrincipal)")
-            Logger.automaticSignIn.debug("🔍 [Worker] kswitch output: \(output, privacy: .public)")
+        // Switch to actual principal from the credential cache (preserves correct case)
+        let switched = await KlistUtil().kswitch(princ: actualPrincipal)
+        if !switched {
+            Logger.automaticSignIn.error("❌ [Worker] Could not switch to principal: \(actualPrincipal, privacy: .public)")
+        }
 
-            // Since we have a valid ticket (verified by klist), post success notification
-            Logger.automaticSignIn.debug("🔍 [Worker] Valid ticket confirmed, posting success notification")
-            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
+        // Even if the switch fails, we know we have a valid ticket, so post success
+        Logger.automaticSignIn.debug("🔍 [Worker] Valid ticket confirmed, posting success notification")
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
 
-            // Retrieve user data (best effort - failure won't affect authentication status)
+        // Retrieve user data (best effort - failure won't affect authentication status).
+        // Skipped if the switch failed, because the default cache would belong to another principal.
+        if switched {
             Logger.automaticSignIn.debug("🔍 [Worker] Setting delegate and retrieving user info (best effort)")
             session.delegate = self
             await session.userInfo()
             Logger.automaticSignIn.debug("🔍 [Worker] userInfo() call completed")
-        } catch {
-            Logger.automaticSignIn.error("❌ [Worker] Error retrieving user information: \(error.localizedDescription, privacy: .public)")
-            // Even if kswitch fails, we know we had a valid ticket, so post success
-            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
         }
 
         // Reset flag when done
@@ -494,33 +490,38 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
 
         Logger.automaticSignIn.info("✅ [Delegate] Authentication successful for: \(self.account.upn, privacy: .public)")
 
-        do {
-            // After successful authentication, get the actual principal from klist
-            let klist = KlistUtil()
-            let princs = await klist.klist().map({ $0.principal })
-            Logger.automaticSignIn.debug("🔍 [Delegate] Retrieved \(princs.count, privacy: .public) principals after auth")
+        // Find the cache of the authenticated user (principal case may differ from the stored UPN)
+        let klist = KlistUtil()
+        let caches = await klist.listCaches()
+        Logger.automaticSignIn.debug("🔍 [Delegate] Retrieved \(caches.count, privacy: .public) credential caches after auth")
 
-            // Find the actual principal with correct case
-            if let actualPrincipal = princs.first(where: { $0.lowercased() == self.account.upn.lowercased() }) {
-                Logger.automaticSignIn.debug("🔍 [Delegate] Using actual principal from klist: \(actualPrincipal, privacy: .public)")
-                Logger.automaticSignIn.debug("🔍 [Delegate] Switching to authenticated user")
-                let output = try await cliTask("/usr/bin/kswitch -p \(actualPrincipal)")
-                Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
-            } else {
-                // Fallback to session.userPrincipal if we can't find the ticket (shouldn't happen)
-                Logger.automaticSignIn.warning("⚠️ [Delegate] Could not find actual principal in klist, using session principal")
-                let output = try await cliTask("/usr/bin/kswitch -p \(session.userPrincipal)")
-                Logger.automaticSignIn.debug("🔍 [Delegate] kswitch output: \(output, privacy: .public)")
+        let candidatePrincipals = [account.upn.lowercased(), session.userPrincipal.lowercased()]
+        let matchingCaches = candidatePrincipals.lazy.compactMap { principal in
+            caches.filter { $0.principal.lowercased() == principal }
+                .min(by: { !$0.isExpired && $1.isExpired })
+        }
+
+        var switched = false
+        if let cache = matchingCaches.first {
+            Logger.automaticSignIn.debug("🔍 [Delegate] Switching to authenticated user: \(cache.principal, privacy: .public)")
+            switched = await klist.switchDefaultCache(to: cache.cacheName)
+            if !switched {
+                Logger.automaticSignIn.error("❌ [Delegate] Could not switch to principal: \(cache.principal, privacy: .public)")
             }
+        } else {
+            Logger.automaticSignIn.warning("⚠️ [Delegate] No credential cache found for \(self.account.upn, privacy: .public) after authentication")
+        }
 
-            Logger.automaticSignIn.debug("🔍 [Delegate] Posting success notification")
-            NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
+        Logger.automaticSignIn.debug("🔍 [Delegate] Posting success notification")
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["krbAuthenticated": MounterError.krbAuthSuccessful])
 
+        // A failed directory lookup must not override the success that was just reported
+        if switched {
             Logger.automaticSignIn.debug("🔍 [Delegate] Retrieving user information")
+            isInUserInfoMode = true
             await session.userInfo()
+            isInUserInfoMode = false
             Logger.automaticSignIn.debug("🔍 [Delegate] User information retrieved")
-        } catch {
-            Logger.automaticSignIn.error("❌ [Delegate] Error after successful authentication: \(error.localizedDescription, privacy: .public)")
         }
 
         Logger.automaticSignIn.debug("🔍 [Delegate] dogeADAuthenticationSucceeded completed")
