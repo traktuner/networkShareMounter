@@ -42,6 +42,12 @@ class ActivityController {
     /// Flag to prevent parallel mount operations
     private var isMountOperationInProgress = false
 
+    /// Task for debouncing credential cache change notifications
+    private var credentialCacheChangeTask: Task<Void, Never>?
+
+    /// Valid credential caches (name and expiry) seen at the last cache change
+    private var knownValidCredentialCaches: Set<String> = []
+
     // MARK: - Initialization
     
     /// Initializes the controller and starts monitoring system events
@@ -207,6 +213,12 @@ class ActivityController {
         DistributedNotificationCenter.default.addObserver(
             self,
             selector: #selector(processAutomaticSignIn),
+            name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name,
+            object: nil
+        )
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(credentialCachesChanged),
             name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name,
             object: nil
         )
@@ -434,6 +446,36 @@ class ActivityController {
             Logger.activityController.debug("🔄 Starting automatic sign-in task")
             await appDelegate?.automaticSignIn.signInAllAccounts(forceAuth: forceAuth)
             Logger.activityController.info("✅ Automatic sign-in completed successfully")
+        }
+    }
+
+    /// Reacts to changes of the Kerberos credential caches
+    ///
+    /// Refreshes the ticket status in the UI. Shares with externally managed tickets
+    /// (e.g. Platform SSO) get no NSM sign-in, so they are mounted as soon as a cache becomes
+    /// valid that was not valid before. Switching the default cache (as NSM does while
+    /// mounting) changes no validity and therefore triggers no mount.
+    @objc func credentialCachesChanged() {
+        credentialCacheChangeTask?.cancel()
+        credentialCacheChangeTask = Task { @MainActor in
+            // Credential caches often change several times in a row
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard !Task.isCancelled else { return }
+
+            NotificationCenter.default.post(name: Defaults.nsmKerberosTicketsChanged, object: nil)
+
+            let validCaches = Set(await KlistUtil().listCaches().filter { !$0.isExpired }.map(\.cacheName))
+            let hasNewTicket = !validCaches.isSubset(of: knownValidCredentialCaches)
+            knownValidCredentialCaches = validCaches
+            guard hasNewTicket, let mounter = appDelegate?.mounter else { return }
+
+            let shares = await mounter.shareManager.allShares
+            guard shares.contains(where: { $0.authType == .krb && $0.externalKerberosManagement && $0.mountStatus != .mounted }) else {
+                return
+            }
+
+            Logger.activityController.info("🎫 New Kerberos ticket detected - mounting shares with externally managed tickets")
+            await mounter.mountGivenShares()
         }
     }
 
