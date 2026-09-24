@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
   follows fails. Previously the next automatic sign-in could remove the saved password
 - Kerberos tickets are now handled directly through macOS instead of through command line tools, which
   makes signing in and switching between tickets more reliable
+- On macOS 27, the shares in the menu bar menu show their status icons again (connected, not connected).
+  Since version 4.1.5 only the names were displayed
 
 ## [4.1.5] - 2026-09-04
 
