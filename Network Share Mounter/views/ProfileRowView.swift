@@ -93,6 +93,9 @@ struct ProfileRowView: View {
         .task(id: profile.id) {
             await checkTicketStatus(for: profile)
         }
+        .onReceive(NotificationCenter.default.publisher(for: Defaults.nsmKerberosTicketsChanged)) { _ in
+            Task { await checkTicketStatus(for: profile) }
+        }
     }
 
     private func checkTicketStatus(for profile: AuthProfile) async {

@@ -372,7 +372,13 @@ struct AuthenticationView: View {
     
     private func handleRefreshTicket(_ profile: AuthProfile) {
         logger.info("Starting ticket refresh for profile \(profile.displayName)")
-        
+
+        // Externally managed tickets cannot be renewed by NSM, only their status can be rechecked
+        if profile.isExternallyManaged {
+            NotificationCenter.default.post(name: Defaults.nsmKerberosTicketsChanged, object: nil)
+            return
+        }
+
         // Set refreshing status immediately
         ticketRefreshStatus[profile.id] = .refreshing
         
