@@ -1329,7 +1329,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         menuItem.representedObject = share.id
                         menuItem.image = menuIcon
                     }
-                    
+
+                    // The icon shows the mount status; since the macOS 27 SDK AppKit may hide menu images by default
+                    if #available(macOS 27, *) {
+                        menuItem.preferredImageVisibility = .visible
+                    }
+
                     switch menuShowSharesValue {
                     case "hidden":
                         continue
