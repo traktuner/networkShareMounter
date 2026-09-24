@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file.
   the share
 - The Kerberos status in Settings and in the "Check Kerberos Status" shortcut now shows the ticket for the
   configured realm, even if other Kerberos tickets are present
+- With Kerberos tickets from Platform SSO or another tool, shares are now connected as soon as the ticket is
+  available after login, instead of up to five minutes later. The ticket status in Settings now updates by
+  itself, and the Kerberos warning in the menu disappears once the shares are connected
 - Collecting debug logs failed for users without administrator rights. The app now collects its own logs in
   this case; the additional macOS system logs can only be included with administrator rights
 - After switching networks, for example when connecting to a VPN, signing in works again right away.
