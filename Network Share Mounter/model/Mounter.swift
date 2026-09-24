@@ -805,6 +805,8 @@ class Mounter: ObservableObject {
             Logger.mounter.debug("--- [Sequential Mount] Finished processing share: \(share.networkShare, privacy: .public) ---")
         }
 
+        await clearKerberosErrorIfResolved()
+
         // Log final mount status for all shares
         Logger.mounter.info("📊 Sequential mount process finished. Final mount status summary:")
         for share in await shareManager.allShares {
@@ -901,6 +903,21 @@ class Mounter: ObservableObject {
         default:
             return false
         }
+    }
+
+    /// Clears the Kerberos error once a Kerberos share mounted and none has invalid credentials anymore
+    ///
+    /// For externally managed tickets no NSM sign-in ever reports success, so without this
+    /// the error from an early failed mount would stay in the menu.
+    private func clearKerberosErrorIfResolved() async {
+        guard errorStatus == .krbAuthenticationError else { return }
+        let kerberosShares = await shareManager.allShares.filter { $0.authType == .krb }
+        guard kerberosShares.contains(where: { $0.mountStatus == .mounted }),
+              !kerberosShares.contains(where: { $0.mountStatus == .invalidCredentials }) else {
+            return
+        }
+        Logger.mounter.info("✅ Kerberos shares mounted again - clearing Kerberos authentication error")
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["ClearError": MounterError.noError])
     }
 
     /// Sets the mount status for all shares to the specified value

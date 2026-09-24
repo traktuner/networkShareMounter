@@ -589,15 +589,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
 
-            if self.enableKerberos {
+            if self.enableKerberos, await self.hasAppManagedKerberosAccount() {
                 Logger.app.debug("App-managed Kerberos enabled - waiting for authentication before initial mount")
                 await self.performInitialMountWithKerberosAuth()
+            } else if self.enableKerberos {
+                // Only externally managed tickets: no sign-in will happen, so waiting for it only delays the mount
+                Logger.app.debug("No app-managed Kerberos account - performing initial mount without waiting for authentication")
+                NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
             } else {
                 Logger.app.debug("No app-managed Kerberos authentication required (AD-bound or no Kerberos) - performing initial mount")
                 NotificationCenter.default.post(name: Defaults.nsmTimeTriggerNotification, object: nil)
             }
 
             Logger.app.debug("🎉 App initialization completed successfully")
+    }
+
+    /// Whether AutomaticSignIn has an account to authenticate (external pseudo profiles have no username)
+    @MainActor
+    private func hasAppManagedKerberosAccount() async -> Bool {
+        if !(await AccountsManager.shared.accounts.isEmpty) {
+            return true
+        }
+        return AuthProfileManager.shared.profiles.contains {
+            $0.useKerberos && !$0.isExternallyManaged && !($0.username ?? "").isEmpty
+        }
     }
 
     @MainActor
