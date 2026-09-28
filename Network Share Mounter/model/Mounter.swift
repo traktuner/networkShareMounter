@@ -32,6 +32,9 @@ class Mounter: ObservableObject {
     /// When true, system Kerberos tickets are used automatically by macOS
     var isActiveDirectoryBound: Bool = false
 
+    /// Shares for which the domain-based DFS namespace hint was already logged in this app run
+    private var sharesWithLoggedDFSHint: Set<String> = []
+
     /// Published error status that automatically notifies observers
     @Published private var _errorStatus: MounterError = .noError
     
@@ -845,6 +848,7 @@ class Mounter: ObservableObject {
             Logger.mounter.debug("❌ Authentication error: \(share.networkShare, privacy: .public)")
             if share.authType == .krb {
                 Logger.mounter.debug("🔑 Kerberos authentication error for: \(share.networkShare, privacy: .public)")
+                await logDomainNamespaceHintIfNeeded(for: share)
                 await setErrorStatus(.krbAuthenticationError)
             } else {
                 Logger.mounter.debug("👤 Username/Password authentication error for: \(share.networkShare, privacy: .public)")
@@ -1744,6 +1748,20 @@ class Mounter: ObservableObject {
             return nil
         }
         return (realm, nil)
+    }
+
+    /// Logs a hint when a Kerberos share points to the domain itself (domain-based DFS namespace).
+    /// Active Directory usually has no service principal `cifs/<domain>`, so the mount fails with an
+    /// authentication error although the ticket is valid.
+    private func logDomainNamespaceHintIfNeeded(for share: Share) async {
+        guard !sharesWithLoggedDFSHint.contains(share.networkShare),
+              let host = URL(string: share.networkShare)?.host?.lowercased(),
+              let target = await kerberosTarget(for: share),
+              host == target.realm.lowercased() else {
+            return
+        }
+        sharesWithLoggedDFSHint.insert(share.networkShare)
+        Logger.mounter.warning("⚠️ \(share.networkShare, privacy: .public) points to the domain \(host, privacy: .public) (domain-based DFS namespace). Active Directory usually has no service ticket for cifs/\(host, privacy: .public). On macOS 26.5+ set srv_lookup_enabled=yes in nsmb.conf so macOS resolves the namespace through the domain controllers.")
     }
 }
 
