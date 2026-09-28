@@ -195,9 +195,9 @@
         },
         "singleUserMode": {
             "title": "Single user mode",
-            "description": "If true, automatic Kerberos sign-in and ticket renewal only processes the default account. If false, all configured accounts are processed. Default: true.",
+            "description": "If true, automatic Kerberos sign-in and ticket renewal only processes the default account. If false, all configured accounts are processed. Default: false.",
             "type": "boolean",
-            "default": true
+            "default": false
         },
         "usernameOverride": {
             "title": "Username override",
