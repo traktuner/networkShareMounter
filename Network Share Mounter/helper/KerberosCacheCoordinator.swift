@@ -53,6 +53,10 @@ actor KerberosCacheCoordinator {
         let caches = await klist.listCaches()
         guard let target = Self.bestCache(in: caches, realm: realm, principal: principal) else {
             Logger.kerberos.warning("⚠️ No valid Kerberos credential cache for realm \(realm, privacy: .public) (\(caches.count, privacy: .public) cache(s) present)")
+            // What NSM sees can differ from `klist` in Terminal (e.g. SSO extension access restrictions)
+            for cache in caches {
+                Logger.kerberos.info("🎫 Visible credential cache: realm \(cache.realm, privacy: .public), default: \(cache.isDefault, privacy: .public), expired: \(cache.isExpired, privacy: .public), expires: \(cache.expires, privacy: .public), principal: \(cache.principal)")
+            }
             return Lease(cacheToRestore: nil)
         }
         guard !target.isDefault else {
