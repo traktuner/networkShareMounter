@@ -64,7 +64,7 @@ enum PreferenceKeys: String, CaseIterable {
     case lastUser = "LastUser"
     
     /// Whether to use single user mode
-    case singleUserMode = "SingleUserMode"
+    case singleUserMode = "singleUserMode"
     
     /// User's Common Name (CN)
     case userCN = "UserCN"
