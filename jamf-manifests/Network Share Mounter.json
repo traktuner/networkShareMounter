@@ -214,13 +214,13 @@
         },
         "ExpirationCountdownStartDay": {
             "title": "Password expiration: countdown start (days)",
-            "description": "Passive warning. Number of days before password expiry when a silent countdown item first appears in the menu bar. The user only sees this when they open the menu — no interruption. Set to 0 to disable all password expiration features. Mirrors the Apple Kerberos SSO Extension key of the same name.",
+            "description": "Passive warning. Number of days before password expiry when a countdown item appears in the menu bar. The user only sees it when they open the menu, so there is no interruption. On by default (14 days). 0 turns off all password expiration warnings, i.e. the countdown and the dialog. Mirrors the Apple Kerberos SSO Extension key of the same name.",
             "type": "integer",
             "default": 14
         },
         "ExpirationNotificationStartDay": {
             "title": "Password expiration: notification start (days)",
-            "description": "Active warning. Number of days before password expiry when an intrusive warning dialog is shown once per calendar day. Set this lower than ExpirationCountdownStartDay so the dialog only interrupts the user when expiry is genuinely imminent. Mirrors the Jamf Connect / Apple Kerberos SSO Extension key of the same name.",
+            "description": "Active warning. Number of days before password expiry when a warning dialog is shown, at most once per calendar day. The dialog never starts before the countdown: if this value is higher than ExpirationCountdownStartDay, the dialog starts together with the countdown. 0 turns off only the dialog, the countdown stays (version 4.1.6 or later). Mirrors the Jamf Connect / Apple Kerberos SSO Extension key of the same name.",
             "type": "integer",
             "default": 14
         },
