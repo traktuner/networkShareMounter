@@ -67,6 +67,7 @@ struct GeneralSettingsView: View {
     @State private var collectedLogs: String? = nil
     @State private var collectedLogData: Data? = nil
     @State private var collectedLogFilename: String = ""
+    @State private var collectedLogScope: String = ""
     @State private var showingLogViewer: Bool = false
     @State private var showingDiagnosticsInfo: Bool = false
 
@@ -403,7 +404,7 @@ struct GeneralSettingsView: View {
             Logger.app.info("🔄 Collecting debug logs...")
             let since = Date().addingTimeInterval(-30 * 60)
 
-            let raw = try await Task.detached {
+            let (raw, scope) = try await Task.detached {
                 try await self.collectLogs(since: since)
             }.value
 
@@ -415,6 +416,7 @@ struct GeneralSettingsView: View {
             collectedLogs = String(data: raw, encoding: .utf8) ?? ""
             collectedLogData = compressed
             collectedLogFilename = filename
+            collectedLogScope = scope
             Logger.app.info("✅ Logs collected: \(raw.count) bytes raw, \(compressed.count) bytes compressed")
         } catch {
             Logger.app.error("❌ Failed to collect logs: \(error.localizedDescription)")
@@ -435,6 +437,7 @@ struct GeneralSettingsView: View {
 
         isExportingLogs = true
         let filename = collectedLogFilename
+        let logScope = collectedLogScope
         let hasFDA = FullDiskAccessChecker.hasAccess()
 
         await Task.detached {
@@ -448,6 +451,7 @@ struct GeneralSettingsView: View {
                 scope.setExtra(value: 30, key: "log_duration_minutes")
                 scope.setExtra(value: filename, key: "attachment_filename")
                 scope.setExtra(value: hasFDA, key: "full_disk_access")
+                scope.setExtra(value: logScope, key: "log_scope")
             }
             SentrySDK.flush(timeout: 10.0)
             Logger.app.info("🚀 Sentry flush completed")
@@ -460,10 +464,12 @@ struct GeneralSettingsView: View {
 
     /// Collects logs from OSLogStore since specified date.
     ///
-    /// Tries the `.system` scope first (requires Full Disk Access) so that SMB client,
-    /// NetAuthSysAgent, and NetAuthAgent entries are included alongside the app's own logs.
-    /// Falls back silently to `.currentProcessIdentifier` when FDA is not available.
-    private func collectLogs(since date: Date) async throws -> Data {
+    /// Tries the `.system` scope first so that SMB client, NetAuthSysAgent, and NetAuthAgent
+    /// entries are included alongside the app's own logs. Reading the system log store requires
+    /// administrator rights; without them macOS denies access (surfacing as a generic ObjC error
+    /// on open or read), so the app falls back to its own `.currentProcessIdentifier` logs.
+    /// - Returns: The log text and the label of the scope that was used
+    private func collectLogs(since date: Date) async throws -> (data: Data, scope: String) {
         // Predicate targets our app plus the OS subsystems relevant for mount/auth diagnosis.
         // TCC is intentionally omitted — it is extremely verbose and rarely needed.
         let predicate = NSPredicate(
@@ -474,34 +480,41 @@ struct GeneralSettingsView: View {
             "NetAuthAgent"
         )
 
-        let (logStore, scopeLabel): (OSLogStore, String)
+        let logLines: [String]
+        let scopeLabel: String
         do {
-            logStore = try OSLogStore(scope: .system)
+            logLines = try readLogLines(scope: .system, since: date, matching: predicate)
             scopeLabel = "system"
         } catch {
-            Logger.app.warning("⚠️ System log scope unavailable (FDA required): \(error.localizedDescription, privacy: .public)")
-            logStore = try OSLogStore(scope: .currentProcessIdentifier)
+            let systemError = error as NSError
+            Logger.app.warning("⚠️ System log store not readable (administrator rights required): \(systemError.domain, privacy: .public) \(systemError.code, privacy: .public)")
+            do {
+                logLines = try readLogLines(scope: .currentProcessIdentifier, since: date, matching: predicate)
+            } catch {
+                let processError = error as NSError
+                Logger.app.error("❌ Process log store not readable: \(processError.domain, privacy: .public) \(processError.code, privacy: .public)")
+                throw LogCollectionError.logStoreUnavailable
+            }
             scopeLabel = "process"
         }
 
-        Logger.app.info("📋 Collecting logs with scope: \(scopeLabel, privacy: .public)")
+        Logger.app.info("📋 Collected \(logLines.count, privacy: .public) log entries with scope: \(scopeLabel, privacy: .public)")
 
-        let position = logStore.position(date: date)
-        let entries = try logStore.getEntries(at: position, matching: predicate)
+        let logText = (["=== Log scope: \(scopeLabel) ==="] + logLines).joined(separator: "\n")
+        return (Data(logText.utf8), scopeLabel)
+    }
 
-        var logLines: [String] = ["=== Log scope: \(scopeLabel) ==="]
-
-        for entry in entries {
-            if let logEntry = entry as? OSLogEntryLog {
-                let timestamp = DateFormatter.logFormat.string(from: logEntry.date)
-                let level = logLevelString(from: logEntry.level)
-                let line = "\(timestamp) [\(level)] [\(logEntry.subsystem)/\(logEntry.category)] \(logEntry.composedMessage)"
-                logLines.append(line)
-            }
+    /// Opens the log store for the given scope and reads matching entries since the given date.
+    /// Opening and reading are kept together because access can be denied at either step.
+    private func readLogLines(scope: OSLogStore.Scope, since date: Date, matching predicate: NSPredicate) throws -> [String] {
+        let logStore = try OSLogStore(scope: scope)
+        let entries = try logStore.getEntries(at: logStore.position(date: date), matching: predicate)
+        return entries.compactMap { entry in
+            guard let logEntry = entry as? OSLogEntryLog else { return nil }
+            let timestamp = DateFormatter.logFormat.string(from: logEntry.date)
+            let level = logLevelString(from: logEntry.level)
+            return "\(timestamp) [\(level)] [\(logEntry.subsystem)/\(logEntry.category)] \(logEntry.composedMessage)"
         }
-
-        let logText = logLines.joined(separator: "\n")
-        return logText.data(using: .utf8) ?? Data()
     }
 
     /// Converts OSLogEntryLog.Level to readable string
@@ -528,22 +541,10 @@ struct GeneralSettingsView: View {
         isResettingNetworkAuth = true
         networkAuthResetResult = nil
 
-        Logger.app.info("Resetting network authentication agents (NetAuthSysAgent, netbiosd)...")
-
-        // killall returns exit code 1 when the process is not found — use try? to handle that gracefully
-        var agentKilled = false
-        if (try? await cliTask("/usr/bin/killall", arguments: ["NetAuthSysAgent"])) != nil {
-            agentKilled = true
-            Logger.app.info("NetAuthSysAgent terminated")
-        }
-        _ = try? await cliTask("/usr/bin/killall", arguments: ["netbiosd"])
-
-        // Allow launchd time to restart the daemons before any new mount attempt
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        let agentKilled = await NetworkAuthReset.perform()
 
         networkAuthResetResult = agentKilled ? .killedAgents : .alreadyClean
         isResettingNetworkAuth = false
-        Logger.app.info("Network authentication reset complete (agentKilled: \(agentKilled))")
     }
 }
 
@@ -562,7 +563,7 @@ private struct NetworkAuthInfoView: View {
 
             infoSection(
                 "What this does",
-                "The button terminates NetAuthSysAgent and netbiosd. macOS automatically restarts both processes. No data is lost and no mounted volumes are affected."
+                "The button terminates NetAuthSysAgent. macOS automatically restarts the process. No data is lost and no mounted volumes are affected."
             )
 
             infoSection(
@@ -691,6 +692,10 @@ private struct DiagnosticsInfoView: View {
                     Text("• Authentication agents (NetAuthSysAgent, NetAuthAgent)")
                         .font(.callout)
                         .foregroundColor(.secondary)
+                    Text("System logs (SMB client, authentication agents) can only be read with administrator rights. Without them, only the logs of Network Share Mounter itself are collected.")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(16)
@@ -709,6 +714,16 @@ private struct DiagnosticsInfoView: View {
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+// MARK: - Log Collection Errors
+
+private enum LogCollectionError: LocalizedError {
+    case logStoreUnavailable
+
+    var errorDescription: String? {
+        NSLocalizedString("The log store could not be read.", comment: "Log collection failure: neither the system nor the app log store is readable")
     }
 }
 

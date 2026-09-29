@@ -78,7 +78,7 @@ actor AccountsManager {
             }
 
         } catch {
-            Logger.accountsManager.error("Failed to retrieve keychain entries with access group: \(error.localizedDescription)")
+            Logger.accountsManager.error("Failed to retrieve keychain entries with access group: \(error.localizedDescription, privacy: .public)")
 
             // Fallback: Try without access group in case there's an entitlement issue
             Logger.accountsManager.info("Attempting fallback: retrieving keychain entries without access group restriction")
@@ -108,7 +108,7 @@ actor AccountsManager {
                 }
 
             } catch {
-                Logger.accountsManager.error("Fallback also failed: \(error.localizedDescription)")
+                Logger.accountsManager.error("Fallback also failed: \(error.localizedDescription, privacy: .public)")
                 Logger.accountsManager.notice("Unable to access keychain - user will need to authenticate manually")
             }
         }
