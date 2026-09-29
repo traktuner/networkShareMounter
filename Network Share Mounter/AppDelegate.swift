@@ -606,7 +606,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Whether AutomaticSignIn has an account to authenticate (external pseudo profiles have no username)
     @MainActor
-    private func hasAppManagedKerberosAccount() async -> Bool {
+    func hasAppManagedKerberosAccount() async -> Bool {
         if !(await AccountsManager.shared.accounts.isEmpty) {
             return true
         }
