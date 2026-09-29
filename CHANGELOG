@@ -21,6 +21,9 @@ All notable changes to this project will be documented in this file.
 - With Kerberos tickets from Platform SSO or another tool, shares are now connected as soon as the ticket is
   available after login, instead of up to five minutes later. The ticket status in Settings now updates by
   itself, and the Kerberos warning in the menu disappears once the shares are connected
+- With Kerberos tickets from Platform SSO or another tool, shares are also reconnected right away after
+  waking from sleep or a network change. Previously the app first waited 30 seconds for its own Kerberos
+  sign-in, which never happens in this setup
 - Collecting debug logs failed for users without administrator rights. The app now collects its own logs in
   this case; the additional macOS system logs can only be included with administrator rights
 - After switching networks, for example when connecting to a VPN, signing in works again right away.

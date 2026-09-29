@@ -163,7 +163,7 @@ actor AutomaticSignIn {
             }
 
             if accounts.isEmpty {
-                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
+                Logger.automaticSignIn.info("ℹ️ No accounts found, nothing to sign in")
                 return
             }
 
