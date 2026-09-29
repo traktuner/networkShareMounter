@@ -678,9 +678,13 @@ class ActivityController {
             Logger.activityController.debug("🔄 Rescanning existing mounts")
             await mounter.rescanExistingMounts()
 
-            if appDelegate?.enableKerberos == true {
+            if appDelegate?.enableKerberos == true, await appDelegate?.hasAppManagedKerberosAccount() == true {
                 Logger.activityController.debug("🔄 Kerberos enabled - triggering authentication before mount")
                 await performSoftRestartWithKerberosAuth(mounter: mounter)
+            } else if appDelegate?.enableKerberos == true {
+                // Only externally managed tickets: no sign-in will happen, so waiting for it only delays the mount
+                Logger.activityController.debug("🔄 No app-managed Kerberos account - mounting shares directly")
+                await mounter.mountGivenShares()
             } else {
                 Logger.activityController.debug("🔄 No Kerberos - mounting shares directly")
                 await mounter.mountGivenShares()

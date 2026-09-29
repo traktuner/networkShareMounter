@@ -163,7 +163,7 @@ actor AutomaticSignIn {
             }
 
             if accounts.isEmpty {
-                Logger.automaticSignIn.warning("⚠️ No accounts found, nothing to sign in")
+                Logger.automaticSignIn.info("ℹ️ No accounts found, nothing to sign in")
                 return
             }
 
@@ -604,7 +604,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
     /// - Within `ExpirationCountdownStartDay` days: always posts `passwordExpirationWarning`
     ///   so the menu shows a countdown item.
     /// - Within `ExpirationNotificationStartDay` days: additionally posts
-    ///   `showPasswordExpirationDialog` once per calendar day.
+    ///   `showPasswordExpirationDialog` once per calendar day. `0` disables only the dialog.
     /// - If password aging is disabled or the "never expires" UAC flag is set: posts
     ///   `clearPasswordExpiration` so any previous warning is removed from the menu.
     private func checkPasswordExpiration(for user: ADUserRecord) {
@@ -652,7 +652,7 @@ actor AutomaticSignInWorker: dogeADUserSessionDelegate {
         )
 
         let notificationThreshold = prefs.int(for: .expirationNotificationStartDay)
-        guard daysRemaining <= notificationThreshold else { return }
+        guard notificationThreshold > 0, daysRemaining <= notificationThreshold else { return }
 
         let lastWarning = prefs.date(for: .lastPasswordExpirationWarningDate)
         let alreadyWarnedToday = lastWarning.map { Calendar.current.isDateInToday($0) } ?? false
