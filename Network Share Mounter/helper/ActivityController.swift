@@ -9,6 +9,7 @@
 @preconcurrency import Foundation
 import AppKit
 import OSLog
+import dogeADAuth
 
 private final class ObserverTokenBox: @unchecked Sendable {
     var token: NSObjectProtocol?
@@ -40,6 +41,12 @@ class ActivityController {
 
     /// Flag to prevent parallel mount operations
     private var isMountOperationInProgress = false
+
+    /// Task for debouncing credential cache change notifications
+    private var credentialCacheChangeTask: Task<Void, Never>?
+
+    /// Valid credential caches (name and expiry) seen at the last cache change
+    private var knownValidCredentialCaches: Set<String> = []
 
     // MARK: - Initialization
     
@@ -209,6 +216,12 @@ class ActivityController {
             name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name,
             object: nil
         )
+        DistributedNotificationCenter.default.addObserver(
+            self,
+            selector: #selector(credentialCachesChanged),
+            name: "CCAPICCacheChangedNotification" as CFString as NSNotification.Name,
+            object: nil
+        )
         
         // NEW: Observe distributed notifications from the App Intents Extension
         DistributedNotificationCenter.default.addObserver(
@@ -356,6 +369,9 @@ class ActivityController {
 
             Logger.activityController.debug("🔄 Starting network change operations after debounce")
 
+            // Domain controllers found in the previous network may be unreachable now
+            SiteManager.shared.clearSites()
+
             // Update SMBHome from AD/OpenDirectory on network/domain changes
             await mounter.shareManager.updateSMBHome()
 
@@ -430,6 +446,36 @@ class ActivityController {
             Logger.activityController.debug("🔄 Starting automatic sign-in task")
             await appDelegate?.automaticSignIn.signInAllAccounts(forceAuth: forceAuth)
             Logger.activityController.info("✅ Automatic sign-in completed successfully")
+        }
+    }
+
+    /// Reacts to changes of the Kerberos credential caches
+    ///
+    /// Refreshes the ticket status in the UI. Shares with externally managed tickets
+    /// (e.g. Platform SSO) get no NSM sign-in, so they are mounted as soon as a cache becomes
+    /// valid that was not valid before. Switching the default cache (as NSM does while
+    /// mounting) changes no validity and therefore triggers no mount.
+    @objc func credentialCachesChanged() {
+        credentialCacheChangeTask?.cancel()
+        credentialCacheChangeTask = Task { @MainActor in
+            // Credential caches often change several times in a row
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard !Task.isCancelled else { return }
+
+            NotificationCenter.default.post(name: Defaults.nsmKerberosTicketsChanged, object: nil)
+
+            let validCaches = Set(await KlistUtil().listCaches().filter { !$0.isExpired }.map(\.cacheName))
+            let hasNewTicket = !validCaches.isSubset(of: knownValidCredentialCaches)
+            knownValidCredentialCaches = validCaches
+            guard hasNewTicket, let mounter = appDelegate?.mounter else { return }
+
+            let shares = await mounter.shareManager.allShares
+            guard shares.contains(where: { $0.authType == .krb && $0.externalKerberosManagement && $0.mountStatus != .mounted }) else {
+                return
+            }
+
+            Logger.activityController.info("🎫 New Kerberos ticket detected - mounting shares with externally managed tickets")
+            await mounter.mountGivenShares()
         }
     }
 
@@ -632,9 +678,13 @@ class ActivityController {
             Logger.activityController.debug("🔄 Rescanning existing mounts")
             await mounter.rescanExistingMounts()
 
-            if appDelegate?.enableKerberos == true {
+            if appDelegate?.enableKerberos == true, await appDelegate?.hasAppManagedKerberosAccount() == true {
                 Logger.activityController.debug("🔄 Kerberos enabled - triggering authentication before mount")
                 await performSoftRestartWithKerberosAuth(mounter: mounter)
+            } else if appDelegate?.enableKerberos == true {
+                // Only externally managed tickets: no sign-in will happen, so waiting for it only delays the mount
+                Logger.activityController.debug("🔄 No app-managed Kerberos account - mounting shares directly")
+                await mounter.mountGivenShares()
             } else {
                 Logger.activityController.debug("🔄 No Kerberos - mounting shares directly")
                 await mounter.mountGivenShares()

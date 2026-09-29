@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.1.6] - 2026-09-23
+
+### What's new
+- "Reset Network Authentication" is now also available as an action in the Shortcuts app and via Siri. Like
+  the button in Settings, it does not reconnect the shares by itself, but it can be combined with "Connect
+  All Network Drives" in a shortcut
+- When signing in to Active Directory, the app now prefers the domain controllers of the site the Mac is
+  located in, if the network is assigned to one
+
+### Fixed
+- Kerberos shares could fail to connect with "invalid credentials" even though a valid Kerberos ticket
+  existed. This could happen when several Kerberos tickets were present at the same time, for example from
+  Platform SSO and from the on-premises Active Directory. The app now always uses the ticket that matches
+  the share
+- The Kerberos status in Settings and in the "Check Kerberos Status" shortcut now shows the ticket for the
+  configured realm, even if other Kerberos tickets are present
+- With Kerberos tickets from Platform SSO or another tool, shares are now connected as soon as the ticket is
+  available after login, instead of up to five minutes later. The ticket status in Settings now updates by
+  itself, and the Kerberos warning in the menu disappears once the shares are connected
+- With Kerberos tickets from Platform SSO or another tool, shares are also reconnected right away after
+  waking from sleep or a network change. Previously the app first waited 30 seconds for its own Kerberos
+  sign-in, which never happens in this setup
+- Collecting debug logs failed for users without administrator rights. The app now collects its own logs in
+  this case; the additional macOS system logs can only be included with administrator rights
+- After switching networks, for example when connecting to a VPN, signing in works again right away.
+  Previously the app could keep trying domain controllers from the previous network until it was restarted
+- After changing the password in the app, the new password is now always saved, even if the sign-in that
+  follows fails. Previously the next automatic sign-in could remove the saved password
+- Kerberos tickets are now handled directly through macOS instead of through command line tools, which
+  makes signing in and switching between tickets more reliable
+- On macOS 27, the shares in the menu bar menu show their status icons again (connected, not connected).
+  Since version 4.1.5 only the names were displayed
+- The MDM key `singleUserMode` had no effect. It now works as documented: when set to `true`, only the
+  default account is signed in automatically. The default is `false`, so without the key all configured
+  accounts are signed in, as before
+- Setting the MDM key `ExpirationNotificationStartDay` to `0` now turns off the daily password expiration
+  dialog while the countdown in the menu stays. Previously the dialog still appeared on the last day before
+  the password expired
+
 ## [4.1.5] - 2026-09-04
 
 ### What's new

@@ -5,7 +5,7 @@
 	<key>useKeychain</key>
 	<true/>
 	<key>singleUserMode</key>
-	<true/>
+	<false/>
 	<key>managedNetworkShares</key>
 	<array/>
 	<key>keyChainService</key>

@@ -50,8 +50,11 @@ struct ProfileDetailView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         // Task to check ticket status
-        .task(id: profile.id) { 
+        .task(id: profile.id) {
             await checkTicketStatus()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Defaults.nsmKerberosTicketsChanged)) { _ in
+            Task { await checkTicketStatus() }
         }
     }
 
