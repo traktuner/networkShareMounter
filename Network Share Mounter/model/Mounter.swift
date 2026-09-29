@@ -32,6 +32,9 @@ class Mounter: ObservableObject {
     /// When true, system Kerberos tickets are used automatically by macOS
     var isActiveDirectoryBound: Bool = false
 
+    /// Shares for which the domain-based DFS namespace hint was already logged in this app run
+    private var sharesWithLoggedDFSHint: Set<String> = []
+
     /// Published error status that automatically notifies observers
     @Published private var _errorStatus: MounterError = .noError
     
@@ -805,6 +808,8 @@ class Mounter: ObservableObject {
             Logger.mounter.debug("--- [Sequential Mount] Finished processing share: \(share.networkShare, privacy: .public) ---")
         }
 
+        await clearKerberosErrorIfResolved()
+
         // Log final mount status for all shares
         Logger.mounter.info("📊 Sequential mount process finished. Final mount status summary:")
         for share in await shareManager.allShares {
@@ -843,6 +848,7 @@ class Mounter: ObservableObject {
             Logger.mounter.debug("❌ Authentication error: \(share.networkShare, privacy: .public)")
             if share.authType == .krb {
                 Logger.mounter.debug("🔑 Kerberos authentication error for: \(share.networkShare, privacy: .public)")
+                await logDomainNamespaceHintIfNeeded(for: share)
                 await setErrorStatus(.krbAuthenticationError)
             } else {
                 Logger.mounter.debug("👤 Username/Password authentication error for: \(share.networkShare, privacy: .public)")
@@ -903,6 +909,21 @@ class Mounter: ObservableObject {
         }
     }
 
+    /// Clears the Kerberos error once a Kerberos share mounted and none has invalid credentials anymore
+    ///
+    /// For externally managed tickets no NSM sign-in ever reports success, so without this
+    /// the error from an early failed mount would stay in the menu.
+    private func clearKerberosErrorIfResolved() async {
+        guard errorStatus == .krbAuthenticationError else { return }
+        let kerberosShares = await shareManager.allShares.filter { $0.authType == .krb }
+        guard kerberosShares.contains(where: { $0.mountStatus == .mounted }),
+              !kerberosShares.contains(where: { $0.mountStatus == .invalidCredentials }) else {
+            return
+        }
+        Logger.mounter.info("✅ Kerberos shares mounted again - clearing Kerberos authentication error")
+        NotificationCenter.default.post(name: .nsmNotification, object: nil, userInfo: ["ClearError": MounterError.noError])
+    }
+
     /// Sets the mount status for all shares to the specified value
     ///
     /// - Parameter status: The mount status to set for all shares
@@ -916,18 +937,13 @@ class Mounter: ObservableObject {
 
     // MARK: - Kerberos Ticket Management
 
-    /// Checks if valid Kerberos tickets exist for a given realm
+    /// Checks if a valid Kerberos ticket exists for a given realm in any credential cache
     ///
     /// - Parameter realm: The Kerberos realm to check (e.g., "FAUAD.FAU.DE")
     /// - Returns: true if valid tickets exist for the realm, false otherwise
     private func hasValidKerberosTicket(forRealm realm: String) async -> Bool {
-        let klist = KlistUtil()
-        let tickets = await klist.klist()
-
-        // Check if we have any valid (non-expired) tickets for this realm
-        let hasValidTicket = tickets.contains { ticket in
-            ticket.principal.uppercased().contains(realm.uppercased())
-        }
+        let caches = await KlistUtil().listCaches()
+        let hasValidTicket = KerberosCacheCoordinator.bestCache(in: caches, realm: realm, principal: nil) != nil
 
         if hasValidTicket {
             Logger.mounter.debug("✅ Found valid Kerberos ticket for realm: \(realm, privacy: .public)")
@@ -1442,6 +1458,13 @@ class Mounter: ObservableObject {
         // Signal that the OS connection attempt is now in progress
         await updateShare(mountStatus: .mounting, for: share)
 
+        // NetFS uses the default credential cache, so make the cache of the share's realm the default
+        var kerberosLease: KerberosCacheCoordinator.Lease?
+        if finalUsername == nil, let target = await kerberosTarget(for: share) {
+            kerberosLease = await KerberosCacheCoordinator.shared.activateCache(forRealm: target.realm,
+                                                                                principal: target.principal)
+        }
+
         // Capture the actual mount path(s) reported by the OS so we know the real location
         // even if macOS appended "-1", "-2", etc. to avoid name conflicts.
         var mountedPathsRef: Unmanaged<CFArray>?
@@ -1452,6 +1475,10 @@ class Mounter: ObservableObject {
                                    openOptions,
                                    mountOptions,
                                    &mountedPathsRef)
+
+        if let kerberosLease {
+            await KerberosCacheCoordinator.shared.finish(kerberosLease)
+        }
 
         // Extract the first (and usually only) actual mount path returned by the OS
         let osMountedPath: String?
@@ -1699,6 +1726,42 @@ class Mounter: ObservableObject {
         Logger.mounter.info("🔄 Legacy username: \(share.username ?? "nil", privacy: .public)")
         Logger.mounter.info("🔄 Legacy has password: \(share.password != nil ? "yes" : "no")")
         return (share.username, share.password)
+    }
+
+    /// Determines the Kerberos realm and, if known, the expected principal for a share.
+    /// Returns nil for shares that do not authenticate via Kerberos.
+    private func kerberosTarget(for share: Share) async -> (realm: String, principal: String?)? {
+        let profilesSnapshot = await AuthProfileManager.shared.profiles
+        if let authProfileID = share.authProfileID,
+           let profile = profilesSnapshot.first(where: { $0.id == authProfileID }) {
+            guard profile.useKerberos else { return nil }
+            if let realm = profile.kerberosRealm, !realm.isEmpty {
+                let principal = profile.username.flatMap {
+                    $0.isEmpty ? nil : KerberosCacheCoordinator.principal(forUsername: $0, realm: realm)
+                }
+                return (realm, principal)
+            }
+        }
+
+        guard share.authType == .krb,
+              let realm = prefs.string(for: .kerberosRealm), !realm.isEmpty else {
+            return nil
+        }
+        return (realm, nil)
+    }
+
+    /// Logs a hint when a Kerberos share points to the domain itself (domain-based DFS namespace).
+    /// Active Directory usually has no service principal `cifs/<domain>`, so the mount fails with an
+    /// authentication error although the ticket is valid.
+    private func logDomainNamespaceHintIfNeeded(for share: Share) async {
+        guard !sharesWithLoggedDFSHint.contains(share.networkShare),
+              let host = URL(string: share.networkShare)?.host?.lowercased(),
+              let target = await kerberosTarget(for: share),
+              host == target.realm.lowercased() else {
+            return
+        }
+        sharesWithLoggedDFSHint.insert(share.networkShare)
+        Logger.mounter.warning("⚠️ \(share.networkShare, privacy: .public) points to the domain \(host, privacy: .public) (domain-based DFS namespace). Active Directory usually has no service ticket for cifs/\(host, privacy: .public). On macOS 26.5+ set srv_lookup_enabled=yes in nsmb.conf so macOS resolves the namespace through the domain controllers.")
     }
 }
 

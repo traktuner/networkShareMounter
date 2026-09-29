@@ -87,6 +87,9 @@ struct Defaults {
     /// Notification for Kerberos authentication retry needed
     static let nsmKerberosAuthRetryNeeded = Notification.Name("nsmKerberosAuthRetryNeeded")
 
+    /// Notification that the Kerberos credential caches changed and ticket status should be rechecked
+    static let nsmKerberosTicketsChanged = Notification.Name("nsmKerberosTicketsChanged")
+
     // MARK: - NetFS Mount Options
     
     /// Options for regular mounting without UI
