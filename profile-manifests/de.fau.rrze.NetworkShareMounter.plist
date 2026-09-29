@@ -13,7 +13,7 @@
 	<key>pfm_format_version</key>
 	<integer>1</integer>
 	<key>pfm_last_modified</key>
-	<date>2026-09-28T14:46:29Z</date>
+	<date>2026-09-29T08:37:50Z</date>
 	<key>pfm_platforms</key>
 	<array>
 		<string>macOS</string>
@@ -321,7 +321,7 @@ A profile can consist of payloads with different version numbers. For example, c
 			<key>pfm_default</key>
 			<integer>14</integer>
 			<key>pfm_description</key>
-			<string>Passive warning. Days before password expiry when a silent countdown item first appears in the menu bar. The user only sees it when they open the menu. Set to 0 to disable all password expiration features entirely. Mirrors the Apple Kerberos SSO Extension key of the same name.</string>
+			<string>Passive warning. Number of days before password expiry when a countdown item appears in the menu bar. The user only sees it when they open the menu, so there is no interruption. On by default (14 days). 0 turns off all password expiration warnings, i.e. the countdown and the dialog. Mirrors the Apple Kerberos SSO Extension key of the same name.</string>
 			<key>pfm_name</key>
 			<string>ExpirationCountdownStartDay</string>
 			<key>pfm_title</key>
@@ -333,7 +333,7 @@ A profile can consist of payloads with different version numbers. For example, c
 			<key>pfm_default</key>
 			<integer>14</integer>
 			<key>pfm_description</key>
-			<string>Active warning. Days before password expiry when an alert dialog is shown automatically, once per calendar day. Set this lower than ExpirationCountdownStartDay so the dialog only interrupts when expiry is genuinely imminent. Mirrors the Jamf Connect / Apple Kerberos SSO Extension key of the same name.</string>
+			<string>Active warning. Number of days before password expiry when a warning dialog is shown, at most once per calendar day. The dialog never starts before the countdown: if this value is higher than ExpirationCountdownStartDay, the dialog starts together with the countdown. 0 turns off only the dialog, the countdown stays (version 4.1.6 or later). Mirrors the Jamf Connect / Apple Kerberos SSO Extension key of the same name.</string>
 			<key>pfm_name</key>
 			<string>ExpirationNotificationStartDay</string>
 			<key>pfm_title</key>
