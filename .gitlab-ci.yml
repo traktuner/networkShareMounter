@@ -25,10 +25,12 @@ before_script:
   - export PATH="$HOME/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
   - echo $PATH
   - ruby -v
-  - cp ~/dev/.env.default .
+  - ln -sf ~/dev/.env.default .env.default
   - bundle config set path 'vendor/bundle'
   - bundle install
   - export APP_VERSION=`echo "$CI_COMMIT_TAG" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+'`
+after_script:
+  - rm -f .env.default
 
 test_build:
   stage: test
