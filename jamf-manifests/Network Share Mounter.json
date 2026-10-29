@@ -105,6 +105,12 @@
                 }
             }
         },
+        "mountSMBHome": {
+            "title": "Mount AD home share",
+            "description": "If false, the user's home share from the Active Directory/OpenDirectory SMBHome attribute is not mounted. Only relevant on Macs bound to Active Directory. If the key is missing, the home share is mounted (default: true).",
+            "type": "boolean",
+            "default": true
+        },
         "disableAutoUpdateFramework": {
             "title": "Disable AutoUpdater Framework",
             "description": "Turns the auto update framework on or off, so the App can update itself.",
