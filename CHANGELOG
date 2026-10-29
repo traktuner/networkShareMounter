@@ -2,12 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [4.1.7] - 2026-10-29
 
 ### What's new
 - The new MDM key `mountSMBHome` controls whether the home share from the user's Active Directory account
   (SMBHome attribute) is connected. Set it to `false` to turn this off, for example when replacing the shares
   feature of NoMAD or Jamf Connect. Without the key the home share is connected as before
+
+### Fixed
+- Editing a share in Settings saved nothing when the network path was changed. Changing the assigned profile
+  in the same dialog had no effect when connecting, the share still used the previous profile. Both changes
+  are now saved and used right away
+- Shares added with a Kerberos profile were saved as password shares. They are now saved as Kerberos shares
 
 ## [4.1.6] - 2026-09-23
 
