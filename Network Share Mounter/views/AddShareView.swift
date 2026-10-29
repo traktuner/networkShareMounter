@@ -253,8 +253,12 @@ struct AddShareView: View {
         mountPointName = share.effectiveMountPoint
         autoMount = share.autoMount
 
-        // Find associated profile for this share
-        selectedProfileID = findAssociatedProfile(for: share)
+        // The assigned profile is what mounting uses; associations are only a fallback
+        if let profileID = share.authProfileID, profileManager.getProfile(by: profileID) != nil {
+            selectedProfileID = profileID
+        } else {
+            selectedProfileID = findAssociatedProfile(for: share)
+        }
 
         logger.info("Setup editing for share: \(share.networkShare)")
     }
@@ -304,6 +308,12 @@ struct AddShareView: View {
         return nil
     }
     
+    /// Returns the authentication type matching the selected profile (Kerberos without a profile)
+    private func authType(forProfileID profileID: String?) -> AuthType {
+        guard let profileID, let profile = profileManager.getProfile(by: profileID) else { return .krb }
+        return profile.useKerberos ? .krb : .pwd
+    }
+    
     // --- Actions --- 
     
     /// Handles validation, share creation, profile update, and dismissal.
@@ -321,7 +331,7 @@ struct AddShareView: View {
         let mountPoint = mountPointName.isEmpty ? nil : mountPointName
         let newShare = Share.createShare(
             networkShare: networkShare,
-            authType: (selectedProfileID ?? "").isEmpty ? .krb : .pwd,
+            authType: authType(forProfileID: selectedProfileID),
             mountStatus: .unmounted,
             mountPoint: mountPoint,
             managed: false,
@@ -376,14 +386,24 @@ struct AddShareView: View {
             updatedShare.networkShare = networkShare
             updatedShare.mountPoint = mountPointName.isEmpty ? nil : mountPointName
             updatedShare.autoMount = autoMount
+            updatedShare.authProfileID = selectedProfileID
+            if !originalShare.managed {
+                updatedShare.authType = authType(forProfileID: selectedProfileID)
+            }
+            if selectedProfileID != nil && updatedShare.mountStatus == .unassignedProfile {
+                updatedShare.mountStatus = .unmounted
+            }
 
-            // Check if mount point changed and share is currently mounted
-            let needsRemount = oldMountPoint != updatedShare.effectiveMountPoint && originalShare.mountStatus == .mounted
+            // Check if URL or mount point changed and share is currently mounted
+            let locationChanged = oldShareURL != updatedShare.networkShare || oldMountPoint != updatedShare.effectiveMountPoint
+            let needsRemount = locationChanged && originalShare.mountStatus == .mounted
 
             // Unmount if necessary before updating
             if needsRemount {
-                logger.info("🔄 Mount point changed while mounted - unmounting first")
+                logger.info("🔄 Share URL or mount point changed while mounted - unmounting first")
                 await mounter.unmountShare(for: originalShare, userTriggered: false)
+                updatedShare.mountStatus = .unmounted
+                updatedShare.actualMountPoint = nil
             }
 
             // 3. Update share in ShareManager
