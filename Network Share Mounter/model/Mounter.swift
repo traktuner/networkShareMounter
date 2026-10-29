@@ -208,16 +208,22 @@ class Mounter: ObservableObject {
     
     /// Updates a share object at a specific index and updates the shares array
     ///
+    /// The share is looked up by its ID first, so an edited share whose URL changed is still found.
+    ///
     /// - Parameter share: The share with updated properties
     func updateShare(for share: Share) async {
-        if let index = await shareManager.allShares.firstIndex(where: { $0.networkShare == share.networkShare }) {
-            do {
-                try await shareManager.updateShare(at: index, withUpdatedShare: share)
-            } catch ShareError.invalidIndex(let index) {
-                Logger.shareManager.error("❌ Could not update share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
-            } catch {
-                Logger.shareManager.error("❌ Could not update share \(share.networkShare, privacy: .public), unknown error.")
-            }
+        let shares = await shareManager.allShares
+        guard let index = shares.firstIndex(where: { $0.id == share.id })
+                ?? shares.firstIndex(where: { $0.networkShare == share.networkShare }) else {
+            Logger.shareManager.error("❌ Could not update share \(share.networkShare, privacy: .public), share not found.")
+            return
+        }
+        do {
+            try await shareManager.updateShare(at: index, withUpdatedShare: share)
+        } catch ShareError.invalidIndex(let index) {
+            Logger.shareManager.error("❌ Could not update share \(share.networkShare, privacy: .public), index \(index, privacy: .public) is not valid.")
+        } catch {
+            Logger.shareManager.error("❌ Could not update share \(share.networkShare, privacy: .public), unknown error.")
         }
     }
     

@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/schema#",
     "title": "Network Share Mounter (de.fau.rrze.NetworkShareMounter)",
     "description": "Jamf Manifest for Network Share Mounter v4",
-    "__version": "4.1.6",
+    "__version": "4.1.7",
     "__feedback": "rrze-mac@fau.de",
     "type": "object",
     "options": {
@@ -104,6 +104,12 @@
                     }
                 }
             }
+        },
+        "mountSMBHome": {
+            "title": "Mount AD home share",
+            "description": "If false, the user's home share from the Active Directory/OpenDirectory SMBHome attribute is not mounted. Only relevant on Macs bound to Active Directory. If the key is missing, the home share is mounted (default: true).",
+            "type": "boolean",
+            "default": true
         },
         "disableAutoUpdateFramework": {
             "title": "Disable AutoUpdater Framework",

@@ -277,6 +277,29 @@ final class MounterTests: XCTestCase {
         XCTAssertEqual(shares[0].authType, .pwd, "Die Authentifizierungsart sollte aktualisiert sein")
         XCTAssertEqual(shares[0].username, "newuser", "Der Benutzername sollte aktualisiert sein")
     }
+
+    /// Test: Aktualisieren eines Shares mit geänderter URL (#411)
+    func testUpdateShareWithChangedURL() async throws {
+        // Given
+        let originalShare = createTestShare(networkShare: testShare1URL, username: nil)
+        await sut.shareManager.addShare(originalShare)
+
+        var updatedShare = originalShare
+        updatedShare.networkShare = testShare2URL
+        updatedShare.mountPoint = "renamed"
+        updatedShare.authProfileID = "profile-411"
+
+        // When
+        await sut.updateShare(for: updatedShare)
+
+        // Then
+        let shares = await sut.shareManager.allShares
+        let share = try XCTUnwrap(shares.first(where: { $0.id == originalShare.id }), "Der Share sollte über seine ID gefunden werden")
+        XCTAssertFalse(shares.contains(where: { $0.networkShare == testShare1URL }), "Die alte URL sollte nicht mehr existieren")
+        XCTAssertEqual(share.networkShare, testShare2URL, "Die URL sollte aktualisiert sein")
+        XCTAssertEqual(share.mountPoint, "renamed", "Der Mountpoint sollte aktualisiert sein")
+        XCTAssertEqual(share.authProfileID, "profile-411", "Die Profilzuordnung sollte aktualisiert sein")
+    }
     
     /// Test: Path-Escaping-Funktion (indirekt)
     func testEscapePath() async throws {

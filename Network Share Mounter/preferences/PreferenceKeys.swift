@@ -202,6 +202,9 @@ enum PreferenceKeys: String, CaseIterable {
     /// List of managed network shares (from MDM)
     case managedNetworkSharesKey = "managedNetworkShares"
     
+    /// Whether to mount the user's home share from the AD/OpenDirectory SMBHome attribute
+    case mountSMBHome = "mountSMBHome"
+    
     /// Authentication type for shares
     case authType = "authType"
     
