@@ -42,6 +42,8 @@
 	<string>hidden</string>
 	<key>sendDiagnostics</key>
 	<true/>
+	<key>mountSMBHome</key>
+	<true/>
 	<key>ExpirationCountdownStartDay</key>
 	<integer>14</integer>
 	<key>ExpirationNotificationStartDay</key>

@@ -13,7 +13,7 @@
 	<key>pfm_format_version</key>
 	<integer>1</integer>
 	<key>pfm_last_modified</key>
-	<date>2026-09-29T08:37:50Z</date>
+	<date>2026-10-29T12:00:00Z</date>
 	<key>pfm_platforms</key>
 	<array>
 		<string>macOS</string>
@@ -415,6 +415,18 @@ A profile can consist of payloads with different version numbers. For example, c
 		</dict>
 		<dict>
 			<key>pfm_default</key>
+			<true/>
+			<key>pfm_description</key>
+			<string>If false, the user's home share from the Active Directory/OpenDirectory SMBHome attribute is not mounted. Only relevant on Macs bound to Active Directory. If the key is missing, the home share is mounted (default: true).</string>
+			<key>pfm_name</key>
+			<string>mountSMBHome</string>
+			<key>pfm_title</key>
+			<string>Mount AD Home Share</string>
+			<key>pfm_type</key>
+			<string>boolean</string>
+		</dict>
+		<dict>
+			<key>pfm_default</key>
 			<string></string>
 			<key>pfm_description</key>
 			<string>Path where network shares are mounted. The default is a localized folder in the user's home directory (e.g. ~/Network Shares). It is strongly recommended to leave this empty and use the default - changing it can break Finder integration.</string>
@@ -749,6 +761,6 @@ A profile can consist of payloads with different version numbers. For example, c
 	<key>pfm_unique</key>
 	<true/>
 	<key>pfm_version</key>
-	<integer>4</integer>
+	<integer>5</integer>
 </dict>
 </plist>

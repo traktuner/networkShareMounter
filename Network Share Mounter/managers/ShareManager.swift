@@ -20,7 +20,9 @@ actor ShareManager {
     private var _shares: [Share] = []
     private let userDefaults = UserDefaults.standard
     private var prefs = PreferenceManager()
-    
+    /// URL of the share added from the user's SMBHome attribute, if any
+    private var smbHomeShareURL: String?
+
     /// Add a share
     func addShare(_ share: Share) {
         if !allShares.contains(where: { $0.networkShare == share.networkShare }) {
@@ -798,7 +800,14 @@ actor ShareManager {
     /// This method queries the current user's SMBHome attribute from AD/OD
     /// and adds it as a managed share if available. This is called dynamically
     /// when network changes occur to handle domain switches.
+    /// With `mountSMBHome` set to false, no query is made and a previously added SMBHome share is removed.
     func updateSMBHome() async {
+        guard prefs.bool(for: .mountSMBHome) else {
+            Logger.shareManager.debug("🏠 SMBHome mounting disabled by mountSMBHome")
+            removeSMBHomeShare()
+            return
+        }
+
         Logger.shareManager.debug("🏠 Checking for SMBHome attribute in AD/OpenDirectory")
         
         Task.detached(priority: .background) { [weak self] in
@@ -820,14 +829,40 @@ actor ShareManager {
                                                      authType: AuthType.krb,
                                                      mountStatus: MountStatus.unmounted,
                                                      managed: true)
-                    await self.addShare(newShare)
-                    Logger.shareManager.debug("✅ SMBHome share added successfully")
+                    await self.addSMBHomeShare(newShare)
                 } else {
                     Logger.shareManager.debug("ℹ️ No SMBHome attribute found for current user")
                 }
             } catch {
                 Logger.shareManager.info("⚠️ Couldn't query SMBHome from AD/OpenDirectory: \(error.localizedDescription)")
             }
+        }
+    }
+
+    /// Adds the SMBHome share and remembers its URL
+    ///
+    /// A share with the same URL that already exists (e.g. configured via MDM) is left untouched
+    /// and not treated as SMBHome share, so turning off `mountSMBHome` never removes it.
+    func addSMBHomeShare(_ share: Share) {
+        guard !_shares.contains(where: { $0.networkShare == share.networkShare }) else { return }
+        addShare(share)
+        smbHomeShareURL = share.networkShare
+        Logger.shareManager.debug("✅ SMBHome share added successfully")
+    }
+
+    /// Removes the SMBHome share added earlier, e.g. after `mountSMBHome` was turned off
+    private func removeSMBHomeShare() {
+        guard let shareURL = smbHomeShareURL else { return }
+        smbHomeShareURL = nil
+        guard let index = _shares.firstIndex(where: { $0.networkShare == shareURL }) else { return }
+        do {
+            try removeShare(at: index)
+            Logger.shareManager.info("🏠 Removed SMBHome share \(shareURL, privacy: .public), mountSMBHome is turned off")
+        } catch {
+            Logger.shareManager.error("❌ Could not remove SMBHome share \(shareURL, privacy: .public): \(error.localizedDescription)")
+        }
+        Task { @MainActor in
+            NotificationCenter.default.post(name: Defaults.nsmReconstructMenuTriggerNotification, object: nil)
         }
     }
 }

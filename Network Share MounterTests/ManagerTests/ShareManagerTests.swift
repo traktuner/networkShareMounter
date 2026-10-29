@@ -44,6 +44,7 @@ final class ShareManagerTests: XCTestCase {
     override func tearDownWithError() throws {
         // Clean up
         sut = nil
+        UserDefaults.standard.removeObject(forKey: PreferenceKeys.mountSMBHome.rawValue)
     }
     
     // MARK: - Helper Methods
@@ -514,4 +515,37 @@ final class ShareManagerTests: XCTestCase {
         // When/Then
         XCTAssertEqual(share.effectiveMountPoint, "share", "Should extract last component from nested path")
     }
-} 
+
+    // MARK: - Tests: SMBHome
+
+    /// Test: Turning off mountSMBHome removes a previously added SMBHome share
+    func testUpdateSMBHomeDisabledRemovesSMBHomeShare() async throws {
+        // Given
+        let homeShare = createTestShare(networkShare: testShare1, username: nil, managed: true)
+        await sut.addSMBHomeShare(homeShare)
+        UserDefaults.standard.set(false, forKey: PreferenceKeys.mountSMBHome.rawValue)
+
+        // When
+        await sut.updateSMBHome()
+
+        // Then
+        let shares = await sut.allShares
+        XCTAssertFalse(shares.contains(where: { $0.networkShare == testShare1 }), "SMBHome share should be removed")
+    }
+
+    /// Test: Turning off mountSMBHome keeps an existing share with the same URL as SMBHome
+    func testUpdateSMBHomeDisabledKeepsExistingShareWithSameURL() async throws {
+        // Given
+        let mdmShare = createTestShare(networkShare: testShare1, username: nil, managed: true)
+        await sut.addShare(mdmShare)
+        await sut.addSMBHomeShare(createTestShare(networkShare: testShare1, username: nil, managed: true))
+        UserDefaults.standard.set(false, forKey: PreferenceKeys.mountSMBHome.rawValue)
+
+        // When
+        await sut.updateSMBHome()
+
+        // Then
+        let shares = await sut.allShares
+        XCTAssertTrue(shares.contains(where: { $0.id == mdmShare.id }), "Existing share should not be removed")
+    }
+}
